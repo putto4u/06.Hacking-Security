@@ -3,159 +3,12 @@ import markdown
 from datetime import datetime
 
 def generate_index():
+    # 제외할 폴더 및 파일 설정
     exclude_dirs = {'.git', '.github', '.pytest_cache', '__pycache__', 'assets'}
-    exclude_files = {'index.html', 'generate_index.py', 'genindex.py', 'README.md', 'toc.html'}
+    exclude_files = {'index.html', 'generate_index.py', 'genindex.py', 'README.md'}
     
-    # ---------------------------------------------------------------------------
-    # [1] 마크다운 변환 문서용 기본 HTML 헤더/푸터
-    # ---------------------------------------------------------------------------
-    doc_html_header = """<!DOCTYPE html>
-<html lang="ko" class="dark">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
-        body { 
-            font-family: 'Noto Sans KR', sans-serif; 
-            background-color: transparent; 
-            color: #f8fafc; 
-            margin: 0; padding: 0;
-        }
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
-    </style>
-</head>
-<body class="p-6 pt-20 md:p-10 md:pt-24 max-w-5xl mx-auto">
-"""
-    doc_html_footer = "</body></html>"
-
-    # ---------------------------------------------------------------------------
-    # [2] TOC(Table of Contents, 목차) 전용 HTML 헤더
-    # ---------------------------------------------------------------------------
-    toc_html_header = """<!DOCTYPE html>
-<html lang="ko" class="dark">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
-        body { 
-            font-family: 'Noto Sans KR', sans-serif; 
-            background-color: transparent; 
-            color: #f8fafc; 
-            margin: 0; padding: 0;
-        }
-        .list-hover { transition: all 0.2s ease; }
-        .list-hover:hover {
-            color: #22d3ee; padding-left: 0.75rem; 
-            background-color: rgba(15, 23, 42, 0.8); border-left-color: #0ea5e9;
-        }
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
-        .text-glow { text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8); }
-    </style>
-</head>
-<body class="p-6 pt-20 md:p-12 md:pt-24">
-    <div class="max-w-6xl mx-auto text-center mb-10 md:mb-14">
-        <h1 class="text-3xl md:text-4xl lg:text-5xl font-black tracking-tight mb-2 pb-1 bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 via-blue-400 to-indigo-400 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">
-            Cloud Security & Hacking Lab
-        </h1>
-        <p class="text-slate-300 font-medium text-sm md:text-base max-w-2xl mx-auto text-glow">
-            실전 클라우드 인프라 보안 및 모의 해킹 시나리오 연구 자료 저장소
-        </p>
-    </div>
-
-    <div class="max-w-4xl mx-auto">
-        <div class="flex justify-between items-center mb-8 border-b border-slate-700/80 pb-4">
-            <h1 class="text-2xl md:text-3xl font-black text-slate-100 tracking-wide">
-                <i class="fas fa-network-wired text-cyan-500 mr-3"></i>DIRECTORY INDEX
-            </h1>
-            <button onclick="toggleAllFolders()" class="group flex items-center space-x-2 bg-slate-800/80 hover:bg-slate-700 text-cyan-400 py-2 px-4 rounded-lg border border-cyan-900/50 transition-all duration-300 shadow-md">
-                <i class="fas fa-folder-open" id="global-toggle-icon"></i>
-                <span class="font-mono text-xs font-bold tracking-widest" id="global-toggle-text">EXPAND ALL</span>
-            </button>
-        </div>
-        <div class="space-y-6">
-"""
-
-    toc_html_footer = """
-        </div>
-    </div>
-    
-    <script>
-        let isAllExpanded = false;
-        
-        // 부모 창의 Hash(해시) 업데이트 함수
-        function updateParentHash(path) {
-            if (window.parent) {
-                window.parent.location.hash = path;
-            }
-        }
-
-        function toggleFolder(element) {
-            const section = element.closest('.folder-section');
-            const listContainer = section.querySelector('.list-container');
-            const folderIcon = element.querySelector('.folder-icon');
-            const chevronIcon = element.querySelector('.chevron-icon');
-            const baseIcon = element.getAttribute('data-base-icon');
-            
-            const isExpanded = listContainer.style.gridTemplateRows === '1fr';
-
-            if (isExpanded) {
-                listContainer.style.gridTemplateRows = '0fr';
-                listContainer.classList.remove('opacity-100', 'border-slate-700/80');
-                listContainer.classList.add('opacity-0', 'border-transparent');
-                chevronIcon.classList.replace('fa-chevron-up', 'fa-chevron-down');
-                if (baseIcon !== 'fa-server') folderIcon.classList.replace('fa-folder-open', 'fa-folder');
-            } else {
-                listContainer.style.gridTemplateRows = '1fr';
-                listContainer.classList.remove('opacity-0', 'border-transparent');
-                listContainer.classList.add('opacity-100', 'border-slate-700/80');
-                chevronIcon.classList.replace('fa-chevron-down', 'fa-chevron-up');
-                if (baseIcon !== 'fa-server') folderIcon.classList.replace('fa-folder', 'fa-folder-open');
-            }
-        }
-
-        function toggleAllFolders() {
-            isAllExpanded = !isAllExpanded;
-            const headers = document.querySelectorAll('.folder-header');
-            const globalBtnIcon = document.getElementById('global-toggle-icon');
-            const globalBtnText = document.getElementById('global-toggle-text');
-
-            headers.forEach(header => {
-                const section = header.closest('.folder-section');
-                const listContainer = section.querySelector('.list-container');
-                const isCurrentlyExpanded = listContainer.style.gridTemplateRows === '1fr';
-                if (isAllExpanded !== isCurrentlyExpanded) toggleFolder(header);
-            });
-
-            if (isAllExpanded) {
-                globalBtnIcon.classList.replace('fa-folder-open', 'fa-folder');
-                globalBtnText.innerText = 'COLLAPSE ALL';
-            } else {
-                globalBtnIcon.classList.replace('fa-folder', 'fa-folder-open');
-                globalBtnText.innerText = 'EXPAND ALL';
-            }
-        }
-    </script>
-</body>
-</html>
-"""
-
-    # ---------------------------------------------------------------------------
-    # [3] 메인 레이아웃 (주소창 Hash 제어 스크립트 포함)
-    # 수정 내역: 불필요한 f 접두어 제거 및 CSS 중괄호 {{ }} -> { } 원복
-    # ---------------------------------------------------------------------------
-    index_html = """<!DOCTYPE html>
+    # 디자인 테마 변경: 가시성을 높인 어두운 테마 및 저자(Putto) 강조 디자인 적용
+    html_header = f"""<!DOCTYPE html>
 <html lang="ko" class="dark">
 <head>
     <meta charset="UTF-8">
@@ -165,70 +18,183 @@ def generate_index():
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
-        body { 
+        
+        /* 기본 글꼴 및 다크 모드 배경색 설정 */
+        body {{ 
             font-family: 'Noto Sans KR', sans-serif; 
             background-color: #020617; 
-            background-image: linear-gradient(to bottom, rgba(2, 6, 23, 0.85), rgba(2, 6, 23, 0.98)), 
+            color: #f8fafc; 
+            /* 전체 화면 배경 이미지 적용 및 투명도(Overlay) 설정: 텍스트 가시성을 위해 어두운 오버레이 강화 */
+            background-image: linear-gradient(to bottom, rgba(2, 6, 23, 0.75), rgba(2, 6, 23, 0.95)), 
                               url('image_1a3201.jpg');
             background-size: cover;
             background-attachment: fixed;
             background-position: center center;
-            margin: 0; padding: 0;
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden; 
-        }
-        .neon-glow { text-shadow: 0 0 8px rgba(34, 211, 238, 0.6); }
-    </style>
-</head>
-<body class="relative">
-    <a href="#toc.html" onclick="setFrameSource('toc.html')" class="absolute top-5 right-5 md:top-6 md:right-8 z-50 group cursor-pointer block">
-        <div class="flex items-center space-x-1.5 bg-slate-900/80 py-1.5 px-3 rounded-lg border border-cyan-900/50 backdrop-blur-md shadow-[0_0_10px_rgba(8,145,178,0.2)] transition-all duration-300 group-hover:border-cyan-400/60 group-hover:shadow-[0_0_15px_rgba(34,211,238,0.4)]">
-            <div class="relative flex h-2 w-2 mr-0.5">
-                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                <span class="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
-            </div>
-            <span class="font-mono text-[8px] md:text-[10px] text-slate-400 tracking-wider uppercase">Chief System Architect <span class="text-cyan-500 ml-0.5">❯</span></span>
-            <span class="font-black text-cyan-300 tracking-widest font-mono text-xs md:text-sm neon-glow ml-0.5">PUTTO</span>
-            <span class="font-bold text-slate-200 tracking-widest font-mono text-xs md:text-sm">'S LECTURES</span>
-        </div>
-    </a>
+        }}
 
-    <iframe name="content-frame" id="content-frame" class="absolute inset-0 w-full h-full border-none z-10 bg-transparent" src="toc.html"></iframe>
+        /* 텍스트 리스트 호버 효과: 터미널 스타일 */
+        .list-hover {{
+            transition: all 0.2s ease;
+        }}
+        .list-hover:hover {{
+            color: #22d3ee; 
+            padding-left: 0.75rem; 
+            background-color: rgba(15, 23, 42, 0.8); 
+            border-left-color: #0ea5e9;
+        }}
+
+        /* 텍스트 가시성을 높이는 그림자 효과 클래스 */
+        .text-glow {{
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+        }}
+        .neon-glow {{
+            text-shadow: 0 0 8px rgba(34, 211, 238, 0.6);
+        }}
+        
+        /* 커스텀 스크롤바 (선택적 시각 강화) */
+        ::-webkit-scrollbar {{ width: 8px; }}
+        ::-webkit-scrollbar-track {{ background: #0f172a; }}
+        ::-webkit-scrollbar-thumb {{ background: #334155; border-radius: 4px; }}
+        ::-webkit-scrollbar-thumb:hover {{ background: #0ea5e9; }}
+    </style>
+    <script>
+        tailwind.config = {{
+            darkMode: 'class',
+        }}
+    </script>
+</head>
+<body class="min-h-screen flex flex-col">
+    <header class="py-24 px-6 relative overflow-hidden">
+        
+        <a href="https://putto4u.github.io/06.Hacking-Response.inCloud/" class="absolute top-6 left-6 md:left-10 z-20 group cursor-pointer block" target="_blank" rel="noopener noreferrer">
+            <div class="flex items-center space-x-2 bg-slate-900/80 py-2 px-4 rounded-xl border border-cyan-900/50 backdrop-blur-md shadow-[0_0_15px_rgba(8,145,178,0.2)] transition-all duration-300 group-hover:border-cyan-400/60 group-hover:shadow-[0_0_20px_rgba(34,211,238,0.4)]">
+                <div class="relative flex h-3 w-3 mr-1">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
+                </div>
+                <span class="font-mono text-[10px] md:text-xs text-slate-400 tracking-wider">CHIEF SYSTEM ARCHITECT <span class="text-cyan-500 ml-1">❯</span></span>
+                <span class="font-black text-cyan-300 tracking-widest font-mono text-sm md:text-base neon-glow ml-1">PUTTO</span>
+                <span class="font-bold text-slate-200 tracking-widest font-mono text-sm md:text-base">'S LECTURES</span>
+            </div>
+        </a>
+
+        <div class="max-w-4xl mx-auto relative z-10 text-center mt-8">
+            <div class="inline-flex items-center justify-center space-x-3 mb-8 bg-slate-950/60 p-4 rounded-2xl backdrop-blur-md border border-slate-700/80 shadow-2xl">
+                <i class="fas fa-user-secret text-4xl text-cyan-400 drop-shadow-lg"></i>
+                <span class="text-slate-500">|</span>
+                <i class="fas fa-shield-halved text-4xl text-blue-500 drop-shadow-lg"></i>
+            </div>
+            
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-2 pb-2 bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 via-blue-400 to-indigo-400 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">
+                Cloud Security & Hacking Lab
+            </h1>
+            
+            <p class="mt-8 text-slate-100 font-medium text-lg md:text-xl max-w-2xl mx-auto leading-relaxed text-glow">
+                실전 클라우드 인프라 보안 및 모의 해킹 시나리오 연구 자료 저장소
+            </p>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-4xl mx-auto px-6 py-8 w-full">
+"""
+
+    html_footer = """
+    </main>
+    <footer class="border-t border-slate-800/80 py-8 text-center text-slate-400 text-sm bg-slate-950/90 backdrop-blur-md mt-auto">
+        <p class="font-mono">&copy; 2026 Putto's Lectures. All rights reserved. <span class="text-cyan-800 font-bold ml-2">| ACCESS SECURED.</span></p>
+    </footer>
 
     <script>
-        const frame = document.getElementById('content-frame');
+        // 전역 상태 변수: 모든 폴더가 펼쳐져 있는지 여부를 추적합니다.
+        let isAllExpanded = true;
 
-        // 프레임 소스 변경 및 Hash 업데이트 함수
-        function setFrameSource(path) {
-            frame.src = path;
-            window.location.hash = path;
-        }
+        // 개별 폴더를 펼치거나 접는 함수
+        function toggleFolder(element) {
+            // 클릭된 헤더의 부모 섹션(Section) 및 내부 리스트 컨테이너(Container) 탐색
+            const section = element.closest('.folder-section');
+            const listContainer = section.querySelector('.list-container');
+            const folderIcon = element.querySelector('.folder-icon');
+            const chevronIcon = element.querySelector('.chevron-icon');
+            
+            // 데이터 속성(Data Attributes)에 저장된 아이콘 클래스명 불러오기
+            const baseIcon = element.getAttribute('data-base-icon');
+            const closedIcon = element.getAttribute('data-closed-icon');
 
-        // 초기 로드 시 또는 새로고침 시 Hash를 읽어 프레임 소스 설정
-        function handleHash() {
-            const currentHash = window.location.hash.replace('#', '');
-            if (currentHash && currentHash !== 'toc.html') {
-                frame.src = currentHash;
+            // 현재 리스트가 펼쳐진 상태인지 확인 (CSS Grid 속성 기준)
+            const isExpanded = listContainer.classList.contains('grid-rows-[1fr]');
+
+            if (isExpanded) {
+                // 접기(Collapse) 액션 수행
+                listContainer.classList.remove('grid-rows-[1fr]', 'opacity-100');
+                listContainer.classList.add('grid-rows-[0fr]', 'opacity-0');
+                
+                // 우측 화살표 아이콘 회전
+                chevronIcon.classList.add('rotate-180');
+                
+                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 닫힘 상태로 변경
+                if (baseIcon !== 'fa-server') {
+                    folderIcon.classList.remove('fa-folder-open');
+                    folderIcon.classList.add('fa-folder');
+                }
             } else {
-                frame.src = 'toc.html';
+                // 펼치기(Expand) 액션 수행
+                listContainer.classList.remove('grid-rows-[0fr]', 'opacity-0');
+                listContainer.classList.add('grid-rows-[1fr]', 'opacity-100');
+                
+                // 우측 화살표 아이콘 원상 복구
+                chevronIcon.classList.remove('rotate-180');
+                
+                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 열림 상태로 변경
+                if (baseIcon !== 'fa-server') {
+                    folderIcon.classList.remove('fa-folder');
+                    folderIcon.classList.add('fa-folder-open');
+                }
             }
         }
 
-        // 주소창의 Hash가 수동으로 변경될 때 감지
-        window.addEventListener('hashchange', handleHash);
-        
-        // 페이지 로드 시 실행
-        window.addEventListener('load', handleHash);
+        // 전체 폴더를 일괄적으로 펼치거나 접는 함수
+        function toggleAllFolders() {
+            // 전역 상태 반전
+            isAllExpanded = !isAllExpanded;
+            
+            // DOM(Document Object Model, 문서 객체 모델)에서 모든 폴더 헤더 요소 선택
+            const headers = document.querySelectorAll('.folder-header');
+            const globalBtnIcon = document.getElementById('global-toggle-icon');
+            const globalBtnText = document.getElementById('global-toggle-text');
+
+            headers.forEach(header => {
+                const section = header.closest('.folder-section');
+                const listContainer = section.querySelector('.list-container');
+                const isCurrentlyExpanded = listContainer.classList.contains('grid-rows-[1fr]');
+
+                // 현재 개별 폴더의 상태가 전역 상태 목표와 다를 경우에만 토글 함수 실행
+                if (isAllExpanded !== isCurrentlyExpanded) {
+                    toggleFolder(header);
+                }
+            });
+
+            // 전역 토글 버튼의 UI(User Interface, 사용자 인터페이스) 업데이트
+            if (isAllExpanded) {
+                globalBtnIcon.classList.remove('fa-folder');
+                globalBtnIcon.classList.add('fa-folder-open');
+                globalBtnText.innerText = 'COLLAPSE ALL';
+            } else {
+                globalBtnIcon.classList.remove('fa-folder-open');
+                globalBtnIcon.classList.add('fa-folder');
+                globalBtnText.innerText = 'EXPAND ALL';
+            }
+        }
     </script>
 </body>
 </html>
 """
 
+    content_body = ""
     structure = {}
-    toc_body = ""
     
-    # [4] 마크다운 변환 및 개별 HTML 파일 생성
+    # ---------------------------------------------------------------------------
+    # 1. 마크다운(.md) 파일을 찾아 HTML 파일로 사전 변환
+    # ---------------------------------------------------------------------------
     for root, dirs, files in os.walk('.'):
         dirs[:] = [d for d in dirs if d not in exclude_dirs]
         for file in files:
@@ -240,8 +206,101 @@ def generate_index():
                 with open(md_path, 'r', encoding='utf-8') as f:
                     md_text = f.read()
 
+                # 마크다운 변환
                 md_html = markdown.markdown(md_text, extensions=['fenced_code', 'tables'])
-                
-                # 본문 변환 f-string 유지 (md_html 변수 치환용)
+
+                # 개별 문서 디자인: 가독성을 위해 문서 컨테이너 배경을 더 짙게 처리
                 doc_content = f'''
-                <div class="prose prose-invert prose-slate max-w-none prose-img:rounded-xl prose-a:text-cyan-400 hover:prose-a:text-cyan-300 prose-headings:text-slate-100 prose-strong:text-cyan-100 bg-slate-900/40 p-8 rounded
+                <div class="bg-slate-950/90 p-8 md:p-12 rounded-2xl shadow-2xl border border-slate-700/50 backdrop-blur-xl prose prose-invert prose-slate max-w-none prose-img:rounded-xl prose-a:text-cyan-400 hover:prose-a:text-cyan-300 prose-headings:text-slate-100 prose-strong:text-cyan-100">
+                    {md_html}
+                </div>
+                '''
+                full_doc_html = html_header + doc_content + html_footer
+
+                with open(html_path, 'w', encoding='utf-8') as f:
+                    f.write(full_doc_html)
+
+    # ---------------------------------------------------------------------------
+    # 2. 저장소 탐색 및 데이터 구조화
+    # ---------------------------------------------------------------------------
+    for root, dirs, files in os.walk('.'):
+        dirs[:] = [d for d in dirs if d not in exclude_dirs]
+        rel_path = os.path.relpath(root, '.')
+        html_files = sorted([f for f in files if f.endswith('.html') and f not in exclude_files])
+        if html_files:
+            structure[rel_path] = html_files
+
+    # ---------------------------------------------------------------------------
+    # 3. 루트 인덱스 HTML 생성
+    # ---------------------------------------------------------------------------
+    
+    # 전체 펼치기/접기(Expand/Collapse All) 전역 제어 버튼 영역 추가
+    if structure:
+        content_body += """
+        <div class="flex justify-end mb-6">
+            <button onclick="toggleAllFolders()" class="group flex items-center space-x-2 bg-slate-900/80 hover:bg-slate-800 text-cyan-400 py-2.5 px-5 rounded-xl border border-cyan-900/50 hover:border-cyan-500/50 transition-all duration-300 shadow-lg backdrop-blur-md">
+                <i class="fas fa-folder-open text-lg transition-transform group-hover:scale-110" id="global-toggle-icon"></i>
+                <span class="font-mono text-sm font-bold tracking-widest" id="global-toggle-text">COLLAPSE ALL</span>
+            </button>
+        </div>
+        """
+
+    for folder in sorted(structure.keys()):
+        files = structure[folder]
+        is_root = folder == "."
+        display_folder = "Root Directory" if is_root else folder
+        
+        # 루트 디렉터리는 서버 아이콘 유지, 하위 폴더는 열린 폴더 아이콘으로 기본 설정
+        base_icon = "fa-server" if is_root else "fa-folder-open"
+        closed_icon = "fa-server" if is_root else "fa-folder"
+        
+        # 각 폴더 섹션(Section) 컨테이너 및 헤더 구성
+        content_body += f"""
+        <section class="folder-section mb-10 bg-slate-900/60 p-6 rounded-2xl border border-slate-800/80 backdrop-blur-sm shadow-xl transition-all duration-300">
+            <div class="folder-header flex items-center space-x-3 mb-4 border-b border-slate-700/80 pb-3 cursor-pointer group hover:border-cyan-500/50 transition-colors" 
+                 onclick="toggleFolder(this)" 
+                 data-base-icon="{base_icon}" 
+                 data-closed-icon="{closed_icon}">
+                <i class="folder-icon fas {base_icon} text-cyan-500 text-xl drop-shadow-md transition-all duration-300 group-hover:scale-110"></i>
+                <h2 class="text-xl font-bold text-slate-100 tracking-wide text-glow group-hover:text-cyan-300 transition-colors">{display_folder}</h2>
+                <span class="text-cyan-600/80 text-xs font-mono ml-2 font-bold bg-slate-950/50 px-2 py-1 rounded-md">[{len(files)} OBJECTS]</span>
+                <i class="fas fa-chevron-up ml-auto text-slate-500 transition-transform duration-300 chevron-icon group-hover:text-cyan-400"></i>
+            </div>
+            
+            <div class="list-container grid transition-all duration-300 ease-in-out grid-rows-[1fr] opacity-100">
+                <div class="overflow-hidden">
+                    <ul class="space-y-2 font-mono text-sm md:text-base pt-2">
+        """
+        
+        for file in files:
+            file_path = os.path.join(folder, file) if not is_root else file
+            display_name = file.replace('.html', '').replace('_', ' ').replace('-', ' ')
+            
+            content_body += f"""
+                        <li>
+                            <a href="{file_path}" target="_blank" class="list-hover flex items-center py-3 px-4 rounded-lg border-l-4 border-transparent bg-slate-950/40 group">
+                                <span class="text-slate-500 mr-4 group-hover:text-cyan-400 transition-colors">
+                                    <i class="fas fa-chevron-right text-xs"></i>
+                                </span>
+                                <span class="text-slate-200 font-medium group-hover:text-cyan-300 transition-colors drop-shadow-sm">{display_name}</span>
+                                <span class="ml-auto text-slate-600 text-xs opacity-0 group-hover:opacity-100 transition-opacity tracking-widest">/{file}</span>
+                            </a>
+                        </li>
+            """
+            
+        content_body += """
+                    </ul>
+                </div>
+            </div>
+        </section>
+        """
+
+    # 최종 파일 작성
+    full_html = html_header + content_body + html_footer
+    with open('index.html', 'w', encoding='utf-8') as f:
+        f.write(full_html)
+    
+    print(f"System Log: {datetime.now().strftime('%H:%M:%S')} - Index generation complete. Toggle UI & Security protocols active.")
+
+if __name__ == "__main__":
+    generate_index()
