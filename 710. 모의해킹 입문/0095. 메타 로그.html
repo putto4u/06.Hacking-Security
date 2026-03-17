@@ -212,11 +212,15 @@
         <div class="list-item">
             <strong>프레임워크 로그 (<code>~/.msf4/logs/framework.log</code>)</strong>
             <p class="footnote">프레임워크 코어(Core) 시스템의 동작, 모듈 로드(Load, 메모리에 적재) 상태, 플러그인(Plugin, 확장 프로그램)의 초기화 과정에서 발생하는 이벤트와 에러를 기록합니다. 프레임워크 자체의 트러블슈팅(Troubleshooting, 문제 해결)에 주로 활용됩니다.</p>
+            <p class="font-bold mt-3 text-sm text-slate-700">실시간 로그 모니터링 명령어:</p>
+            <code class="code-block text-sm">$ tail -f ~/.msf4/logs/framework.log</code>
         </div>
         
         <div class="list-item">
             <strong>콘솔 로그 (<code>~/.msf4/logs/msfconsole.log</code>)</strong>
             <p class="footnote">CLI(Command Line Interface, 명령줄 인터페이스) 환경인 <code>msfconsole</code>에서 사용자가 입력한 명령어와 백그라운드 프로세스 기록을 저장합니다. 사용자 행위 추적에 필수적인 파일입니다.</p>
+            <p class="font-bold mt-3 text-sm text-slate-700">실시간 로그 모니터링 명령어:</p>
+            <code class="code-block text-sm">$ tail -f ~/.msf4/logs/msfconsole.log</code>
         </div>
     </div>
 
