@@ -1,0 +1,32 @@
+
+name: Generate Index HTML
+
+on:
+  push:
+    branches:
+      - main  # 또는 사용하는 기본 브랜치 명
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install Dependencies
+        run: pip install markdown
+
+      - name: Run Index Generator
+        run: python genindex.py
+
+      - name: Commit and Push Changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .  
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update index.html and generate HTML from MD [skip ci]" && git push)

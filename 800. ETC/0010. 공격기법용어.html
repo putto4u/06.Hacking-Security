@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: transparent; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+    </style>
+    <script>tailwind.config = { darkMode: 'class' }</script>
+</head>
+<body class="p-6 pt-20 md:p-10 md:pt-24 max-w-5xl mx-auto">
+
+                <div class="prose prose-invert prose-slate max-w-none prose-img:rounded-xl prose-a:text-cyan-400 hover:prose-a:text-cyan-300 prose-headings:text-slate-100 prose-strong:text-cyan-100 bg-slate-900/40 p-8 rounded-2xl border border-slate-700/50 shadow-xl">
+                    <h2>네트워크 보안 위협 및 시스템 공격 기법의 이해</h2>
+<p>네트워크와 시스템 보안을 공부할 때 기초가 되면서도 이름이 비슷해 혼동하기 쉬운 주요 공격 기법들을 체계적으로 정리했습니다. 각 기법은 데이터의 흐름을 가로채거나, 신분을 위장하거나, 시스템의 허점을 찌르는 등 명확한 기술적 차이가 있습니다.</p>
+<hr />
+<h3>1. 스니핑 (Sniffing): 네트워크 도청</h3>
+<p>'코를 킁킁거리다'라는 뜻으로, 네트워크상에 흐르는 데이터를 몰래 가로채거나 훔쳐보는 행위입니다.</p>
+<ul>
+<li><strong>방식:</strong> 네트워크 카드를 'Promiscuous Mode(무차별 모드)'로 설정하여 자신에게 오지 않은 패킷까지 전부 수집합니다.</li>
+<li><strong>특징:</strong> 데이터를 수정하지 않고 읽기만 하므로 <strong>수동적 공격(Passive Attack)</strong>에 해당하며 탐지가 매우 어렵습니다.</li>
+<li><strong>방어:</strong> 데이터를 암호화(SSL/TLS, VPN)하면 스니핑을 하더라도 내용을 읽을 수 없습니다.</li>
+</ul>
+<h3>2. 스누핑 (Snooping): 정보 기웃거리기</h3>
+<p>'기웃거리다, 염탐하다'라는 뜻으로, 스니핑보다 조금 더 넓은 의미에서 데이터를 몰래 획득하는 행위를 포함합니다.</p>
+<ul>
+<li><strong>방식:</strong> 네트워크 패킷뿐만 아니라 메신저 대화 내용, 파일 정보 등 사적인 정보를 훔쳐보는 전반적인 행위입니다.</li>
+<li><strong>특징:</strong> 기술적인 도청보다는 권한이 없는 사람이 정보를 기웃거리는 형태에 가깝습니다. 화면을 어깨너머로 훔쳐보는 <strong>숄더 서핑(Shoulder Surfing)</strong>도 일종의 스누핑입니다.</li>
+</ul>
+<h3>3. 스푸핑 (Spoofing): 신분 위장</h3>
+<p>'속이다, 패러디하다'라는 뜻으로, 공격자가 자신의 신분(IP 주소, MAC 주소 등)을 신뢰할 수 있는 다른 대상으로 위장하는 공격입니다.</p>
+<ul>
+<li><strong>방식:</strong> ARP 스푸핑, IP 스푸핑, DNS 스푸핑 등이 있으며, 공격 대상에게 가짜 정보를 보내 데이터의 흐름을 공격자에게로 돌립니다.</li>
+<li><strong>특징:</strong> <strong>능동적 공격(Active Attack)</strong>이며, 흔히 하이제킹이나 스니핑을 하기 위한 사전 단계로 사용됩니다. 즉, "스푸핑으로 속이고, 이후 데이터를 가로챈다"는 전략이 흔히 쓰입니다.</li>
+</ul>
+<h3>4. 스미싱 (Smishing): 문자 메시지 사기</h3>
+<p><strong>SMS(문자 메시지)</strong>와 <strong>피싱(Phishing)</strong>의 합성어입니다. 스마트폰 사용자들을 대상으로 한 모바일 환경의 공격 수법입니다.</p>
+<ul>
+<li><strong>방식:</strong> 택배 배송 확인, 공공기관 안내 등을 사칭한 문자를 보내며 내부에 악성 URL을 포함시킵니다.</li>
+<li><strong>특징:</strong> 링크 클릭 시 <strong>악성 앱(APK)</strong>이 설치되거나 가짜 사이트로 연결됩니다. 스마트폰 내의 금융 정보 탈취나 소액 결제를 유도합니다.</li>
+</ul>
+<h3>5. 피싱 (Phishing): 개인정보 낚시</h3>
+<p><strong>개인정보(Private Data)</strong>와 <strong>낚시(Fishing)</strong>의 합성어입니다. 공격자가 신뢰할 수 있는 기관을 사칭해 민감한 정보를 가로채는 전통적인 수법입니다.</p>
+<ul>
+<li><strong>방식:</strong> 주로 이메일을 사용합니다. 실제 사이트와 똑같이 만든 가짜 로그인 페이지로 유도하여 사용자가 스스로 아이디와 비밀번호를 입력하도록 만듭니다.</li>
+<li><strong>특징:</strong> 기술적 해킹보다는 사람의 심리를 이용하는 <strong>사회 공학(Social Engineering)</strong> 기법입니다.</li>
+</ul>
+<h3>6. 하이제킹 (Hijacking): 세션 가로채기</h3>
+<p>'납치'라는 뜻으로, 두 호스트 간의 정상적인 통신 연결(세션)을 가로채서 제어권을 빼앗는 공격입니다.</p>
+<ul>
+<li><strong>방식:</strong> 이미 인증이 완료되어 통신 중인 클라이언트와 서버 사이의 일련번호(Sequence Number)를 조작하여, 기존 연결을 끊고 공격자가 그 자리를 차지합니다.</li>
+<li><strong>특징:</strong> 사용자가 로그인을 마친 상태의 세션을 뺏어오기 때문에 아이디와 비밀번호 없이도 시스템 권한을 얻을 수 있습니다.</li>
+<li><strong>비유:</strong> 이미 통행권을 끊고 고속도로를 달리는 차를 통째로 뺏어 타는 것과 같습니다.</li>
+</ul>
+<hr />
+<h3>용어 요약 비교표</h3>
+<table>
+<thead>
+<tr>
+<th>용어</th>
+<th>핵심 개념</th>
+<th>주요 타겟</th>
+<th>특징</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>스니핑</strong></td>
+<td>도청</td>
+<td>데이터 패킷</td>
+<td>수동적, 암호화로 방어</td>
+</tr>
+<tr>
+<td><strong>스누핑</strong></td>
+<td>기웃거림</td>
+<td>개인 정보/메시지</td>
+<td>광범위한 염탐 행위</td>
+</tr>
+<tr>
+<td><strong>스푸핑</strong></td>
+<td>위장</td>
+<td>IP/MAC/DNS</td>
+<td>능동적, 신분 조작</td>
+</tr>
+<tr>
+<td><strong>스미싱</strong></td>
+<td>문자 낚시</td>
+<td>스마트폰(SMS)</td>
+<td>악성 앱 설치 유도</td>
+</tr>
+<tr>
+<td><strong>피싱</strong></td>
+<td>이메일 낚시</td>
+<td>계정/개인정보</td>
+<td>사회 공학적 기법</td>
+</tr>
+<tr>
+<td><strong>하이제킹</strong></td>
+<td>세션 탈취</td>
+<td>연결 제어권</td>
+<td>인증 후의 세션을 납치</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p>Next: 인젝션 공격의 원리와 SQL 인젝션 방어 전략 분석</p>
+<p>스니핑, 스푸핑, 하이제킹, 피싱, 스미싱</p>
+                </div>
+                </body></html>

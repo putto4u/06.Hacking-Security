@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: transparent; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+    </style>
+    <script>tailwind.config = { darkMode: 'class' }</script>
+</head>
+<body class="p-6 pt-20 md:p-10 md:pt-24 max-w-5xl mx-auto">
+
+                <div class="prose prose-invert prose-slate max-w-none prose-img:rounded-xl prose-a:text-cyan-400 hover:prose-a:text-cyan-300 prose-headings:text-slate-100 prose-strong:text-cyan-100 bg-slate-900/40 p-8 rounded-2xl border border-slate-700/50 shadow-xl">
+                    <h1>시스템 취약점 공격 분석</h1>
+<p>시스템 보안의 핵심은 운영체제(OS)와 애플리케이션의 구조적 허점을 파악하는 것입니다. 화이트해커와 CERT 팀장은 공격자의 관점에서 취약점이 어떻게 익스플로잇(Exploit, 취약점 공격)되는지 이해하고, 이를 근본적으로 차단하기 위한 하드닝(Hardening, 시스템 요새화) 전략을 수립해야 합니다.</p>
+<hr />
+<h2>1. CVE (Common Vulnerabilities and Exposures) 및 위협 인텔리전스</h2>
+<p>CVE는 공개적으로 알려진 소프트웨어 보안 취약점의 표준 식별자입니다. 2026년에는 특히 오픈소스 라이브러리와 공급망(Supply Chain)의 취약점이 기업 보안의 최대 화두입니다.</p>
+<h3>CVE 기반 공격 대응 절차</h3>
+<ol>
+<li><strong>취약점 스캐닝:</strong> 자산 내 설치된 버전과 최신 CVE 데이터베이스를 대조합니다.</li>
+<li><strong>패치 관리:</strong> CVSS (Common Vulnerability Scoring System, 공통 취약점 등급 시스템) 점수가 높은 치명적 취약점을 우선적으로 조치합니다.</li>
+<li><strong>가상 패치 (Virtual Patching):</strong> 공식 패치 적용 전까지 WAF나 IPS를 통해 해당 공격 패턴을 차단하는 긴급 조치를 수행합니다.</li>
+</ol>
+<hr />
+<h2>2. 공격 기법 심화: 권한 상승 및 백도어</h2>
+<p>공격자가 시스템에 침투한 후 가장 먼저 수행하는 작업은 권한을 탈취하고 지속성(Persistence)을 확보하는 것입니다.</p>
+<ul>
+<li><strong>권한 상승 (Privilege Escalation):</strong> 일반 사용자 계정에서 루트(Root) 또는 관리자 권한을 획득하는 행위입니다. 커널 취약점이나 잘못 설정된 SUID (Set User ID) 파일을 악용합니다.</li>
+<li><strong>백도어 (Backdoor):</strong> 시스템에 재접속하기 위해 설치하는 비밀 통로입니다. 웹쉘(Webshell), 리버스 쉘(Reverse Shell) 또는 정상 프로세스로 위장한 루트킷(Rootkit) 등이 활용됩니다.</li>
+</ul>
+<hr />
+<h2>3. 메모리 오염 공격: BoF (Buffer Overflow, 버퍼 오버플로우)</h2>
+<p>BoF는 프로그램이 고정된 크기의 버퍼에 데이터를 기록할 때 경계 검사를 수행하지 않아 발생하는 취약점입니다.</p>
+<h3>공격 메커니즘 및 방어</h3>
+<ul>
+<li><strong>스택 오버플로우 (Stack Overflow):</strong> 함수의 복귀 주소(Return Address)를 악성 코드가 있는 주소로 덮어씌워 실행 흐름을 가로챕니다.</li>
+<li><strong>현대적 방어 기술:</strong></li>
+<li><strong>ASLR (Address Space Layout Randomization, 주소 공간 배치 난독화):</strong> 메모리 주소를 매번 무작위로 배치하여 공격자가 주소를 예측할 수 없게 합니다.</li>
+<li><strong>DEP/NX (Data Execution Prevention / No-eXecute, 데이터 실행 방지):</strong> 데이터 영역(Stack, Heap)에서의 코드 실행을 금지하여 쉘코드가 동작하지 못하게 합니다.</li>
+<li><strong>Stack Canary:</strong> 버퍼와 복귀 주소 사이에 특정 값(Canary)을 삽입하여, 이 값이 변조되면 실행을 중단시킵니다.</li>
+</ul>
+<blockquote>
+<p><strong>[메모리 구조 도식 설명]</strong>
+메모리 상의 Stack 영역에서 데이터가 아래에서 위로 쌓이며, 버퍼를 초과한 입력값이 복귀 주소(RET) 영역까지 침범하여 실행 흐름을 조작하는 과정을 시각화합니다.</p>
+</blockquote>
+<hr />
+<h3>[화이트해커의 실전 팁]</h3>
+<p>최신 공격 기법은 ASLR과 DEP를 우회하기 위해 <strong>ROP (Return-Oriented Programming, 리턴 지향 프로그래밍)</strong>를 사용합니다. 시스템 내부의 작은 코드 조각(Gadget)들을 조합하여 공격을 완성하므로, 방어 측면에서는 <strong>CFI (Control Flow Integrity, 제어 흐름 무결성)</strong>와 같은 고급 보호 기법을 적용해야 합니다.</p>
+<blockquote>
+<p><strong>[과금 주의 사항]</strong>
+시스템 취약점 점검을 위해 <strong>Amazon Inspector</strong>를 사용할 경우, 스캔되는 인스턴스 수와 스캔 빈도에 따라 비용이 발생합니다. 특히 상시 모니터링 옵션 선택 시 예상보다 많은 비용이 청구될 수 있으므로 주의하십시오.</p>
+</blockquote>
+<hr />
+<p><strong>Next Step: 리눅스 윈도우 DBMS 보안</strong></p>
+                </div>
+                </body></html>

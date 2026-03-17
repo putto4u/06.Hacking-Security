@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ko" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>자동화된 보안 아카이브 배포 파이프라인 구축</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #0f172a; /* slate-900 */
+            color: #e2e8f0; /* slate-200 */
+            line-height: 1.7;
+        }
+        
+        .font-mono { font-family: 'Fira Code', monospace; }
+        
+        /* Textbook specific styles */
+        .chapter-header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            border-bottom: 2px solid #3b82f6; /* blue-500 */
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chapter-header::after {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=');
+            z-index: 0;
+        }
+
+        .content-card {
+            background: #1e293b; /* slate-800 */
+            border: 1px solid #334155; /* slate-700 */
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        }
+
+        .term-highlight {
+            color: #60a5fa; /* blue-400 */
+            font-weight: 500;
+        }
+
+        .ide-window {
+            background: #020617; /* slate-950 */
+            border: 1px solid #334155;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        .ide-header {
+            background: #1e293b;
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #334155;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.875rem;
+            color: #94a3b8;
+        }
+
+        .ide-dots {
+            display: flex;
+            gap: 6px;
+            margin-right: 1rem;
+        }
+
+        .ide-dot { width: 12px; height: 12px; border-radius: 50%; }
+        .dot-red { background: #ef4444; }
+        .dot-yellow { background: #eab308; }
+        .dot-green { background: #22c55e; }
+
+        .callout-billing {
+            background: rgba(185, 28, 28, 0.1);
+            border-left: 4px solid #ef4444;
+        }
+
+        .callout-tip {
+            background: rgba(16, 185, 129, 0.1);
+            border-left: 4px solid #10b981;
+        }
+
+        .callout-trouble {
+            background: rgba(245, 158, 11, 0.1);
+            border-left: 4px solid #f59e0b;
+        }
+
+        /* Numbered steps styling */
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            background: #3b82f6;
+            color: white;
+            font-weight: bold;
+            margin-right: 0.75rem;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-blue-500/30 selection:text-blue-200">
+
+    <!-- Textbook Header -->
+    <header class="chapter-header py-20 px-6 shadow-2xl z-10">
+        <div class="max-w-5xl mx-auto relative z-10">
+            <div class="flex items-center space-x-3 mb-4">
+                <span class="bg-blue-500/20 text-blue-400 border border-blue-500/30 px-3 py-1 rounded-full text-sm font-mono tracking-wide">
+                    CHAPTER 12. DEVOPS & INFRA AS CODE
+                </span>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-black tracking-tight text-white mb-6">
+                자동화된 보안 아카이브 배포 파이프라인(Pipeline) 구축
+            </h1>
+            <p class="text-slate-300 text-lg max-w-4xl leading-relaxed">
+                본 장에서는 작성된 파이썬(Python) 기반의 동적 목차 생성 스크립트(<code class="font-mono text-blue-300">generate_index.py</code>)를 클라우드 환경에서 자동으로 실행하고, 그 결과물을 깃허브 페이지(<span class="term-highlight">GitHub Pages, 깃허브 저장소에서 직접 정적 웹사이트를 호스팅하는 서비스</span>)에 배포하는 엔터프라이즈급 CI/CD(<span class="term-highlight">Continuous Integration/Continuous Deployment, 지속적 통합 및 배포</span>) 아키텍처를 설계합니다.
+            </p>
+        </div>
+    </header>
+
+    <!-- Main Course Content -->
+    <main class="max-w-5xl mx-auto px-6 py-12 space-y-16">
+
+        <!-- Introduction Context -->
+        <section class="content-card p-8 border-l-4 border-l-blue-500">
+            <h2 class="text-2xl font-bold text-white mb-4 flex items-center">
+                <i class="fas fa-bullseye text-blue-500 mr-3"></i> 학습 목표 및 배경
+            </h2>
+            <p class="text-slate-300 mb-4">
+                과거처럼 스크립트를 로컬 PC에서 실행한 후 생성된 <code class="font-mono bg-slate-900 px-1 py-0.5 rounded text-slate-300">index.html</code>을 수동으로 커밋(<span class="term-highlight">Commit, 변경 사항을 저장소에 기록하는 작업</span>)하는 방식은 비효율적이며 휴먼 에러를 유발합니다. 
+            </p>
+            <p class="text-slate-300">
+                최신 데브옵스(<span class="term-highlight">DevOps, 개발과 운영의 결합</span>) 표준에 맞추어, 코드가 푸시(<span class="term-highlight">Push, 로컬 저장소의 데이터를 원격 저장소로 전송하는 작업</span>)될 때마다 가상 서버가 스크립트를 실행하고 웹사이트를 갱신하도록 워크플로를 구성합니다.
+            </p>
+        </section>
+
+        <!-- Section 1: Pre-requisites -->
+        <section>
+            <h2 class="text-3xl font-bold text-white mb-8 border-b border-slate-700 pb-4">
+                1. 깃허브(GitHub) 저장소 사전 설정 가이드
+            </h2>
+            <p class="mb-6 text-slate-300">
+                워크플로(<span class="term-highlight">Workflow, 자동화된 작업의 흐름</span>)가 정상적으로 동작하기 위해서는 깃허브 저장소(<span class="term-highlight">Repository, 코드와 파일이 저장되는 공간</span>)의 보안 및 배포 권한을 먼저 조정해야 합니다.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="content-card p-6">
+                    <div class="flex items-start mb-4">
+                        <span class="step-number">1</span>
+                        <div>
+                            <h3 class="text-xl font-bold text-white mb-2">GitHub Pages 소스 변경</h3>
+                            <ul class="space-y-2 text-slate-300 text-sm">
+                                <li><i class="fas fa-check text-blue-400 mr-2"></i>저장소의 <strong>[Settings]</strong> &rarr; <strong>[Pages]</strong>로 이동합니다.</li>
+                                <li><i class="fas fa-check text-blue-400 mr-2"></i><strong>Build and deployment</strong> 섹션에서 <strong>Source</strong> 드롭다운을 찾습니다.</li>
+                                <li><i class="fas fa-check text-blue-400 mr-2"></i><code class="text-blue-300 bg-slate-900 px-1 rounded">Deploy from a branch</code>에서 <code class="text-blue-300 bg-slate-900 px-1 rounded">GitHub Actions</code>로 변경합니다.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-4 border-t border-slate-700 pt-4">
+                        <i class="fas fa-info-circle mr-1"></i> 이 설정은 깃허브 액션이 직접 빌드한 아티팩트(<span class="text-slate-300">Artifact, 빌드 프로세스의 결과물</span>)를 웹페이지로 서비스하겠다는 선언입니다.
+                    </p>
+                </div>
+
+                <div class="content-card p-6">
+                    <div class="flex items-start mb-4">
+                        <span class="step-number">2</span>
+                        <div>
+                            <h3 class="text-xl font-bold text-white mb-2">워크플로 권한(Permissions) 부여</h3>
+                            <ul class="space-y-2 text-slate-300 text-sm">
+                                <li><i class="fas fa-check text-blue-400 mr-2"></i>저장소의 <strong>[Settings]</strong> &rarr; <strong>[Actions]</strong> &rarr; <strong>[General]</strong>로 이동합니다.</li>
+                                <li><i class="fas fa-check text-blue-400 mr-2"></i>최하단의 <strong>Workflow permissions</strong> 섹션을 확인합니다.</li>
+                                <li><i class="fas fa-check text-blue-400 mr-2"></i><code class="text-blue-300 bg-slate-900 px-1 rounded">Read and write permissions</code> 라디오 버튼을 선택하고 저장합니다.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Billing Warning -->
+            <div class="callout-billing p-6 rounded-r-lg shadow-lg relative overflow-hidden">
+                <i class="fas fa-file-invoice-dollar absolute -right-4 -bottom-4 text-7xl text-red-500/10"></i>
+                <h4 class="text-lg font-bold text-red-400 flex items-center mb-2">
+                    <i class="fas fa-triangle-exclamation mr-2"></i> 과금 및 요금 주의 사항 (Billing Notice)
+                </h4>
+                <p class="text-slate-300 text-sm leading-relaxed">
+                    GitHub Actions는 퍼블릭 저장소(Public Repository)에서는 무제한 무료로 제공됩니다. 하지만 프라이빗 저장소(Private Repository)의 경우, 무료 계정(Free Tier) 기준으로 <strong>매월 2,000분의 리눅스(Linux) 가상 머신 실행 시간만 기본 제공</strong>됩니다. 이를 초과할 경우 분당 약 $0.008의 과금이 발생하므로, 무한 루프가 발생하지 않도록 트리거(Trigger, 실행 조건) 설정에 각별히 주의해야 합니다.
+                </p>
+            </div>
+        </section>
+
+        <!-- Section 2: The Script -->
+        <section>
+            <h2 class="text-3xl font-bold text-white mb-8 border-b border-slate-700 pb-4">
+                2. CI/CD 파이프라인 스크립트 작성
+            </h2>
+            <p class="mb-6 text-slate-300">
+                저장소 최상위 디렉터리에 <code class="font-mono text-blue-300 bg-slate-800 px-1 rounded">.github/workflows/</code> 폴더를 생성하고, 내부에 <code class="font-mono text-blue-300 bg-slate-800 px-1 rounded">deploy-pages.yml</code> 파일을 작성합니다. 야믈(<span class="term-highlight">YAML, 직관적인 데이터 직렬화 언어</span>) 포맷은 들여쓰기(Indentation)가 매우 중요하므로 공백의 개수에 유의해야 합니다.
+            </p>
+
+            <div class="ide-window shadow-2xl mb-6">
+                <div class="ide-header">
+                    <div class="ide-dots">
+                        <div class="ide-dot dot-red"></div>
+                        <div class="ide-dot dot-yellow"></div>
+                        <div class="ide-dot dot-green"></div>
+                    </div>
+                    <i class="fab fa-github mr-2 text-slate-500"></i> .github/workflows/deploy-pages.yml
+                </div>
+                <div class="p-6 overflow-x-auto">
+<pre class="font-mono text-sm leading-relaxed text-slate-300">
+<span class="text-purple-400">name</span>: <span class="text-green-400">Auto Generate and Deploy Security Archive</span>
+
+<span class="text-slate-500"># 1. 트리거(Trigger) 설정: 언제 파이프라인을 실행할 것인가</span>
+<span class="text-purple-400">on</span>:
+  <span class="text-blue-400">push</span>:
+    <span class="text-blue-400">branches</span>: [<span class="text-green-400">"main"</span>]  <span class="text-slate-500"># main 브랜치에 코드가 푸시될 때 실행 (master인 경우 변경 필요)</span>
+  <span class="text-blue-400">workflow_dispatch</span>:    <span class="text-slate-500"># 깃허브 웹 화면에서 수동으로 실행할 수 있는 버튼 활성화</span>
+
+<span class="text-slate-500"># 2. 권한(Permissions) 설정: 봇(Bot) 계정에 부여할 최소 권한</span>
+<span class="text-purple-400">permissions</span>:
+  <span class="text-blue-400">contents</span>: <span class="text-orange-400">read</span>      <span class="text-slate-500"># 저장소 코드 읽기 권한</span>
+  <span class="text-blue-400">pages</span>: <span class="text-orange-400">write</span>        <span class="text-slate-500"># GitHub Pages에 배포할 권한</span>
+  <span class="text-blue-400">id-token</span>: <span class="text-orange-400">write</span>     <span class="text-slate-500"># OIDC(OpenID Connect) 인증을 위한 토큰 발행 권한</span>
+
+<span class="text-slate-500"># 3. 동시성(Concurrency) 제어: 중복 실행 방지</span>
+<span class="text-purple-400">concurrency</span>:
+  <span class="text-blue-400">group</span>: <span class="text-green-400">"pages"</span>
+  <span class="text-blue-400">cancel-in-progress</span>: <span class="text-orange-400">true</span> <span class="text-slate-500"># 새 푸시가 발생하면 진행 중인 구버전 배포를 취소</span>
+
+<span class="text-slate-500"># 4. 작업(Jobs) 정의</span>
+<span class="text-purple-400">jobs</span>:
+  <span class="text-slate-500"># Job 1: 파이썬 스크립트 실행 및 결과물 패키징</span>
+  <span class="text-blue-400">build</span>:
+    <span class="text-blue-400">runs-on</span>: <span class="text-green-400">ubuntu-latest</span>  <span class="text-slate-500"># 최신 우분투 리눅스 환경 프로비저닝</span>
+    <span class="text-blue-400">steps</span>:
+      - <span class="text-blue-400">name</span>: <span class="text-green-400">저장소 체크아웃 (Checkout Repository)</span>
+        <span class="text-blue-400">uses</span>: <span class="text-orange-400">actions/checkout@v4</span>
+        <span class="text-blue-400">with</span>:
+          <span class="text-blue-400">fetch-depth</span>: <span class="text-orange-400">0</span>    <span class="text-slate-500"># 전체 커밋 히스토리를 가져옴</span>
+
+      - <span class="text-blue-400">name</span>: <span class="text-green-400">파이썬 환경 설정 (Setup Python 3.12)</span>
+        <span class="text-blue-400">uses</span>: <span class="text-orange-400">actions/setup-python@v5</span>
+        <span class="text-blue-400">with</span>:
+          <span class="text-blue-400">python-version</span>: <span class="text-green-400">'3.12'</span>
+
+      - <span class="text-blue-400">name</span>: <span class="text-green-400">동적 인덱스 생성 스크립트 실행 (Run Script)</span>
+        <span class="text-blue-400">run</span>: <span class="text-green-400">python generate_index.py</span>
+
+      - <span class="text-blue-400">name</span>: <span class="text-green-400">GitHub Pages 설정 (Setup Pages)</span>
+        <span class="text-blue-400">uses</span>: <span class="text-orange-400">actions/configure-pages@v4</span>
+
+      - <span class="text-blue-400">name</span>: <span class="text-green-400">웹 정적 파일 아티팩트 업로드 (Upload Artifact)</span>
+        <span class="text-blue-400">uses</span>: <span class="text-orange-400">actions/upload-pages-artifact@v3</span>
+        <span class="text-blue-400">with</span>:
+          <span class="text-blue-400">path</span>: <span class="text-green-400">'.'</span>  <span class="text-slate-500"># 최상위 경로의 모든 파일(생성된 index.html 포함)을 업로드</span>
+
+  <span class="text-slate-500"># Job 2: 패키징된 아티팩트를 실제 웹 서버에 배포</span>
+  <span class="text-blue-400">deploy</span>:
+    <span class="text-blue-400">environment</span>:
+      <span class="text-blue-400">name</span>: <span class="text-green-400">github-pages</span>
+      <span class="text-blue-400">url</span>: <span class="text-green-400">${{ steps.deployment.outputs.page_url }}</span>
+    <span class="text-blue-400">runs-on</span>: <span class="text-green-400">ubuntu-latest</span>
+    <span class="text-blue-400">needs</span>: <span class="text-orange-400">build</span>  <span class="text-slate-500"># build 작업이 성공적으로 끝난 후에만 실행됨</span>
+    <span class="text-blue-400">steps</span>:
+      - <span class="text-blue-400">name</span>: <span class="text-green-400">GitHub Pages 배포 완료 (Deploy to Pages)</span>
+        <span class="text-blue-400">id</span>: <span class="text-orange-400">deployment</span>
+        <span class="text-blue-400">uses</span>: <span class="text-orange-400">actions/deploy-pages@v4</span>
+</pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Architecture & Troubleshooting -->
+        <section>
+            <h2 class="text-3xl font-bold text-white mb-8 border-b border-slate-700 pb-4">
+                3. 실무 아키텍처 해설 및 트러블슈팅(Troubleshooting)
+            </h2>
+
+            <div class="space-y-8">
+                <!-- Highlight 1 -->
+                <div class="content-card p-6">
+                    <h3 class="text-xl font-bold text-blue-400 mb-3 flex items-center">
+                        <i class="fas fa-box-open mr-2"></i> 아티팩트(Artifact) 기반 배포의 장점
+                    </h3>
+                    <p class="text-slate-300">
+                        과거에는 파이썬이 생성한 <code class="font-mono text-blue-300 bg-slate-900 px-1 rounded">index.html</code>을 <code class="font-mono text-emerald-400 bg-slate-900 px-1 rounded">git commit</code> 명령어로 저장소에 강제로 밀어 넣는 방식을 주로 사용했습니다. 그러나 이 방식은 커밋 히스토리를 지저분하게 만들고 충돌(Conflict)을 유발하는 원인이 됩니다.
+                    </p>
+                    <p class="text-slate-300 mt-2">
+                        위 야믈 파일에서 적용한 <code class="font-mono text-emerald-400 bg-slate-900 px-1 rounded">upload-pages-artifact</code> 방식은 저장소의 원본 소스 코드는 건드리지 않고, 임시 가상 서버의 메모리상에서 생성된 결과물만 패키징하여 웹 서버로 바로 쏘아 올리는(Deploy) <strong>엔터프라이즈 모범 사례(Best Practice)</strong>입니다.
+                    </p>
+                </div>
+
+                <!-- Highlight 2 -->
+                <div class="callout-tip p-6 rounded-r-lg shadow-lg">
+                    <h4 class="text-lg font-bold text-emerald-400 mb-2 flex items-center">
+                        <i class="fas fa-clock mr-2"></i> 파일 수정일(Modification Time) 관련 실전 팁
+                    </h4>
+                    <p class="text-slate-300 text-sm mb-3">
+                        파이썬 스크립트 내의 <code class="font-mono bg-slate-900/50 px-1 rounded">os.path.getmtime()</code> 함수는 '파일이 디스크에 기록된 시간'을 반환합니다. 깃허브 액션 가상 환경은 매번 새롭게 우분투(Ubuntu) OS를 설치하고 깃(Git) 저장소를 다운로드(Clone)하기 때문에, <strong>모든 파일의 수정일이 워크플로가 실행된 현재 시간으로 동일하게 설정</strong>되는 한계가 있습니다.
+                    </p>
+                    <p class="text-slate-300 text-sm bg-slate-900/40 p-3 rounded border border-emerald-500/20">
+                        <i class="fas fa-lightbulb text-yellow-400 mr-1"></i> <strong>아키텍트 조언:</strong> 이 현상은 CI/CD 환경의 고유한 특성이며 버그가 아닙니다. 만약 파일이 최초 생성된 과거의 시간이나 마지막으로 커밋된 정확한 시간을 인덱스 페이지에 표시하고 싶다면, 시스템 함수 대신 <strong>깃 로그(Git Log)를 추적하여 타임스탬프를 추출</strong>하는 방식으로 파이썬 코드를 고도화해야 합니다.
+                    </p>
+                </div>
+
+                <!-- Troubleshooting -->
+                <div class="callout-trouble p-6 rounded-r-lg shadow-lg">
+                    <h4 class="text-lg font-bold text-yellow-500 mb-4 flex items-center">
+                        <i class="fas fa-wrench mr-2"></i> 자주 발생하는 에러 (Troubleshooting)
+                    </h4>
+                    
+                    <div class="space-y-4">
+                        <div class="bg-slate-900/50 p-4 rounded border border-yellow-500/20">
+                            <h5 class="font-bold text-white mb-1">
+                                <span class="text-red-400 font-mono text-sm mr-2">HTTP 403</span> Not allowed to create a GitHub Pages site
+                            </h5>
+                            <p class="text-sm text-slate-300">
+                                <strong>원인:</strong> 1장에서 설명한 'Workflow permissions' 권한이 누락되었거나 부족할 때 발생합니다.<br>
+                                <strong class="text-yellow-400">해결:</strong> 설정의 Actions &rarr; General 항목에서 권한이 <code class="bg-slate-800 px-1 rounded">Read and write permissions</code>로 명확히 체크되어 있는지 재확인합니다.
+                            </p>
+                        </div>
+
+                        <div class="bg-slate-900/50 p-4 rounded border border-yellow-500/20">
+                            <h5 class="font-bold text-white mb-1">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i> 액션은 성공했는데 페이지 내용이 안 변할 때
+                            </h5>
+                            <p class="text-sm text-slate-300">
+                                <strong>원인:</strong> 기존의 Legacy(구형) 브랜치 기반 배포가 켜져 있어서 새로운 액션 기반 배포와 충돌하는 경우입니다.<br>
+                                <strong class="text-yellow-400">해결:</strong> 설정의 Pages 항목에서 Source가 반드시 <code class="bg-slate-800 px-1 rounded">GitHub Actions</code>로 선택되어 있는지 확인합니다.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 bg-slate-950 py-8 text-center mt-12 z-10 relative">
+        <div class="max-w-5xl mx-auto px-6 text-slate-500 text-sm">
+            <p>&copy; 2026 Enterprise DevOps & Cloud Security Architecture Training.</p>
+        </div>
+    </footer>
+
+</body>
+</html>

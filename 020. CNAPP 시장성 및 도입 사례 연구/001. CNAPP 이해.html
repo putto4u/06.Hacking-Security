@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CNAPP 전문가 교육 가이드</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        .concept-card { border-left: 4px solid #3b82f6; background: white; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 1.5rem; }
+        .highlight { color: #2563eb; font-weight: 700; }
+        .warning-box { background-color: #fff7ed; border: 1px solid #ffedd5; border-left: 4px solid #f97316; padding: 1rem; margin: 1rem 0; }
+        .architecture-container { background: #0f172a; padding: 2rem; border-radius: 1rem; color: white; overflow-x: auto; }
+        .footer-note { font-size: 0.85rem; color: #64748b; margin-top: 0.5rem; }
+    </style>
+</head>
+<body class="p-4 md:p-10">
+    <div class="max-w-5xl mx-auto">
+        <!-- Header -->
+        <header class="mb-12 border-b pb-8">
+            <h1 class="text-4xl font-extrabold text-slate-900 mb-4">CNAPP (Cloud Native Application Protection Platform, 클라우드 네이티브 애플리케이션 보호 플랫폼)</h1>
+            <p class="text-xl text-slate-600 leading-relaxed">
+                현대적 클라우드 보안의 핵심은 파편화된 도구의 통합입니다. 본 교재는 개발부터 운영까지의 전 과정을 아우르는 <span class="highlight">통합 보안 가시성</span> 확보를 목표로 합니다.
+            </p>
+        </header>
+
+        <!-- Section 1: Definition -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold mb-6 flex items-center">
+                <span class="bg-blue-600 text-white px-3 py-1 rounded mr-3 text-lg">01</span>
+                CNAPP의 핵심 정의와 등장 배경
+            </h2>
+            <div class="concept-card">
+                <p class="mb-4 leading-relaxed">
+                    **CNAPP**은 클라우드 환경에서 애플리케이션을 보호하기 위해 기존의 독립적이었던 보안 솔루션들을 하나의 단일 플랫폼으로 통합한 개념입니다. 과거에는 설정 오류를 잡는 도구와 실행 중인 서버를 지키는 도구가 따로 놀았으나, 이제는 <span class="highlight">컨텍스트(Context, 문맥/상황 정보)</span>를 공유하여 위협의 우선순위를 결정합니다.
+                </p>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div class="bg-slate-50 p-4 rounded border">
+                        <h4 class="font-bold text-blue-800 mb-2">과거의 방식 (Siloed)</h4>
+                        <ul class="text-sm list-disc ml-5 space-y-1">
+                            <li>도구 간 데이터 공유 불가</li>
+                            <li>보안 경고(Alert) 과부하 발생</li>
+                            <li>런타임 위협과 설정 오류의 연관성 파악 불가</li>
+                        </ul>
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded border border-blue-200">
+                        <h4 class="font-bold text-blue-800 mb-2">현대의 CNAPP 방식</h4>
+                        <ul class="text-sm list-disc ml-5 space-y-1">
+                            <li>통합된 데이터 레이크 활용</li>
+                            <li>실제 공격 경로(Attack Path) 가시화</li>
+                            <li>개발 단계(Shift-Left)부터 보안 적용</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Architecture Diagram (SVG) -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold mb-6 flex items-center">
+                <span class="bg-blue-600 text-white px-3 py-1 rounded mr-3 text-lg">02</span>
+                CNAPP 통합 아키텍처 도식도
+            </h2>
+            <div class="architecture-container">
+                <svg viewBox="0 0 800 450" class="w-full">
+                    <!-- Development Phase -->
+                    <rect x="20" y="50" width="180" height="300" rx="10" fill="#1e293b" stroke="#3b82f6" stroke-width="2" />
+                    <text x="110" y="30" fill="white" font-weight="bold" text-anchor="middle">개발 단계 (Dev)</text>
+                    <rect x="40" y="80" width="140" height="60" rx="5" fill="#334155" />
+                    <text x="110" y="115" fill="#93c5fd" font-size="12" text-anchor="middle">IaC Scanning</text>
+                    <text x="110" y="130" fill="white" font-size="10" text-anchor="middle">(코드형 인프라 스캔)</text>
+                    
+                    <rect x="40" y="160" width="140" height="60" rx="5" fill="#334155" />
+                    <text x="110" y="195" fill="#93c5fd" font-size="12" text-anchor="middle">Image Scanning</text>
+                    <text x="110" y="210" fill="white" font-size="10" text-anchor="middle">(컨테이너 이미지 취약점)</text>
+
+                    <!-- Arrow -->
+                    <line x1="200" y1="200" x2="260" y2="200" stroke="#3b82f6" stroke-width="3" marker-end="url(#arrowhead)" />
+
+                    <!-- Platform Center -->
+                    <rect x="270" y="50" width="260" height="350" rx="20" fill="#1e40af" stroke="#60a5fa" stroke-width="2" opacity="0.9" />
+                    <text x="400" y="35" fill="#60a5fa" font-weight="bold" text-anchor="middle">CNAPP Platform (통합 엔진)</text>
+                    
+                    <rect x="290" y="100" width="220" height="50" rx="5" fill="#1d4ed8" />
+                    <text x="400" y="130" fill="white" font-weight="bold" text-anchor="middle">CSPM + CIEM</text>
+                    
+                    <rect x="290" y="180" width="220" height="50" rx="5" fill="#1d4ed8" />
+                    <text x="400" y="210" fill="white" font-weight="bold" text-anchor="middle">CWPP (Runtime)</text>
+
+                    <rect x="290" y="260" width="220" height="80" rx="5" fill="#1e3a8a" stroke="#3b82f6" />
+                    <text x="400" y="295" fill="#fbbf24" font-weight="bold" text-anchor="middle">Risk Engine</text>
+                    <text x="400" y="315" fill="white" font-size="10" text-anchor="middle">(위협 연관성 분석 및 우선순위 도출)</text>
+
+                    <!-- Cloud Runtime -->
+                    <line x1="530" y1="200" x2="590" y2="200" stroke="#3b82f6" stroke-width="3" marker-end="url(#arrowhead)" />
+                    <rect x="600" y="50" width="180" height="300" rx="10" fill="#1e293b" stroke="#10b981" stroke-width="2" />
+                    <text x="690" y="30" fill="white" font-weight="bold" text-anchor="middle">클라우드 런타임 (Ops)</text>
+                    
+                    <circle cx="690" cy="120" r="30" fill="#065f46" stroke="#10b981" />
+                    <text x="690" y="125" fill="white" font-size="10" text-anchor="middle" font-weight="bold">EC2 / K8s</text>
+                    
+                    <rect x="630" y="180" width="120" height="40" rx="5" fill="#064e3b" />
+                    <text x="690" y="205" fill="white" font-size="10" text-anchor="middle">Serverless / S3</text>
+
+                    <!-- Markers -->
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6" />
+                        </marker>
+                    </defs>
+                </svg>
+                <p class="text-sm text-slate-400 mt-4 text-center italic">
+                    [그림 1] 개발 단계(Shift-Left)부터 운영 단계(Shield-Right)까지 통합된 CNAPP 보안 모델
+                </p>
+            </div>
+        </section>
+
+        <!-- Section 3: Detailed Components -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold mb-6 flex items-center">
+                <span class="bg-blue-600 text-white px-3 py-1 rounded mr-3 text-lg">03</span>
+                CNAPP의 4대 핵심 구성 요소
+            </h2>
+            
+            <div class="space-y-6">
+                <!-- CSPM -->
+                <div class="concept-card">
+                    <h3 class="text-xl font-bold text-blue-700 mb-2">1. CSPM (Cloud Security Posture Management, 클라우드 보안 태세 관리)</h3>
+                    <p class="text-slate-700 mb-2">클라우드 인프라의 설정 오류를 지속적으로 탐지하고 규정 준수 여부를 확인합니다.</p>
+                    <ul class="text-sm list-disc ml-5 text-slate-600">
+                        <li>S3 버킷의 공용 읽기 권한 노출 탐지</li>
+                        <li>비활성화된 로깅 및 모니터링 기능 확인</li>
+                        <li>ISMS-P, NIST, CIS 벤치마크 준수성 자동 점검</li>
+                    </ul>
+                </div>
+
+                <!-- CWPP -->
+                <div class="concept-card">
+                    <h3 class="text-xl font-bold text-blue-700 mb-2">2. CWPP (Cloud Workload Protection Platform, 클라우드 워크로드 보호 플랫폼)</h3>
+                    <p class="text-slate-700 mb-2">가상 머신(VM), 컨테이너, 서버리스 등 실행 중인 서비스의 내부 보안을 담당합니다.</p>
+                    <ul class="text-sm list-disc ml-5 text-slate-600">
+                        <li>애플리케이션 취약점 스캐닝 및 EDR 기능 수행</li>
+                        <li>컨테이너 이미지의 악성코드 및 하드코딩된 비밀번호 탐지</li>
+                        <li>이상 징후(Anomaly Detection) 및 파일 무결성 모니터링</li>
+                    </ul>
+                </div>
+
+                <!-- CIEM -->
+                <div class="concept-card">
+                    <h3 class="text-xl font-bold text-blue-700 mb-2">3. CIEM (Cloud Infrastructure Entitlement Management, 클라우드 인프라 권한 관리)</h3>
+                    <p class="text-slate-700 mb-2">과도하게 부여된 권한을 식별하고 '최소 권한 원칙'을 적용합니다.</p>
+                    <ul class="text-sm list-disc ml-5 text-slate-600">
+                        <li>사용하지 않는 IAM 계정 및 과다 권한 역할(Role) 탐지</li>
+                        <li>사람뿐만 아니라 서비스/머신 계정의 권한 남용 분석</li>
+                        <li>권한의 유효 범위를 시각화하여 잠재적 위협 제거</li>
+                    </ul>
+                </div>
+
+                <!-- IaC Security -->
+                <div class="concept-card">
+                    <h3 class="text-xl font-bold text-blue-700 mb-2">4. IaC Security (Infrastructure as Code Security, 코드형 인프라 보안)</h3>
+                    <p class="text-slate-700 mb-2">Terraform, CloudFormation 등 코드로 인프라를 구축할 때 미리 취약점을 잡습니다.</p>
+                    <ul class="text-sm list-disc ml-5 text-slate-600">
+                        <li>보안 사고 발생 전(Pre-deployment) 설정 오류 차단</li>
+                        <li>데브섹옵스(DevSecOps) 파이프라인의 자동화된 관문 역할</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Expert Insight -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold mb-6 flex items-center">
+                <span class="bg-blue-600 text-white px-3 py-1 rounded mr-3 text-lg">04</span>
+                전문가 인사이트: 위협 경로(Attack Path) 분석
+            </h2>
+            <div class="bg-blue-900 text-white p-6 rounded-lg">
+                <p class="mb-4">
+                    단순히 "S3가 열려 있다"는 경고는 무의미합니다. CNAPP 전문가라면 다음과 같은 <span class="text-yellow-400 font-bold">연쇄 관계</span>를 파악해야 합니다.
+                </p>
+                <div class="flex flex-col md:flex-row items-center justify-around gap-4 text-center">
+                    <div class="p-4 border border-blue-400 rounded w-full">인터넷 노출 (CSPM)</div>
+                    <div class="text-2xl font-bold">→</div>
+                    <div class="p-4 border border-blue-400 rounded w-full">중요 취약점 존재 (CWPP)</div>
+                    <div class="text-2xl font-bold">→</div>
+                    <div class="p-4 border border-blue-400 rounded w-full">과도한 관리자 권한 (CIEM)</div>
+                </div>
+                <p class="mt-4 text-blue-200 text-sm italic">
+                    * 위 세 가지가 동시에 일어나는 지점이 바로 '가장 먼저 해결해야 할 치명적 위험(Toxic Combination)'입니다.
+                </p>
+            </div>
+        </section>
+
+        <!-- Section 5: Pricing & Cost -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold mb-6 flex items-center">
+                <span class="bg-blue-600 text-white px-3 py-1 rounded mr-3 text-lg">05</span>
+                클라우드 보안 과금 체계 가이드
+            </h2>
+            <div class="warning-box">
+                <h4 class="font-bold text-orange-800 mb-2 font-bold">💡 비용 관리 실무 팁 (Billing Management)</h4>
+                <p class="text-sm text-orange-900 leading-relaxed mb-3">
+                    대부분의 CNAPP 솔루션은 <strong>보호 대상 자산의 수(Asset Count)</strong> 또는 <strong>워크로드의 규모(Instance/Node count)</strong>에 따라 비용이 발생합니다.
+                </p>
+                <ul class="text-sm list-disc ml-5 text-orange-950 space-y-2">
+                    <li><span class="font-bold">AWS GuardDuty/Inspector:</span> 스캔한 데이터 양과 인스턴스 수에 따라 <strong>종량제(Pay-as-you-go)</strong>로 과금되므로, 대규모 환경에서는 자동 스캔 주기 설정이 중요합니다.</li>
+                    <li><span class="font-bold">Third-party CNAPP (SaaS):</span> 일반적으로 연간 구독 모델이며, 에이전트 설치 여부에 따라 성능 오버헤드와 비용이 비례할 수 있습니다.</li>
+                    <li><span class="font-bold">주의사항:</span> 개발 환경(Dev)과 테스트 환경(Staging)에 무분별하게 유료 스캐닝을 활성화할 경우 예산을 초과할 수 있으니 <strong>태깅(Tagging)</strong>을 통해 관리 범위를 지정하십시오.</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="mt-20 pt-8 border-t text-center text-slate-500 pb-10">
+            <p>© 2026 Cloud Security Training Center. All rights reserved.</p>
+            <p class="footer-note">본 자료는 IP 직업훈련 전문가 과정을 위해 제작되었으며 무단 배포를 금합니다.</p>
+        </footer>
+    </div>
+</body>
+</html>

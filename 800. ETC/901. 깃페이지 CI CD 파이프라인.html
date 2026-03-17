@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Pages CI/CD 파이프라인 구축 가이드</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans KR"', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: #f8fafc; }
+        .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); }
+        .code-block { font-family: 'Courier New', Courier, monospace; }
+        .term-tooltip { position: relative; display: inline-block; border-bottom: 1px dotted #0284c7; cursor: help; }
+    </style>
+</head>
+<body class="text-slate-800 antialiased line-height-relaxed">
+
+    <!-- Header Section -->
+    <header class="bg-brand-900 text-white py-16 px-6 shadow-lg">
+        <div class="max-w-5xl mx-auto">
+            <div class="flex items-center gap-4 mb-4">
+                <i class="fa-brands fa-github text-5xl"></i>
+                <i class="fa-solid fa-arrow-right-arrow-left text-2xl text-brand-500"></i>
+                <i class="fa-solid fa-server text-4xl"></i>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-black mb-4 tracking-tight">GitHub Pages CI/CD 파이프라인 구축</h1>
+            <p class="text-xl text-brand-100 font-light">정적 웹사이트 배포 자동화를 위한 엔터프라이즈급 아키텍처 가이드</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-5xl mx-auto px-6 py-12 space-y-16">
+
+        <!-- Section 1: Introduction -->
+        <section class="glass-panel p-8 rounded-2xl shadow-sm">
+            <h2 class="text-2xl font-bold text-brand-900 mb-6 flex items-center gap-3">
+                <i class="fa-solid fa-book-open text-brand-500"></i> 개요 및 핵심 개념
+            </h2>
+            <p class="mb-4 leading-relaxed">
+                현대의 웹 개발 환경에서는 소스 코드의 변경 사항을 사용자가 접근 가능한 실제 서버에 즉각적으로 반영하는 것이 필수적입니다. 이를 위해 <span class="font-bold text-brand-600">CI/CD (Continuous Integration/Continuous Deployment, 지속적 통합 및 지속적 배포)</span> 파이프라인(Pipeline, 데이터 처리 단계의 연속적인 흐름)을 구축합니다.
+            </p>
+            <p class="leading-relaxed">
+                본 문서에서는 깃허브(GitHub)에서 제공하는 워크플로 자동화 도구인 <span class="font-bold text-brand-600">GitHub Actions (깃허브 액션)</span>을 활용하여, 저장소(Repository, 코드와 파일이 저장되는 공간)에 코드가 푸시(Push, 로컬의 변경 사항을 원격 저장소로 업로드하는 작업)될 때마다 웹페이지를 자동으로 빌드하고 배포하는 과정을 설계합니다.
+            </p>
+            
+            <div class="mt-6 bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg">
+                <h4 class="font-bold text-amber-800 flex items-center gap-2 mb-2">
+                    <i class="fa-solid fa-won-sign"></i> 비용 및 과금 안내 (GitHub Actions Pricing)
+                </h4>
+                <p class="text-sm text-amber-900">
+                    GitHub Actions는 <strong>퍼블릭 저장소(Public Repository)에서는 완전 무료</strong>로 무제한 제공됩니다. 단, 프라이빗 저장소(Private Repository)의 경우 Free 티어 기준으로 <strong>월 2,000분의 실행 시간(Linux 환경 기준)</strong>이 무료로 제공되며, 이를 초과할 경우 분당 과금(약 $0.008/분)이 발생하므로 유의해야 합니다.
+                </p>
+                <p class="text-xs text-amber-700 mt-2">
+                    <i class="fa-solid fa-link"></i> 참조: <a href="https://docs.github.com/ko/billing/managing-billing-for-github-actions/about-billing-for-github-actions" class="underline hover:text-amber-900" target="_blank">GitHub Actions 요금 청구 정보 (공식 문서)</a>
+                </p>
+            </div>
+        </section>
+
+        <!-- Section 2: Architecture -->
+        <section class="glass-panel p-8 rounded-2xl shadow-sm">
+            <h2 class="text-2xl font-bold text-brand-900 mb-6 flex items-center gap-3">
+                <i class="fa-solid fa-sitemap text-brand-500"></i> 배포 아키텍처 및 워크플로 작성
+            </h2>
+            <p class="mb-6 leading-relaxed">
+                GitHub Pages 배포를 위한 설정은 프로젝트 최상위 경로의 <code>.github/workflows/</code> 폴더 내에 <strong>YAML (YAML Ain't Markup Language, 직관적인 데이터 직렬화 언어)</strong> 파일로 정의됩니다. 아래는 범용적으로 사용 가능한 엔터프라이즈 표준 배포 스크립트입니다.
+            </p>
+
+            <div class="bg-slate-900 rounded-xl overflow-hidden shadow-inner">
+                <div class="bg-slate-800 px-4 py-2 flex items-center justify-between text-slate-400 text-sm">
+                    <span><i class="fa-regular fa-file-code mr-2"></i>.github/workflows/deploy-pages.yml</span>
+                </div>
+                <pre class="p-4 text-sm code-block text-slate-300 overflow-x-auto"><code>name: Deploy static content to Pages
+
+# 1. 트리거(Trigger) 설정
+on:
+  push:
+    branches: ["main"] # main 브랜치에 푸시될 때 실행
+
+# 2. 권한(Permissions) 명시
+permissions:
+  contents: read
+  pages: write      # GitHub Pages 배포 권한
+  id-token: write   # OIDC(OpenID Connect) 인증 토큰 발급 권한
+
+# 3. 동시성(Concurrency) 제어
+concurrency:
+  group: "pages"
+  cancel-in-progress: false # 진행 중인 배포를 취소하지 않음
+
+# 4. 작업(Jobs) 정의
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest # 깃허브 호스팅 러너(가상 서버) 사용
+    
+    steps:
+      - name: 저장소 체크아웃 (Checkout)
+        uses: actions/checkout@v4
+
+      - name: GitHub Pages 설정 (Setup Pages)
+        uses: actions/configure-pages@v4
+
+      - name: 아티팩트 업로드 (Upload artifact)
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.' # 배포할 정적 파일이 있는 디렉토리 (최상위)
+
+      - name: Pages에 배포 (Deploy to GitHub Pages)
+        id: deployment
+        uses: actions/deploy-pages@v4</code></pre>
+            </div>
+            
+            <div class="mt-6 text-sm text-slate-600 border-t border-slate-200 pt-4">
+                <strong>[주석 1] 동시성(Concurrency) 제어:</strong> 여러 번의 커밋(Commit)이 연속으로 발생할 경우, 이전 배포 작업과 충돌하는 것을 방지하기 위해 하나의 작업 그룹(Group)으로 묶어 순차적으로 처리하게 만드는 고급 제어 기법입니다.
+            </div>
+        </section>
+
+        <!-- Section 3: Troubleshooting -->
+        <section class="glass-panel p-8 rounded-2xl shadow-sm border-l-4 border-rose-500">
+            <h2 class="text-2xl font-bold text-rose-700 mb-6 flex items-center gap-3">
+                <i class="fa-solid fa-triangle-exclamation"></i> 실전 팁 및 자주 발생하는 실수 (Troubleshooting)
+            </h2>
+            
+            <div class="space-y-6">
+                <div>
+                    <h3 class="font-bold text-lg text-slate-800 mb-2">1. 403 Forbidden 권한 오류 발생</h3>
+                    <p class="text-slate-600 mb-2">
+                        가장 빈번하게 발생하는 에러입니다. 봇(Bot)이 GitHub Pages 환경에 접근하거나 토큰을 발행할 권한이 없을 때 발생합니다.
+                    </p>
+                    <div class="bg-rose-50 p-4 rounded-lg text-rose-900 text-sm">
+                        <strong>해결 방법:</strong> 저장소의 <code>Settings &gt; Actions &gt; General</code>에서 최하단 <strong>Workflow permissions</strong> 항목을 확인하세요. 기본값이 'Read repository contents permission'으로 되어 있다면, 이를 <strong>'Read and write permissions'</strong>로 변경해야 합니다.
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="font-bold text-lg text-slate-800 mb-2">2. GitHub Pages Source 설정 누락</h3>
+                    <p class="text-slate-600 mb-2">
+                        액션은 성공적으로 끝났는데 웹페이지가 갱신되지 않거나 404 에러가 뜨는 경우입니다.
+                    </p>
+                    <div class="bg-rose-50 p-4 rounded-lg text-rose-900 text-sm">
+                        <strong>해결 방법:</strong> 저장소의 <code>Settings &gt; Pages</code> 메뉴로 이동합니다. <strong>Build and deployment</strong> 섹션의 Source 드롭다운 메뉴가 'Deploy from a branch'가 아닌 <strong>'GitHub Actions'</strong>로 선택되어 있는지 반드시 확인해야 합니다.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 py-8 text-center mt-12">
+        <div class="max-w-5xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center">
+            <p>&copy; 2026 IT Expert Architecture Training Course. All rights reserved.</p>
+            <div class="mt-4 md:mt-0 space-x-4">
+                <a href="https://docs.github.com/ko/actions" class="hover:text-white transition-colors" target="_blank"><i class="fa-solid fa-book mr-1"></i> 공식 문서</a>
+                <a href="https://github.com/features/actions" class="hover:text-white transition-colors" target="_blank"><i class="fa-brands fa-github mr-1"></i> GitHub Actions</a>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>

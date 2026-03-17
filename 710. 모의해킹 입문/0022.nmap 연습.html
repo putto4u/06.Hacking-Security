@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>칼리 리눅스 Nmap 핵심 실습 및 분석 가이드</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            line-height: 1.6;
+        }
+        .code-font {
+            font-family: 'Fira Code', monospace;
+        }
+        .pro-tip-box {
+            background-color: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 0.25rem;
+        }
+        .warning-box {
+            background-color: #fef2f2;
+            border-left: 4px solid #ef4444;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 0.25rem;
+        }
+        .term-def {
+            background-color: #f1f5f9;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+        /* Nmap 결과물 가독성 강화를 위한 커스텀 스타일 */
+        .nmap-output-container {
+            background-color: #0f172a;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            overflow-x: auto;
+        }
+        .nmap-command {
+            color: #4ade80; /* 밝은 녹색 */
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #334155;
+            font-size: 1.1rem;
+        }
+        .nmap-line {
+            color: #e2e8f0; /* 밝은 회색 */
+            margin-top: 0.5rem;
+        }
+        .nmap-comment {
+            color: #93c5fd; /* 밝은 파란색 */
+            font-style: italic;
+            padding-left: 1rem;
+            margin-top: 0.5rem;
+            margin-bottom: 2rem; /* 주석과 다음 결과 간의 간격을 넓게 설정 */
+            border-left: 2px solid #3b82f6;
+            background-color: rgba(59, 130, 246, 0.1);
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+            border-radius: 0 0.25rem 0.25rem 0;
+        }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+<div class="max-w-5xl mx-auto px-4 py-12">
+    
+    <header class="mb-12 border-b-2 border-slate-200 pb-8">
+        <h1 class="text-4xl font-bold text-slate-800 mb-4 tracking-tight">칼리 리눅스 Nmap 핵심 실습 및 분석 가이드</h1>
+        <p class="text-lg text-slate-600">Nmap (Network Mapper, 네트워크 맵퍼)은 네트워크 탐색 및 보안 감사를 위한 업계 표준 오픈 소스 도구입니다. 이 교재는 기초적인 포트 스캐닝부터 방화벽 우회 및 정밀 취약점 탐지에 이르는 단계별 실습 명령어와 그 결과에 대한 심층적인 분석을 제공합니다.</p>
+        
+        <div class="mt-4 text-sm text-slate-500">
+            참조: <a href="https://nmap.org" target="_blank" class="text-blue-600 hover:underline">Nmap 공식 웹사이트 (https://nmap.org)</a>
+        </div>
+    </header>
+
+    <!-- ==========================================
+         1. 기초 단계 (Basic Level)
+    =========================================== -->
+    <section class="mb-16">
+        <h2 class="text-3xl font-bold text-slate-800 mb-6 flex items-center">
+            <span class="bg-blue-600 text-white w-10 h-10 flex items-center justify-center rounded-full mr-3 text-xl">1</span>
+            기초 단계 (Basic Level)
+        </h2>
+        <p class="text-slate-700 mb-8 text-lg">기초 단계에서는 네트워크 호스트의 활성 상태를 확인하고, 기본적인 포트 스캔을 수행하는 방법을 다룹니다.</p>
+
+        <!-- 실습 1.1 -->
+        <article class="mb-12">
+            <h3 class="text-2xl font-bold text-slate-700 mb-3">1.1 단일 호스트 기본 스캔</h3>
+            <p class="text-slate-600 mb-4">가장 기본적인 스캔으로, 대상 호스트의 주요 1,000개 포트를 확인합니다. 옵션 없이 IP 주소만 입력하여 실행합니다.</p>
+            
+            <div class="nmap-output-container code-font">
+                <div class="nmap-command">$ nmap 192.168.1.100</div>
+                
+                <div class="nmap-line">Starting Nmap 7.93 ( https://nmap.org ) at 2026-03-16 10:00 KST</div>
+                <div class="nmap-comment">➔ Nmap 실행 버전 및 스캔 시작 시간을 표시합니다.</div>
+
+                <div class="nmap-line">Nmap scan report for 192.168.1.100</div>
+                <div class="nmap-comment">➔ 대상 IP (Internet Protocol, 인터넷 프로토콜) 주소에 대한 결과 보고를 시작합니다.</div>
+
+                <div class="nmap-line">Host is up (0.0020s latency).</div>
+                <div class="nmap-comment">➔ ICMP (Internet Control Message Protocol, 인터넷 제어 메시지 프로토콜) Echo Request 등에 응답하여 대상이 활성 상태(up)이며, 네트워크 지연 시간은 0.0020초임을 나타냅니다.</div>
+
+                <div class="nmap-line">Not shown: 998 closed tcp ports (reset)</div>
+                <div class="nmap-comment">➔ 스캔된 1,000개 포트 중 998개는 닫혀 있습니다. 대상 시스템이 연결 거부를 의미하는 RST (Reset, 초기화) 패킷을 반환했습니다.</div>
+
+                <div class="nmap-line">PORT   STATE SERVICE</div>
+                <div class="nmap-comment">➔ 결과를 나타내는 표의 헤더 부분입니다. (포트번호, 상태, 서비스명)</div>
+
+                <div class="nmap-line">22/tcp open  ssh</div>
+                <div class="nmap-comment">➔ TCP 22번 포트가 열려(open) 있으며, 이 포트는 기본적으로 SSH (Secure Shell, 보안 셸) 서비스가 동작하는 포트입니다.</div>
+
+                <div class="nmap-line">80/tcp open  http</div>
+                <div class="nmap-comment">➔ TCP 80번 포트가 열려(open) 있으며, 기본적으로 HTTP (HyperText Transfer Protocol, 하이퍼텍스트 전송 프로토콜) 서비스 웹 서버가 동작하는 포트입니다.</div>
+
+                <div class="nmap-line">Nmap done: 1 IP address (1 host up) scanned in 0.15 seconds</div>
+                <div class="nmap-comment">➔ 스캔 완료 요약입니다. 1개의 IP 스캔을 완료했으며, 0.15초가 소요되었습니다.</div>
+            </div>
+            
+            <div class="term-def">
+                <strong>실전 팁:</strong> 보안 진단 시 포트가 `open` 상태라는 것은 외부에서 해당 서비스로의 접근이 허용되어 있음을 의미합니다. 불필요한 포트가 열려있다면 방화벽 인바운드 정책을 점검해야 합니다.
+            </div>
+        </article>
+
+        <!-- 실습 1.2 -->
+        <article class="mb-12">
+            <h3 class="text-2xl font-bold text-slate-700 mb-3">1.2 서브넷 대역 전체 스캔</h3>
+            <p class="text-slate-600 mb-4">특정 네트워크 대역 전체를 대상으로 스캔을 수행합니다. CIDR (Classless Inter-Domain Routing, 클래스 없는 도메인 간 라우팅) 표기법을 사용합니다.</p>
+            
+            <div class="nmap-output-container code-font">
+                <div class="nmap-command">$ nmap 192.168.1.0/24</div>
+                
+                <div class="nmap-line">Starting Nmap 7.93 at 2026-03-16 10:01 KST</div>
+                <div class="nmap-comment">➔ 대역 스캔 시작을 알립니다.</div>
+
+                <div class="nmap-line">Nmap scan report for 192.168.1.1</div>
+                <div class="nmap-comment">➔ 첫 번째로 발견된 활성 호스트(일반적으로 기본 게이트웨이 또는 라우터)에 대한 보고를 시작합니다.</div>
+
+                <div class="nmap-line">Host is up (0.0010s latency).</div>
+                <div class="nmap-comment">➔ 해당 호스트가 응답하여 활성 상태임을 확인했습니다.</div>
+
+                <div class="nmap-line">... (포트 결과 생략) ...</div>
+                <div class="nmap-comment">➔ 해당 IP의 열린 포트 정보가 출력됩니다.</div>
+
+                <div class="nmap-line">Nmap scan report for 192.168.1.100</div>
+                <div class="nmap-comment">➔ 두 번째로 발견된 활성 호스트 보고입니다. 이런 식으로 서브넷 내의 모든 활성 IP에 대해 반복합니다.</div>
+
+                <div class="nmap-line">Nmap done: 256 IP addresses (2 hosts up) scanned in 4.50 seconds</div>
+                <div class="nmap-comment">➔ /24 대역(총 256개 IP 주소) 검사 결과, 2개의 호스트만 현재 활성 상태(전원이 켜져 있고 네트워크에 연결됨)임을 요약해 줍니다.</div>
+            </div>
+            
+            <div class="term-def">
+                <strong>용어 해설 (CIDR 표기법):</strong> `/24`는 서브넷 마스크 `255.255.255.0`을 의미하며, `192.168.1.0`부터 `192.168.1.255`까지 총 256개의 IP 주소 범위를 스캔하라는 지시어입니다.
+            </div>
+        </article>
+
+        <!-- 실습 1.3 -->
+        <article class="mb-12">
+            <h3 class="text-2xl font-bold text-slate-700 mb-3">1.3 특정 포트 지정 스캔</h3>
+            <p class="text-slate-600 mb-4"><code>-p</code> 옵션을 사용하여 특정 포트 번호만 명시합니다. 스캔 속도를 비약적으로 높이고 원하는 서비스의 동작 유무만 확인할 때 사용합니다.</p>
+            
+            <div class="nmap-output-container code-font">
+                <div class="nmap-command">$ nmap -p 80,443 192.168.1.100</div>
+                
+                <div class="nmap-line">Starting Nmap 7.93 at 2026-03-16 10:02 KST</div>
+                <div class="nmap-comment">➔ 스캔 시작 알림입니다.</div>
+
+                <div class="nmap-line">Nmap scan report for 192.168.1.100</div>
+                <div class="nmap-comment">➔ 스캔 대상 호스트의 IP 주소입니다.</div>
+
+                <div class="nmap-line">PORT    STATE  SERVICE</div>
+                <div class="nmap-comment">➔ 포트 상태 테이블의 헤더입니다.</div>
+
+                <div class="nmap-line">80/tcp  open   http</div>
+                <div class="nmap-comment">➔ 지정한 80번 포트(HTTP)가 열려 있습니다. 웹 서버가 구동 중일 확률이 높습니다.</div>
+
+                <div class="nmap-line">443/tcp closed https</div>
+                <div class="nmap-comment">➔ 지정한 443번 포트(HTTPS, 보안 웹 서버)는 닫혀 있습니다. 서비스가 구동 중이지 않거나 연결이 거부되었습니다.</div>
+
+                <div class="nmap-line">Nmap done: 1 IP address (1 host up) scanned in 0.05 seconds</div>
+                <div class="nmap-comment">➔ 전체 1,000개 포트 대신 2개의 포트만 스캔했으므로 소요 시간이 0.05초로 매우 짧습니다.</div>
+            </div>
+        </article>
+
+        <!-- 실습 1.4 -->
+        <article class="mb-12">
+            <h3 class="text-2xl font-bold text-slate-700 mb-3">1.4 주요 포트 (Top Ports) 스캔</h3>
+            <p class="text-slate-600 mb-4">통계적으로 인터넷 상에서 가장 많이 사용되는 상위 포트만 지정하여 빠르게 스캔합니다. <code>--top-ports</code> 옵션을 사용합니다.</p>
+            
+            <div class="nmap-output-container code-font">
+                <div class="nmap-command">$ nmap --top-ports 10 192.168.1.100</div>
+                
+                <div class="nmap-line">Nmap scan report for 192.168.1.100</div>
+                <div class="nmap-comment">➔ 대상 IP 주소 결과 보고입니다.</div>
+
+                <div class="nmap-line">PORT     STATE  SERVICE</div>
+                <div class="nmap-comment">➔ 테이블 헤더입니다.</div>
+
+                <div class="nmap-line">21/tcp   closed ftp</div>
+                <div class="nmap-comment">➔ 상위 10개 포트 중 하나인 21번 FTP (File Transfer Protocol, 파일 전송 프로토콜) 포트는 닫혀 있습니다.</div>
+
+                <div class="nmap-line">22/tcp   open   ssh</div>
+                <div class="nmap-comment">➔ 22번 SSH 포트는 열려 있습니다.</div>
+
+                <div class="nmap-line">23/tcp   closed telnet</div>
+                <div class="nmap-comment">➔ 23번 Telnet (원격 터미널 접속) 포트는 닫혀 있습니다. (보안상 Telnet은 사용하지 않는 것이 권장됩니다.)</div>
+
+                <div class="nmap-line">... (나머지 7개 주요 포트 결과 생략) ...</div>
+                <div class="nmap-comment">➔ 25(SMTP), 80(HTTP), 110(POP3), 139(NetBIOS), 443(HTTPS), 445(SMB), 3389(RDP) 등 나머지 상위 포트 스캔 결과가 이어집니다.</div>
+            </div>
+        </article>
+
+        <!-- 실습 1.5 -->
+        <article class="mb-12">
+            <h3 class="text-2xl font-bold text-slate-700 mb-3">1.5 빠른 스캔 (Fast Scan)</h3>
+            <p class="text-slate-600 mb-4"><code>-F</code> (Fast) 옵션은 Nmap 내장 서비스 파일(`nmap-services`)에 등록된 가장 흔한 상위 100개 포트만 스캔합니다. 빠른 자산 식별에 유리합니다.</p>
+            
+            <div class="nmap-output-container code-font">
+                <div class="nmap-command">$ nmap -F 192.168.1.100</div>
+                
+                <div class="nmap-line">Host is up (0.0015s latency).</div>
+                <div class="nmap-comment">➔ 호스트 활성 상태를 나타냅니다.</div>
+
+                <div class="nmap-line">Not shown: 98 closed tcp ports (reset)</div>
+                <div class="nmap-comment">➔ 스캔한 100개의 포트 중에서 98개가 닫혀 있습니다. 기본 1,000개 스캔보다 범위가 1/10로 줄어들었습니다.</div>
+
+                <div class="nmap-line">PORT   STATE SERVICE</div>
+                <div class="nmap-comment">➔ 테이블 헤더입니다.</div>
+
+                <div class="nmap-line">22/tcp open  ssh</div>
+                <div class="nmap-comment">➔ 열려있는 22번 포트 결과입니다.</div>
+
+                <div class="nmap-line">80/tcp open  http</div>
+                <div class="nmap-comment">➔ 열려있는 80번 포트 결과입니다.</div>
+            </div>
+        </article>
+
+        <!-- 실습 1.6 -->
+        <article class="mb-12">
+            <h3 class="text-2xl font-bold text-slate-700 mb-3">1.6 핑 스캔 (Ping Scan)</h3>
+            <p class="text-slate-600 mb-4"><code>-sn</code> 옵션(과거 버전의 <code>-sP</code>)은 포트 스캔을 아예 생략하고, 네트워크 대역 내에서 전원이 켜져 있고 네트워크에 연결된(활성화된) 호스트가 몇 개인지, 그 IP는 무엇인지만 빠르게 파악할 때 사용합니다. 호스트 디스커버리(Host Discovery)라고도 합니다.</p>
+            
+            <div class="nmap-output-container code-font">
+                <div class="nmap-command">$ nmap -sn 192.168.1.0/24</div>
+                
+                <div class="nmap-line">Nmap scan report for 192.168.1.1</div>
+                <div class="nmap-comment">➔ 대역 내에서 활성이 확인된 첫 번째 IP입니다. (일반적으로 라우터)</div>
+
+                <div class="nmap-line">MAC Address: 00:11:22:33:44:55 (Cisco Systems)</div>
+                <div class="nmap-comment">➔ 칼리 리눅스와 스캔 대상이 동일한 서브넷(로컬 네트워크)에 있을 경우, ARP (Address Resolution Protocol, 주소 결정 프로토콜) 요청을 통해 대상의 MAC (Media Access Control, 매체 접근 제어) 물리적 주소와 제조사(벤더) 정보를 추출해 보여줍니다. 외부망 스캔 시에는 보이지 않습니다.</div>
+
+                <div class="nmap-line">Nmap scan report for 192.168.1.100</div>
+                <div class="nmap-comment">➔ 활성이 확인된 두 번째 호스트입니다. 포트 스캔 과정이 생략되어 결과가 매우 간결합니다.</div>
+
+                <div class="nmap-line">Nmap done: 256 IP addresses (2 hosts up) scanned in 2.10 seconds</div>
+                <div class="nmap-comment">➔ 포트 스캔 부하가 없어 전체 256개 IP에 대한 생존 여부 확인을 2.10초 만에 완료했습니다.</div>
+            </div>
+            
+            <div class="pro-tip-box">
+                <strong>아키텍트의 실무 팁:</strong> 기업 네트워크 환경에서 무단으로 연결된 불법 AP(공유기)나 인가되지 않은 개인용 디바이스를 색출할 때 주기적인 <code>-sn</code> 핑 스캔과 MAC 주소 벤더 정보 확인이 매우 유용하게 쓰입니다.
+            </div>
+        </article>
+
+        <!-- 실습 1.7 -->
+        <article class="mb-12">
+            <h3 class="text-2xl font-bold text-slate-700 mb-3">1.7 스캔 대상 제외</h3>
+            <p class="text-slate-600 mb-4">대역 스캔을 할 때 방화벽, 핵심 스토리지 서버 등 핑을 보내면 안 되거나 스캔을 원치 않는 특정 IP나 대역을 제외합니다. <code>--exclude</code> 옵션을 사용합니다.</p>
+            
+            <div class="nmap-output-container code-font">
+                <div class="nmap-command">$ nmap 192.168.1.0/24 --exclude 192.168.1.1,192.168.1.254</div>
+                
+                <div class="nmap-line">Starting Nmap 7.93 at 2026-03-16 10:06 KST</div>
+                <div class="nmap-comment">➔ 스캔 시작 알림입니다.</div>
+
+                <div class="nmap-line">Nmap scan report for 192.168.1.100</div>
+                <div class="nmap-comment">➔ 제외 목록에 지정된 192.168.1.1과 192.168.1.254를 건너뛰고, 발견된 호스트(100번)에 대해서만 스캔을 진행합니다.</div>
+
+                <div class="nmap-line">Nmap done: 254 IP addresses (1 host up) scanned in 4.00 seconds</div>
+                <div class="nmap-comment">➔ 총 256개 IP 중 2개를 제외하여 전체 254개 IP를 스캔 대상으로 삼았음을 명시적으로 보여줍니다.</div>
+            </div>
+        </article>
+
+        <!-- 실습 1.8 -->
+        <article class="mb-12">
+            <h3 class="text-2xl font-bold text-slate-700 mb-3">1.8 상세 출력 모드 (Verbose Mode)</h3>
+            <p class="text-slate-600 mb-4"><code>-v</code> (Verbose) 옵션을 추가하면 스캔이 끝날 때까지 기다리지 않고, 진행 상황과 이면에서 일어나는 네트워크 처리 과정을 실시간으로 화면에 출력합니다. <code>-vv</code>를 쓰면 더 상세하게 출력됩니다.</p>
+            
+            <div class="nmap-output-container code-font">
+                <div class="nmap-command">$ nmap -v 192.168.1.100</div>
+                
+                <div class="nmap-line">Initiating ARP Ping Scan at 10:07</div>
+                <div class="nmap-comment">➔ 대상이 동일 서브넷에 있기 때문에, Nmap이 내부적으로 L2 계층의 ARP 핑 스캔을 먼저 시작했음을 알립니다. 상세 모드에서만 볼 수 있는 과정입니다.</div>
+
+                <div class="nmap-line">Completed ARP Ping Scan at 10:07, 0.05s elapsed (1 total hosts)</div>
+                <div class="nmap-comment">➔ 대상 호스트가 존재함을 ARP 핑으로 확인 완료했습니다.</div>
+
+                <div class="nmap-line">Initiating SYN Stealth Scan at 10:07</div>
+                <div class="nmap-comment">➔ 실제 포트 스캔 기법(여기서는 TCP SYN 스캔)을 시작합니다.</div>
+
+                <div class="nmap-line">Discovered open port 80/tcp on 192.168.1.100</div>
+                <div class="nmap-comment">➔ 전체 스캔이 끝나기 전에, 80번 포트가 열려 있음을 발견하는 즉시 실시간으로 화면에 출력해 줍니다. 긴 스캔 과정에서 답답함을 덜어줍니다.</div>
+
+                <div class="nmap-line">Completed SYN Stealth Scan at 10:07, 0.10s elapsed (1000 total ports)</div>
+                <div class="nmap-comment">➔ 1,000개 포트에 대한 스캔 엔진 작동이 완료되었습니다. 이후 최종 요약 보고서가 평소처럼 출력됩니다.</div>
+            </div>
+        </article>
+
+        <!-- 실습 1.9 -->
+        <article class="mb-12">
+            <h3 class="text-2xl font-bold text-slate-700 mb-3">1.9 파일 리스트 기반 스캔</h3>
+            <p class="text-slate-600 mb-4">수십, 수백 개의 흩어진 IP 대역을 점검해야 할 때 매번 명령어를 치는 대신, 스캔 대상 IP 목록이 저장된 텍스트 파일(예: <code>targets.txt</code>)을 읽어들여 일괄 스캔합니다. <code>-iL</code> 옵션을 사용합니다.</p>
+            
+            <div class="nmap-output-container code-font">
+                <div class="nmap-command">$ nmap -iL targets.txt</div>
+                
+                <div class="nmap-line">Nmap scan report for 10.0.0.5</div>
+                <div class="nmap-comment">➔ targets.txt 파일의 첫 번째 줄에 적힌 10.0.0.5 IP에 대한 스캔 결과가 출력됩니다.</div>
+
+                <div class="nmap-line">Host is up (0.0120s latency).</div>
+                <div class="nmap-comment">➔ 첫 번째 대상의 상태입니다.</div>
+
+                <div class="nmap-line">Nmap scan report for 10.0.0.10</div>
+                <div class="nmap-comment">➔ 텍스트 파일 내의 두 번째 줄에 적힌 10.0.0.10 IP에 대한 결과가 연속해서 출력됩니다.</div>
+
+                <div class="nmap-line">Nmap done: 2 IP addresses (2 hosts up) scanned in 0.50 seconds</div>
+                <div class="nmap-comment">➔ 파일 내에 기재된 모든 IP 리스트에 대한 스캔 작업을 완료했습니다.</div>
+            </div>
+        </article>
+
+        <!-- 실습 1.10 -->
+        <article class="mb-12">
+            <h3 class="text-2xl font-bold text-slate-700 mb-3">1.10 일반 텍스트 포맷 저장</h3>
+            <p class="text-slate-600 mb-4">점검 결과를 증빙 자료로 남기기 위해 터미널에 출력되는 내용과 동일한 형태의 텍스트 파일로 저장합니다. <code>-oN</code> (Output Normal) 옵션을 사용합니다.</p>
+            
+            <div class="nmap-output-container code-font">
+                <div class="nmap-command">$ nmap -oN basic_result.txt 192.168.1.100</div>
+                
+                <div class="nmap-line">Starting Nmap 7.93 at 2026-03-16 10:09 KST</div>
+                <div class="nmap-comment">➔ 화면에 스캔 시작 알림이 출력되며, 동시에 basic_result.txt 파일이 생성되어 내용이 기록되기 시작합니다.</div>
+
+                <div class="nmap-line">... (스캔 결과 출력) ...</div>
+                <div class="nmap-comment">➔ 화면에서 스캔 과정을 그대로 볼 수 있습니다.</div>
+
+                <div class="nmap-line">Nmap done: 1 IP address (1 host up) scanned in 0.15 seconds</div>
+                <div class="nmap-comment">➔ 스캔이 완료되었습니다. 작업 폴더에 생성된 basic_result.txt 파일을 열어보면 이 터미널 화면과 100% 동일한 텍스트가 저장되어 있습니다.</div>
+            </div>
+        </article>
+    </section>
+
+    <!-- ==========================================
+         2. 중급 단계 (Intermediate Level)
+    =========================================== -->
+    <section class="mb-16 mt-20">
+        <h2 class="text-3xl font-bold text-slate-800 mb-6 flex items-center border-t-2 border-slate-200 pt-12">
+            <span class="bg-blue-600 text-white w-10 h-10 flex items-center justify-center rounded-full mr-3 text-xl">2</span>
+            중급 단계 (Intermediate Level)
+        </h2>
+        <p class="text-slate-700 mb-8 text-lg">중급 단계에서는 프로토콜 제어, 운영 체제 및 서비스의 정확한 버전 탐지, 다양한 스캔 기법 등 실무 보안 진단에 필수적인 핵심 기능들을 다룹니다.</p>
+
+        <!-- 실습 2.1 -->
+        <article class="mb-12">
+            <h3 class="text-2xl font-bold text-slate-700 mb-3">2.1 운영 체제 탐지 (OS Detection)</h3>
+            <p class="text-slate-600 mb-4">대상 호스트가 어떤 운영 체제(Windows, Linux, 네트워크 장비 등)를 사용하는지 탐지합니다. 특수한 TCP/IP 패킷 응답 특성(지문, Fingerprint)을 분석하므로 <code>sudo</code> 관리자(root) 권한이 필요합니다.</p>
+            
+            <div class="nmap-output-container code-font">
+                <div class="nmap-command">$ sudo nmap -O 192.168.1.100</div>
+                
+                <div class="nmap-line">MAC Address: 08:00:27:A1:B2:C3 (Oracle VirtualBox virtual NIC)</div>
+                <div class="nmap-comment">➔ MAC 주소를 통해 해당 시스템이 물리적 하드웨어가 아닌 버추얼박스(VirtualBox) 가상 머신 환경에서 구동 중임을 유추합니다.</div>
+
+                <div class="nmap-line">Device type: general purpose</div>
+                <div class="nmap-comment">➔ 기기의 일반적인 용도가 라우터나 스위치가 아닌 범용 컴퓨터(PC/Server)임을 나타냅니다.</div>
+
+                <div class="nmap-line">Running: Linux 4.X|5.X</div>
+                <div class="nmap-comment">➔ Nmap의 OS 지문 데이터베이스와 대조한 결과, 리눅스 커널 4.x 또는 5.x 버전 계열이 구동 중인 것으로 판단합니다.</div>
+
+                <div class="nmap-line">OS CPE: cpe:/o:linux:linux_kernel:4 cpe:/o:linux:linux_kernel:5</div>
+                <div class="nmap-comment">➔ 식별된 OS의 정보를 정보 보안 산업 표준 명명 규칙인 CPE (Common Platform Enumeration, 공통 플랫폼 열거) 포맷으로 표시합니다. 취약점 데이터베이스(NVD) 검색 시 이 값이 활용됩니다.</div>
+
+                <div class="nmap-line">OS details: Linux 4.15 - 5.6</div>
+                <div class="nmap-comment">➔ 패킷 분석을 통해 추정한 좀 더 세부적인 커널 버전 범위입니다. (정확히 떨어지지 않을 때는 범위를 제공합니다.)</div>
+
+                <div class="nmap-line">Network Distance: 1 hop</div>
+                <div class="nmap-comment">➔ 현재 시스템에서 대상까지 패킷이 도달하는 데 거친 라우터(게이트웨이)의 횟수입니다. 동일 대역이므로 1 hop(직접 연결)입니다.</div>
+            </div>
+            
+            <div class="warning-box">
+                <strong>주의사항:</strong> 방화벽이 대부분의 포트를 막고 있거나, 대상 운영 체제의 TCP/IP 스택이 비표준으로 튜닝된 경우 OS 탐지 결과가 부정확할 수 있습니다.
+            </div>
+        </article>
+
+        <!-- 실습 2.2 -->
+        <article class="mb-12">
+            <h3 class="text-2xl font-bold text-slate-700 mb-3">2.2 서비스 버전 탐지 (Version Detection)</h3>
+            <p class="text-slate-600 mb-4">포트가 열려있는 것을 넘어, 해당 포트에서 실제 구동 중인 소프트웨어(데몬)의 정확한 이름과 버전 정보를 배너 그래빙(Banner Grabbing) 기법 등을 통해 깊이 있게 식별합니다. 취약점 점검의 핵심 옵션입니다.</p>
+            
+            <div class="nmap-output-container code-font">
+                <div class="nmap-command">$ nmap -sV 192.168.1.100</div>
+                
+                <div class="nmap-line">PORT   STATE SERVICE VERSION</div>
+                <div class="nmap-comment">➔ 기존 결과와 다르게 VERSION(버전) 컬럼이 추가된 것을 확인할 수 있습니다.</div>
+
+                <div class="nmap-line">22/tcp open  ssh     OpenSSH 8.2p1 Ubuntu 4ubuntu0.5 (Ubuntu Linux; protocol 2.0)</div>
+                <div class="nmap-comment">➔ 단순 'ssh'라고만 알려주던 것을 넘어, 구동 중인 소프트웨어가 OpenSSH이며 버전은 8.2p1, 심지어 운영 체제가 우분투(Ubuntu) 리눅스라는 세부 정보까지 완벽하게 추출해 냅니다. 이 버전 정보를 바탕으로 구글링이나 CVE 취약점을 검색합니다.</div>
+
+                <div class="nmap-line">80/tcp open  http    Apache httpd 2.4.41 ((Ubuntu))</div>
+                <div class="nmap-comment">➔ 단순 웹 서버가 아니라, Apache 웹 서버 버전 2.4.41이 구동 중임을 탐지했습니다.</div>
+
+                <div class="nmap-line">Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel</div>
+                <div class="nmap-comment">➔ 직접적인 OS 스캔(-O)을 하지 않았음에도, 서비스들이 반환하는 배너(문구) 정보를 종합하여 대상의 OS가 리눅스임을 스마트하게 유추해 냅니다.</div>
+            </div>
+        </article>
+
+        <!-- 실습 2.3 -->
+        <article class="mb-12">
+            <h3 class="text-2xl font-bold text-slate-700 mb-3">2.3 TCP SYN 스캔 (Stealth Scan)</h3>
+            <p class="text-slate-600 mb-4">실무에서 가장 널리 사용되는 반개방(Half-Open) 스캔 방식입니다. TCP 3-Way Handshake를 의도적으로 완료하지 않고 SYN 패킷만 전송한 뒤 응답이 오면 RST 패킷으로 연결을 강제로 끊습니다. 연결이 성립되지 않아 애플리케이션 로그에 남지 않을 확률이 높아 스텔스 스캔이라고도 합니다. 관리자 권한이 필요합니다.</p>
+            
+            <div class="nmap-output-container code-font">
+                <div class="nmap-command">$ sudo nmap -sS 192.168.1.100</div>
+                
+                <div class="nmap-line">PORT   STATE SERVICE</div>
+                <div class="nmap-comment">➔ 포트 상태를 확인합니다. 관리자 권한(sudo)으로 Nmap을 실행할 때 옵션을 주지 않으면 이 <code>-sS</code> 스캔이 기본값으로 작동합니다.</div>
+
+                <div class="nmap-line">80/tcp open  http</div>
+                <div class="nmap-comment">➔ Nmap이 SYN 패킷을 보내고 대상으로부터 SYN/ACK 응답을 정상적으로 수신했으므로 해당 포트를 'open'으로 판단합니다. 판단 직후 Nmap은 RST 패킷을 보내 연결을 찢어버립니다.</div>
+
+                <div class="nmap-line">443/tcp closed https</div>
+                <div class="nmap-comment">➔ SYN 패킷 전송 후 대상으로부터 곧바로 RST(연결 거부) 패킷을 수신하여 'closed'로 판단합니다.</div>
+            </div>
+        </article>
+
+        <!-- 실습 2.4 -->
+        <article class="mb-12">
+            <h3 class="text-2xl font-bold text-slate-700 mb-3">2.4 TCP Connect 스캔</h3>
+            <p class="text-slate-600 mb-4">운영 체제의 기본 네트워크 API(시스템 호출)를 사용하여 완전한 TCP 3-Way Handshake (SYN -> SYN/ACK -> ACK) 연결을 맺습니다. 일반 사용자 권한으로 실행할 때 Nmap이 사용하는 기본 방식입니다. 대상 서버(Apache, Nginx 등)의 접속 로그에 IP가 고스란히 남기 때문에 발각될 확률이 100%에 가깝습니다.</p>
+            
+            <div class="nmap-output-container code-font">
+                <div class="nmap-command">$ nmap -sT 192.168.1.100</div>
+                
+                <div class="nmap-line">80/tcp open  http</div>
+                <div class="nmap-comment">➔ SYN 스캔과 결과 화면은 똑같지만, 통신 과정이 완전히 다릅니다. 이 스캔이 진행되는 동안 대상 웹 서버의 <code>access.log</code>에는 스캐너 IP의 빈 연결 요청 기록이 무수히 찍히게 됩니다. 보안 점검자임을 대상에게 굳이 숨길 필요가 없을 때 사용합니다.</div>
+            </div>
+        </article>
+
+        <!-- 실습 2.5 -->
+        <article class="mb-12">
+            <h3 class="text-2xl font-bold text-slate-700 mb-3">2.5 UDP 스캔</h3>
+            <p class="text-slate-600 mb-4">TCP와 달리 연결 지향적이지 않은 UDP (User Datagram Protocol, 사용자 데이터그램 프로토콜) 포트의 상태를 점검합니다. 빈 UDP 패킷을 보내고, ICMP Port Unreachable 에러가 오면 닫힌 것으로, 응답이 없으면 열렸거나 방화벽에 막힌 것(open|filtered)으로 유추합니다. 이 특성상 스캔 속도가 TCP 스캔에 비해 극도로 느립니다.</p>
+            
+            <div class="nmap-output-container code-font">
+                <div class="nmap-command">$ sudo nmap -sU 192.168.1.100</div>
+                
+                <div class="nmap-line">PORT    STATE         SERVICE</div>
+                <div class="nmap-comment">➔ 테이블 헤더입니다. 상태 표시가 TCP와 다를 수 있습니다.</div>
+
+                <div class="nmap-line">53/udp  open          domain</div>
+                <div class="nmap-comment">➔ 특정 UDP 페이로드를 포함한 쿼리에 대해 대상(DNS 서버)이 정상적인 UDP 응답 패킷을 보내왔으므로 확실하게 열려(open) 있다고 판단했습니다.</div>
+
+                <div class="nmap-line">161/udp open|filtered snmp</div>
+                <div class="nmap-comment">➔ UDP 패킷을 보냈으나 아무런 응답이 돌아오지 않았습니다. Nmap 입장에서는 포트가 열려있는데 서비스가 그냥 응답을 안 한 것인지, 아니면 중간에 방화벽이 패킷을 몰래 버린(Drop) 것인지 알 수 없으므로 두 가지 가능성을 모두 표시(open|filtered)합니다.</div>
+            </div>
+            
+            <div class="pro-tip-box">
+                <strong>아키텍트의 실무 팁:</strong> 실무 진단 시 1,000개 포트를 모두 UDP 스캔하면 몇 시간이 걸릴 수도 있습니다. <code>-sU --top-ports 20</code> 처럼 핵심 UDP 포트(DNS, SNMP, NTP, DHCP 등)만 골라 스캔하는 것이 효율적입니다.
+            </div>
+        </article>
+
+        <!-- 실습 2.6 -->
+        <article class="mb-12">
+            <h3 class="text-2xl font-bold text-slate-700 mb-3">2.6 적극적 스캔 (Aggressive Scan)</h3>
+            <p class="text-slate-600 mb-4">운영 체제 탐지(-O), 버전 탐지(-sV), 스크립트 스캔(-sC), 라우터 경로 추적(--traceroute) 옵션을 한 번에 묶어서 실행하는 매우 강력하고 복합적인 옵션입니다. 진단 시간을 줄여주는 단축 명령어 역할을 합니다.</p>
+            
+            <div class="nmap-output-container code-font">
+                <div class="nmap-command">$ sudo nmap -A 192.168.1.100</div>
+                
+                <div class="nmap-line">... (포트, 버전, OS, 스크립트 정보 통합 출력 생략) ...</div>
+                <div class="nmap-comment">➔ 위에서 배운 여러 결과물들이 화면에 길고 상세하게 쏟아집니다.</div>
+
+                <div class="nmap-line">TRACEROUTE (using port 80/tcp)</div>
+                <div class="nmap-comment">➔ <code>-A</code> 옵션에 포함된 Traceroute 기능이 동작하여 목적지까지의 경로 라우팅 정보를 추적한 결과 블록입니다.</div>
+
+                <div class="nmap-line">HOP RTT     ADDRESS</div>
+                <div class="nmap-comment">➔ 경로 추적 헤더. 홉(Hop, 거치는 단계 수), 왕복 시간(RTT), 라우터 주소입니다.</div>
+
+                <div class="nmap-line">1   1.20 ms 192.168.1.1</div>
+                <div class="nmap-comment">➔ 첫 번째로 거친 게이트웨이 장비의 응답 정보입니다.</div>
+
+                <div class="nmap-line">2   2.50 ms 192.168.1.100</div>
+                <div class="nmap-comment">➔ 두 번째 홉만에 최종 대상 호스트에 도달했음을 보여줍니다. 네트워크 토폴로지를 유추하는 데 도움을 줍니다.</div>
+            </div>
+        </article>
+
+        <!-- 실습 2.7 -->
+        <article class="mb-12">
+            <h3 class="text-2xl font-bold text-slate-700 mb-3">2.7 타이밍 템플릿 적용</h3>
+            <p class="text-slate-600 mb-4">네트워크 스캔의 속도를 제어합니다. T0(매우 느림, IDS 우회용)부터 T5(매우 빠름, 네트워크 부하가 큼)까지 6단계를 지정할 수 있습니다. Nmap의 기본값은 T3이며, 실무에서는 적절한 속도와 안정성을 보장하는 <strong>T4</strong>를 가장 많이 사용합니다.</p>
+            
+            <div class="nmap-output-container code-font">
+                <div class="nmap-command">$ nmap -T4 192.168.1.100</div>
+                
+                <div class="nmap-line">... (포트 스캔 진행 중) ...</div>
+                <div class="nmap-comment">➔ T4 모드에서는 패킷 재전송 대기 시간(Timeout)이 기본값보다 짧게 설정되어 스캔 속도가 비약적으로 상승합니다. 대상 서버나 중간 방화벽의 응답이 빠를 때 유리합니다.</div>
+
+                <div class="nmap-line">Nmap done: 1 IP address (1 host up) scanned in 0.08 seconds</div>
+                <div class="nmap-comment">➔ 대기 시간을 최소화하여 평소보다 훨씬 빠른 0.08초 만에 전체 스캔이 완료되었음을 보여줍니다.</div>
+            </div>
+        </article>
+
+        <!-- 실습 2.8 -->
+        <article class="mb-12">
+            <h3 class="text-2xl font-bold text-slate-700 mb-3">2.8 기본 스크립트 스캔 (Default NSE)</h3>
+            <p class="text-slate-600 mb-4">Nmap은 강력한 확장 스크립트 엔진인 NSE (Nmap Scripting Engine)를 내장하고 있습니다. <code>-sC</code> 옵션은 악의적이지 않고 안전하다고 분류된 '기본(default)' 스크립트 세트를 구동하여 열린 포트에 대한 심층 정보를 캐냅니다.</p>
+            
+            <div class="nmap-output-container code-font">
+                <div class="nmap-command">$ nmap -sC 192.168.1.100</div>
+                
+                <div class="nmap-line">22/tcp open  ssh</div>
+                <div class="nmap-comment">➔ SSH 포트가 열려 있습니다. 이어서 아래에 NSE 스크립트 실행 결과가 트리 구조로 출력됩니다.</div>
+
+                <div class="nmap-line">| ssh-hostkey:</div>
+                <div class="nmap-comment">➔ NSE의 ssh-hostkey 수집 스크립트가 대상 서버에 접속하여 호스트 키 정보를 자동으로 추출해 왔습니다.</div>
+
+                <div class="nmap-line">|   2048 a1:b2:c3:d4:e5:f6:g7:h8... (RSA)</div>
+                <div class="nmap-comment">➔ 대상 서버의 2048비트 RSA 암호화 키 지문(Fingerprint)입니다.</div>
+
+                <div class="nmap-line">|_  256 z1:y2:x3:w4:v5:u6:t7:s8... (ECDSA)</div>
+                <div class="nmap-comment">➔ 대상 서버의 256비트 타원곡선 암호화(ECDSA) 키 지문입니다.</div>
+
+                <div class="nmap-line">80/tcp open  http</div>
+                <div class="nmap-comment">➔ HTTP 포트 결과 아래에도 웹 서버 관련 기본 스크립트 결과가 붙습니다.</div>
+
+                <div class="nmap-line">|_http-title: Apache2 Ubuntu Default Page: It works!</div>
+                <div class="nmap-comment">➔ NSE의 http-title 스크립트가 브라우저 대신 접속하여 메인 페이지의 HTML Title 태그 내용을 읽어옵니다. 관리자가 웹 서버를 설치만 하고 설정을 바꾸지 않은 초기 페이지 상태임을 알 수 있습니다.</div>
+            </div>
+        </article>
+
+        <!-- 실습 2.9 -->
+        <article class="mb-12">
+            <h3 class="text-2xl font-bold text-slate-700 mb-3">2.9 IPv6 스캔</h3>
+            <p class="text-slate-600 mb-4">기존 IPv4 체계가 아닌, 128비트 주소 체계를 가지는 차세대 인터넷 프로토콜 IPv6 대상 네트워크를 스캔합니다. <code>-6</code> 옵션을 사용합니다.</p>
+            
+            <div class="nmap-output-container code-font">
+                <div class="nmap-command">$ nmap -6 fe80::1a2b:3c4d:5e6f:7g8h</div>
+                
+                <div class="nmap-line">Starting Nmap 7.93 at 2026-03-16 10:15 KST</div>
+                <div class="nmap-comment">➔ 스캔 시작 알림입니다.</div>
+
+                <div class="nmap-line">Nmap scan report for fe80::1a2b:3c4d:5e6f:7g8h</div>
+                <div class="nmap-comment">➔ 스캔 대상이 IPv6 링크 로컬 주소(fe80)임을 확인할 수 있습니다. 결과 포맷 자체는 IPv4 스캔과 동일하게 직관적으로 출력됩니다.</div>
+
+                <div class="nmap-line">Host is up (0.0020s latency).</div>
+                <div class="nmap-comment">➔ 호스트 활성 상태입니다.</div>
+            </div>
+        </article>
+
+        <!-- 실습 2.10 -->
+        <article class="mb-12">
+            <h3 class="text-2xl font-bold text-slate-700 mb-3">2.10 그렙 가능 형식 출력 (Grepable Output)</h3>
+            <p class="text-slate-600 mb-4">리눅스 쉘 스크립트 프로그래밍 시 결과를 쉽게 가공하기 위해, 한 호스트에 대한 모든 포트 상태 정보를 단 한 줄에 모두 표현하는 방식으로 결과를 저장합니다. <code>awk</code>, <code>grep</code> 명령어와 찰떡궁합입니다.</p>
+            
+            <div class="nmap-output-container code-font">
+                <div class="nmap-command">$ nmap -oG grep_result.gnmap 192.168.1.100</div>
+                
+                <div class="nmap-line"># Nmap 7.93 scan initiated Mon Mar 16 10:16:00 2026 as: nmap -oG grep_result.gnmap 192.168.1.100</div>
+                <div class="nmap-comment">➔ 생성된 .gnmap 파일의 최상단입니다. 주석(#) 기호를 통해 실행 명령어 및 시간 메타데이터를 기록합니다.</div>
+
+                <div class="nmap-line">Host: 192.168.1.100 ()	Status: Up</div>
+                <div class="nmap-comment">➔ 호스트 IP와 상태(Up) 정보가 탭(Tab) 단위로 구분되어 있어 정규식 처리가 매우 쉽습니다.</div>
+
+                <div class="nmap-line">Host: 192.168.1.100 ()	Ports: 22/open/tcp//ssh///, 80/open/tcp//http///	Ignored State: closed (998)</div>
+                <div class="nmap-comment">➔ 여기가 핵심입니다. 발견된 포트와 서비스 정보(22번과 80번)가 세로 목록이 아닌, 슬래시(/)와 쉼표(,) 구분자로 묶여 가로 방향으로 한 줄에 모두 표현되어 있습니다. `grep 80/open` 명령으로 웹 서버만 구동하는 서버 IP를 손쉽게 필터링할 수 있습니다.</div>
+            </div>
+        </article>
+    </section>
+
+    <!-- ==========================================
+         3. 고급 단계 (Advanced Level)
+    =========================================== -->
+    <section class="mb-16 mt-20">
+        <h2 class="text-3xl font-bold text-slate-800 mb-6 flex items-center border-t-2 border-slate-200 pt-12">
+            <span class="bg-red-600 text-white w-10 h-10 flex items-center justify-center rounded-full mr-3 text-xl">3</span>
+            고급 단계 (Advanced Level)
+        </h2>
+        <p class="text-slate-700 mb-8 text-lg">고급 단계에서는 보안 장비(방화벽, IDS/IPS)를 분석하고 우회하거나, 정밀한 취약점 진단 및 네트워크 트래픽 제어를 수행하는 네트워크 보안 아키텍트 수준의 고급 기술을 다룹니다.</p>
+
+        <!-- 실습 3.1 -->
+        <article class="mb-12">
+            <h3 class="text-2xl font-bold text-slate-700 mb-3">3.1 디코이 스캔 (Decoy Scan)</h3>
+            <p class="text-slate-600 mb-4">디코이(미끼) 스캔은 패킷을 전송할 때 가짜 출발지 IP 주소들을 내 진짜 IP와 섞어서 발송합니다. 대상 서버의 IDS (Intrusion Detection System, 침입 탐지 시스템) 관리자 화면에는 수많은 IP가 동시에 스캔하는 것처럼 보여, 진짜 공격자의 IP를 특정하기 어렵게 만드는 연막탄 기술입니다.</p>
+            
+            <div class="nmap-output-container code-font">
+                <div class="nmap-command">$ nmap -D RND:5 192.168.1.100</div>
+                
+                <div class="nmap-line"># Nmap 자체 콘솔 출력은 일반 포트 스캔 결과와 동일합니다. 아래는 대상 서버의 보안 로그 관점에서의 분석입니다.</div>
+                <div class="nmap-comment">➔ 옵션 RND:5는 5개의 랜덤(Random) 가짜 IP를 생성하여 내 IP와 섞어 패킷을 보내라는 의미입니다.</div>
+
+                <div class="nmap-line"># 방화벽(IDS) 로그 기록 예상 결과:</div>
+                <div class="nmap-line"># 10.1.5.23 (랜덤 가짜 IP 1) -> 192.168.1.100:80 (SYN 패킷)</div>
+                <div class="nmap-line"># 172.16.8.9 (랜덤 가짜 IP 2) -> 192.168.1.100:80 (SYN 패킷)</div>
+                <div class="nmap-line"># [공격자 본인 실제 IP] -> 192.168.1.100:80 (SYN 패킷)</div>
+                <div class="nmap-comment">➔ 대상 방화벽 로그에는 누가 진짜 스캐너인지 식별할 수 없는 수많은 접속 시도 기록이 초당 수백 개씩 쌓이게 되어, 블루팀(방어자)의 사고 대응 속도를 현저히 지연시킵니다.</div>
+            </div>
+        </article>
+
+        <!-- 실습 3.2 -->
+        <article class="mb-12">
+            <h3 class="text-2xl font-bold text-slate-700 mb-3">3.2 유휴 스캔 (Idle Scan) / 좀비 스캔</h3>
+            <p class="text-slate-600 mb-4">가장 은밀한 최상급 스텔스 스캔 기법입니다. 내 IP를 전혀 사용하지 않고, 네트워크 상의 제3의 호스트(좀비 PC)의 'IP ID(식별자)' 증가 패턴 결함을 악용하여 대상 호스트의 포트 상태를 알아냅니다.</p>
+            
+            <div class="nmap-output-container code-font">
+                <div class="nmap-command">$ sudo nmap -sI 192.168.1.50 192.168.1.100</div>
+                
+                <div class="nmap-line">Idle scan using zombie 192.168.1.50 (192.168.1.50:80); Class: Incremental</div>
+                <div class="nmap-comment">➔ Nmap이 지정한 좀비 PC(192.168.1.50)의 네트워크 스택을 분석한 결과, 패킷의 IP ID 값이 규칙적으로 1씩 증가(Incremental)하는 구형 OS 특성을 가지고 있음을 확인하고, 이를 이용해 스캔을 시작합니다.</div>
+
+                <div class="nmap-line">Nmap scan report for 192.168.1.100</div>
+                <div class="nmap-comment">➔ 대상 IP(192.168.1.100)의 스캔 결과를 출력합니다.</div>
+
+                <div class="nmap-line"># 대상 서버의 방화벽 로그 분석 결과:</div>
+                <div class="nmap-comment">➔ 대상 서버 로그에는 오로지 좀비 PC(192.168.1.50)가 자신에게 접근한 기록만 남습니다. 칼리 리눅스 스캐너의 IP는 네트워크상에 단 한 줄의 흔적도 남기지 않는 완벽한 우회가 성립됩니다.</div>
+            </div>
+            
+            <div class="warning-box">
+                <strong>주의사항:</strong> 현대의 대부분의 운영 체제(Windows, 최신 Linux 커널)는 보안을 위해 IP ID 값을 무작위 난수(Randomized)로 생성하도록 패치되어 있어, 실무에서 적합한 좀비 PC를 찾기가 점점 어려워지고 있습니다.
+            </div>
+        </article>
+
+        <!-- 실습 3.3 -->
+        <article class="mb-12">
+            <h3 class="text-2xl font-bold text-slate-700 mb-3">3.3 사용자 정의 MTU 설정 (MTU Evasion)</h3>
+            <p class="text-slate-600 mb-4">패킷의 크기를 특정 바이트(반드시 8의 배수여야 함) 단위로 강제로 잘게 쪼개어(Fragmentation) 전송합니다. 구형 IPS (Intrusion Prevention System, 침입 방지 시스템)는 파편화된 패킷을 재조합하지 못하고 페이로드 검사를 포기하여 공격을 통과시키는 취약점이 있습니다.</p>
+            
+            <div class="nmap-output-container code-font">
+                <div class="nmap-command">$ sudo nmap --mtu 24 192.168.1.100</div>
+                
+                <div class="nmap-line">... (결과 출력 화면은 일반 스캔과 동일) ...</div>
+                <div class="nmap-comment">➔ 화면에 보이는 결과는 평범하지만, 네트워크 선로 상으로 흘러가는 데이터는 전혀 다릅니다.</div>
+
+                <div class="nmap-line"># 내부망 트래픽 동작 원리 분석:</div>
+                <div class="nmap-comment">➔ 보통 수백 바이트 단위로 묶여가야 할 TCP 헤더와 데이터가, 지정한 MTU (Maximum Transmission Unit, 최대 전송 단위) 값인 24바이트라는 극도로 작은 크기로 쪼개어져 수십 개의 조각난 패킷으로 나뉘어 전송됩니다. 방화벽 장비는 이를 재조합(Reassembly)하다가 성능 부하로 인해 패킷을 바이패스(Bypass) 처리할 가능성이 있습니다.</div>
+            </div>
+        </article>
+
+        <!-- 실습 3.4 -->
+        <article class="mb-12">
+            <h3 class="text-2xl font-bold text-slate-700 mb-3">3.4 기본 패킷 단편화 (Fragmentation)</h3>
+            <p class="text-slate-600 mb-4"><code>--mtu</code> 명령어를 간소화한 기본 옵션으로, IP 패킷 헤더를 8바이트 단위의 작은 조각으로 자동 분리하여 전송하는 간단한 IPS 우회 기법입니다.</p>
+            
+            <div class="nmap-output-container code-font">
+                <div class="nmap-command">$ sudo nmap -f 192.168.1.100</div>
+                
+                <div class="nmap-line">... (결과 출력 화면은 일반 스캔과 동일) ...</div>
+                <div class="nmap-comment">➔ 일반적인 환경에서는 <code>-f</code> 옵션 하나만으로도 기본적인 패킷 필터링 방화벽을 쉽게 통과하여 내부 서비스 상태를 읽어낼 수 있습니다.</div>
+            </div>
+        </article>
+
+        <!-- 실습 3.5 -->
+        <article class="mb-12">
+            <h3 class="text-2xl font-bold text-slate-700 mb-3">3.5 MAC 주소 위조 (MAC Address Spoofing)</h3>
+            <p class="text-slate-600 mb-4">동일한 스위치 대역 내의 내부망 스캔 시, 자신의 하드웨어 MAC 주소를 특정 기업의 벤더(예: Apple, Cisco) 기기인 것처럼 속이거나, <code>0</code>을 입력하여 완전히 무작위로 생성한 MAC으로 위조합니다. NAC (Network Access Control, 네트워크 접근 제어) 솔루션을 우회할 때 핵심 기술입니다.</p>
+            
+            <div class="nmap-output-container code-font">
+                <div class="nmap-command">$ sudo nmap --spoof-mac 0 192.168.1.100</div>
+                
+                <div class="nmap-line">Spoofing MAC address 00:11:22:33:44:55 (Apple)</div>
+                <div class="nmap-comment">➔ 칼리 리눅스의 실제 MAC 주소가 아닌, 0 옵션을 통해 Nmap 엔진이 랜덤으로 생성한 Apple 제조사 대역의 가짜 MAC 주소로 패킷을 캡슐화(Encapsulation)하여 전송함을 알립니다.</div>
+
+                <div class="nmap-line">Nmap scan report for 192.168.1.100</div>
+                <div class="nmap-comment">➔ 위장된 상태에서 정상적으로 타겟을 스캔해냅니다. 네트워크 관리자는 스위치 MAC 테이블에서 외부인의 접속이 아닌 사내 임직원의 아이폰(Apple) 디바이스에서 트래픽이 발생한 것으로 착각하게 됩니다.</div>
+            </div>
+        </article>
+
+        <!-- 실습 3.6 -->
+        <article class="mb-12">
+            <h3 class="text-2xl font-bold text-slate-700 mb-3">3.6 잘못된 체크섬 전송 (Bad Checksum)</h3>
+            <p class="text-slate-600 mb-4">의도적으로 오류가 포함된 TCP/UDP/IP Checksum (체크섬, 무결성 검증 값)을 조작하여 발송합니다. 정상적인 시스템은 이 패킷을 버리지만, 시스템 커널을 변조한 악성 백도어나 비정상적인 IDS 장비의 동작 특성을 역추적할 때 사용되는 극상의 기법입니다.</p>
+            
+            <div class="nmap-output-container code-font">
+                <div class="nmap-command">$ sudo nmap --badsum 192.168.1.100</div>
+                
+                <div class="nmap-line">Nmap scan report for 192.168.1.100</div>
+                <div class="nmap-comment">➔ 대상 스캔 보고입니다.</div>
+
+                <div class="nmap-line">All 1000 scanned ports on 192.168.1.100 are in ignored states.</div>
+                <div class="nmap-comment">➔ (정상적인 결과) 일반적인 OS의 네트워크 계층은 체크섬이 틀린 훼손된 패킷을 확인하는 즉시 응답 없이 폐기(Drop)하므로, 아무 포트 상태도 확인되지 않는 것이 정상입니다. 만약 여기서 RST나 SYN/ACK 응답이 돌아온다면 해당 시스템의 TCP/IP 구조가 비정상이거나 네트워크 스니핑 장비가 응답을 가로채고 있음을 강력히 의심해야 합니다.</div>
+            </div>
+        </article>
+
+        <!-- 실습 3.7 -->
+        <article class="mb-12">
+            <h3 class="text-2xl font-bold text-slate-700 mb-3">3.7 특정 취약점 탐지 스크립트 실행 (Vuln Scripting)</h3>
+            <p class="text-slate-600 mb-4">단순 포트 파악을 넘어, NSE 엔진의 <code>vuln</code> (Vulnerability) 카테고리 스크립트를 총동원하여 식별된 서비스가 가지고 있는 공지된 취약점인 CVE (Common Vulnerabilities and Exposures, 공통 취약점 및 노출) 존재 여부를 직접 해킹 시도에 가깝게 딥 스캐닝합니다.</p>
+            
+            <div class="nmap-output-container code-font">
+                <div class="nmap-command">$ nmap --script vuln 192.168.1.100</div>
+                
+                <div class="nmap-line">80/tcp open  http</div>
+                <div class="nmap-comment">➔ 웹 서버 포트가 열려 있습니다. 이 아래로 각종 취약점 점검 스크립트가 공격 페이로드를 날려본 결과가 출력됩니다.</div>
+
+                <div class="nmap-line">|_http-csrf: Couldn't find any CSRF vulnerabilities.</div>
+                <div class="nmap-comment">➔ CSRF (Cross-Site Request Forgery) 웹 취약점 검사 스크립트가 동작했으나 취약점이 발견되지 않았음을 보고합니다.</div>
+
+                <div class="nmap-line">| http-sql-injection:</div>
+                <div class="nmap-comment">➔ SQL 인젝션 취약점 검사 스크립트가 동작한 결과 블록입니다.</div>
+
+                <div class="nmap-line">|   Possible sqli for queries:</div>
+                <div class="nmap-comment">➔ 백엔드 데이터베이스를 해킹할 수 있는 취약할 '가능성'이 높은 파라미터 구조를 발견했습니다.</div>
+
+                <div class="nmap-line">|     http://192.168.1.100/index.php?id=1'*</div>
+                <div class="nmap-comment">➔ 해커나 진단자가 직접 익스플로잇(공격)에 사용할 수 있는 실제 취약한 엔드포인트 URL을 도출해 냅니다. 이 옵션 하나만으로도 Nmap은 강력한 웹 취약점 스캐너 역할을 수행합니다.</div>
+            </div>
+        </article>
+
+        <!-- 실습 3.8 -->
+        <article class="mb-12">
+            <h3 class="text-2xl font-bold text-slate-700 mb-3">3.8 패킷 추적 (Packet Trace)</h3>
+            <p class="text-slate-600 mb-4">Wireshark(와이어샤크)를 켜지 않아도, 스캔 과정에서 Nmap이 전송하고 수신하는 모든 네트워크 패킷 덤프 정보를 터미널 화면에 상세히 출력합니다. 방화벽 엔지니어가 스캔 패킷이 어디서 차단되는지 트러블슈팅(원인 분석)할 때 필수적인 도구입니다.</p>
+            
+            <div class="nmap-output-container code-font">
+                <div class="nmap-command">$ sudo nmap --packet-trace -p 80 192.168.1.100</div>
+                
+                <div class="nmap-line">SENT (0.0520s) TCP 192.168.1.50:54321 > 192.168.1.100:80 S ttl=56 id=3210 iplen=44  seq=123456789 win=1024 &lt;mss 1460&gt;</div>
+                <div class="nmap-comment">➔ 스캐너(192.168.1.50)가 대상(100)의 80번 포트로 보낸 TCP 프로토콜의 S(SYN) 플래그 패킷 구조를 헥사코드 레벨로 보여줍니다. TTL(생존 시간), 시퀀스 넘버 등이 적나라하게 보입니다.</div>
+
+                <div class="nmap-line">RCVD (0.0535s) TCP 192.168.1.100:80 > 192.168.1.50:54321 SA ttl=64 id=0 iplen=44 seq=987654321 ack=123456790 win=5840 &lt;mss 1460&gt;</div>
+                <div class="nmap-comment">➔ 타겟 서버로부터 0.0015초 만에 수신한 응답 패킷입니다. SA(SYN/ACK) 플래그가 설정되어 수신되었으므로, Nmap은 내부적으로 이 80번 포트가 열려있다는 논리적 확신을 갖게 됩니다.</div>
+
+                <div class="nmap-line">80/tcp open  http</div>
+                <div class="nmap-comment">➔ 패킷 분석 엔진의 판단 결과, 최종적으로 'open' 이라는 결과물을 출력합니다.</div>
+            </div>
+        </article>
+
+        <!-- 실습 3.9 -->
+        <article class="mb-12">
+            <h3 class="text-2xl font-bold text-slate-700 mb-3">3.9 출발지 포트 강제 지정 (Source Port Manipulation)</h3>
+            <p class="text-slate-600 mb-4">보안이 허술한 방화벽 규칙의 맹점을 찌릅니다. 예를 들어 기업 방화벽이 외부 DNS 서버의 응답 트래픽인 출발지 53번 포트 트래픽은 묻지도 않고 전부 허용(Allow)하도록 설정 오류(Misconfiguration)를 범한 경우, 내 스캐너의 출발지 포트를 53으로 고정 위장하여 철벽같은 방화벽을 쉽게 관통합니다.</p>
+            
+            <div class="nmap-output-container code-font">
+                <div class="nmap-command">$ sudo nmap -g 53 192.168.1.100</div>
+                
+                <div class="nmap-line"># Nmap 트래픽 동작 원리 분석:</div>
+                <div class="nmap-comment">➔ 일반적인 통신에서는 출발지 포트가 50000번대의 임의의 동적 포트로 랜덤 생성되지만, <code>-g</code> 옵션을 주면 무조건 출발지가 53번(DNS) 포트인 것처럼 패킷을 조작하여 발송합니다.</div>
+
+                <div class="nmap-line">PORT   STATE SERVICE</div>
+                <div class="nmap-comment">➔ 포트 결과입니다.</div>
+
+                <div class="nmap-line">80/tcp open  http</div>
+                <div class="nmap-comment">➔ 원래라면 방화벽 인바운드 정책에서 막혀야 할 스캔 패킷이, 53번 포트를 달고 왔다는 이유만으로 방화벽 정책을 바이패스하여 내부 웹 서버의 열린 상태를 밖으로 빼내오는 데 성공한 결과입니다.</div>
+            </div>
+        </article>
+
+        <!-- 실습 3.10 -->
+        <article class="mb-12">
+            <h3 class="text-2xl font-bold text-slate-700 mb-3">3.10 XML 포맷 출력 연동 (XML Output)</h3>
+            <p class="text-slate-600 mb-4">Nmap 스캔 결과를 XML (eXtensible Markup Language, 확장성 마크업 언어) 형태로 저장합니다. 이 포맷은 단순 문서용이 아니라, 스캔 결과를 Metasploit(메타스플로잇) 침투 테스트 프레임워크나 기업내 SIEM, 취약점 관리 데이터베이스에 자동 임포트(Import)하여 보안 파이프라인 자동화를 구축할 때 사용하는 아키텍트 레벨의 필수 옵션입니다.</p>
+            
+            <div class="nmap-output-container code-font">
+                <div class="nmap-command">$ nmap -oX nmap_report.xml 192.168.1.100</div>
+                
+                <div class="nmap-line"># 터미널에는 평소처럼 스캔 결과가 보이지만, 뒤에서는 시스템 파싱용 XML 코드가 생성됩니다. 아래는 nmap_report.xml 파일 내부의 구조적 형태입니다.</div>
+                <div class="nmap-comment">➔ 사람이 읽기 위한 목적이 아닌 기계(Machine) 간 데이터 교환을 위한 마크업 구조입니다.</div>
+
+                <div class="nmap-line">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</div>
+                <div class="nmap-comment">➔ 표준 XML 문서 선언부입니다.</div>
+
+                <div class="nmap-line">&lt;!DOCTYPE nmaprun&gt;</div>
+                <div class="nmap-comment">➔ Nmap DTD 구조 정의를 선언합니다.</div>
+
+                <div class="nmap-line">&lt;nmaprun scanner="nmap" args="nmap -oX nmap_report.xml 192.168.1.100" start="1710552600" ... version="7.93"&gt;</div>
+                <div class="nmap-comment">➔ 최상위 루트 태그에 스캐너 실행 명령어, 시작 시간 타임스탬프, Nmap 엔진 버전 등 메타데이터 속성(Attribute)이 정확히 규격화되어 기록됩니다.</div>
+
+                <div class="nmap-line">&lt;host starttime="1710552600" endtime="1710552601"&gt;&lt;status state="up" reason="localhost-response"/&gt;</div>
+                <div class="nmap-comment">➔ 호스트 단위의 활성 상태가 구조화 태그로 묶여 있습니다. DB 테이블의 칼럼에 매핑하기 완벽한 형태입니다.</div>
+
+                <div class="nmap-line">&lt;ports&gt;&lt;port protocol="tcp" portid="80"&gt;&lt;state state="open" reason="syn-ack"/&gt;&lt;service name="http"/&gt;&lt;/port&gt;&lt;/ports&gt;</div>
+                <div class="nmap-comment">➔ 포트 번호(portid), 프로토콜 속성(protocol), 포트 상태(state), 심지어 포트가 열려있다고 확신한 기술적 이유(reason="syn-ack" 패킷 수신)까지 데이터화 되어 타 보안 솔루션에서 즉시 가져다 쓸 수 있도록 완벽하게 파싱 준비가 된 형태입니다.</div>
+            </div>
+            
+            <div class="pro-tip-box border-yellow-500 bg-yellow-50 text-slate-800">
+                <strong>전문가의 실무 조언:</strong> 본 교재의 3장 '고급 단계'에 기재된 스캔 기법들(특히 디코이, 조각화, 체크섬 변조 등)은 강력한 공격자 모방 기법인 만큼, 대상 인프라의 보안 관제 솔루션에 치명적 위협 경고(Critical Alert) 로그를 다수 발생시킬 수 있습니다. 학습 및 테스트는 <strong>반드시 승인된 사내 실습망 또는 인가된 모의해킹 프로젝트 환경 내에서만 제한적으로 수행</strong>되어야 합니다.
+            </div>
+        </article>
+    </section>
+</div>
+
+</body>
+</html>

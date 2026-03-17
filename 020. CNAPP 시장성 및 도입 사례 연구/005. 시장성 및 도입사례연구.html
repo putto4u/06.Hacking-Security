@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CNAPP 전략 분석 및 실무 도입 사례</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        .case-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .case-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); }
+        .highlight-box { border-left: 4px solid #3b82f6; background-color: #eff6ff; }
+        .gradient-header { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); }
+        .stat-card { background: linear-gradient(white, white) padding-box, linear-gradient(135deg, #3b82f6, #10b981) border-box; border: 2px solid transparent; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <!-- Header Section -->
+    <header class="gradient-header text-white p-10 rounded-3xl shadow-2xl mb-12">
+        <div class="max-w-6xl mx-auto">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">CNAPP 시장 전략 및 심층 도입 가이드</h1>
+            <p class="text-xl text-slate-300">Cloud-Native Application Protection Platform (클라우드 네이티브 애플리케이션 보호 플랫폼)</p>
+            <div class="mt-8 flex flex-wrap gap-4">
+                <span class="bg-blue-600 px-4 py-2 rounded-full text-sm font-semibold">시장 지나믹스 분석</span>
+                <span class="bg-emerald-600 px-4 py-2 rounded-full text-sm font-semibold">실무 도입 사례</span>
+                <span class="bg-amber-600 px-4 py-2 rounded-full text-sm font-semibold">비즈니스 가치 최적화</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto space-y-16">
+
+        <!-- Section 0: Market Outlook (New added) -->
+        <section>
+            <div class="flex items-center gap-3 mb-8">
+                <div class="w-2 h-8 bg-blue-600 rounded-full"></div>
+                <h2 class="text-3xl font-bold">CNAPP 시장 전망 및 글로벌 트렌드</h2>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6 mb-10">
+                <div class="stat-card p-6 rounded-2xl shadow-sm">
+                    <p class="text-slate-500 text-sm font-bold uppercase">전 세계 시장 규모 (2029년 전망)</p>
+                    <div class="text-3xl font-bold text-blue-600 mt-2">$31.4B+</div>
+                    <p class="text-xs text-slate-400 mt-1">2024년 대비 약 3배 성장 예측</p>
+                </div>
+                <div class="stat-card p-6 rounded-2xl shadow-sm">
+                    <p class="text-slate-500 text-sm font-bold uppercase">연평균 성장률 (CAGR)</p>
+                    <div class="text-3xl font-bold text-emerald-600 mt-2">25.7%</div>
+                    <p class="text-xs text-slate-400 mt-1">사이버 보안 섹터 내 최고 성장률</p>
+                </div>
+                <div class="stat-card p-6 rounded-2xl shadow-sm">
+                    <p class="text-slate-500 text-sm font-bold uppercase">기업 도입 의사 (Enterprise Adoption)</p>
+                    <div class="text-3xl font-bold text-amber-600 mt-2">85%</div>
+                    <p class="text-xs text-slate-400 mt-1">2026년까지 대부분의 대기업 도입 전망</p>
+                </div>
+            </div>
+
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 mb-8">
+                <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+                    <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    전략적 시장 점유율 및 리더십 분석
+                </h3>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="space-y-4 text-sm leading-relaxed text-slate-600">
+                        <p>현재 CNAPP 시장은 <strong>Palo Alto Networks (팔로알토 네트웍스)</strong>와 <strong>Wiz (위즈)</strong>가 양강 체제를 구축하고 있으며, CrowdStrike와 Microsoft가 그 뒤를 바짝 추격하고 있습니다. 특히 Wiz는 설립 4년 만에 120억 달러 이상의 가치를 인정받으며 클라우드 네이티브 보안의 패러다임을 에이전트리스 방식으로 전환시켰습니다.</p>
+                        <p>시장의 핵심 경쟁력은 <strong>'통합 가시성'</strong>에 있습니다. 단일 플랫폼에서 인프라, ID, 워크로드의 관계를 얼마나 정확하게 그래프 형태로 시각화하느냐가 벤더 선정의 핵심 지표가 되고 있습니다.</p>
+                    </div>
+                    <div class="bg-slate-50 p-6 rounded-xl border border-slate-200">
+                        <h4 class="font-bold text-slate-800 mb-4">주요 시장 동인 (Market Drivers)</h4>
+                        <ul class="space-y-3">
+                            <li class="flex items-start gap-2">
+                                <span class="bg-blue-500 w-1.5 h-1.5 rounded-full mt-1.5"></span>
+                                <span class="text-sm"><strong>멀티 클라우드 복잡성 증가:</strong> 평균적으로 대기업은 2.6개 이상의 클라우드 서비스를 혼용</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="bg-blue-500 w-1.5 h-1.5 rounded-full mt-1.5"></span>
+                                <span class="text-sm"><strong>Kubernetes (쿠버네티스) 표준화:</strong> 컨테이너 보안 가시성 확보가 필수 과제로 부상</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="bg-blue-500 w-1.5 h-1.5 rounded-full mt-1.5"></span>
+                                <span class="text-sm"><strong>도구 피로감 (Tool Sprawl):</strong> 평균 10~15개의 개별 보안 도구 운영에 따른 관리 한계</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 1: Why CNAPP? (Problem vs Solution) -->
+        <section>
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-2 h-8 bg-blue-600 rounded-full"></div>
+                <h2 class="text-3xl font-bold">기존 보안의 한계와 CNAPP의 전환 가치</h2>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+                    <h3 class="text-xl font-bold text-red-600 mb-4 uppercase tracking-wider">Legacy Limitation (기존의 한계)</h3>
+                    <ul class="space-y-4">
+                        <li class="flex gap-3">
+                            <span class="text-red-500 font-bold">01</span>
+                            <p><strong>Tool Silos (보안 도구의 파편화):</strong> CSPM, CWPP, CIEM이 각각 별도 엔진으로 작동하여 전체적인 가시성 확보 불가능</p>
+                        </li>
+                        <li class="flex gap-3">
+                            <span class="text-red-500 font-bold">02</span>
+                            <p><strong>Context Blindness (맥락 결여):</strong> 취약점은 발견하나, 그것이 인터넷에 노출되어 있는지 또는 과도한 권한을 가졌는지 연결 분석 불가</p>
+                        </li>
+                        <li class="flex gap-3">
+                            <span class="text-red-500 font-bold">03</span>
+                            <p><strong>Operational Friction (운영 마찰):</strong> 보안 팀과 개발 팀 간의 서로 다른 데이터로 인한 소통 비용 증가 및 배포 지연</p>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+                    <h3 class="text-xl font-bold text-emerald-600 mb-4 uppercase tracking-wider">CNAPP Advantage (CNAPP의 장점)</h3>
+                    <ul class="space-y-4">
+                        <li class="flex gap-3">
+                            <span class="text-emerald-500 font-bold">01</span>
+                            <p><strong>Unified Graph Analysis (통합 그래프 분석):</strong> 인프라 설정, 워크로드 취약점, ID 권한을 하나의 모델로 연결하여 공격 경로(Attack Path) 시각화</p>
+                        </li>
+                        <li class="flex gap-3">
+                            <span class="text-emerald-500 font-bold">02</span>
+                            <p><strong>Prioritization (우선순위화):</strong> 수만 개의 보안 경보 중 실제 침해 가능성이 높은 '독성 조합(Toxic Combination)'을 선별하여 대응 효율 극대화</p>
+                        </li>
+                        <li class="flex gap-3">
+                            <span class="text-emerald-500 font-bold">03</span>
+                            <p><strong>Shift-Left Mastery (보안의 전진 배치):</strong> IaC(Infrastructure as Code, 코드형 인프라) 스캔을 통해 개발 단계에서 보안 오류 80% 이상 사전 차단</p>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Deep-Dive Case Studies -->
+        <section>
+            <div class="flex items-center gap-3 mb-8">
+                <div class="w-2 h-8 bg-blue-600 rounded-full"></div>
+                <h2 class="text-3xl font-bold">분야별 심층 도입 사례 및 비즈니스 임팩트</h2>
+            </div>
+
+            <div class="space-y-8">
+                <!-- Case 1 -->
+                <div class="case-card bg-white p-8 rounded-3xl border border-slate-200 shadow-sm overflow-hidden relative">
+                    <div class="absolute top-0 right-0 bg-blue-600 text-white px-6 py-2 rounded-bl-2xl font-bold italic">CASE 01</div>
+                    <div class="grid md:grid-cols-3 gap-8">
+                        <div class="md:col-span-1">
+                            <h3 class="text-2xl font-bold mb-2">글로벌 핀테크 A사</h3>
+                            <p class="text-slate-500 mb-4">멀티 클라우드 환경의 복합 컴플라이언스 대응</p>
+                            <div class="flex flex-col gap-2">
+                                <span class="text-xs font-semibold text-blue-700 bg-blue-50 px-3 py-1 rounded">AWS/Azure 혼용</span>
+                                <span class="text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-1 rounded">Kubernetes 환경</span>
+                            </div>
+                        </div>
+                        <div class="md:col-span-2 space-y-4">
+                            <div class="highlight-box p-4 rounded-r-lg">
+                                <p class="font-bold text-blue-800">도입 배경</p>
+                                <p class="text-sm">기존 CSPM(Cloud Security Posture Management, 클라우드 보안 태세 관리)으로는 3,000개가 넘는 계정의 보안 설정을 일관되게 관리하기 불가능했으며, PCI-DSS 인증 심사 준비에만 매달 수백 시간 소요.</p>
+                            </div>
+                            <div>
+                                <p class="font-bold text-slate-800">결과 및 가치</p>
+                                <ul class="list-disc list-inside text-sm text-slate-600 space-y-1 mt-2">
+                                    <li><strong>가시성:</strong> 에이전트리스 기술로 24시간 내 전사 자산 100% 식별</li>
+                                    <li><strong>자동화:</strong> 컴플라이언스 리포트 생성 자동화로 심사 준비 시간 90% 단축</li>
+                                    <li><strong>보안성:</strong> 과도한 권한이 설정된 휴면 계정 자동 차단(CIEM 기능 활용)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Case 2 -->
+                <div class="case-card bg-white p-8 rounded-3xl border border-slate-200 shadow-sm overflow-hidden relative">
+                    <div class="absolute top-0 right-0 bg-emerald-600 text-white px-6 py-2 rounded-bl-2xl font-bold italic">CASE 02</div>
+                    <div class="grid md:grid-cols-3 gap-8">
+                        <div class="md:col-span-1">
+                            <h3 class="text-2xl font-bold mb-2">대형 이커머스 B사</h3>
+                            <p class="text-slate-500 mb-4">DevSecOps 파이프라인 최적화</p>
+                            <div class="flex flex-col gap-2">
+                                <span class="text-xs font-semibold text-blue-700 bg-blue-50 px-3 py-1 rounded">일일 100회 이상 배포</span>
+                                <span class="text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-1 rounded">Serverless 아키텍처</span>
+                            </div>
+                        </div>
+                        <div class="md:col-span-2 space-y-4">
+                            <div class="highlight-box p-4 rounded-r-lg" style="border-left-color: #10b981; background-color: #ecfdf5;">
+                                <p class="font-bold text-emerald-800">도입 배경</p>
+                                <p class="text-sm">보안 검토 단계가 병목 현상을 일으켜 비즈니스 민첩성 저해. 런타임 환경에서 발견된 취약점을 개발 팀이 수정하는 데 평균 15일 소요.</p>
+                            </div>
+                            <div>
+                                <p class="font-bold text-slate-800">결과 및 가치</p>
+                                <ul class="list-disc list-inside text-sm text-slate-600 space-y-1 mt-2">
+                                    <li><strong>개발 생산성:</strong> IDE 내 실시간 코드 보안 가이드 제공으로 취약점 70% 사전 방지</li>
+                                    <li><strong>신속 대응:</strong> CWPP(Cloud Workload Protection Platform, 클라우드 워크로드 보호 플랫폼) 연동으로 실시간 공격 차단(WAF 자동 업데이트)</li>
+                                    <li><strong>비용 절감:</strong> 보안 사고 대응 시간(MTTR)을 시간 단위에서 분 단위로 단축</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Marketability & Investment ROI -->
+        <section class="bg-slate-900 text-white p-10 rounded-3xl shadow-xl">
+            <h2 class="text-3xl font-bold mb-8 text-center text-blue-400">CNAPP 도입의 비즈니스 ROI (투자 대비 수익)</h2>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="text-center p-6 border border-slate-700 rounded-2xl">
+                    <div class="text-4xl font-bold text-blue-500 mb-2">35% ↓</div>
+                    <p class="text-lg font-semibold">TCO 절감</p>
+                    <p class="text-sm text-slate-400 mt-2">다수의 포인트 솔루션 라이선스 비용 및 운영 인건비 통합 절감</p>
+                </div>
+                <div class="text-center p-6 border border-slate-700 rounded-2xl">
+                    <div class="text-4xl font-bold text-emerald-500 mb-2">80% ↓</div>
+                    <p class="text-lg font-semibold">보안 경보 피로도</p>
+                    <p class="text-sm text-slate-400 mt-2">맥락 기반 분석을 통해 실제 위협이 아닌 노이즈성 경보 제거</p>
+                </div>
+                <div class="text-center p-6 border border-slate-700 rounded-2xl">
+                    <div class="text-4xl font-bold text-amber-500 mb-2">2x ↑</div>
+                    <p class="text-lg font-semibold">배포 속도 가속화</p>
+                    <p class="text-sm text-slate-400 mt-2">자동화된 보안 게이트 적용으로 수동 승인 절차 간소화</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Implementation Checklist -->
+        <section>
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-2 h-8 bg-blue-600 rounded-full"></div>
+                <h2 class="text-3xl font-bold">성공적인 CNAPP 도입을 위한 체크리스트</h2>
+            </div>
+            <div class="bg-white rounded-2xl p-8 border border-slate-200">
+                <table class="w-full text-left">
+                    <thead class="border-b-2 border-slate-100">
+                        <tr>
+                            <th class="py-4 font-bold text-slate-500">점검 항목</th>
+                            <th class="py-4 font-bold text-slate-500">상세 내용</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        <tr>
+                            <td class="py-4 font-semibold">Agentless Support</td>
+                            <td class="py-4 text-slate-600 text-sm">기존 인프라에 영향 없이 100% 자산 스캔이 가능한가?</td>
+                        </tr>
+                        <tr>
+                            <td class="py-4 font-semibold">Multi-Cloud Unified</td>
+                            <td class="py-4 text-slate-600 text-sm">AWS, Azure, GCP 등 다양한 환경을 단일 대시보드에서 관리하는가?</td>
+                        </tr>
+                        <tr>
+                            <td class="py-4 font-semibold">Attack Path Graph</td>
+                            <td class="py-4 text-slate-600 text-sm">취약점-권한-노출도를 연결한 시각화된 공격 경로를 제공하는가?</td>
+                        </tr>
+                        <tr>
+                            <td class="py-4 font-semibold">CI/CD Integration</td>
+                            <td class="py-4 text-slate-600 text-sm">Jenkins, GitHub Actions 등 개발 파이프라인과 완벽히 연동되는가?</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Note Section -->
+        <footer class="mt-12 p-6 bg-slate-100 rounded-xl text-xs text-slate-500 space-y-2">
+            <p><strong>주석 및 용어 정의:</strong></p>
+            <ul class="list-disc list-inside">
+                <li><strong>CAGR (Compound Annual Growth Rate, 연평균 성장률):</strong> 특정 기간 동안의 성장률을 기하평균하여 매년의 평균 성장률로 환산한 수치입니다. ($CAGR = (\frac{Ending Value}{Beginning Value})^{\frac{1}{n}} - 1$)</li>
+                <li><strong>CIEM (Cloud Infrastructure Entitlement Management, 클라우드 인프라 권한 관리):</strong> 클라우드 환경에서 사용자의 권한 오남용을 방지하고 최소 권한 원칙을 적용하는 보안 기술입니다.</li>
+                <li><strong>PCI-DSS (Payment Card Industry Data Security Standard, 지불 카드 산업 데이터 보안 표준):</strong> 신용카드 정보 보안을 강화하기 위한 글로벌 표준입니다.</li>
+                <li><strong>MTTR (Mean Time To Respond/Remediate, 평균 대응/해결 시간):</strong> 보안 사고나 위협이 감지된 후 해결될 때까지 걸리는 평균 시간입니다.</li>
+                <li><strong>TCO (Total Cost of Ownership, 총 소유 비용):</strong> 자산의 구입 비용뿐만 아니라 유지보수, 운영비 등 전체 수명 주기 동안 발생하는 모든 비용을 의미합니다.</li>
+                <li><strong>AWS 비용 안내:</strong> CNAPP 솔루션 도입 시, 클라우드 리소스 스캔을 위한 API 호출 비용이나 별도의 보안 로그 저장 비용(S3, CloudWatch 등)이 발생할 수 있으며, 이는 사용량에 따라 AWS에서 유료로 청구됩니다.</li>
+            </ul>
+        </footer>
+
+    </main>
+
+    <div class="text-center mt-12 text-slate-400 text-sm">
+        &copy; 2024 IT Security Expert Training Material. All rights reserved.
+    </div>
+
+</body>
+</html>

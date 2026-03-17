@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>                                
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>네트워크 보안 위협 및 시스템 공격 기법의 이해</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap');
+        
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: #ffffff; color: #334155; line-height: 1.8; scroll-behavior: smooth; }
+        .text-box { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; margin: 20px 0; }
+        
+        /* Note Boxes */
+        .tech-note { background-color: #f1f5f9; border-radius: 12px; padding: 25px; margin-top: 15px; font-size: 0.95rem; border-left: 4px solid #94a3b8; }
+        .expert-tip { background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 20px; margin: 20px 0; border-left: 4px solid #22c55e; }
+        .warning-box { background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 20px; margin: 20px 0; border-left: 4px solid #ef4444; }
+        .scenario-box { background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 20px 0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); border-left: 4px solid #3b82f6; }
+        
+        .important { color: #e11d48; font-weight: 700; }
+        .highlight { background-color: #fde047; padding: 2px 4px; border-radius: 4px; font-weight: 500; color: #1e293b; }
+        
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); }
+        th { background-color: #1e293b; color: white; padding: 16px; text-align: left; font-weight: 700; }
+        td { border-bottom: 1px solid #e2e8f0; padding: 16px; background-color: white; }
+        tr:hover td { background-color: #f8fafc; }
+        
+        .diagram-container { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 40px 20px; margin: 40px 0; display: flex; justify-content: center; align-items: center; flex-direction: column; overflow: hidden; }
+        .diagram-caption { margin-top: 24px; font-size: 1.05rem; color: #1e293b; font-weight: 700; text-align: center; }
+        
+        .section-number { display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; background-color: #0f172a; color: white; border-radius: 12px; font-size: 1.5rem; font-weight: bold; margin-right: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+    </style>
+</head>
+<body class="max-w-5xl mx-auto p-6 md:p-12">
+
+    <!-- Header Section -->
+    <div class="border-b-4 border-slate-900 pb-8 mb-12">
+        <h1 class="text-4xl font-extrabold text-slate-900 mb-4">네트워크 보안 위협 및 시스템 공격 기법의 이해</h1>
+        <p class="text-lg text-slate-500">데이터 흐름 가로채기부터 신분 위장, 세션 탈취까지 주요 사이버 공격 매커니즘 심층 분석</p>
+    </div>
+
+    <!-- Introduction -->
+    <div class="text-box mb-12">
+        <p class="text-lg">
+            네트워크와 시스템 보안 아키텍처를 설계할 때 가장 기초가 되면서도 이름이 비슷해 혼동하기 쉬운 주요 공격 기법들이 있습니다. 방어자(Blue Team)는 각 공격이 <strong>데이터의 흐름을 가로채는지, 신분을 위장하는지, 시스템의 인증 논리적 허점을 찌르는지</strong> 명확한 기술적 차이를 이해해야만 올바른 방어 전략(Defense in Depth)을 수립할 수 있습니다.
+        </p>
+    </div>
+
+    <!-- 목차 및 핵심 요약 -->
+    <section class="mb-20">
+        <h2 class="text-2xl font-bold text-slate-800 mb-6 border-l-4 border-slate-800 pl-4">학습 목차 및 공격 기법 요약</h2>
+        <div class="overflow-x-auto rounded-xl border border-slate-200">
+            <table class="w-full text-sm text-left">
+                <thead class="bg-slate-800 text-white font-bold text-sm tracking-wider">
+                    <tr>
+                        <th class="px-6 py-4 rounded-tl-xl w-16 text-center">장</th>
+                        <th class="px-6 py-4 w-1/5">분류</th>
+                        <th class="px-6 py-4 w-1/5">원어 명칭</th>
+                        <th class="px-6 py-4 rounded-tr-xl">핵심 공격 메커니즘 요약</th>
+                    </tr>
+                </thead>
+                <tbody class="text-slate-700 divide-y divide-slate-200">
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-4 text-center font-bold text-slate-500">1</td>
+                        <td class="px-6 py-4 font-bold text-slate-900"><a href="#sniffing" class="hover:text-blue-600 underline">스니핑</a></td>
+                        <td class="px-6 py-4 text-slate-600 font-mono">Sniffing</td>
+                        <td class="px-6 py-4">네트워크상에 흐르는 패킷(Packet)을 몰래 도청하여 정보를 가로채는 <strong>수동적 공격(Passive Attack)</strong></td>
+                    </tr>
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-4 text-center font-bold text-slate-500">2</td>
+                        <td class="px-6 py-4 font-bold text-slate-900"><a href="#snooping" class="hover:text-blue-600 underline">스누핑</a></td>
+                        <td class="px-6 py-4 text-slate-600 font-mono">Snooping</td>
+                        <td class="px-6 py-4">화면 훔쳐보기 등 기술적/물리적 방법을 동원해 포괄적으로 정보를 기웃거리며 염탐하는 행위</td>
+                    </tr>
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-4 text-center font-bold text-slate-500">3</td>
+                        <td class="px-6 py-4 font-bold text-slate-900"><a href="#spoofing" class="hover:text-blue-600 underline">스푸핑</a></td>
+                        <td class="px-6 py-4 text-slate-600 font-mono">Spoofing</td>
+                        <td class="px-6 py-4">IP, MAC 주소 등 자신의 신분을 속여 시스템을 통과하거나 중간자 공격(MITM)을 수행하는 <strong>능동적 공격(Active Attack)</strong></td>
+                    </tr>
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-4 text-center font-bold text-slate-500">4</td>
+                        <td class="px-6 py-4 font-bold text-slate-900"><a href="#smishing" class="hover:text-blue-600 underline">스미싱</a></td>
+                        <td class="px-6 py-4 text-slate-600 font-mono">Smishing</td>
+                        <td class="px-6 py-4">SMS(단문 메시지)를 통해 악성 앱 설치나 피싱 사이트 접속을 유도하는 <strong>모바일 환경 특화 공격</strong></td>
+                    </tr>
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-4 text-center font-bold text-slate-500">5</td>
+                        <td class="px-6 py-4 font-bold text-slate-900"><a href="#phishing" class="hover:text-blue-600 underline">피싱</a></td>
+                        <td class="px-6 py-4 text-slate-600 font-mono">Phishing</td>
+                        <td class="px-6 py-4">신뢰할 수 있는 기관으로 위장한 메일 등을 보내 사용자가 스스로 정보를 입력하게 낚는 <strong>사회 공학(Social Engineering) 기법</strong></td>
+                    </tr>
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-4 text-center font-bold text-slate-500">6</td>
+                        <td class="px-6 py-4 font-bold text-slate-900"><a href="#hijacking" class="hover:text-blue-600 underline">하이제킹</a></td>
+                        <td class="px-6 py-4 text-slate-600 font-mono">Hijacking</td>
+                        <td class="px-6 py-4">이미 정상적인 인증을 마친 사용자(Client)와 서버(Server) 간의 연결 세션(Session)을 중간에 가로채어 <strong>제어권을 탈취</strong>하는 공격</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- 1. 스니핑 -->
+    <section id="sniffing" class="mb-24 pt-4">
+        <h2 class="text-3xl font-bold text-slate-800 mb-8 flex items-center">
+            <span class="section-number">1</span>
+            스니핑 (Sniffing): 네트워크 도청
+        </h2>
+        
+        <p class="mb-6 text-slate-700 leading-relaxed">
+            '코를 킁킁거리다'라는 뜻의 스니핑은 네트워크상에 흐르는 데이터를 몰래 가로채거나 훔쳐보는 행위입니다. 공격자는 통신망에 흐르는 전기적 신호나 패킷(Packet)을 복사하여 엿보게 됩니다. 데이터를 변경하거나 시스템을 파괴하지 않기 때문에 <strong>수동적 공격(Passive Attack)</strong>으로 분류되며, 피해자는 자신이 도청당하고 있다는 사실을 인지하기가 매우 어렵습니다.
+        </p>
+
+        <!-- Diagram: Sniffing -->
+        <div class="diagram-container">
+            <svg width="750" height="300" viewBox="0 0 750 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Switch/Hub -->
+                <rect x="275" y="100" width="200" height="60" rx="8" fill="#cbd5e1" stroke="#64748b" stroke-width="2"/>
+                <text x="375" y="135" text-anchor="middle" fill="#0f172a" font-weight="bold" font-size="16">네트워크 스위치/허브</text>
+
+                <!-- Sender (Alice) -->
+                <rect x="50" y="80" width="120" height="100" rx="8" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+                <text x="110" y="125" text-anchor="middle" fill="#1e40af" font-weight="bold">송신자 (PC A)</text>
+                <text x="110" y="145" text-anchor="middle" fill="#3b82f6" font-size="12">"비밀번호: 1234"</text>
+
+                <!-- Receiver (Bob) -->
+                <rect x="580" y="80" width="120" height="100" rx="8" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+                <text x="640" y="125" text-anchor="middle" fill="#1e40af" font-weight="bold">수신자 (서버 B)</text>
+
+                <!-- Attacker (Eve) -->
+                <rect x="275" y="220" width="200" height="80" rx="8" fill="#fef2f2" stroke="#ef4444" stroke-width="2"/>
+                <text x="375" y="255" text-anchor="middle" fill="#991b1b" font-weight="bold">공격자 (스니퍼)</text>
+                <text x="375" y="275" text-anchor="middle" fill="#dc2626" font-size="12">무차별 모드 (Promiscuous Mode)</text>
+
+                <!-- Data Flow -->
+                <path d="M 170 130 L 275 130" stroke="#3b82f6" stroke-width="4" marker-end="url(#arrow-blue)"/>
+                <path d="M 475 130 L 580 130" stroke="#3b82f6" stroke-width="4" marker-end="url(#arrow-blue)"/>
+                
+                <!-- Sniffing Flow -->
+                <path d="M 375 160 L 375 220" stroke="#ef4444" stroke-width="4" stroke-dasharray="6 6" marker-end="url(#arrow-red)"/>
+                <text x="460" y="195" text-anchor="middle" fill="#ef4444" font-weight="bold" font-size="12">패킷 몰래 복사</text>
+                
+                <defs>
+                    <marker id="arrow-blue" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3b82f6" /></marker>
+                    <marker id="arrow-red" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444" /></marker>
+                </defs>
+            </svg>
+            <p class="diagram-caption">[도식 1] 네트워크 장비에서 흐르는 평문(Plaintext) 데이터를 가로채는 스니핑 메커니즘</p>
+        </div>
+
+        <div class="scenario-box">
+            <h4 class="font-bold text-slate-800 mb-3 flex items-center"><span class="text-xl mr-2">🚨</span> 스니핑 실제 및 가능 사례</h4>
+            <ul class="list-disc list-inside space-y-4 text-slate-700 text-sm">
+                <li>
+                    <strong>사례 1: 공공 와이파이망 패킷 캡처 (Public Wi-Fi Packet Capture)</strong><br>
+                    <span class="ml-5 inline-block mt-1 text-slate-600">카페나 공항에 설치된 비밀번호 없는 개방형 무료 Wi-Fi에 접속한 사용자가, 암호화되지 않은 HTTP 웹사이트에 로그인할 때 발생합니다. 공격자는 Wireshark(와이어샤크)와 같은 스니핑 도구를 켜두는 것만으로도 공기 중에 떠다니는 아이디와 비밀번호를 평문으로 획득할 수 있습니다.</span>
+                </li>
+                <li>
+                    <strong>사례 2: 사내 네트워크 스위치 미러링 악용 (Switch Port Mirroring Abuse)</strong><br>
+                    <span class="ml-5 inline-block mt-1 text-slate-600">악의적인 내부자(퇴사 예정자 등)가 전산실 스위치 장비에 접근하여, 사내 전체의 통신 트래픽이 자신의 PC가 연결된 포트로 복사되도록 <strong>포트 미러링(Port Mirroring)</strong> 설정을 임의로 변경합니다. 이를 통해 사내 기밀 메일이나 DB 접근 쿼리를 모조리 엿듣고 빼돌리는 사례입니다.</span>
+                </li>
+            </ul>
+        </div>
+
+        <div class="tech-note">
+            <h4 class="font-bold text-slate-800 mb-2">동작 원리 및 방어 전략</h4>
+            <ul class="list-disc list-inside space-y-2 text-slate-700">
+                <li><strong>작동 방식:</strong> 일반적인 <strong>NIC(Network Interface Card, 네트워크 인터페이스 카드)</strong>는 자신의 <strong>MAC(Media Access Control, 매체 접근 제어)</strong> 주소와 일치하지 않는 패킷이 들어오면 자동으로 버립니다(Drop). 하지만 스니핑 툴을 사용하여 랜카드를 <span class="highlight">무차별 모드(Promiscuous Mode)</span>로 설정하면, 목적지와 상관없이 네트워크에 돌아다니는 모든 패킷을 CPU로 올려보내 읽을 수 있게 됩니다.</li>
+                <li><strong>방어 대책:</strong> 스니핑 자체를 100% 막는 것은 물리적으로 어렵습니다. 따라서 <strong>종단 간 암호화(End-to-End Encryption)</strong>가 필수입니다. HTTP 대신 <strong>HTTPS(SSL/TLS)</strong>를 사용하고, 원격 접속 시 Telnet 대신 <strong>SSH(Secure Shell)</strong>를, 본지사 간 통신에는 <strong>VPN(Virtual Private Network, 가상 사설망)</strong>을 구축하여 공격자가 패킷을 훔쳐보더라도 내용(Payload)을 해독할 수 없도록 만들어야 합니다.</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- 2. 스누핑 -->
+    <section id="snooping" class="mb-24 pt-4">
+        <h2 class="text-3xl font-bold text-slate-800 mb-8 flex items-center">
+            <span class="section-number">2</span>
+            스누핑 (Snooping): 정보 기웃거리기
+        </h2>
+        
+        <p class="mb-6 text-slate-700 leading-relaxed">
+            '기웃거리다, 염탐하다'라는 뜻의 스누핑은 스니핑보다 조금 더 <strong>광범위하고 물리적인 의미</strong>를 포함하여 정보를 몰래 획득하는 행위입니다. 고도의 기술적인 네트워크 도청뿐만 아니라, 자리를 비운 동료의 PC 화면을 몰래 보거나 서랍 속 문서를 뒤지는 등 허가받지 않은 권한으로 정보에 접근하는 모든 염탐 행위를 포괄합니다.
+        </p>
+
+        <!-- Diagram: Snooping -->
+        <div class="diagram-container">
+            <svg width="700" height="250" viewBox="0 0 700 250" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Target PC -->
+                <rect x="150" y="80" width="160" height="120" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="3"/>
+                <rect x="160" y="90" width="140" height="80" rx="4" fill="#eff6ff"/>
+                <text x="230" y="130" text-anchor="middle" fill="#1e40af" font-weight="bold">기밀 문서 열림</text>
+                <text x="230" y="150" text-anchor="middle" fill="#64748b" font-size="12">사용자 부재 중...</text>
+                
+                <!-- Attacker Snooping -->
+                <path d="M 450 180 Q 400 60 250 80" stroke="#ef4444" stroke-width="4" stroke-dasharray="8 4" fill="none" marker-end="url(#arrow-red)"/>
+                
+                <!-- Eye / Attacker -->
+                <circle cx="480" cy="180" r="40" fill="#fef2f2" stroke="#ef4444" stroke-width="3"/>
+                <text x="480" y="185" text-anchor="middle" fill="#991b1b" font-weight="bold" font-size="14">공격자 눈</text>
+                <text x="480" y="240" text-anchor="middle" fill="#ef4444" font-weight="bold" font-size="14">숄더 서핑 (어깨너머 훔쳐보기)</text>
+            </svg>
+            <p class="diagram-caption">[도식 2] 자리를 비운 사이 화면을 훔쳐보는 숄더 서핑(Shoulder Surfing) 형태의 스누핑</p>
+        </div>
+
+        <div class="scenario-box">
+            <h4 class="font-bold text-slate-800 mb-3 flex items-center"><span class="text-xl mr-2">🚨</span> 스누핑 실제 및 가능 사례</h4>
+            <ul class="list-disc list-inside space-y-4 text-slate-700 text-sm">
+                <li>
+                    <strong>사례 1: 대중교통 내 숄더 서핑 (Shoulder Surfing in Public Transport)</strong><br>
+                    <span class="ml-5 inline-block mt-1 text-slate-600">지하철이나 기차에서 출장 중인 회사원이 노트북을 열고 사내 인트라넷(VPN)에 접속하기 위해 비밀번호를 입력할 때, 뒤나 옆자리에 앉은 사람이 화면과 키보드를 치는 손동작을 몰래 훔쳐보아 계정 정보를 알아내는 비기술적 해킹 사례입니다.</span>
+                </li>
+                <li>
+                    <strong>사례 2: 잠금 해제된 사내 PC 무단 열람 (Unattended Unlocked PC Access)</strong><br>
+                    <span class="ml-5 inline-block mt-1 text-slate-600">점심시간에 직원이 PC 화면을 잠그지 않고(윈도우 키 + L 미사용) 자리를 비운 사이, 경쟁사로 이직하려는 동료가 그 자리로 다가와 열려있는 기밀 엑셀 파일을 자신의 USB에 빠르게 복사하거나 메일로 전송하는 행위입니다.</span>
+                </li>
+            </ul>
+        </div>
+
+        <div class="expert-tip">
+            <h4 class="font-bold text-green-800 mb-2">실무 보안 정책: 관리적 통제의 중요성</h4>
+            <p class="text-sm text-slate-700">
+                IT 인프라 아키텍처가 아무리 훌륭해도 스누핑 공격은 사람의 심리와 물리적 환경의 허점을 노립니다. 이를 막기 위해서는 <strong>클린 데스크(Clean Desk) 정책</strong>(퇴근 시 중요 문서 시건 장치 보관)과 이석 시 <strong>화면 보호기 자동 잠금(Ctrl + Alt + Delete 또는 Win + L)</strong> 정책을 <strong>GPO(Group Policy Object, 그룹 정책 개체)</strong> 등을 통해 전사적으로 강제하는 관리적/물리적 통제가 병행되어야 합니다. 모니터에 보안 필름을 부착하는 것도 스누핑 방어의 일환입니다.
+            </p>
+        </div>
+    </section>
+
+    <!-- 3. 스푸핑 -->
+    <section id="spoofing" class="mb-24 pt-4">
+        <h2 class="text-3xl font-bold text-slate-800 mb-8 flex items-center">
+            <span class="section-number">3</span>
+            스푸핑 (Spoofing): 신분 위장
+        </h2>
+        
+        <p class="mb-6 text-slate-700 leading-relaxed">
+            '속이다, 패러디하다'라는 뜻의 스푸핑은 공격자가 <strong>자신의 신분(IP 주소, MAC 주소, 호스트 이름 등)을 신뢰할 수 있는 다른 대상으로 위조</strong>하여 시스템이나 사용자를 속이는 능동적 공격(Active Attack)입니다. 주로 다른 해킹을 수행하기 위한 강력한 사전 단계로 활용됩니다.
+        </p>
+
+        <!-- Diagram: ARP Spoofing -->
+        <div class="diagram-container">
+            <svg width="750" height="320" viewBox="0 0 750 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Router/Gateway -->
+                <rect x="530" y="40" width="140" height="80" rx="8" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+                <text x="600" y="75" text-anchor="middle" fill="#1e40af" font-weight="bold">인터넷 공유기</text>
+                <text x="600" y="95" text-anchor="middle" fill="#64748b" font-size="12">MAC: AA:AA:AA</text>
+
+                <!-- Victim PC -->
+                <rect x="80" y="40" width="140" height="80" rx="8" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+                <text x="150" y="75" text-anchor="middle" fill="#1e40af" font-weight="bold">희생자 PC</text>
+                <text x="150" y="95" text-anchor="middle" fill="#64748b" font-size="12">통신 대상: 공유기</text>
+
+                <!-- Normal Path (Crossed out) -->
+                <path d="M 220 80 L 530 80" stroke="#94a3b8" stroke-width="3" stroke-dasharray="4 4" opacity="0.5"/>
+                <text x="375" y="70" text-anchor="middle" fill="#94a3b8" font-size="12">원래의 정상 통신 경로 (우회됨)</text>
+
+                <!-- Attacker -->
+                <rect x="305" y="180" width="140" height="80" rx="8" fill="#fef2f2" stroke="#ef4444" stroke-width="3"/>
+                <text x="375" y="215" text-anchor="middle" fill="#991b1b" font-weight="bold">공격자 (스푸퍼)</text>
+                <text x="375" y="235" text-anchor="middle" fill="#dc2626" font-size="12">MAC: CC:CC:CC</text>
+
+                <!-- Spoofing Action -->
+                <path d="M 305 200 L 150 120" stroke="#ef4444" stroke-width="3" marker-end="url(#arrow-red)"/>
+                <text x="160" y="190" text-anchor="middle" fill="#ef4444" font-size="11" font-weight="bold">"내가 공유기다(AA:AA:AA)"</text>
+                <text x="160" y="210" text-anchor="middle" fill="#ef4444" font-size="11" font-weight="bold">거짓 정보 전송 (가짜 ARP)</text>
+
+                <!-- Man-in-the-Middle Flow -->
+                <path d="M 200 120 Q 280 150 320 180" stroke="#f59e0b" stroke-width="4" fill="none" marker-end="url(#arrow-amber)"/>
+                <path d="M 430 180 Q 480 150 550 120" stroke="#f59e0b" stroke-width="4" fill="none" marker-end="url(#arrow-amber)"/>
+                <text x="375" y="300" text-anchor="middle" fill="#d97706" font-weight="bold">스푸핑으로 트래픽을 가로채는 MITM(중간자 공격) 형성</text>
+                
+                <defs>
+                    <marker id="arrow-amber" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#f59e0b" /></marker>
+                </defs>
+            </svg>
+            <p class="diagram-caption">[도식 3] 거짓 ARP 응답을 보내 데이터를 중간에서 가로채는 ARP 스푸핑 원리</p>
+        </div>
+
+        <div class="scenario-box">
+            <h4 class="font-bold text-slate-800 mb-3 flex items-center"><span class="text-xl mr-2">🚨</span> 스푸핑 실제 및 가능 사례</h4>
+            <ul class="list-disc list-inside space-y-4 text-slate-700 text-sm">
+                <li>
+                    <strong>사례 1: 사내망 ARP 스푸핑을 통한 MITM 공격 (ARP Spoofing MITM)</strong><br>
+                    <span class="ml-5 inline-block mt-1 text-slate-600">공격자가 회사의 내부 네트워크(LAN)에 접속한 뒤, CEO의 PC에게 "내가 인터넷 공유기(Gateway)다"라고 가짜 MAC 주소를 지속적으로 보냅니다. 속아 넘어간 CEO의 PC는 모든 인터넷 검색 기록과 결재 데이터를 공격자의 PC를 거쳐서 보내게 되며, 공격자는 중간자(MITM)로서 이를 모두 가로채어 열람합니다.</span>
+                </li>
+                <li>
+                    <strong>사례 2: IP 스푸핑을 이용한 DDoS 반사 공격 (IP Spoofing DNS Amplification)</strong><br>
+                    <span class="ml-5 inline-block mt-1 text-slate-600">공격자가 거대한 용량의 응답을 반환하는 외부 DNS 서버에 질의(Query)를 보낼 때, 출발지(Source) IP를 '자신의 IP'가 아닌 '피해자(경쟁사 서버)의 IP'로 조작(스푸핑)하여 보냅니다. 속은 DNS 서버들은 거대한 응답 데이터를 피해자 서버로 일제히 쏟아부어, 피해자 서버의 네트워크 대역폭을 마비시키는 <strong>DDoS(Distributed Denial of Service, 분산 서비스 거부)</strong> 공격입니다.</span>
+                </li>
+            </ul>
+        </div>
+
+        <div class="tech-note">
+            <h4 class="font-bold text-slate-800 mb-2">대표적인 스푸핑 기법 3가지</h4>
+            <ul class="list-disc list-inside space-y-2 text-slate-700">
+                <li><strong>ARP Spoofing (ARP 스푸핑):</strong> 같은 근거리 통신망(LAN) 내에서 발생합니다. <strong>ARP(Address Resolution Protocol, 주소 결정 프로토콜)</strong>는 IP 주소를 MAC 주소로 변환해 주는 역할을 하는데, 이 프로토콜에는 "상대방이 보낸 정보가 진짜인지 검증하는 인증 기능"이 없다는 치명적 허점을 노립니다. 즉, 공격자가 "내가 게이트웨이(공유기)다"라고 거짓 응답을 계속 보내면 희생자의 PC는 속아서 인터넷으로 나갈 데이터를 공격자에게 보내게 됩니다.</li>
+                <li><strong>IP Spoofing (IP 스푸핑):</strong> 패킷을 보낼 때 발신자(Source) IP 주소를 신뢰받는 내부 서버의 IP로 위조하여, IP 기반의 접근 제어(Firewall ACL)를 우회하는 기법입니다.</li>
+                <li><strong>DNS Spoofing (DNS 스푸핑):</strong> 사용자가 정상적인 도메인(예: <code>www.bank.com</code>)을 입력했을 때, DNS 서버보다 공격자가 먼저 가짜 IP 주소를 응답하여 해커가 만든 피싱 사이트로 강제 접속하게 만드는 기법입니다.</li>
+            </ul>
+        </div>
+        <p class="mt-4 text-slate-700 bg-amber-50 p-4 rounded-lg border-l-4 border-amber-500 font-bold">
+            🔥 핵심 연계 전략: 해커들은 단독으로 스푸핑만 하지 않습니다. "스푸핑으로 시스템을 속여 트래픽을 자신의 PC로 흐르게 만든 뒤, 스니핑 도구를 이용해 그 안의 평문 패킷(비밀번호 등)을 가로채는" 방식이 실무 해킹의 정석입니다. 이를 통틀어 중간자 공격(Man-In-The-Middle Attack, MITM)이라고 부릅니다.
+        </p>
+    </section>
+
+    <!-- 4. 스미싱 -->
+    <section id="smishing" class="mb-24 pt-4">
+        <h2 class="text-3xl font-bold text-slate-800 mb-8 flex items-center">
+            <span class="section-number">4</span>
+            스미싱 (Smishing): 문자 메시지 사기
+        </h2>
+        
+        <p class="mb-6 text-slate-700 leading-relaxed">
+            <strong>SMS(단문 메시지 서비스)</strong>와 <strong>피싱(Phishing)</strong>의 합성어입니다. 최근 스마트폰 사용이 일상화되면서 폭발적으로 증가한 모바일 환경 특화 공격 수법입니다. 사용자에게 택배 배송 오류, 모바일 청첩장, 공공기관(경찰서, 건강보험공단) 과태료 통지 등을 사칭한 문자 메시지를 발송하여 불안감이나 호기심을 자극합니다.
+        </p>
+
+        <!-- Diagram: Smishing -->
+        <div class="diagram-container">
+            <svg width="600" height="350" viewBox="0 0 600 350" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Smartphone -->
+                <rect x="230" y="20" width="160" height="310" rx="20" fill="#334155" stroke="#0f172a" stroke-width="4"/>
+                <rect x="240" y="50" width="140" height="250" fill="white"/>
+                
+                <!-- SMS Message UI -->
+                <rect x="240" y="50" width="140" height="40" fill="#f1f5f9"/>
+                <text x="310" y="75" text-anchor="middle" fill="#0f172a" font-weight="bold" font-size="12">새 메시지 (CJ택배)</text>
+
+                <!-- Fake Message Bubble -->
+                <rect x="250" y="100" width="120" height="110" rx="10" fill="#e0f2fe"/>
+                <text x="260" y="125" fill="#0f172a" font-size="10" font-weight="bold">[Web발신]</text>
+                <text x="260" y="145" fill="#334155" font-size="10">도로명 주소 오류로</text>
+                <text x="260" y="160" fill="#334155" font-size="10">물품 미배송 되었습니다.</text>
+                <text x="260" y="175" fill="#334155" font-size="10">주소지 변경 요망.</text>
+                
+                <!-- Malicious Link -->
+                <text x="260" y="195" fill="#2563eb" font-size="10" text-decoration="underline" font-weight="bold">http://cj-delivery.kr.gd</text>
+
+                <!-- Attack Vector -->
+                <path d="M 400 190 Q 450 190 480 230" stroke="#ef4444" stroke-width="3" fill="none" marker-end="url(#arrow-red)"/>
+                <rect x="440" y="240" width="140" height="80" rx="8" fill="#fef2f2" stroke="#ef4444" stroke-width="2"/>
+                <text x="510" y="265" text-anchor="middle" fill="#991b1b" font-weight="bold" font-size="12">악성 앱(APK) 설치</text>
+                <text x="510" y="285" text-anchor="middle" fill="#ef4444" font-size="10">연락처 및 사진 탈취</text>
+                <text x="510" y="300" text-anchor="middle" fill="#ef4444" font-size="10">인증번호 가로채기</text>
+
+                <!-- Pointer -->
+                <circle cx="330" cy="192" r="8" fill="#f59e0b" opacity="0.6"/>
+                <circle cx="330" cy="192" r="4" fill="#d97706"/>
+            </svg>
+            <p class="diagram-caption">[도식 4] 악성 단축 URL을 포함한 택배 사칭 스미싱(Smishing) 공격 흐름도</p>
+        </div>
+
+        <div class="scenario-box">
+            <h4 class="font-bold text-slate-800 mb-3 flex items-center"><span class="text-xl mr-2">🚨</span> 스미싱 실제 및 가능 사례</h4>
+            <ul class="list-disc list-inside space-y-4 text-slate-700 text-sm">
+                <li>
+                    <strong>사례 1: 모바일 청첩장 및 부고장 사칭 (Fake Invitation SMS)</strong><br>
+                    <span class="ml-5 inline-block mt-1 text-slate-600">"[부고] 아버지께서 별세하셨기에 알려드립니다. 장례식장 안내: bit.ly/xxxx" 와 같은 내용의 문자를 지인 전화번호로 위장하여 보냅니다. 사용자가 경황이 없는 틈을 타 링크를 누르면 스마트폰에 악성 <code>.apk</code> 파일이 설치되고, 주소록에 있는 모든 지인에게 동일한 문자를 재발송하여 좀비 폰으로 만듭니다.</span>
+                </li>
+                <li>
+                    <strong>사례 2: 정부 지원금 및 과태료 통지 사칭 (Fake Government Notice)</strong><br>
+                    <span class="ml-5 inline-block mt-1 text-slate-600">"[경찰청] 교통민원24. 신호위반 과태료 고지서 발송 완료" 라는 문구와 함께 가짜 링크를 보냅니다. 링크를 누르면 가짜 경찰청 사이트로 이동하며 본인 인증을 명목으로 주민등록번호와 금융 정보를 직접 입력하게 만들어 자산을 탈취합니다.</span>
+                </li>
+            </ul>
+        </div>
+
+        <div class="warning-box">
+            <h4 class="font-bold text-red-700 mb-2">스미싱의 치명적 결과: 2FA(이중 인증) 무력화</h4>
+            <p class="text-sm text-slate-700">
+                문자에 포함된 링크를 클릭하면 가짜 로그인 페이지가 뜨기도 하지만, 가장 위험한 것은 사용자 몰래 <strong>악성 앱(Android의 경우 .apk 파일)</strong>이 강제 설치되는 것입니다. 이 악성 앱은 스마트폰의 <strong>SMS 수신 권한</strong>을 장악합니다. 해커가 은행에서 돈을 빼낼 때 스마트폰으로 오는 <strong>SMS 인증번호(2FA OTP)를 해커의 서버로 은밀하게 빼돌리기 때문에</strong>, 피해자는 돈이 빠져나가는 사실조차 알지 못합니다.
+            </p>
+        </div>
+    </section>
+
+    <!-- 5. 피싱 -->
+    <section id="phishing" class="mb-24 pt-4">
+        <h2 class="text-3xl font-bold text-slate-800 mb-8 flex items-center">
+            <span class="section-number">5</span>
+            피싱 (Phishing): 개인정보 낚시
+        </h2>
+        
+        <p class="mb-6 text-slate-700 leading-relaxed">
+            <strong>개인정보(Private Data)</strong>와 <strong>낚시(Fishing)</strong>의 합성어로, 공격자가 신뢰할 수 있는 기관(포털 사이트, 은행, 회사 내부 시스템 등)을 사칭하여 사용자가 스스로 민감한 정보를 입력하도록 유도하는 전통적인 수법입니다. 방화벽이나 암호화 같은 IT 시스템의 기술적 결함을 뚫는 것이 아니라, 사람의 심리와 부주의를 이용하는 <strong>사회 공학(Social Engineering) 기법</strong>의 대표적인 사례입니다.
+        </p>
+
+        <!-- Diagram: Phishing -->
+        <div class="diagram-container">
+            <svg width="700" height="300" viewBox="0 0 700 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- User -->
+                <rect x="50" y="100" width="120" height="100" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="2"/>
+                <text x="110" y="145" text-anchor="middle" fill="#334155" font-weight="bold">피해자</text>
+                <text x="110" y="165" text-anchor="middle" fill="#64748b" font-size="12">메일 확인 중</text>
+
+                <!-- Fake Email -->
+                <path d="M 180 120 L 320 80" stroke="#f59e0b" stroke-width="3" stroke-dasharray="4 4" marker-end="url(#arrow-amber)"/>
+                <text x="250" y="90" text-anchor="middle" fill="#d97706" font-size="11" font-weight="bold">"비밀번호 변경 안내"</text>
+
+                <!-- Fake Website -->
+                <rect x="330" y="40" width="200" height="140" rx="8" fill="#fef2f2" stroke="#ef4444" stroke-width="2"/>
+                <text x="430" y="70" text-anchor="middle" fill="#991b1b" font-weight="bold">가짜 포털 로그인 창</text>
+                <text x="430" y="90" text-anchor="middle" fill="#ef4444" font-size="10" text-decoration="underline">URL: www.navor.com</text>
+                <rect x="360" y="110" width="140" height="20" fill="white" stroke="#cbd5e1"/>
+                <rect x="360" y="140" width="140" height="20" fill="white" stroke="#cbd5e1"/>
+                <text x="430" y="123" text-anchor="middle" fill="#94a3b8" font-size="10">ID 입력</text>
+                <text x="430" y="153" text-anchor="middle" fill="#94a3b8" font-size="10">Password 입력</text>
+
+                <!-- Stealing Data -->
+                <path d="M 540 110 L 620 180" stroke="#ef4444" stroke-width="3" marker-end="url(#arrow-red)"/>
+                <rect x="580" y="190" width="100" height="80" rx="8" fill="#1e293b"/>
+                <text x="630" y="225" text-anchor="middle" fill="white" font-weight="bold">해커 DB</text>
+                <text x="630" y="245" text-anchor="middle" fill="#94a3b8" font-size="10">계정 정보 수집</text>
+            </svg>
+            <p class="diagram-caption">[도식 5] 이메일을 통한 가짜 웹사이트 접속 유도 및 계정 정보 탈취 과정(피싱)</p>
+        </div>
+
+        <div class="scenario-box">
+            <h4 class="font-bold text-slate-800 mb-3 flex items-center"><span class="text-xl mr-2">🚨</span> 피싱 실제 및 가능 사례</h4>
+            <ul class="list-disc list-inside space-y-4 text-slate-700 text-sm">
+                <li>
+                    <strong>사례 1: 특정 부서 타겟 스피어 피싱 (Spear Phishing Targeting Specific Dept.)</strong><br>
+                    <span class="ml-5 inline-block mt-1 text-slate-600">기업의 재무팀 직원들에게만 "2026년도 연말정산 환급금 명세서.pdf.exe" 파일을 첨부하여 국세청이나 사내 인사팀을 정교하게 사칭한 메일을 발송합니다. 직원이 무심코 이 첨부 파일을 실행하면, 컴퓨터에 랜섬웨어(Ransomware)가 깔리거나 해커의 원격 제어용 백도어(Backdoor)가 설치됩니다.</span>
+                </li>
+                <li>
+                    <strong>사례 2: 포털 사이트 보안 경고 사칭 (Fake Security Alert Mails)</strong><br>
+                    <span class="ml-5 inline-block mt-1 text-slate-600">"[네이버/구글] 해외에서 비정상적인 로그인이 시도되었습니다. 본인이 아니라면 즉시 비밀번호를 변경하세요." 라는 급박한 경고 메일을 보냅니다. 사용자가 놀라서 메일 내의 링크를 클릭하면 실제 사이트와 디자인이 100% 동일한 가짜 로그인 창(예: <code>www.naver-security-update.com</code>)이 뜨고, 입력한 계정 정보는 고스란히 해커에게 넘어갑니다.</span>
+                </li>
+            </ul>
+        </div>
+
+        <div class="tech-note">
+            <h4 class="font-bold text-slate-800 mb-2">실무에서 겪는 피싱의 진화: 스피어 피싱(Spear Phishing)</h4>
+            <p class="text-sm text-slate-700">
+                과거의 피싱이 불특정 다수에게 "당첨을 축하합니다" 같은 허술한 메일을 뿌리는 방식이었다면, 최근 기업 보안을 가장 크게 위협하는 것은 <strong>스피어 피싱(Spear Phishing)</strong>입니다. 특정 기업의 인사팀, 재무팀 등 <strong>명확한 타겟(Spear, 창)을 정하고</strong>, SNS나 홈페이지를 통해 미리 수집한 사내 조직도 정보를 활용하여 "2026년 연봉 계약서(인사팀장 발송)"와 같이 완벽하게 위조된 맞춤형 악성 메일을 보내어 내부망 침투의 교두보로 삼습니다. (APT 공격의 시작점)
+            </p>
+        </div>
+    </section>
+
+    <!-- 6. 하이제킹 -->
+    <section id="hijacking" class="mb-24 pt-4">
+        <h2 class="text-3xl font-bold text-slate-800 mb-8 flex items-center">
+            <span class="section-number">6</span>
+            하이제킹 (Hijacking): 세션 가로채기
+        </h2>
+        
+        <p class="mb-6 text-slate-700 leading-relaxed">
+            '납치'라는 뜻으로, 해커가 아이디와 비밀번호를 몰라도 시스템 권한을 얻어내는 가장 정교하고 위험한 공격 중 하나입니다. 클라이언트와 서버가 <strong>이미 정상적으로 로그인을 마치고 인증이 완료된 연결 상태(Session, 세션)를 통째로 가로채어 제어권을 빼앗는 공격</strong>입니다. 비유하자면, 티켓팅을 마치고 고속도로 톨게이트를 통과한 정상적인 차량을 중간에 뺏어 타는 것과 같습니다.
+        </p>
+
+        <!-- Diagram: Session Hijacking -->
+        <div class="diagram-container">
+            <svg width="750" height="320" viewBox="0 0 750 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Legitimate User -->
+                <rect x="50" y="50" width="120" height="80" rx="8" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+                <text x="110" y="85" text-anchor="middle" fill="#1e40af" font-weight="bold">정상 클라이언트</text>
+                <text x="110" y="105" text-anchor="middle" fill="#3b82f6" font-size="10">로그인 완료됨</text>
+
+                <!-- Server -->
+                <rect x="580" y="150" width="120" height="120" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="3"/>
+                <text x="640" y="200" text-anchor="middle" fill="#334155" font-weight="bold">웹 서버</text>
+                <text x="640" y="220" text-anchor="middle" fill="#64748b" font-size="10">Session ID 검증</text>
+
+                <!-- Initial Valid Session -->
+                <path d="M 170 90 L 580 180" stroke="#3b82f6" stroke-width="4" stroke-dasharray="8 4" opacity="0.4"/>
+                <rect x="330" y="120" width="140" height="30" rx="15" fill="#e0f2fe"/>
+                <text x="400" y="140" text-anchor="middle" fill="#0369a1" font-weight="bold" font-size="11">Session ID: ABC-123</text>
+
+                <!-- Attacker -->
+                <rect x="50" y="220" width="120" height="80" rx="8" fill="#fef2f2" stroke="#ef4444" stroke-width="2"/>
+                <text x="110" y="255" text-anchor="middle" fill="#991b1b" font-weight="bold">공격자 (하이재커)</text>
+
+                <!-- Stealing and Injecting -->
+                <path d="M 360 150 L 170 240" stroke="#ef4444" stroke-width="2" marker-end="url(#arrow-red)"/>
+                <text x="250" y="215" text-anchor="middle" fill="#ef4444" font-size="10" font-weight="bold">세션 ID 탈취</text>
+
+                <path d="M 170 260 L 580 230" stroke="#ef4444" stroke-width="4" marker-end="url(#arrow-red)"/>
+                <rect x="330" y="235" width="160" height="30" rx="15" fill="#fecaca"/>
+                <text x="410" y="255" text-anchor="middle" fill="#991b1b" font-weight="bold" font-size="11">요청 (Session ID: ABC-123)</text>
+                
+                <text x="640" y="255" text-anchor="middle" fill="#ef4444" font-size="11" font-weight="bold">"인증된 사용자군, 승인!"</text>
+            </svg>
+            <p class="diagram-caption">[도식 6] 이미 인증된 정상 사용자의 고유한 식별자(Session ID)를 가로채어 서버를 속이는 세션 하이제킹</p>
+        </div>
+
+        <div class="scenario-box">
+            <h4 class="font-bold text-slate-800 mb-3 flex items-center"><span class="text-xl mr-2">🚨</span> 하이제킹 실제 및 가능 사례</h4>
+            <ul class="list-disc list-inside space-y-4 text-slate-700 text-sm">
+                <li>
+                    <strong>사례 1: XSS 취약점을 이용한 관리자 세션 탈취 (Admin Session Theft via XSS)</strong><br>
+                    <span class="ml-5 inline-block mt-1 text-slate-600">공격자가 사내 게시판에 악성 자바스크립트가 담긴 글을 작성합니다. 시스템 관리자가 그 게시글을 클릭하여 읽는 순간, 관리자 브라우저에 저장된 권한 증명서인 <strong>쿠키(Cookie 내의 Session ID)</strong>가 해커의 서버로 조용히 전송됩니다. 해커는 이 Session ID를 자신의 브라우저에 덮어씌워 로그인 없이 관리자 페이지에 접근합니다.</span>
+                </li>
+                <li>
+                    <strong>사례 2: TCP 일련번호 예측을 통한 원격 제어 탈취 (TCP Sequence Number Prediction)</strong><br>
+                    <span class="ml-5 inline-block mt-1 text-slate-600">서버 관리자가 Telnet이나 FTP로 리눅스 서버에 접속하여 작업 중일 때, 해커가 스니핑을 통해 서버와 관리자 간에 주고받는 TCP 패킷의 <strong>일련번호(Sequence Number)</strong> 흐름을 파악합니다. 관리자의 접속을 강제로 끊어버린 직후, 해커가 다음 순서의 일련번호를 위조하여 서버에 패킷을 보내면 서버는 여전히 원래 관리자가 명령을 내리는 것으로 착각하여 악성 명령어를 실행합니다.</span>
+                </li>
+            </ul>
+        </div>
+
+        <div class="expert-tip">
+            <h4 class="font-bold text-green-800 mb-2">하이제킹의 주요 방식과 방어 아키텍처</h4>
+            <ul class="list-disc list-inside space-y-2 text-slate-700">
+                <li><strong>네트워크 수준 (TCP Session Hijacking):</strong> 통신 중인 클라이언트와 서버 간의 TCP <strong>일련번호(Sequence Number)</strong>를 공격자가 예측하여 조작합니다. 정상 클라이언트의 연결을 끊어버리고(Desynchronize), 공격자가 그 빈자리를 대신 차지합니다.</li>
+                <li><strong>웹 애플리케이션 수준 (Web Session Hijacking):</strong> 앞서 배운 XSS(Cross-Site Scripting, 교차 사이트 스크립팅) 공격이나 네트워크 스니핑을 통해 사용자의 브라우저 쿠키(Cookie)에 담긴 <strong>세션 ID(Session ID)</strong>를 훔쳐냅니다. 서버는 세션 ID만 맞으면 로그인된 본인으로 착각합니다.</li>
+                <li><strong>방어 대책:</strong> 개발자는 세션 ID를 예측 불가능한 복잡한 난수로 생성해야 하며, 로그인 후에는 반드시 새로운 세션 ID로 갱신해야 합니다. 또한 쿠키에 <code>HttpOnly</code> 및 <code>Secure</code> 속성을 부여하여 자바스크립트로 세션을 탈취하지 못하게 만들고 전 구간 HTTPS 통신을 강제해야 합니다.</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- Summary Comparison Table -->
+    <section class="mb-20">
+        <h2 class="text-3xl font-bold text-slate-800 mb-8">핵심 용어 요약 및 한눈에 보기 비교표</h2>
+        
+        <div class="overflow-x-auto rounded-xl border border-slate-200">
+            <table class="w-full text-sm text-left">
+                <thead class="bg-slate-900 text-white uppercase font-bold text-sm tracking-wider">
+                    <tr>
+                        <th class="px-6 py-4 rounded-tl-xl">공격 명칭</th>
+                        <th class="px-6 py-4">핵심 개념</th>
+                        <th class="px-6 py-4">주요 타겟 및 매개체</th>
+                        <th class="px-6 py-4 rounded-tr-xl">기술적 특징 및 비고</th>
+                    </tr>
+                </thead>
+                <tbody class="text-slate-700 divide-y divide-slate-200">
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-5 font-bold text-slate-900">스니핑 (Sniffing)</td>
+                        <td class="px-6 py-5">통신 도청 (엿듣기)</td>
+                        <td class="px-6 py-5">네트워크를 흐르는 데이터 패킷</td>
+                        <td class="px-6 py-5">수동적 공격, 암호화(VPN, TLS)로 방어 가능</td>
+                    </tr>
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-5 font-bold text-slate-900">스누핑 (Snooping)</td>
+                        <td class="px-6 py-5">기웃거림, 포괄적 염탐</td>
+                        <td class="px-6 py-5">개인 정보, 메신저, PC 화면</td>
+                        <td class="px-6 py-5">어깨너머 훔쳐보기 등 비기술적, 물리적 행위 포함</td>
+                    </tr>
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-5 font-bold text-slate-900">스푸핑 (Spoofing)</td>
+                        <td class="px-6 py-5">신분 및 데이터 위장</td>
+                        <td class="px-6 py-5">IP, MAC, DNS 정보</td>
+                        <td class="px-6 py-5">능동적 공격, 스니핑을 위한 사전 작업(MITM)으로 활용</td>
+                    </tr>
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-5 font-bold text-slate-900">스미싱 (Smishing)</td>
+                        <td class="px-6 py-5">문자 메시지 사기</td>
+                        <td class="px-6 py-5">스마트폰 (SMS) 사용자</td>
+                        <td class="px-6 py-5">악성 앱(APK) 설치를 통한 2FA 인증번호 탈취 주력</td>
+                    </tr>
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-5 font-bold text-slate-900">피싱 (Phishing)</td>
+                        <td class="px-6 py-5">개인정보 낚시</td>
+                        <td class="px-6 py-5">이메일, 가짜 웹사이트</td>
+                        <td class="px-6 py-5">사람의 심리를 노리는 사회 공학(Social Engineering) 기법</td>
+                    </tr>
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-5 font-bold text-slate-900">하이제킹 (Hijacking)</td>
+                        <td class="px-6 py-5">세션 및 연결 탈취</td>
+                        <td class="px-6 py-5">인증이 완료된 세션 (Session)</td>
+                        <td class="px-6 py-5">로그인 절차(ID/PW) 우회 가능, 일련번호 조작 또는 쿠키 탈취</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-white p-10 rounded-3xl mt-10">
+        <h3 class="text-2xl font-bold mb-4">학습 요약</h3>
+        <p class="text-slate-300 leading-relaxed mb-6 text-sm">
+            본 문서에서는 사이버 공격의 형태를 <strong>기밀성(Confidentiality) 침해(스니핑, 스누핑)</strong>, <strong>무결성(Integrity) 훼손 및 신분 위장(스푸핑, 피싱, 스미싱)</strong>, 그리고 <strong>인증 논리 탈취(하이제킹)</strong> 관점으로 심층 분석하였습니다. 인프라스트럭처 아키텍트는 각 공격 벡터(Attack Vector)가 네트워크 계층부터 애플리케이션 계층 중 어디를 타겟팅하는지 정확히 이해하고, 각 구간마다 다중 방어 계층(Defense in Depth)을 설계해야 합니다.
+        </p>
+        <div class="flex justify-between items-center border-t border-slate-700 pt-6">
+            <span class="text-sm font-bold text-blue-400 font-bold">IP 직업훈련 전문가 과정 인프라스트럭처 아키텍트 교재 시리즈</span>
+        </div>
+    </footer>
+
+</body>
+</html>

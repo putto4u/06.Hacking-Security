@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>            
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kali Linux 초중급 입문 </title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap');
+        
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: #ffffff; color: #334155; line-height: 1.8; }
+        .concept-block { border-left: 5px solid #0f172a; padding-left: 20px; margin: 30px 0; }
+        .text-box { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; margin: 20px 0; }
+        
+        /* Note Boxes */
+        .tech-note { background-color: #f1f5f9; border-radius: 12px; padding: 25px; margin-top: 15px; font-size: 0.95rem; border-left: 4px solid #94a3b8; }
+        .expert-tip { background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 20px; margin: 20px 0; border-left: 4px solid #22c55e; }
+        .warning-box { background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 20px; margin: 20px 0; border-left: 4px solid #ef4444; }
+        
+        .important { color: #e11d48; font-weight: 700; }
+        .highlight { background-color: #fde047; padding: 2px 4px; border-radius: 4px; font-weight: 500; color: #1e293b; }
+        
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th { background-color: #1e293b; color: white; padding: 12px; text-align: left; }
+        td { border-bottom: 1px solid #e2e8f0; padding: 12px; }
+        
+        .diagram-container { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 30px; margin: 30px 0; display: flex; justify-content: center; align-items: center; flex-direction: column; overflow: hidden; }
+        .diagram-caption { margin-top: 20px; font-size: 1rem; color: #1e293b; font-weight: 700; }
+        
+        .case-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin: 20px 0; }
+        @media (min-width: 768px) { .case-grid { grid-template-columns: 1fr 1fr; } }
+        .case-box { border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; background: #fff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+        
+        .cmd-box { font-family: 'Fira Code', monospace; background-color: #0f172a; color: #38bdf8; padding: 20px; border-radius: 8px; margin: 15px 0; overflow-x: auto; font-size: 0.9rem; }
+        .cmd-prompt { color: #10b981; margin-right: 10px; }
+    </style>
+</head>
+<body class="max-w-5xl mx-auto p-6 md:p-12">
+
+    <!-- Header Section -->
+    <div class="border-b-4 border-slate-900 pb-8 mb-12">
+        <h1 class="text-4xl font-extrabold text-slate-900 mb-4">Kali Linux 초중급 입문 및 실습 과정</h1>
+        <p class="text-lg text-slate-500">리눅스와 네트워킹 기초 지식을 바탕으로 모의 해킹(Penetration Testing)의 전체 라이프사이클을 마스터하는 실무 중심 가이드</p>
+    </div>
+
+    <!-- Part I: Kali Linux 기본 이해와 환경 설정 -->
+    <section class="mb-24">
+        <h2 class="text-3xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+            <span class="bg-slate-900 text-white w-10 h-10 flex items-center justify-center rounded-lg shadow-md">I</span>
+            Kali Linux 기본 이해와 환경 설정 🛠️
+        </h2>
+        
+        <div class="case-grid">
+            <div class="case-box border-t-4 border-t-blue-500">
+                <h3 class="font-bold text-lg text-slate-800 mb-2">정체성: 해킹 툴이 아닌 '운영체제'</h3>
+                <p class="text-sm text-slate-600 mb-4">
+                    <a href="https://www.kali.org/" target="_blank" class="text-blue-600 underline font-bold">칼리 리눅스(Kali Linux)</a>는 단순한 프로그램 모음집이 아닙니다. <strong>데비안(Debian)</strong> 리눅스를 기반으로 커널(Kernel) 단계부터 패킷 분석과 무선 네트워크 제어에 최적화되도록 설계된 완전한 OS(Operating System, 운영체제)입니다.
+                </p>
+            </div>
+            <div class="case-box border-t-4 border-t-blue-500">
+                <h3 class="font-bold text-lg text-slate-800 mb-2">필수 도구 및 메타패키지</h3>
+                <p class="text-sm text-slate-600 mb-4">
+                    수백 개의 도구를 하나씩 설치하지 않도록, 목적에 따라 묶어둔 <strong>메타패키지(Metapackages, 메타패키지)</strong>를 사용합니다. <code>Nmap</code>, <code>Wireshark</code> 등 상위 10대 도구의 위치를 파악하는 것이 시작입니다.
+                </p>
+            </div>
+        </div>
+
+        <!-- Diagram 1: NAT vs Host-Only Network -->
+        <div class="diagram-container">
+            <svg width="700" height="280" viewBox="0 0 700 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Host PC -->
+                <rect x="50" y="50" width="600" height="200" rx="12" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+                <text x="350" y="35" text-anchor="middle" fill="#475569" font-weight="bold">물리적 호스트 PC (Host OS)</text>
+
+                <!-- NAT Network -->
+                <rect x="80" y="80" width="240" height="140" rx="8" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+                <text x="200" y="110" text-anchor="middle" fill="#1e40af" font-weight="bold">NAT 네트워크 모드</text>
+                <path d="M 200 120 L 200 160 M 200 160 L 250 160 M 200 160 L 150 160" stroke="#3b82f6" stroke-width="2" marker-start="url(#dot)"/>
+                <text x="200" y="190" text-anchor="middle" fill="#3b82f6" font-size="12">외부 인터넷 연결 (O)</text>
+                <text x="200" y="210" text-anchor="middle" fill="#3b82f6" font-size="12">외부에서 VM 직접 접근 (X)</text>
+
+                <!-- Host-Only Network -->
+                <rect x="380" y="80" width="240" height="140" rx="8" fill="#fef2f2" stroke="#ef4444" stroke-width="2"/>
+                <text x="500" y="110" text-anchor="middle" fill="#991b1b" font-weight="bold">호스트 전용 (Host-Only) 모드</text>
+                <path d="M 450 140 L 550 140 M 500 130 L 500 150" stroke="#ef4444" stroke-width="2"/>
+                <circle cx="500" cy="140" r="20" fill="none" stroke="#ef4444" stroke-width="2" stroke-dasharray="4 4"/>
+                <text x="500" y="190" text-anchor="middle" fill="#ef4444" font-size="12">외부 인터넷 단절 (격리됨)</text>
+                <text x="500" y="210" text-anchor="middle" fill="#ef4444" font-size="12">호스트 PC와 VM 간 통신 전용</text>
+            </svg>
+            <p class="diagram-caption">[도식 1] 가상 머신(VM) 구축 시 핵심 네트워크 설정 차이점</p>
+        </div>
+
+        <div class="warning-box">
+            <h4 class="font-bold text-red-700 mb-2">⚠️ 오해 및 실수 방지: 합법적 사용의 경계</h4>
+            <p class="text-sm text-slate-700">
+                칼리 리눅스는 타인의 시스템을 파괴하기 위한 도구가 아닙니다. 반드시 <strong>자신이 소유한 시스템</strong>이나 <strong>사전 서면 승인을 받은 고객사의 인프라</strong>에서만 훈련 및 진단 목적으로 사용해야 합니다. 허가받지 않은 스캐닝(Scanning) 조차도 정보통신망법 위반으로 처벌받을 수 있습니다.
+            </p>
+        </div>
+
+        <div class="expert-tip">
+            <h4 class="font-bold text-green-800 mb-2">💡 실전 팁: 터미널 최적화 및 도움말 확인</h4>
+            <ul class="list-disc list-inside text-sm text-slate-700 space-y-2">
+                <li>터미널에서 명령어 입력 시 <code>Tab</code> 키를 활용한 자동 완성을 습관화하십시오. 오타를 줄이고 속도를 비약적으로 높여줍니다.</li>
+                <li>도구의 위치를 찾을 때는 <code>locate [도구이름]</code> 명령어를 활용합니다.</li>
+                <li>모든 보안 도구는 실행 전 반드시 <code>-h</code> 또는 <code>--help</code> 옵션을 붙여 매뉴얼을 확인하는 것이 엔지니어의 기본 소양입니다. (예: <code>nmap -h</code>)</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- Part II: 정보 수집 및 취약점 분석 기초 -->
+    <section class="mb-24">
+        <h2 class="text-3xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+            <span class="bg-slate-900 text-white w-10 h-10 flex items-center justify-center rounded-lg shadow-md">II</span>
+            정보 수집 및 취약점 분석 기초 🔍
+        </h2>
+
+        <div class="text-box">
+            <p class="mb-2">모의 해킹의 성패는 타겟에 대한 얼마나 정확하고 광범위한 정보를 수집하느냐에 달려 있습니다. 이 단계를 <strong>Reconnaissance(리커니슨스, 정찰)</strong> 또는 <strong>Footprinting(풋프린팅, 발자국 찾기)</strong>이라고 합니다.</p>
+        </div>
+
+        <ul class="space-y-4 mb-8">
+            <li class="p-5 border border-slate-200 rounded-lg bg-white shadow-sm">
+                <h4 class="font-bold text-lg text-slate-800 mb-2">1. 수동적 정보 수집 (Passive Reconnaissance)</h4>
+                <p class="text-sm text-slate-600">
+                    타겟 서버에 직접 접속하지 않고 공개된 정보를 캐냅니다. <strong>Google Dorking(구글 도킹, 구글의 고급 검색 연산자를 활용한 해킹)</strong>, 도메인 소유자 정보를 묻는 <strong>WHOIS(후이즈)</strong>, 네임 서버 기록을 조회하는 <strong>DNS Query(DNS 쿼리: nslookup, dig)</strong> 등을 사용합니다.
+                </p>
+            </li>
+            <li class="p-5 border border-slate-200 rounded-lg bg-white shadow-sm">
+                <h4 class="font-bold text-lg text-slate-800 mb-2">2. 능동적 스캐닝 (Active Scanning)</h4>
+                <p class="text-sm text-slate-600">
+                    타겟 시스템에 직접 패킷을 보내어 반응을 살핍니다. <strong>Nmap(Network Mapper, 네트워크 매퍼)</strong>을 활용하여 살아있는 호스트를 찾고(Host Discovery), 열려있는 <strong>포트(Port, 논리적 접속 통로)</strong>와 그 위에서 동작하는 <strong>서비스(Service, 데몬 프로그램)</strong> 버전을 식별합니다.
+                </p>
+            </li>
+        </ul>
+
+        <!-- Diagram 2: TCP SYN Scan (Stealth Scan) -->
+        <div class="diagram-container">
+            <svg width="700" height="260" viewBox="0 0 700 260" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Attacker -->
+                <rect x="50" y="80" width="120" height="100" rx="8" fill="#1e293b"/>
+                <text x="110" y="135" text-anchor="middle" fill="white" font-weight="bold">공격자 (Kali)</text>
+                <text x="110" y="155" text-anchor="middle" fill="#94a3b8" font-size="12">Nmap 실행</text>
+
+                <!-- Target -->
+                <rect x="530" y="80" width="120" height="100" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="2"/>
+                <text x="590" y="135" text-anchor="middle" fill="#334155" font-weight="bold">타겟 서버</text>
+                <text x="590" y="155" text-anchor="middle" fill="#64748b" font-size="12">Port 80 (Open)</text>
+
+                <!-- Packets -->
+                <!-- 1. SYN -->
+                <path d="M 180 100 L 510 100" stroke="#3b82f6" stroke-width="3" marker-end="url(#arrow-blue)"/>
+                <text x="345" y="90" text-anchor="middle" fill="#3b82f6" font-size="12" font-weight="bold">1. SYN (접속 요청)</text>
+
+                <!-- 2. SYN/ACK -->
+                <path d="M 510 130 L 180 130" stroke="#10b981" stroke-width="3" marker-end="url(#arrow-green)"/>
+                <text x="345" y="150" text-anchor="middle" fill="#10b981" font-size="12" font-weight="bold">2. SYN / ACK (포트 열림 응답)</text>
+
+                <!-- 3. RST -->
+                <path d="M 180 160 L 510 160" stroke="#ef4444" stroke-width="3" marker-end="url(#arrow-red)"/>
+                <text x="345" y="180" text-anchor="middle" fill="#ef4444" font-size="12" font-weight="bold">3. RST (연결 강제 종료)</text>
+
+                <text x="345" y="230" text-anchor="middle" fill="#475569" font-size="12">완전한 연결(3-Way Handshake)을 맺지 않아 로그 기록을 최소화하는 스텔스 기법</text>
+
+                <defs>
+                    <marker id="arrow-blue" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3b82f6" /></marker>
+                    <marker id="arrow-green" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#10b981" /></marker>
+                    <marker id="arrow-red" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444" /></marker>
+                </defs>
+            </svg>
+            <p class="diagram-caption">[도식 2] Nmap TCP SYN Scan (스텔스 스캔)의 작동 원리</p>
+        </div>
+
+        <div class="warning-box">
+            <h4 class="font-bold text-red-700 mb-2">📚 중요: 취약점 스캐너의 맹점 극복</h4>
+            <p class="text-sm text-slate-700">
+                <strong>OpenVAS(오픈바스)</strong>나 <strong>Nessus(네서스)</strong>와 같은 취약점 스캐너(Vulnerability Scanner)가 출력하는 리포트에서 <code>Critical(위험)</code> 항목이 나왔다고 해서 100% 해킹이 가능한 것은 아닙니다. 도구는 단순 버전 비교를 통해 추측할 뿐이며, 엔지니어는 이를 바탕으로 <strong>실제 공격 코드(Exploit)가 작동하는지 반드시 직접 검증(Verification)</strong>해야 합니다. (오탐 방지)
+            </p>
+        </div>
+
+        <div class="expert-tip">
+            <h4 class="font-bold text-green-800 mb-2">💡 실전 팁: Nmap 속도와 결과 저장</h4>
+            <div class="cmd-box mt-2 mb-2">
+                <span class="cmd-prompt">kali@kali:~$</span> nmap -sS -T4 -p- -oN result.txt 192.168.1.100
+            </div>
+            <ul class="list-disc list-inside text-sm text-slate-700 space-y-1">
+                <li><code>-T4</code>: 스캔 속도를 빠르게 조정합니다. (T0~T5까지 있으며 T4가 실무 권장값)</li>
+                <li><code>-oN [파일명]</code>: 화면에 출력되는 결과를 텍스트 파일로 안전하게 저장하여 보고서 작성 시 활용합니다.</li>
+            </ul>
+        </div>
+    </section> 
+
+    <!-- Part III: 시스템 해킹 및 웹 해킹 입문 -->
+    <section class="mb-24">
+        <h2 class="text-3xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+            <span class="bg-slate-900 text-white w-10 h-10 flex items-center justify-center rounded-lg shadow-md">III</span>
+            시스템 해킹 및 웹 해킹 입문 💥
+        </h2>
+
+        <div class="case-grid">
+            <div class="case-box border-l-4 border-l-orange-500">
+                <h3 class="font-bold text-lg text-slate-800 mb-2">패스워드 공격 (Password Cracking)</h3>
+                <p class="text-sm text-slate-600 mb-4">
+                    <strong>Hydra(히드라)</strong> 도구를 사용하여 원격 접속 서비스(SSH, FTP 등)에 대한 <strong>Brute-force(무차별 대입 공격)</strong> 또는 <strong>Dictionary Attack(사전 대입 공격)</strong>을 실습합니다. 이때 핵심은 양질의 단어장인 <strong>Wordlist(워드리스트, <a href="https://github.com/danielmiessler/SecLists" target="_blank" class="text-blue-600 underline">SecLists</a> 등)</strong>를 확보하는 것입니다.
+                </p>
+            </div>
+            <div class="case-box border-l-4 border-l-purple-500">
+                <h3 class="font-bold text-lg text-slate-800 mb-2">메타스플로잇 (Metasploit Framework)</h3>
+                <p class="text-sm text-slate-600 mb-4">
+                    시스템 해킹의 표준 프레임워크인 <strong>MSF(Metasploit Framework)</strong>의 구조를 이해합니다. 취약점을 뚫는 <strong>Exploit(익스플로잇)</strong> 모듈과, 뚫고 난 뒤 실행될 악성코드인 <strong>Payload(페이로드)</strong>를 결합하여 타겟 시스템에 <strong>RCE(Remote Code Execution, 원격 코드 실행)</strong>를 수행합니다.
+                </p>
+            </div>
+        </div>
+
+        <div class="warning-box">
+            <h4 class="font-bold text-red-700 mb-2">⚠️ 오해 방지: 무차별 대입 공격의 현실</h4>
+            <p class="text-sm text-slate-700">
+                실제 운영 환경(Production)에서 Hydra를 이용한 무차별 대입 공격을 무턱대고 시도하면, 보통 5회 로그인 실패 시 계정을 잠가버리는 <strong>계정 잠금(Account Lockout) 정책</strong>에 의해 타겟 시스템의 정상 서비스가 마비되는 대형 사고가 발생합니다. 사전 정책 확인이 필수입니다.
+            </p>
+        </div>
+
+        <!-- Diagram 3: Burp Suite Proxy Flow -->
+        <div class="diagram-container">
+            <svg width="700" height="200" viewBox="0 0 700 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Browser -->
+                <rect x="30" y="60" width="120" height="80" rx="8" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2"/>
+                <text x="90" y="105" text-anchor="middle" fill="#334155" font-weight="bold">사용자 브라우저</text>
+
+                <!-- Burp Suite (Proxy) -->
+                <rect x="260" y="40" width="180" height="120" rx="12" fill="#fff7ed" stroke="#f97316" stroke-width="3"/>
+                <text x="350" y="80" text-anchor="middle" fill="#c2410c" font-weight="bold" font-size="16">Burp Suite</text>
+                <text x="350" y="100" text-anchor="middle" fill="#ea580c" font-size="12">(Proxy Intercept)</text>
+                <rect x="280" y="120" width="140" height="25" rx="4" fill="#f97316"/>
+                <text x="350" y="137" text-anchor="middle" fill="white" font-size="11" font-weight="bold">패킷 가로채기 및 변조</text>
+
+                <!-- Web Server -->
+                <rect x="550" y="60" width="120" height="80" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="2"/>
+                <text x="610" y="105" text-anchor="middle" fill="#334155" font-weight="bold">웹 서버</text>
+
+                <!-- Flow Arrows -->
+                <path d="M 160 90 L 250 90" stroke="#f97316" stroke-width="3" stroke-dasharray="4 4" marker-end="url(#arrow-orange)"/>
+                <path d="M 450 90 L 540 90" stroke="#f97316" stroke-width="3" marker-end="url(#arrow-orange)"/>
+                <text x="205" y="80" text-anchor="middle" fill="#c2410c" font-size="11">Request</text>
+                <text x="495" y="80" text-anchor="middle" fill="#c2410c" font-size="11">Modified Request</text>
+
+                <path d="M 540 120 L 450 120" stroke="#64748b" stroke-width="2" marker-end="url(#arrow-gray)"/>
+                <path d="M 250 120 L 160 120" stroke="#64748b" stroke-width="2" marker-end="url(#arrow-gray)"/>
+                <text x="495" y="140" text-anchor="middle" fill="#64748b" font-size="11">Response</text>
+                
+                <defs>
+                    <marker id="arrow-orange" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#f97316" /></marker>
+                    <marker id="arrow-gray" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b" /></marker>
+                </defs>
+            </svg>
+            <p class="diagram-caption">[도식 3] Burp Suite를 활용한 웹 프록시(Web Proxy) 패킷 인터셉트 구조</p>
+        </div>
+
+        <div class="tech-note">
+            <h4 class="font-bold text-slate-800 mb-2">웹 해킹 핵심 공격 기법</h4>
+            <ul class="list-disc list-inside text-sm text-slate-700 space-y-2">
+                <li><strong>SQL Injection (SQL 인젝션):</strong> 사용자가 입력하는 폼(로그인 창 등)에 악의적인 데이터베이스 쿼리문(SQL)을 삽입하여, 백엔드 DB의 인증을 우회하거나 데이터를 탈취하는 공격입니다.</li>
+                <li><strong>XSS (Cross-Site Scripting, 교차 사이트 스크립팅):</strong> 게시판 등에 악성 자바스크립트(JavaScript) 코드를 삽입하여, 해당 글을 읽는 일반 사용자의 브라우저에서 스크립트가 실행되게 만들어 세션 쿠키(Session Cookie) 등을 탈취하는 공격입니다.</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- Part IV: 무선 및 후속 작업 기초 -->
+    <section class="mb-24">
+        <h2 class="text-3xl font-bold text-slate-800 mb-6 flex items-center gap-3">
+            <span class="bg-slate-900 text-white w-10 h-10 flex items-center justify-center rounded-lg shadow-md">IV</span>
+            무선 및 후속 작업 기초 📡
+        </h2>
+
+        <div class="case-grid">
+            <div class="case-box border-t-4 border-t-teal-500">
+                <h3 class="font-bold text-lg text-slate-800 mb-2">무선 네트워크 해킹 (Aircrack-ng)</h3>
+                <p class="text-sm text-slate-600 mb-4">
+                    일반적인 랜카드는 자신에게 온 패킷만 수신(Managed Mode)하지만, 해킹 시에는 공기 중에 떠다니는 모든 무선 패킷을 잡아내는 <strong>모니터 모드(Monitor Mode, 또는 Promiscuous Mode)</strong>로 전환해야 합니다. <strong>Aircrack-ng(에어크랙-엔지)</strong> 도구군을 사용하여 암호화된 핸드쉐이크(Handshake) 패킷을 가로채어 크래킹합니다.
+                </p>
+            </div>
+            <div class="case-box border-t-4 border-t-indigo-500">
+                <h3 class="font-bold text-lg text-slate-800 mb-2">포스트 익스플로이테이션 (Post-Exploitation)</h3>
+                <p class="text-sm text-slate-600 mb-4">
+                    시스템 권한을 획득한 "이후"의 작업입니다. 메타스플로잇의 강력한 <strong>Meterpreter(미터프리터)</strong> 쉘을 이용하여 추가적인 정보 탈취, 키로깅(Keylogging), 화면 캡처, 그리고 재접속을 위한 백도어(Backdoor) 설치 등을 수행합니다.
+                </p>
+            </div>
+        </div>
+
+        <div class="expert-tip">
+            <h4 class="font-bold text-green-800 mb-2">💡 중요 실전 팁: 침투의 본질</h4>
+            <p class="text-sm text-slate-700">
+                실제 APT(Advanced Persistent Threat, 지능형 지속 위협) 공격에서 가장 중요한 것은 시스템 관리자(블루팀)의 보안 로그 감시에 들키지 않고 <strong>'얼마나 오랫동안 은밀하게(Stealthy) 권한을 유지하며 활동하는가'</strong>입니다. 화려한 권한 획득보다 백도어를 숨기는 후속 작업(Post-Exploit)이 진짜 실력입니다.
+            </p>
+        </div>
+
+        <div class="text-box mt-8 bg-slate-50 border border-slate-300">
+            <h3 class="font-bold text-xl text-slate-800 mb-4 border-b pb-2">방어 및 보안 아키텍처 조치 (Defense Strategy)</h3>
+            <p class="text-sm text-slate-700 mb-4">
+                오펜시브(Offensive) 기술을 배웠다면, 이를 방어할 블루팀(Blue Team)의 관점도 가져야 합니다.
+            </p>
+            <ul class="list-disc list-inside text-sm text-slate-700 space-y-2 mb-4">
+                <li><strong>패스워드 크래킹 방어:</strong> 복잡도(Complexity) 설정, 계정 잠금 정책 적용, 그리고 필수적으로 <strong>2FA(Two-Factor Authentication, 이중 인증)</strong>를 도입합니다.</li>
+                <li><strong>스캐닝 및 네트워크 공격 방어:</strong> <strong>IDS/IPS(Intrusion Detection/Prevention System, 침입 탐지/방지 시스템)</strong>를 통해 비정상적인 포트 스캔이나 악성 페이로드(Payload) 시그니처를 차단합니다.</li>
+            </ul>
+            <div class="bg-blue-100 p-4 rounded-lg mt-4 border-l-4 border-blue-500">
+                <strong class="text-blue-900 block mb-1">핵심 방어 철학: 최소 권한의 원칙 (Principle of Least Privilege)</strong>
+                <span class="text-slate-700 text-sm">모든 사용자와 프로세스(웹 서버 등)에는 해당 업무를 수행하는 데 필요한 '가장 최소한의 권한'만 부여해야 합니다. 웹 서버가 해킹당하더라도 전체 시스템(root)이 장악되는 것을 막는 가장 강력한 통제 수단입니다.</span>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-white p-10 rounded-3xl mt-20">
+        <h3 class="text-2xl font-bold mb-4">과정 요약</h3>
+        <p class="text-slate-300 leading-relaxed mb-6 text-sm">
+            본 입문 과정은 Kali Linux의 환경 설정부터 정보 수집, 웹 및 시스템 해킹, 무선 보안, 그리고 최종적인 방어 전략(최소 권한의 원칙)까지 모의 해킹의 End-to-End 라이프사이클을 조망합니다. 공격자의 관점(Red Team)을 이해함으로써 더욱 견고하고 안전한 방어 체계(Blue Team)를 구축하는 지혜를 얻으시길 바랍니다.
+        </p>
+        <div class="flex justify-between items-center border-t border-slate-700 pt-6">
+            <span class="text-sm font-bold text-blue-400 font-bold">IP 직업훈련 전문가 과정 인프라스트럭처 아키텍트 교재 시리즈</span>
+        </div>
+    </footer>
+
+</body>
+</html>

@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VMware Workstation Pro 다운로드 및 최적화 가이드</title>
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2b6cb0;
+            --accent-color: #3182ce;
+            --bg-color: #ffffff;
+            --text-color: #333333;
+            --box-bg: #f7fafc;
+            --border-color: #e2e8f0;
+        }
+        body {
+            font-family: 'Pretendard', 'Noto Sans KR', -apple-system, sans-serif;
+            line-height: 1.7;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+        h1 {
+            color: var(--primary-color);
+            border-bottom: 4px solid var(--secondary-color);
+            padding-bottom: 15px;
+            font-size: 2.2em;
+        }
+        h2 {
+            color: var(--secondary-color);
+            border-left: 6px solid var(--accent-color);
+            padding-left: 15px;
+            margin-top: 50px;
+            font-size: 1.6em;
+            background: linear-gradient(to right, #ebf8fa 0%, transparent 100%);
+        }
+        h3 {
+            color: var(--primary-color);
+            margin-top: 35px;
+            font-size: 1.3em;
+        }
+        p {
+            margin-bottom: 18px;
+            word-break: keep-all;
+        }
+        a {
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .box {
+            padding: 20px;
+            border-radius: 8px;
+            margin: 25px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .billing-box {
+            background-color: #fff5f5;
+            border-left: 6px solid #e53e3e;
+        }
+        .billing-box h4 { margin: 0 0 10px 0; color: #c53030; }
+        
+        .tip-box {
+            background-color: #ebf8fa;
+            border-left: 6px solid #319795;
+        }
+        .tip-box h4 { margin: 0 0 10px 0; color: #234e52; }
+        
+        .warning-box {
+            background-color: #fffaf0;
+            border-left: 6px solid #dd6b20;
+        }
+        .warning-box h4 { margin: 0 0 10px 0; color: #9c4221; }
+
+        .footnote {
+            font-size: 0.9em;
+            color: #4a5568;
+            background: var(--box-bg);
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            margin-top: 15px;
+            margin-bottom: 30px;
+        }
+        .footnote strong {
+            color: var(--primary-color);
+        }
+        .step-list {
+            list-style-type: none;
+            counter-reset: step-counter;
+            padding-left: 0;
+        }
+        .step-list li {
+            position: relative;
+            padding-left: 45px;
+            margin-bottom: 20px;
+        }
+        .step-list li::before {
+            content: counter(step-counter);
+            counter-increment: step-counter;
+            position: absolute;
+            left: 0;
+            top: 0;
+            background-color: var(--secondary-color);
+            color: white;
+            font-weight: bold;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        code {
+            background-color: #edf2f7;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'D2Coding', 'Consolas', monospace;
+            color: #c53030;
+            font-size: 0.95em;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            text-align: left;
+        }
+        th {
+            background-color: var(--box-bg);
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>VMware Workstation Pro 다운로드 및 최적화 가이드</h1>
+    
+    <p>본 문서는 IT 인프라 환경 구축을 위한 가장 기본적인 단계인 VM (Virtual Machine, 가상 머신) 하이퍼바이저 소프트웨어의 설치 및 구성 방법을 다룹니다. 성공적인 실습 환경 구축을 위해 스텝바이스텝으로 정확하게 따라오시기 바랍니다.</p>
+
+    <div class="footnote">
+        <strong>* VM (Virtual Machine, 가상 머신):</strong> 물리적인 컴퓨터 하드웨어를 소프트웨어적으로 모방하여 만든 독립적인 가상 컴퓨터 환경입니다. 하나의 물리적인 호스트 PC 위에서 여러 개의 독립된 OS (Operating System, 운영 체제)를 동시에 실행할 수 있게 해주는 핵심 기술입니다.
+    </div>
+
+    <div style="text-align: center; margin: 40px 0; background: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="100%" height="auto">
+            <rect width="800" height="450" fill="#f8fafc" rx="10"/>
+            <!-- 물리적 하드웨어 -->
+            <rect x="50" y="360" width="700" height="60" fill="#cbd5e1" rx="5" stroke="#94a3b8" stroke-width="2"/>
+            <text x="400" y="395" font-family="sans-serif" font-size="18" font-weight="bold" fill="#334155" text-anchor="middle">물리적 하드웨어 (Hardware: CPU, 메모리, 디스크, 네트워크 카드)</text>
+            <!-- 호스트 OS -->
+            <rect x="50" y="280" width="700" height="60" fill="#93c5fd" rx="5" stroke="#60a5fa" stroke-width="2"/>
+            <text x="400" y="315" font-family="sans-serif" font-size="18" font-weight="bold" fill="#1e3a8a" text-anchor="middle">호스트 OS (Host OS: Windows 11 / Linux 등 주 운영체제)</text>
+            <!-- 하이퍼바이저 -->
+            <rect x="50" y="200" width="700" height="60" fill="#3b82f6" rx="5" stroke="#2563eb" stroke-width="2"/>
+            <text x="400" y="235" font-family="sans-serif" font-size="18" font-weight="bold" fill="#ffffff" text-anchor="middle">하이퍼바이저 (Hypervisor: VMware Workstation Pro)</text>
+            <!-- 가상 머신 1 -->
+            <g transform="translate(80, 40)">
+                <rect width="280" height="140" fill="#ffffff" rx="5" stroke="#cbd5e1" stroke-width="2"/>
+                <rect x="10" y="10" width="260" height="40" fill="#f1f5f9" rx="3"/>
+                <text x="140" y="35" font-family="sans-serif" font-size="16" font-weight="bold" fill="#475569" text-anchor="middle">가상 머신 1 (Virtual Machine)</text>
+                <rect x="10" y="60" width="260" height="30" fill="#e2e8f0" rx="3"/>
+                <text x="140" y="80" font-family="sans-serif" font-size="14" fill="#334155" text-anchor="middle">애플리케이션 (App / DB / Web)</text>
+                <rect x="10" y="100" width="260" height="30" fill="#bfdbfe" rx="3"/>
+                <text x="140" y="120" font-family="sans-serif" font-size="14" font-weight="bold" fill="#1e40af" text-anchor="middle">게스트 OS (Guest OS: CentOS Linux)</text>
+            </g>
+            <!-- 가상 머신 2 -->
+            <g transform="translate(440, 40)">
+                <rect width="280" height="140" fill="#ffffff" rx="5" stroke="#cbd5e1" stroke-width="2"/>
+                <rect x="10" y="10" width="260" height="40" fill="#f1f5f9" rx="3"/>
+                <text x="140" y="35" font-family="sans-serif" font-size="16" font-weight="bold" fill="#475569" text-anchor="middle">가상 머신 2 (Virtual Machine)</text>
+                <rect x="10" y="60" width="260" height="30" fill="#e2e8f0" rx="3"/>
+                <text x="140" y="80" font-family="sans-serif" font-size="14" fill="#334155" text-anchor="middle">애플리케이션 (App / DB / Web)</text>
+                <rect x="10" y="100" width="260" height="30" fill="#bfdbfe" rx="3"/>
+                <text x="140" y="120" font-family="sans-serif" font-size="14" font-weight="bold" fill="#1e40af" text-anchor="middle">게스트 OS (Guest OS: Ubuntu Linux)</text>
+            </g>
+            <!-- 연결 선 -->
+            <path d="M 220 180 L 220 200" stroke="#64748b" stroke-width="4" fill="none"/>
+            <path d="M 580 180 L 580 200" stroke="#64748b" stroke-width="4" fill="none"/>
+        </svg>
+        <div style="margin-top: 15px;">
+            <strong style="color: #1a365d; font-size: 1.1em;">[그림 1] Type 2 하이퍼바이저 (VMware Workstation) 아키텍처 구조도</strong><br>
+            <span style="font-size: 0.95em; color: #4a5568;">호스트 OS 위에서 소프트웨어 형태로 동작하며 여러 개의 게스트 OS(손님 운영체제)를 관리합니다.</span>
+        </div>
+    </div>
+
+    <div class="box billing-box">
+        <h4>[중요 라이선스 및 과금 정책 변경 안내]</h4>
+        <p>VMware가 Broadcom(브로드컴)에 인수된 이후 라이선스 정책이 대폭 변경되었습니다. 과거 상용 소프트웨어였던 <strong>VMware Workstation Pro</strong> 제품은 현재 <strong>개인 사용자(Personal Use) 및 학습 목적에 한해 전면 무료</strong>로 제공됩니다.<br>
+        단, 기업 환경이나 영리 목적으로 사용할 경우 Broadcom의 구독형 유료 라이선스가 반드시 필요합니다. 실습용으로는 무료 버전을 안심하고 사용하셔도 됩니다.</p>
+    </div>
+
+    <h2>최신 VMware Workstation Pro 다운로드 방법</h2>
+    <p>과거의 VMware 공식 홈페이지 다운로드 링크는 더 이상 작동하지 않습니다. 모든 소프트웨어 다운로드는 VCF (VMware Cloud Foundation, 클라우드 인프라 통합 플랫폼) 통합 포털인 <a href="https://support.broadcom.com/" target="_blank">Broadcom Support Portal</a>을 통해 진행해야 합니다.</p>
+
+    <div class="footnote">
+        <strong>* VCF (VMware Cloud Foundation, 클라우드 인프라 통합 플랫폼):</strong> 서버, 스토리지, 네트워크 가상화를 하나로 통합하여 프라이빗 클라우드나 하이브리드 클라우드를 쉽게 구축하고 관리할 수 있도록 해주는 브로드컴의 핵심 소프트웨어 제품군입니다.
+    </div>
+
+    <ol class="step-list">
+        <li><strong>Broadcom 포털 가입 및 로그인:</strong> <a href="https://support.broadcom.com/" target="_blank">Broadcom Support Portal</a>에 접속하여 우측 상단의 <code>Register</code>를 눌러 개인 이메일로 회원가입을 진행한 후 로그인합니다.</li>
+        <li><strong>소프트웨어 메뉴 진입:</strong> 로그인 후 상단 메뉴바 좌측에서 <code>Software</code>를 선택하고, 드롭다운 메뉴에서 <code>VMware Cloud Foundation</code>을 클릭합니다.</li>
+        <li><strong>다운로드 센터 이동:</strong> 화면 우측 상단의 <code>My Downloads</code> 메뉴를 클릭합니다.</li>
+        <li><strong>제품 검색:</strong> 우측 상단의 검색창에 <code>VMware Workstation Pro</code>를 입력하여 검색합니다.</li>
+        <li><strong>개인용 버전 선택:</strong> 검색 결과 목록에서 반드시 <strong>VMware Workstation Pro 17 for Personal Use</strong> (또는 최신 버전의 Personal Use)를 클릭합니다.</li>
+        <li><strong>약관 동의 및 검증:</strong> 다운로드 테이블 좌측 상단의 <code>I agree to the terms and conditions</code> (이용 약관 동의) 체크박스를 선택합니다. 이때 영문 이름과 주소를 입력하는 검증(Verification) 팝업이 뜰 수 있으며, 정확히 입력해야 승인됩니다.</li>
+        <li><strong>설치 파일 다운로드:</strong> 검증이 완료되면 우측의 구름 모양 아이콘(Download)이 활성화됩니다. 클릭하여 <code>.exe</code> (Windows용) 설치 파일을 다운로드합니다.</li>
+    </ol>
+
+    <div class="box warning-box">
+        <h4>[자주 오해하거나 실수하는 부분]</h4>
+        <p>Broadcom 포털 가입 후 주소 및 개인정보를 대충 기입(예: 1234, asdf 등)할 경우, 미국의 수출 통제 및 보안 정책 시스템에 의해 <strong>계정이 즉각 차단되거나 다운로드 권한 검증(Verification)에서 영구 실패</strong>할 수 있습니다. 반드시 실제 거주하는 도시와 영문 주소 형식을 맞추어 입력해야 합니다.</p>
+    </div>
+
+    <h2>VMware Workstation Pro 설치 과정</h2>
+    <p>다운로드한 설치 파일을 실행하여 호스트 OS (Operating System, 운영 체제)에 하이퍼바이저를 설치합니다.</p>
+
+    <ol class="step-list">
+        <li><strong>관리자 권한 실행:</strong> 다운로드 폴더에서 <code>VMware-workstation-full-xxx.exe</code> 파일을 우클릭하고 <strong>관리자 권한으로 실행</strong>을 클릭합니다.</li>
+        <li><strong>설치 유형 선택:</strong> <code>Typical</code>(일반)과 <code>Custom</code>(사용자 지정) 중 <code>Typical</code>을 선택합니다.</li>
+        <li><strong>Enhanced Keyboard Driver 설치 (선택):</strong> 설치 도중 <code>Enhanced Virtual Keyboard Driver</code> 체크 박스가 나타납니다. 호스트와 가상 머신 간의 다국어 키보드 충돌을 방지하므로 <strong>체크하는 것을 권장</strong>합니다. (체크 시 설치 완료 후 PC 재부팅이 필요합니다.)</li>
+        <li><strong>라이선스 입력 단계:</strong> 설치 마지막 화면에 License Key를 묻는 창이 나옵니다. 하단의 <strong>Use VMware Workstation 17 for Personal Use</strong> (개인용으로 사용) 라디오 버튼을 선택하고 <code>Continue</code>를 누릅니다.</li>
+        <li>설치가 완료되면 <code>Finish</code>를 누르고 PC를 재부팅합니다.</li>
+    </ol>
+
+    <div class="footnote">
+        <strong>* OS (Operating System, 운영 체제):</strong> 컴퓨터의 하드웨어와 소프트웨어 자원을 관리하고, 사용자가 컴퓨터와 통신할 수 있도록 도와주는 가장 기본적이고 핵심적인 시스템 소프트웨어입니다. (예: Windows, Linux, macOS)
+    </div>
+
+    <h2>핵심 네트워크(Network) 설정 이해하기</h2>
+    <p>가상 머신을 생성하기 전, IT 인프라 아키텍트로서 반드시 정확히 이해해야 하는 것이 가상 네트워크 토폴로지입니다. VMware는 GUI (Graphical User Interface, 그래픽 사용자 인터페이스) 기반의 Virtual Network Editor를 제공합니다.</p>
+
+    <div class="footnote">
+        <strong>* GUI (Graphical User Interface, 그래픽 사용자 인터페이스):</strong> 사용자가 텍스트 명령어(CLI)를 타이핑하는 대신, 마우스와 같은 포인팅 장치를 이용하여 화면의 아이콘이나 메뉴 등의 시각적인 요소를 클릭하여 컴퓨터를 제어하는 방식입니다.
+    </div>
+
+    <div style="text-align: center; margin: 40px 0; background: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="100%" height="auto">
+            <rect width="800" height="500" fill="#ffffff" rx="10"/>
+            
+            <!-- 외부 인터넷 -->
+            <ellipse cx="100" cy="100" rx="70" ry="45" fill="#e0f2fe" stroke="#7dd3fc" stroke-width="2"/>
+            <text x="100" y="105" font-family="sans-serif" font-size="16" font-weight="bold" fill="#0369a1" text-anchor="middle">외부 인터넷 (Internet)</text>
+            
+            <!-- 물리 공유기 -->
+            <rect x="50" y="210" width="100" height="60" fill="#cbd5e1" rx="5" stroke="#94a3b8" stroke-width="2"/>
+            <text x="100" y="245" font-family="sans-serif" font-size="14" font-weight="bold" fill="#334155" text-anchor="middle">물리 공유기</text>
+            
+            <line x1="100" y1="145" x2="100" y2="210" stroke="#94a3b8" stroke-width="3" stroke-dasharray="5,5"/>
+
+            <!-- 호스트 PC 경계 -->
+            <rect x="230" y="40" width="540" height="420" fill="#f8fafc" rx="10" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="8,4"/>
+            <text x="500" y="70" font-family="sans-serif" font-size="18" font-weight="bold" fill="#475569" text-anchor="middle">호스트 PC (Host PC: 물리적 컴퓨터)</text>
+
+            <!-- 물리적 NIC -->
+            <rect x="210" y="220" width="50" height="40" fill="#3b82f6" rx="5"/>
+            <text x="235" y="245" font-family="sans-serif" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">물리 NIC</text>
+            <line x1="150" y1="240" x2="210" y2="240" stroke="#3b82f6" stroke-width="4"/>
+
+            <!-- 호스트 OS 네트워크 -->
+            <rect x="280" y="380" width="460" height="50" fill="#93c5fd" rx="5"/>
+            <text x="510" y="410" font-family="sans-serif" font-size="16" font-weight="bold" fill="#1e3a8a" text-anchor="middle">호스트 OS 네트워크 (Host Network Stack)</text>
+
+            <!-- Bridged 네트워크 (VMnet0) -->
+            <rect x="300" y="100" width="170" height="50" fill="#dcfce3" rx="5" stroke="#86efac" stroke-width="2"/>
+            <text x="385" y="120" font-family="sans-serif" font-size="14" font-weight="bold" fill="#166534" text-anchor="middle">Bridged (브리지)</text>
+            <text x="385" y="140" font-family="sans-serif" font-size="12" fill="#166534" text-anchor="middle">가상 스위치: VMnet0</text>
+            
+            <!-- NAT 네트워크 (VMnet8) -->
+            <rect x="300" y="220" width="170" height="50" fill="#fef08a" rx="5" stroke="#fde047" stroke-width="2"/>
+            <text x="385" y="240" font-family="sans-serif" font-size="14" font-weight="bold" fill="#854d0e" text-anchor="middle">NAT (주소 변환)</text>
+            <text x="385" y="260" font-family="sans-serif" font-size="12" fill="#854d0e" text-anchor="middle">가상 스위치: VMnet8</text>
+
+            <!-- Host-Only 네트워크 (VMnet1) -->
+            <rect x="300" y="310" width="170" height="50" fill="#fee2e2" rx="5" stroke="#fca5a5" stroke-width="2"/>
+            <text x="385" y="330" font-family="sans-serif" font-size="14" font-weight="bold" fill="#991b1b" text-anchor="middle">Host-Only (격리망)</text>
+            <text x="385" y="350" font-family="sans-serif" font-size="12" fill="#991b1b" text-anchor="middle">가상 스위치: VMnet1</text>
+
+            <!-- 가상 머신들 -->
+            <rect x="580" y="90" width="140" height="60" fill="#ffffff" rx="5" stroke="#94a3b8" stroke-width="2"/>
+            <text x="650" y="125" font-family="sans-serif" font-size="14" font-weight="bold" fill="#334155" text-anchor="middle">가상 머신 A (VM)</text>
+
+            <rect x="580" y="210" width="140" height="60" fill="#ffffff" rx="5" stroke="#94a3b8" stroke-width="2"/>
+            <text x="650" y="245" font-family="sans-serif" font-size="14" font-weight="bold" fill="#334155" text-anchor="middle">가상 머신 B (VM)</text>
+
+            <rect x="580" y="300" width="140" height="60" fill="#ffffff" rx="5" stroke="#94a3b8" stroke-width="2"/>
+            <text x="650" y="335" font-family="sans-serif" font-size="14" font-weight="bold" fill="#334155" text-anchor="middle">가상 머신 C (VM)</text>
+
+            <!-- 연결 선 (경로 표시) -->
+            <!-- Bridged: 물리 NIC에서 바로 연결 -->
+            <path d="M 235 220 L 235 125 L 300 125" stroke="#22c55e" stroke-width="3" fill="none"/>
+            <line x1="470" y1="125" x2="580" y2="125" stroke="#22c55e" stroke-width="3"/>
+
+            <!-- NAT: 호스트 OS를 거쳐서 연결 -->
+            <path d="M 385 380 L 385 270" stroke="#eab308" stroke-width="3" fill="none"/>
+            <path d="M 235 260 L 235 290 L 280 290 L 280 245 L 300 245" stroke="#eab308" stroke-width="3" fill="none"/>
+            <line x1="470" y1="245" x2="580" y2="245" stroke="#eab308" stroke-width="3"/>
+
+            <!-- Host-Only: 호스트 OS와만 연결 (외부 단절) -->
+            <path d="M 385 380 L 385 360" stroke="#ef4444" stroke-width="3" fill="none"/>
+            <line x1="470" y1="335" x2="580" y2="335" stroke="#ef4444" stroke-width="3"/>
+        </svg>
+        <div style="margin-top: 15px;">
+            <strong style="color: #1a365d; font-size: 1.1em;">[그림 2] 가상 머신 네트워크 토폴로지 (Network Topology)</strong><br>
+            <span style="font-size: 0.95em; color: #4a5568;">NAT(공유기 역할), Bridged(직접 연결), Host-Only(폐쇄망) 모드의 트래픽 흐름과 가상 스위치(VMnet) 구조입니다.</span>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>네트워크 모드</th>
+                <th>설명 및 특징</th>
+                <th>실무 활용 사례</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>NAT (VMnet8)</strong></td>
+                <td>호스트 PC의 IP 주소를 가상 머신이 공유하여 외부(인터넷)와 통신합니다. 가상 머신은 자체적인 사설 IP를 할당받습니다.</td>
+                <td>인터넷 연결이 필요하면서도, 외부에서 가상 머신으로 직접 접근하는 것을 막고 싶을 때 (가장 보편적인 기본 설정)</td>
+            </tr>
+            <tr>
+                <td><strong>Bridged (VMnet0)</strong></td>
+                <td>가상 머신이 호스트 PC와 동일한 물리적 네트워크(공유기 등)에 직접 연결됩니다. 호스트 PC와 동등한 네트워크 대역의 IP를 할당받습니다.</td>
+                <td>가상 머신을 실제 물리 서버처럼 네트워크상에 노출하여 다른 팀원이나 장비와 통신해야 할 때</td>
+            </tr>
+            <tr>
+                <td><strong>Host-Only (VMnet1)</strong></td>
+                <td>외부 인터넷과 완전히 단절되며, 오직 호스트 PC와 가상 머신들 사이에서만 통신이 가능한 격리된 네트워크입니다.</td>
+                <td>보안이 매우 중요한 폐쇄망 테스트, 악성코드 분석, 독립적인 내부 DB 클러스터 구성 시</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="footnote">
+        <strong>* NAT (Network Address Translation, 네트워크 주소 변환):</strong> 하나의 공인 IP 주소를 여러 대의 내부 장치(가상 머신 등)가 공유하여 사용할 수 있게 해주는 기술입니다. IP 주소 부족 문제를 해결하고 내부망을 외부로부터 숨기는 보안 역할도 수행합니다.
+    </div>
+
+    <div class="box tip-box">
+        <h4>[전문가의 실전 팁: DHCP 충돌 방지]</h4>
+        <p>실습 과정에서 고정 IP(Static IP)를 할당하여 서버 인프라를 구축할 경우, VMware의 내장 DHCP (Dynamic Host Configuration Protocol, 동적 호스트 설정 프로토콜) 서비스가 자동으로 IP를 할당하면서 IP 충돌이 발생할 수 있습니다.<br>
+        서버 구축 실습 시에는 상단 메뉴의 <code>Edit</code> > <code>Virtual Network Editor</code>에 들어가서 NAT 네트워크의 <strong>Use local DHCP service to distribute IP address to VMs</strong> 체크를 해제하고 수동으로 IP를 관리하는 것이 아키텍트의 올바른 접근법입니다.</p>
+    </div>
+    
+    <div class="footnote">
+        <strong>* DHCP (Dynamic Host Configuration Protocol, 동적 호스트 설정 프로토콜):</strong> 네트워크에 접속하는 컴퓨터나 스마트폰 등의 장치들에게 IP 주소, 서브넷 마스크, 게이트웨이 등의 네트워크 통신 설정 정보를 자동으로 할당해 주는 프로토콜입니다.
+    </div>
+
+</body>
+</html>

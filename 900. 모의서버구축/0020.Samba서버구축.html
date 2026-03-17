@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ubuntu: Samba 파일 서버 구축 및 공유 설정 실무</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: #ffffff; color: #1e293b; line-height: 1.7; }
+        .chapter-title { border-bottom: 4px solid #0f172a; padding-bottom: 1.5rem; margin-bottom: 3.5rem; margin-top: 6rem; }
+        .section-title { border-left: 5px solid #0f172a; padding-left: 1.5rem; margin-top: 4.5rem; margin-bottom: 2rem; font-weight: 900; }
+        .code-block {
+            background-color: #1e293b;
+            color: #f8fafc;
+            padding: 1.75rem;
+            border-radius: 0.5rem;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            border: 1px solid #e2e8f0;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+        }
+        .code-comment { color: #94a3b8; font-style: italic; }
+        .code-output { color: #4ade80; }
+        .code-keyword { color: #7dd3fc; font-weight: bold; }
+        .info-box { background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 1.5rem; border-radius: 0.5rem; margin: 1.5rem 0; }
+        .warning-box { background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 1.5rem; margin: 1.5rem 0; }
+        .step-badge { background-color: #0f172a; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; margin-right: 8px; }
+        .highlight-line { background-color: rgba(255, 255, 255, 0.1); display: block; padding-left: 0.5rem; border-left: 2px solid #38bdf8; }
+        .image-placeholder { background-color: #f1f5f9; border: 2px dashed #cbd5e1; padding: 3rem; text-align: center; color: #64748b; margin: 1.5rem 0; border-radius: 0.5rem; }
+    </style>
+</head>
+<body class="p-6 md:p-16 max-w-5xl mx-auto">
+
+    <!-- Header Section -->
+    <header class="mb-24 border-b-8 border-slate-900 pb-12">
+        <div class="flex items-center gap-2 mb-4">
+            <span class="bg-slate-900 text-white px-3 py-1 text-xs font-bold uppercase tracking-widest">Technical Manual</span>
+            <span class="text-slate-500 font-mono text-xs">Infrastructure Setup Ver 8.1</span>
+        </div>
+        <h1 class="text-5xl font-black mb-8 tracking-tighter text-slate-900 leading-tight">Ubuntu Linux<br><span class="text-blue-600">Samba 서버 구축 및 공유 설정</span></h1>
+        <p class="text-slate-600 text-xl leading-relaxed">
+            본 문서는 최신 우분투 환경에서 윈도우(Windows) 및 이기종 시스템 간의 네트워크 파일 공유를 지원하는 SMB/CIFS 프로토콜 데몬인 Samba를 설치하고, 보안 권한이 적용된 공유 디렉토리를 구성하여 검증하는 실무 절차를 기술합니다.
+        </p>
+    </header>
+
+    <!-- Chapter 1: Installation -->
+    <section id="installation">
+        <h2 class="chapter-title text-3xl font-black text-slate-900 uppercase tracking-tight">Chapter 1. Samba 패키지 설치 및 데몬 확인</h2>
+        
+        <p class="mb-4 text-slate-700">우분투 공식 저장소를 통해 <code>samba</code> 데몬 패키지를 설치합니다. 이 과정에서 파일 공유에 필요한 핵심 라이브러리 및 유틸리티가 함께 구성됩니다.</p>
+
+        <div class="code-block">
+            <span class="code-comment"># APT 인덱스 동기화 및 samba 패키지 설치</span><br>
+            $ <span class="code-keyword">sudo apt update</span><br>
+            $ <span class="code-keyword">sudo apt install -y samba smbclient</span><br><br>
+            <span class="code-comment"># smbd(Samba 데몬) 실행 상태 검증</span><br>
+            $ <span class="code-keyword">sudo systemctl status smbd</span><br>
+            <span class="code-output">● smbd.service - Samba SMB Daemon<br>
+            &nbsp;&nbsp;&nbsp;Loaded: loaded (/lib/systemd/system/smbd.service; enabled)<br>
+            &nbsp;&nbsp;&nbsp;Active: active (running)</span>
+        </div>
+    </section>
+
+    <!-- Chapter 2: Directory Preparation -->
+    <section id="directory">
+        <h2 class="chapter-title text-3xl font-black text-slate-900 uppercase tracking-tight">Chapter 2. 공유 디렉토리 및 시스템 권한 구성</h2>
+        
+        <p class="mb-6 text-slate-700">네트워크를 통해 접근할 물리적 디렉토리를 생성하고, Samba 프로세스 및 인증된 사용자가 읽고 쓸 수 있도록 디렉토리 소유권과 퍼미션을 조정합니다.</p>
+
+        <div class="code-block">
+            <span class="code-comment"># 1. 파일 서버용 최상위 디렉토리 생성</span><br>
+            $ <span class="code-keyword">sudo mkdir -p /srv/samba/shared</span><br><br>
+
+            <span class="code-comment"># 2. 특정 시스템 계정에 종속되지 않도록 소유권 변경 (보안)</span><br>
+            $ <span class="code-keyword">sudo chown nobody:nogroup /srv/samba/shared</span><br><br>
+
+            <span class="code-comment"># 3. 디렉토리 퍼미션 부여 (소유자/그룹은 읽기,쓰기,실행 허용)</span><br>
+            $ <span class="code-keyword">sudo chmod -R 0775 /srv/samba/shared</span>
+        </div>
+    </section>
+
+    <!-- Chapter 3: Configuration -->
+    <section id="configuration">
+        <h2 class="chapter-title text-3xl font-black text-slate-900 uppercase tracking-tight">Chapter 3. smb.conf 환경 설정 파일 수정</h2>
+        
+        <p class="mb-6 text-slate-700">Samba의 핵심 동작을 제어하는 <code>/etc/samba/smb.conf</code> 파일의 최하단에 새로운 공유 폴더 프로파일을 추가합니다.</p>
+
+        <div class="warning-box">
+            <h4 class="font-bold text-red-700 mb-2 flex items-center gap-2 uppercase tracking-tighter">
+                <i data-lucide="copy"></i> 원본 설정 파일 백업
+            </h4>
+            <p class="text-red-800 text-sm">
+                설정 오류 시 즉각적인 복구를 위해 원본 파일을 백업하는 것은 인프라 엔지니어의 기본 수칙입니다.<br>
+                <code>sudo cp /etc/samba/smb.conf /etc/samba/smb.conf.bak</code>
+            </p>
+        </div>
+
+        <h3 class="section-title text-2xl">공유 프로파일 작성</h3>
+        <p class="mb-4 text-slate-700">텍스트 에디터(<code>sudo nano /etc/samba/smb.conf</code>)를 열고 파일의 맨 끝에 아래 내용을 추가합니다.</p>
+
+        <div class="code-block">
+            <span class="code-comment"># [대괄호] 안의 이름이 윈도우 네트워크 상에 표시되는 공유 폴더명입니다.</span><br>
+            <span class="highlight-line"><span class="code-keyword">[PublicShare]</span></span><br>
+            <span class="highlight-line">&nbsp;&nbsp;&nbsp;&nbsp;comment = Ubuntu Samba File Server</span><br>
+            <span class="highlight-line">&nbsp;&nbsp;&nbsp;&nbsp;path = /srv/samba/shared</span><br>
+            <span class="highlight-line">&nbsp;&nbsp;&nbsp;&nbsp;browsable = yes</span><br>
+            <span class="code-comment">&nbsp;&nbsp;&nbsp;&nbsp;# 익명 접근 허용 여부 (no로 설정 시 자격 증명 필수)</span><br>
+            <span class="highlight-line">&nbsp;&nbsp;&nbsp;&nbsp;guest ok = no</span><br>
+            <span class="code-comment">&nbsp;&nbsp;&nbsp;&nbsp;# 읽기 전용 여부 (쓰기 권한 부여)</span><br>
+            <span class="highlight-line">&nbsp;&nbsp;&nbsp;&nbsp;read only = no</span><br>
+            <span class="code-comment">&nbsp;&nbsp;&nbsp;&nbsp;# 파일 및 폴더 생성 시 기본 권한 마스크</span><br>
+            <span class="highlight-line">&nbsp;&nbsp;&nbsp;&nbsp;create mask = 0755</span><br>
+            <span class="highlight-line">&nbsp;&nbsp;&nbsp;&nbsp;directory mask = 0755</span><br>
+            <span class="code-comment">&nbsp;&nbsp;&nbsp;&nbsp;# [선택] 특정 사용자만 접근 허용할 경우 추가</span><br>
+            <span class="highlight-line">&nbsp;&nbsp;&nbsp;&nbsp;valid users = smbuser</span>
+        </div>
+    </section>
+
+    <!-- Chapter 4: User & Firewall -->
+    <section id="user-firewall">
+        <h2 class="chapter-title text-3xl font-black text-slate-900 uppercase tracking-tight">Chapter 4. Samba 사용자 인증 및 방화벽 허용</h2>
+
+        <h3 class="section-title text-2xl">1. Samba 전용 사용자 자격 증명 생성</h3>
+        <p class="mb-4 text-slate-700">Samba는 리눅스 시스템 계정과 별도로 자체적인 패스워드 데이터베이스를 관리합니다. 따라서 시스템에 존재하는 계정을 Samba 전용 계정으로 동기화해야 합니다.</p>
+
+        <div class="code-block">
+            <span class="code-comment"># 1. 시스템 계정 생성 (이미 존재하는 계정을 사용할 경우 생략 가능)</span><br>
+            $ <span class="code-keyword">sudo adduser smbuser</span><br><br>
+            
+            <span class="code-comment"># 2. 시스템 계정을 Samba 데이터베이스에 추가 및 전용 패스워드 설정</span><br>
+            $ <span class="code-keyword">sudo smbpasswd -a smbuser</span><br>
+            <span class="code-output">New SMB password: </span><span class="code-comment"># 공유 폴더 접근용 패스워드 입력</span><br>
+            <span class="code-output">Retype new SMB password:</span><br>
+            <span class="code-output">Added user smbuser.</span><br><br>
+
+            <span class="code-comment"># 3. 변경된 설정을 적용하기 위해 데몬 재시작</span><br>
+            $ <span class="code-keyword">sudo systemctl restart smbd nmbd</span>
+        </div>
+
+        <h3 class="section-title text-2xl">2. UFW 방화벽 규칙 구성</h3>
+        <p class="mb-4 text-slate-700">Samba 통신을 위해 사용되는 SMB/CIFS 포트(TCP 139, 445 및 UDP 137, 138)를 방화벽 프로파일을 통해 일괄 개방합니다.</p>
+
+        <div class="code-block">
+            <span class="code-comment"># UFW의 사전 정의된 samba 프로파일 허용</span><br>
+            $ <span class="code-keyword">sudo ufw allow samba</span><br>
+            <span class="code-output">Rule added<br>Rule added (v6)</span><br><br>
+
+            <span class="code-comment"># 방화벽 적용 상태 확인</span><br>
+            $ <span class="code-keyword">sudo ufw status</span>
+        </div>
+    </section>
+
+    <!-- Chapter 5: Testing -->
+    <section id="testing">
+        <h2 class="chapter-title text-3xl font-black text-slate-900 uppercase tracking-tight">Chapter 5. 클라이언트 환경 접속 테스트</h2>
+        
+        <p class="mb-6 text-slate-700">Samba 서버 설정이 완료되면, 클라이언트(Windows 또는 Linux) 환경에서 정상적인 네트워크 드라이브 접근 및 파일 입출력이 가능한지 검증합니다.</p>
+
+        <div class="grid md:grid-cols-2 gap-8 mb-8">
+            <div class="p-6 bg-slate-50 border rounded shadow-sm">
+                <h4 class="font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <i data-lucide="monitor" class="w-4 h-4 text-blue-600"></i> Windows 환경에서 검증
+                </h4>
+                <ol class="list-decimal list-inside space-y-3 text-sm text-slate-700">
+                    <li>단축키 <kbd class="bg-gray-200 px-1 rounded">Win + R</kbd>을 눌러 '실행' 창을 엽니다.</li>
+                    <li>UNC 경로 형식인 <code>\\서버_IP_주소</code> (예: <code>\\192.168.0.100</code>)를 입력하고 확인을 누릅니다.</li>
+                    <li>네트워크 자격 증명 창이 뜨면 <code>smbuser</code>와 설정한 Samba 패스워드를 입력합니다.</li>
+                    <li>'PublicShare' 폴더에 진입하여 새 텍스트 문서를 생성, 파일 쓰기 권한을 확인합니다.</li>
+                </ol>
+            </div>
+            
+            <div class="p-6 bg-slate-50 border rounded shadow-sm">
+                <h4 class="font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <i data-lucide="terminal" class="w-4 h-4 text-slate-600"></i> Linux(CLI) 환경에서 검증
+                </h4>
+                <div class="code-block m-0 p-4">
+                    <span class="code-comment"># smbclient 유틸리티 사용 (-U 옵션으로 사용자 지정)</span><br>
+                    $ <span class="code-keyword">smbclient //192.168.0.100/PublicShare -U smbuser</span><br>
+                    <span class="code-output">Password for [WORKGROUP\smbuser]:</span><br>
+                    <span class="code-output">Try "help" to get a list of possible commands.</span><br>
+                    smb: \> <span class="code-keyword">ls</span><br>
+                    <span class="code-output">  .               D        0  Tue Mar 17 14:00:00 2026<br>
+                    &nbsp;&nbsp;..              D        0  Tue Mar 17 14:00:00 2026</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="image-placeholder mt-8">
+            
+        </div>
+
+    </section>
+
+    <!-- Footer -->
+    <footer class="mt-40 pt-16 border-t-4 border-slate-900">
+        <div class="text-slate-500 text-sm leading-relaxed space-y-4 font-light">
+            <p>본 매뉴얼은 Ubuntu 기반 서버에서 안정적인 인트라넷 파일 공유 서비스를 구축하기 위한 표준 절차를 제공합니다. 기업의 실제 운영 환경에서는 Active Directory(AD) 연동이나 세밀한 ACL(Access Control List) 설정을 추가로 적용하여 데이터 보안성을 강화해야 합니다.</p>
+        </div>
+        <div class="mt-8 text-center text-slate-400 font-mono text-[10px] tracking-widest uppercase">
+            © 2026 Advanced Systems Infrastructure Engineering.
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

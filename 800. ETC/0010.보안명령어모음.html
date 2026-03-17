@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: transparent; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+    </style>
+    <script>tailwind.config = { darkMode: 'class' }</script>
+</head>
+<body class="p-6 pt-20 md:p-10 md:pt-24 max-w-5xl mx-auto">
+
+                <div class="prose prose-invert prose-slate max-w-none prose-img:rounded-xl prose-a:text-cyan-400 hover:prose-a:text-cyan-300 prose-headings:text-slate-100 prose-strong:text-cyan-100 bg-slate-900/40 p-8 rounded-2xl border border-slate-700/50 shadow-xl">
+                    <h2>🔒 네트워크 1계층/2계층 보안 관련 명령어</h2>
+<p>시스템 관리자가 네트워크의 가장 기본적인 계층인 <strong>1계층(물리 계층)</strong>과 <strong>2계층(데이터 링크 계층)</strong>에서 보안 문제를 점검하고 대응하기 위해 알아야 할 핵심 명령어들을 정리했습니다.</p>
+<p>이 계층의 보안은 주로 <strong>ARP Spoofing</strong> 방지, <strong>MAC 주소 관리</strong>, 그리고 <strong>물리적 접근 통제</strong>에 중점을 둡니다.</p>
+<hr />
+<h3>1. ARP 및 MAC 주소 관리 (2계층 보안 핵심)</h3>
+<p>ARP 캐시는 2계층 MAC 주소와 3계층 IP 주소를 연결하는 핵심이며, 스푸핑 공격의 주 대상입니다.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">기능</th>
+<th style="text-align: left;">명령어 (OS별)</th>
+<th style="text-align: left;">사용 목적 및 보안 중요성</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>ARP 캐시 확인</strong></td>
+<td style="text-align: left;"><code>$ arp -a</code></td>
+<td style="text-align: left;">현재 시스템에 저장된 IP-MAC 매핑을 확인하여 <strong>ARP 스푸핑</strong> 징후(비정상적인 MAC 주소 매핑)를 탐지합니다.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>정적 ARP 추가</strong></td>
+<td style="text-align: left;"><code>$ arp -s [IP] [MAC]</code></td>
+<td style="text-align: left;">게이트웨이와 같이 중요한 장치의 ARP 정보를 <strong>고정</strong>시켜 공격자가 임의로 MAC 주소를 위변조하는 것을 원천적으로 차단합니다.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>ARP 캐시 삭제</strong></td>
+<td style="text-align: left;"><code>$ arp -d</code> 또는 <code>$ arp -d *</code> (Windows)</td>
+<td style="text-align: left;">ARP 스푸핑 공격이 의심되거나 발생했을 때, 오염된 캐시 항목을 <strong>즉시 초기화</strong>합니다.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>인터페이스 상태 확인</strong></td>
+<td style="text-align: left;"><code>$ ip addr</code> (Linux) / <code>$ ifconfig</code> (Legacy Linux/macOS) / <code>$ ipconfig /all</code> (Windows)</td>
+<td style="text-align: left;">시스템에 연결된 모든 네트워크 인터페이스의 <strong>MAC 주소</strong>, IP 주소, 상태(up/down) 등을 확인하여 설정 오류나 예상치 못한 인터페이스 활성화 여부를 점검합니다.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3>2. 스위치 및 포트 보안 (2계층 장비 관리)</h3>
+<p>대부분의 2계층 보안 조치는 <strong>스위치(Switch)</strong>에서 이루어집니다. Cisco IOS 기반 스위치를 예시로 듭니다.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">기능</th>
+<th style="text-align: left;">명령어 (Cisco IOS 예시)</th>
+<th style="text-align: left;">사용 목적 및 보안 중요성</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>포트 보안 활성화</strong></td>
+<td style="text-align: left;"><code>(config-if)# switchport port-security</code></td>
+<td style="text-align: left;">특정 포트에서 허용되는 <strong>MAC 주소의 개수</strong>를 제한하고, 허용되지 않은 MAC 주소가 접근할 때 포트를 차단(Shutdown)하도록 설정합니다.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>허용 MAC 개수 설정</strong></td>
+<td style="text-align: left;"><code>(config-if)# switchport port-security maximum 1</code></td>
+<td style="text-align: left;">한 포트당 <strong>하나의 MAC 주소</strong>만 허용하도록 설정하여, 비인가 장치 연결이나 사설 스위치/허브 연결을 방지합니다.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>MAC 주소 Sticky 설정</strong></td>
+<td style="text-align: left;"><code>(config-if)# switchport port-security mac-address sticky</code></td>
+<td style="text-align: left;">포트에 처음 연결된 장치의 MAC 주소를 자동으로 학습하고 이 주소를 <strong>정적 항목처럼 유지</strong>시켜, 다른 MAC 주소의 접근을 차단합니다.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>포트 보안 위반 조치 설정</strong></td>
+<td style="text-align: left;"><code>(config-if)# switchport port-security violation shutdown</code></td>
+<td style="text-align: left;">보안 위반(Maximum MAC 초과 등) 발생 시 해당 포트를 <strong>즉시 차단(Shutdown)</strong>하여 공격을 중단시킵니다.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>포트 상태 및 보안 확인</strong></td>
+<td style="text-align: left;"><code># show port-security interface [인터페이스 번호]</code></td>
+<td style="text-align: left;">포트 보안 설정, 현재 학습된 MAC 주소, 위반 횟수 등을 확인하여 보안 상태를 점검합니다.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3>3. 물리 계층(1계층) 및 연결 상태 확인</h3>
+<p>1계층은 물리적인 연결 자체를 다루며, 장치 자체의 상태 확인이 중요합니다.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">기능</th>
+<th style="text-align: left;">명령어</th>
+<th style="text-align: left;">사용 목적 및 보안 중요성</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>링크 상태 확인</strong></td>
+<td style="text-align: left;"><code>$ ethtool [인터페이스 이름]</code> (Linux)</td>
+<td style="text-align: left;">네트워크 인터페이스의 <strong>물리적 연결 상태(Link Status)</strong>, 속도(Speed), 듀플렉스 모드(Duplex) 등을 확인하여 물리적 문제나 비정상적인 연결을 확인합니다.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>핑 테스트</strong></td>
+<td style="text-align: left;"><code>$ ping [IP 주소]</code></td>
+<td style="text-align: left;">대상 장치까지의 <strong>물리적 연결</strong> 상태와 네트워크 활성 여부를 가장 간단하게 확인합니다. 연결 실패 시 1계층 케이블 문제나 2계층 스위치 포트 문제일 수 있습니다.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>로그 확인</strong></td>
+<td style="text-align: left;"><code>$ tail -f /var/log/syslog</code> 또는 <code>$ dmesg</code> (Linux)</td>
+<td style="text-align: left;">인터페이스의 <strong>연결/단절(Link Up/Down)</strong> 이벤트 기록, 비정상적인 전송 오류 등을 확인하여 물리적 변동 사항을 추적합니다.</td>
+</tr>
+</tbody>
+</table>
+<p>ARP 스푸핑과 스위치 포트 보안은 2계층에서 발생하는 가장 흔하면서도 치명적인 위협이므로, <code>arp -s</code>를 통한 정적 매핑 관리와 스위치의 <code>port-security</code> 설정은 시스템 관리자에게 필수적인 작업입니다.</p>
+<p>이 중에서 스위치의 <strong>포트 보안</strong> 명령어들을 이용한 실습 구성 예제를 다뤄볼까요?</p>
+                </div>
+                </body></html>

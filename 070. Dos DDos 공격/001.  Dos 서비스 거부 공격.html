@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: transparent; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+    </style>
+    <script>tailwind.config = { darkMode: 'class' }</script>
+</head>
+<body class="p-6 pt-20 md:p-10 md:pt-24 max-w-5xl mx-auto">
+
+                <div class="prose prose-invert prose-slate max-w-none prose-img:rounded-xl prose-a:text-cyan-400 hover:prose-a:text-cyan-300 prose-headings:text-slate-100 prose-strong:text-cyan-100 bg-slate-900/40 p-8 rounded-2xl border border-slate-700/50 shadow-xl">
+                    <h1>DoS DDoS 공격 및 방어 전략</h1>
+<p>인프라 가용성(Availability)을 위협하는 서비스 거부 공격은 2026년 현재 더욱 정교화된 AI 봇넷(Botnet)을 활용하여 전례 없는 규모로 발생하고 있습니다. 본 섹션에서는 고전적인 네트워크 계층 공격부터 최신의 애플리케이션 계층 공격까지, 그리고 이를 방어하기 위한 지능형 완화 전략을 다룹니다.</p>
+<hr />
+<h2>1. DoS (Denial of Service, 서비스 거부 공격) 및 DDoS (Distributed DoS) 이해</h2>
+<p>서비스 거부 공격의 핵심 목적은 시스템 자원(CPU, Memory, Network Bandwidth)을 고갈시켜 정당한 사용자의 접근을 차단하는 것입니다.</p>
+<h3>주요 공격 유형별 메커니즘</h3>
+<ul>
+<li><strong>볼륨 공격 (Volumetric Attacks):</strong> ICMP (Internet Control Message Protocol, 인터넷 제어 메시지 프로토콜) 플러딩이나 UDP (User Datagram Protocol) 증폭 공격을 통해 네트워크 대역폭을 점유합니다.</li>
+<li><strong>프로토콜 공격 (Protocol Attacks):</strong> TCP (Transmission Control Protocol, 전송 제어 프로토콜)의 3-Way Handshake 과정을 악용한 SYN Flood 공격 등으로 방화벽이나 로드 밸런서의 세션 테이블을 고갈시킵니다.</li>
+<li><strong>애플리케이션 공격 (Application Layer Attacks):</strong> HTTP (HyperText Transfer Protocol) GET/POST 플러딩과 같이 정상적인 요청으로 위장하여 서버의 연산 자원을 소모시키는 L7 공격입니다.</li>
+</ul>
+<blockquote>
+<p><strong>[공격 아키텍처 도식 설명]</strong>
+전 세계에 분산된 좀비 PC(C&amp;C 서버의 제어를 받는 봇)들이 중앙의 타겟 서버를 향해 동시다발적으로 공격 트래픽을 송출하며, 정상 사용자의 트래픽이 이 거대한 흐름 속에 묻히는 과정을 시각화합니다.</p>
+</blockquote>
+<hr />
+<h2>2. 지능형 DDoS 완화 전략 (Mitigation)</h2>
+<p>현대적인 방어 체계는 단순한 차단을 넘어, 트래픽을 정제하는 스크러빙(Scrubbing) 기술을 핵심으로 합니다.</p>
+<ul>
+<li><strong>AI 기반 행동 분석:</strong> AI가 평상시 트래픽 패턴을 학습하여, 공격 봇이 생성하는 미세한 비정상 패턴(예: 요청 간격의 일정함 등)을 즉시 포착하고 차단합니다.</li>
+<li><strong>엣지 단의 차단 (Edge Mitigation):</strong> 사용자에게 가장 가까운 CDN (Content Delivery Network, 콘텐츠 전송 네트워크) 거점에서 공격을 선제적으로 차단하여 오리진(Origin) 서버를 보호합니다.</li>
+<li><strong>애니캐스트 (Anycast) 라우팅:</strong> 단일 IP 주소로 유입되는 트래픽을 전 세계 여러 거점으로 분산 수용하여 공격 규모를 상쇄시킵니다.</li>
+</ul>
+<hr />
+<h2>3. 실전 방어 및 모니터링 기법</h2>
+<p>CERT 팀장의 관점에서 DDoS 방어의 핵심은 <strong>'가시성 확보'</strong>와 <strong>'자동화된 대응'</strong>입니다.</p>
+<ul>
+<li><strong>임계치 기반 차단 (Rate Limiting):</strong> IP당 요청 수나 연결 수를 제한하여 비정상적인 폭주를 억제합니다.</li>
+<li><strong>챌린지 (Challenge) 메커니즘:</strong> HTTP 302 리다이렉션이나 JavaScript 챌린지를 통해 브라우저를 사용하는 인간과 공격용 스크립트를 구분합니다.</li>
+</ul>
+<hr />
+<h3>[보안 아키텍트의 실전 팁]</h3>
+<p>DDoS 공격 시 가장 흔히 저지르는 실수는 모든 트래픽을 차단하려다 정상 서비스까지 마비시키는 것입니다. 반드시 <strong>BGP (Border Gateway Protocol, 경계 경로 프로토콜) Flowspec</strong> 등을 활용하여 공격 트래픽의 특성(Flow)만을 정밀하게 타격하여 차단해야 합니다.</p>
+<blockquote>
+<p><strong>[AWS 과금 주의 사항]</strong>
+- <strong>AWS Shield Standard:</strong> 모든 AWS 고객에게 무료로 제공되지만, L3/L4 수준의 기본적인 방어만 제공합니다.
+- <strong>AWS Shield Advanced:</strong> 월 $3,000의 비용이 발생하지만, DDoS 공격으로 인한 비용 전이(Scaling 비용)를 보상해주고 7계층 자동 완화 기능을 제공하므로 대규모 서비스에서는 필수적입니다.</p>
+</blockquote>
+<hr />
+<p><strong>Next Step: 시스템 취약점 공격 분석</strong></p>
+                </div>
+                </body></html>

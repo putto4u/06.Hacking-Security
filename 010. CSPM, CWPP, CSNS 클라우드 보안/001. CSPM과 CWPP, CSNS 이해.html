@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>클라우드 보안 핵심 개념: CSPM, CWPP, CSNS의 심층 이해</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Fira+Code:wght@400;500&display=swap');
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: #fcfcfd; color: #1e293b; line-height: 1.8; }
+        .hero-section { background: linear-gradient(145deg, #020617 0%, #1e293b 100%); color: white; padding: 6rem 2rem; border-bottom: 4px solid #3b82f6; }
+        .content-card { background: white; border-radius: 1.5rem; padding: 4rem; box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.05); margin-bottom: 5rem; border: 1px solid #e2e8f0; position: relative; overflow: hidden; }
+        .content-card::before { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 6px; background: #3b82f6; }
+        .accent-box { border-left: 6px solid #3b82f6; background-color: #f8fafc; padding: 2rem; border-radius: 0.5rem; margin: 2.5rem 0; border-right: 1px solid #e2e8f0; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; }
+        .paid-tag { background-color: #fee2e2; color: #991b1b; font-size: 0.75rem; padding: 4px 12px; border-radius: 9999px; font-weight: 800; border: 1px solid #fca5a5; margin-left: 10px; display: inline-flex; align-items: center; }
+        .diagram-container { background: #ffffff; border: 1px solid #cbd5e1; border-radius: 1.5rem; padding: 3rem; margin: 3rem 0; box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05); }
+        .highlight { color: #2563eb; font-weight: 700; background: linear-gradient(to bottom, transparent 70%, #dbeafe 30%); }
+        h2 { font-size: 2.5rem; font-weight: 800; margin-bottom: 2rem; color: #0f172a; letter-spacing: -0.025em; }
+        h3 { font-size: 1.75rem; font-weight: 700; margin-top: 3rem; margin-bottom: 1.5rem; color: #334155; border-left: 4px solid #3b82f6; padding-left: 1rem; }
+        .pro-tip { background-color: #fffbeb; border: 1px solid #fef3c7; border-radius: 1rem; padding: 1.5rem; margin: 2rem 0; display: flex; align-items: flex-start; }
+        .pro-tip i { color: #d97706; margin-right: 1rem; margin-top: 0.25rem; font-size: 1.25rem; }
+        .comparison-table { width: 100%; border-collapse: separate; border-spacing: 0; border-radius: 0.75rem; overflow: hidden; border: 1px solid #e2e8f0; margin: 2rem 0; }
+        .comparison-table th { background-color: #f1f5f9; padding: 1.25rem; font-weight: 700; text-align: left; border-bottom: 2px solid #e2e8f0; }
+        .comparison-table td { padding: 1.25rem; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+        .footer { background-color: #0f172a; color: #94a3b8; padding: 5rem 2rem; text-align: center; }
+        code { font-family: 'Fira Code', monospace; background: #f1f5f9; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-size: 0.9em; color: #e11d48; }
+    </style>
+</head>
+<body>
+
+    <header class="hero-section text-center">
+        <div class="max-w-4xl mx-auto">
+            <div class="inline-block px-4 py-1 rounded-full bg-blue-500/20 text-blue-300 text-sm font-bold mb-6 tracking-widest uppercase">Expert Course Module</div>
+            <h1 class="text-6xl font-black mb-6 leading-tight">클라우드 통합 보안<br/>프레임워크의 정석</h1>
+            <p class="text-slate-400 text-2xl font-light max-w-2xl mx-auto">CSPM,CWPP,CSNS 결합 차세대 보안 플랫폼(CNAPP) 심층 분석</p>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-8 py-20">
+        
+        <!-- 도입: 변화하는 보안 환경 -->
+        <article class="content-card">
+            <h2>보안의 대전환: 제로 트러스트와 심층 방어</h2>
+            <p class="text-xl text-slate-600 mb-8">
+                기존의 <span class="highlight">On-premise (온프레미스, 자체 구축 서버)</span> 환경은 성벽을 높게 쌓는 경계 보안(Perimeter Security)에 의존했습니다. 하지만 클라우드는 경계가 모호합니다. 인프라가 코드로 정의(IaC)되고, 수천 개의 자산이 수시로 생성 및 삭제되는 환경에서는 <strong>"결코 신뢰하지 말고, 항상 검증하라(Never Trust, Always Verify)"</strong>는 <span class="highlight">Zero Trust (제로 트러스트)</span> 원칙이 지배합니다.
+            </p>
+            <div class="pro-tip">
+                <i class="fas fa-lightbulb"></i>
+                <div>
+                    <p class="font-bold text-amber-900">전문가 실무 팁</p>
+                    <p class="text-amber-800">클라우드 보안 사고의 99%는 사용자의 설정 실수(Misconfiguration)에서 비롯됩니다. 공격자는 시스템의 취약점보다 관리자의 실수로 열린 API나 S3 버킷을 먼저 노립니다. 이것이 CSPM이 최우선 보안 솔루션으로 꼽히는 이유입니다.</p>
+                </div>
+            </div>
+        </article>
+
+        <!-- CSPM 상세 -->
+        <article class="content-card">
+            <div class="flex flex-col md:flex-row justify-between items-start mb-8">
+                <h2 class="text-blue-600 m-0">CSPM: 설정의 무결성 확보</h2>
+                <span class="text-slate-400 font-medium md:text-right mt-2 md:mt-0">Cloud Security Posture Management<br/>(클라우드 보안 태세 관리)</span>
+            </div>
+            <p class="text-lg">
+                CSPM은 클라우드 관리 평면인 <span class="highlight">Control Plane (컨트롤 플레인, 관리 계층)</span>을 감시합니다. 클라우드 서비스 제공자(CSP)가 제공하는 모든 리소스의 설정값이 기업의 보안 정책 및 글로벌 표준에 부합하는지 실시간으로 대조합니다.
+            </p>
+
+            <h3>기술적 핵심 메커니즘</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 my-8">
+                <div class="p-6 bg-slate-50 rounded-xl">
+                    <p class="font-bold text-blue-700 mb-2"><i class="fas fa-satellite-dish mr-2"></i> API 기반 스캐닝 (Agentless)</p>
+                    <p class="text-sm text-slate-600">대상 서버 내부에 보안 소프트웨어를 설치하지 않습니다. 클라우드 API를 호출하여 자산의 메타데이터(예: 방화벽 규칙, 암호화 설정)를 수집하므로 성능 저하가 없습니다.</p>
+                </div>
+                <div class="p-6 bg-slate-50 rounded-xl">
+                    <p class="font-bold text-blue-700 mb-2"><i class="fas fa-sync-alt mr-2"></i> 보안 드리프트(Drift) 탐지</p>
+                    <p class="text-sm text-slate-600">최초 승인된 보안 기준선(Baseline)에서 벗어난 임의의 설정을 즉시 탐지합니다. 누군가 임의로 DB 포트를 개방하면 몇 초 내에 관리자에게 알림이 전송됩니다.</p>
+                </div>
+            </div>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <marker id="arrow-blue" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3b82f6" /></marker>
+                        <marker id="arrow-red" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444" /></marker>
+                    </defs>
+                    <rect x="50" y="80" width="220" height="240" rx="15" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+                    <text x="160" y="120" text-anchor="middle" font-weight="bold" fill="#1e40af">CSPM 분석 엔진</text>
+                    <rect x="70" y="150" width="180" height="130" rx="8" fill="#fff" stroke="#3b82f6" stroke-dasharray="4"/>
+                    <text x="160" y="180" text-anchor="middle" font-size="11" fill="#475569">글로벌 표준 데이터베이스</text>
+                    <text x="160" y="210" text-anchor="middle" font-size="10" fill="#64748b">CIS / NIST / ISMS-P</text>
+                    <text x="160" y="235" text-anchor="middle" font-size="10" fill="#64748b">SOC2 / HIPAA / PCI-DSS</text>
+
+                    <path d="M270 170 H380" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrow-blue)"/>
+                    <text x="325" y="160" text-anchor="middle" font-size="11" font-weight="bold" fill="#3b82f6">구성 조회</text>
+                    <path d="M380 230 H270" stroke="#64748b" stroke-width="2" marker-end="url(#arrow-blue)"/>
+                    <text x="325" y="250" text-anchor="middle" font-size="11" fill="#475569">설정 수집</text>
+
+                    <rect x="380" y="130" width="120" height="140" rx="10" fill="#f1f5f9" stroke="#475569" stroke-width="2"/>
+                    <text x="440" y="195" text-anchor="middle" font-weight="bold">Cloud API</text>
+
+                    <g transform="translate(560, 50)">
+                        <rect x="0" y="0" width="200" height="300" rx="10" fill="#fff" stroke="#cbd5e1" stroke-dasharray="8,5"/>
+                        <rect x="20" y="40" width="160" height="40" rx="4" fill="#f8fafc" stroke="#94a3b8"/>
+                        <text x="100" y="65" text-anchor="middle" font-size="11">IAM Root 계정 MFA</text>
+                        <rect x="20" y="100" width="160" height="40" rx="4" fill="#f8fafc" stroke="#94a3b8"/>
+                        <text x="100" y="125" text-anchor="middle" font-size="11">S3 서버 측 암호화</text>
+                        <rect x="20" y="160" width="160" height="40" rx="4" fill="#fee2e2" stroke="#ef4444" stroke-width="2"/>
+                        <text x="100" y="185" text-anchor="middle" font-size="11" font-weight="bold" fill="#991b1b">보안 그룹 0.0.0.0/0</text>
+                    </g>
+                    <path d="M660 350 V380 H160 V320" fill="none" stroke="#ef4444" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrow-red)"/>
+                    <text x="410" y="375" text-anchor="middle" font-size="12" font-weight="bold" fill="#ef4444">자동 치료 (Auto-Remediation) 루프</text>
+                </svg>
+            </div>
+
+            <div class="accent-box">
+                <p><strong>주요 실무 서비스와 비용 모델:</strong></p>
+                <ul class="list-disc list-inside space-y-2 mt-3">
+                    <li><a href="https://aws.amazon.com/security-hub/" target="_blank" class="font-bold text-blue-600 underline">AWS Security Hub</a><span class="paid-tag">유료</span>: 보안 검사 항목당 과금 ($0.001/평가). 여러 보안 서비스의 결과를 중앙 집중식으로 시각화합니다.</li>
+                    <li><a href="https://aws.amazon.com/config/" target="_blank" class="font-bold text-blue-600 underline">AWS Config</a><span class="paid-tag">유료</span>: 리소스 변경 기록 및 규칙 평가당 과금 ($0.003/평가). 시간대별 자산의 변화를 기록(History)합니다.</li>
+                </ul>
+            </div>
+            <p class="text-sm text-slate-500 italic">주석: CSPM은 "인프라의 설계 도면이 법적/기술적 기준을 충족하는지" 외부에서 검사하는 정적 보안 관리 도구입니다.</p>
+        </article>
+
+        <!-- CWPP 상세 -->
+        <article class="content-card">
+            <div class="flex flex-col md:flex-row justify-between items-start mb-8">
+                <h2 class="text-green-600 m-0">CWPP: 워크로드 런타임 방어</h2>
+                <span class="text-slate-400 font-medium md:text-right mt-2 md:mt-0">Cloud Workload Protection Platform<br/>(클라우드 워크로드 보호 플랫폼)</span>
+            </div>
+            <p class="text-lg">
+                CWPP는 클라우드에서 실행되는 실제 연산 작업인 <span class="highlight">Workload (워크로드)</span> 내부의 보안을 책임집니다. 가상 서버(EC2), 컨테이너(Pod), 서버리스(Lambda) 환경의 "안전한 실행"을 보장하며, 제로데이(Zero-day) 공격이나 지능형 지속 위협(APT)으로부터 시스템을 보호합니다.
+            </p>
+
+            <h3>보호 대상 및 기술적 구분</h3>
+            <div class="overflow-x-auto">
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>구분</th>
+                            <th>가상 서버 (EC2)</th>
+                            <th>컨테이너 (Kubernetes/ECS)</th>
+                            <th>서버리스 (Lambda)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>구현 방식</td>
+                            <td>에이전트 (Agent) 기반</td>
+                            <td>사이드카 (Sidecar) / DaemonSet</td>
+                            <td>런타임 라이브러리 주입</td>
+                        </tr>
+                        <tr>
+                            <td>핵심 감시</td>
+                            <td>OS 커널 콜, 파일 무결성</td>
+                            <td>이미지 취약점, 이종 격리 보안</td>
+                            <td>실행 코드 로직, API 호출 권한</td>
+                        </tr>
+                        <tr>
+                            <td>보안 가치</td>
+                            <td>안티-맬웨어, IPS/IDS</td>
+                            <td>컨테이너 탈출(Escape) 방지</td>
+                            <td>코드 레벨 인젝션 방어</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 800 350" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <marker id="arrow-green" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#22c55e" /></marker>
+                    </defs>
+                    <rect x="30" y="80" width="180" height="200" rx="12" fill="#f0fdf4" stroke="#22c55e" stroke-width="2"/>
+                    <text x="120" y="120" text-anchor="middle" font-weight="bold" fill="#166534">통합 보안 대시보드</text>
+                    <rect x="50" y="140" width="140" height="110" rx="6" fill="#fff" stroke="#86efac"/>
+                    <text x="120" y="170" text-anchor="middle" font-size="10">정책 하달 ↓</text>
+                    <text x="120" y="210" text-anchor="middle" font-size="10">텔레메트리 데이터 ↑</text>
+
+                    <path d="M210 150 H300" stroke="#22c55e" stroke-width="2" marker-end="url(#arrow-green)"/>
+                    <path d="M300 210 H210" stroke="#16a34a" stroke-width="2" marker-end="url(#arrow-green)"/>
+
+                    <g transform="translate(300, 40)">
+                        <rect x="0" y="0" width="240" height="260" rx="10" fill="#fff" stroke="#64748b" stroke-width="2"/>
+                        <text x="120" y="30" text-anchor="middle" font-size="12" font-weight="bold">EC2 워크로드 내부</text>
+                        <rect x="20" y="60" width="200" height="170" rx="8" fill="#f8fafc" stroke="#cbd5e1"/>
+                        <rect x="40" y="90" width="100" height="60" rx="4" fill="#fff" stroke="#94a3b8"/>
+                        <text x="90" y="125" text-anchor="middle" font-size="11">App 프로세스</text>
+                        <rect x="150" y="90" width="60" height="110" rx="4" fill="#dcfce7" stroke="#22c55e"/>
+                        <text x="180" y="140" text-anchor="middle" font-size="10" font-weight="bold" fill="#166534">에이전트</text>
+                        <text x="180" y="160" text-anchor="middle" font-size="8" fill="#166534">(실시간 감시)</text>
+                    </g>
+
+                    <g transform="translate(560, 40)">
+                        <rect x="0" y="0" width="210" height="150" rx="10" fill="#f8fafc" stroke="#3b82f6" stroke-width="2"/>
+                        <text x="105" y="30" text-anchor="middle" font-size="11" font-weight="bold">Vulnerability Scan</text>
+                        <path d="M30 60 H180" stroke="#e2e8f0"/>
+                        <text x="105" y="90" text-anchor="middle" font-size="10" fill="#475569">OS 이미지 CVE 취약점</text>
+                        <text x="105" y="120" text-anchor="middle" font-size="10" fill="#475569">라이브러리 종속성 분석</text>
+                    </g>
+                </svg>
+            </div>
+
+            <div class="accent-box" style="border-left-color: #22c55e; background-color: #f0fdf4;">
+                <p><strong>주요 실무 서비스와 비용 모델:</strong></p>
+                <ul class="list-disc list-inside space-y-2 mt-3">
+                    <li><a href="https://aws.amazon.com/guardduty/" target="_blank" class="font-bold text-green-700 underline">Amazon GuardDuty</a><span class="paid-tag">유료</span>: 데이터 분석량 기준 과금 ($5.00/GB - VPC Flow log 등). 기계학습(ML)을 통해 계정 내 위협적인 활동을 감지합니다.</li>
+                    <li><a href="https://aws.amazon.com/inspector/" target="_blank" class="font-bold text-green-700 underline">Amazon Inspector</a><span class="paid-tag">유료</span>: 인스턴스 또는 이미지 스캔당 과금. 취약점을 지속적으로 관리(Vulnerability Management)합니다.</li>
+                </ul>
+            </div>
+            <p class="text-sm text-slate-500 italic">주석: CWPP는 "건물 내부(워크로드)에 CCTV를 설치하고 보안 요원을 배치하여 실시간 이상 행위를 감시"하는 동적 보안 도구입니다.</p>
+        </article>
+
+        <!-- CSNS 상세 -->
+        <article class="content-card">
+            <div class="flex flex-col md:flex-row justify-between items-start mb-8">
+                <h2 class="text-orange-600 m-0">CSNS: 다계층 네트워크 방어</h2>
+                <span class="text-slate-400 font-medium md:text-right mt-2 md:mt-0">Cloud Service Network Security<br/>(클라우드 서비스 네트워크 보안)</span>
+            </div>
+            <p class="text-lg">
+                CSNS는 클라우드의 네트워크 인프라 자체를 보호합니다. 외부 인터넷 경계에서의 <span class="highlight">North-South (외부와 내부 통신)</span> 트래픽뿐만 아니라, 내부 서버 간의 <span class="highlight">East-West (내부 자산 간 통신)</span> 트래픽을 심층 분석하여 정교한 공격을 차단합니다.
+            </p>
+
+            <h3>심층 방어(Defense in Depth) 아키텍처</h3>
+            <div class="diagram-container">
+                <svg viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <marker id="arrow-orange" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#f97316" /></marker>
+                    </defs>
+                    <circle cx="50" cy="200" r="40" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2"/>
+                    <text x="50" y="205" text-anchor="middle" font-weight="bold" font-size="12">Internet</text>
+                    <path d="M90 200 H140" stroke="#f97316" stroke-width="3" marker-end="url(#arrow-orange)"/>
+
+                    <!-- Edge Security -->
+                    <g transform="translate(140, 40)">
+                        <rect x="0" y="0" width="140" height="320" rx="10" fill="#fff7ed" stroke="#f97316" stroke-width="2"/>
+                        <text x="70" y="35" text-anchor="middle" font-weight="bold" fill="#9a3412" font-size="14">Edge 보안 계층</text>
+                        <rect x="15" y="60" width="110" height="60" rx="5" fill="#fff" stroke="#f97316"/>
+                        <text x="70" y="85" text-anchor="middle" font-size="11" font-weight="bold">AWS WAF</text>
+                        <text x="70" y="105" text-anchor="middle" font-size="8">(L7 웹 공격 방어)</text>
+                        
+                        <rect x="15" y="140" width="110" height="60" rx="5" fill="#fff" stroke="#f97316"/>
+                        <text x="70" y="165" text-anchor="middle" font-size="11" font-weight="bold">AWS Shield</text>
+                        <text x="70" y="185" text-anchor="middle" font-size="8">(L3/L4 DDoS 방어)</text>
+
+                        <rect x="15" y="220" width="110" height="70" rx="5" fill="#fff" stroke="#f97316"/>
+                        <text x="70" y="250" text-anchor="middle" font-size="11" font-weight="bold">CDN / SSL</text>
+                        <text x="70" y="270" text-anchor="middle" font-size="8">(전송 데이터 암호화)</text>
+                    </g>
+
+                    <path d="M280 200 H330" stroke="#f97316" stroke-width="3" marker-end="url(#arrow-orange)"/>
+
+                    <!-- VPC Network Firewall -->
+                    <g transform="translate(330, 80)">
+                        <rect x="0" y="0" width="160" height="240" rx="10" fill="#fff" stroke="#1e293b" stroke-width="2" stroke-dasharray="5,5"/>
+                        <text x="80" y="-15" text-anchor="middle" font-size="11" font-weight="bold" fill="#1e293b">VPC Boundary</text>
+                        <rect x="20" y="40" width="120" height="160" rx="5" fill="#f8fafc" stroke="#1e293b"/>
+                        <text x="80" y="80" text-anchor="middle" font-size="11" font-weight="bold">Network FW</text>
+                        <line x1="35" y1="100" x2="125" y2="100" stroke="#1e293b" stroke-width="1"/>
+                        <text x="80" y="130" text-anchor="middle" font-size="10">심층 패킷 분석</text>
+                        <text x="80" y="150" text-anchor="middle" font-size="10">(DPI / IPS)</text>
+                        <text x="80" y="185" text-anchor="middle" font-size="9" fill="#475569">애플리케이션 가시성</text>
+                    </g>
+
+                    <path d="M490 200 H540" stroke="#f97316" stroke-width="3" marker-end="url(#arrow-orange)"/>
+
+                    <!-- Micro-segmentation -->
+                    <g transform="translate(540, 40)">
+                        <rect x="0" y="0" width="240" height="320" rx="15" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+                        <text x="120" y="35" text-anchor="middle" font-weight="bold" fill="#1e40af" font-size="14">내부 격리 (Segmentation)</text>
+                        <rect x="20" y="60" width="200" height="230" rx="10" fill="#fff" stroke="#3b82f6" stroke-dasharray="4,2"/>
+                        <text x="120" y="85" text-anchor="middle" font-size="10" font-weight="bold" fill="#3b82f6">Security Group / NACL</text>
+                        <rect x="45" y="110" width="150" height="60" rx="4" fill="#f8fafc" stroke="#94a3b8"/>
+                        <text x="120" y="145" text-anchor="middle" font-size="11">App Tier</text>
+                        <path d="M120 170 V210" stroke="#f97316" stroke-width="2" marker-end="url(#arrow-orange)"/>
+                        <rect x="45" y="210" width="150" height="60" rx="4" fill="#f1f5f9" stroke="#94a3b8"/>
+                        <text x="120" y="245" text-anchor="middle" font-size="11">DB Tier (Isolated)</text>
+                    </g>
+                </svg>
+            </div>
+
+            <div class="accent-box" style="border-left-color: #f97316; background-color: #fff7ed;">
+                <p><strong>주요 실무 서비스와 비용 모델:</strong></p>
+                <ul class="list-disc list-inside space-y-2 mt-3 text-slate-700">
+                    <li><a href="https://aws.amazon.com/network-firewall/" target="_blank" class="font-bold text-orange-700 underline">AWS Network Firewall</a><span class="paid-tag">유료</span>: 시간당 사용료 (~$0.395) + 트래픽 처리량 기준 과금. VPC 경계에서 L3-L7 전체 계층에 대한 필터링을 제공합니다.</li>
+                    <li><a href="https://aws.amazon.com/waf/" target="_blank" class="font-bold text-orange-700 underline">AWS WAF</a><span class="paid-tag">유료</span>: 웹 ACL 및 규칙당 월 정액 + 요청 수 기준 과금. SQL Injection 및 XSS 공격 차단에 특화되어 있습니다.</li>
+                </ul>
+            </div>
+            <p class="text-sm text-slate-500 italic">주석: CSNS는 "마을(VPC) 입구의 검문소와 각 건물(Subnet/Host) 앞의 금속 탐지기"처럼 통로 자체를 지키는 네트워크 방어 체계입니다.</p>
+        </article>
+
+        <!-- 통합 보안 모델: CNAPP -->
+        <article class="content-card bg-slate-950 text-white border-0 shadow-2xl">
+            <h2 class="text-blue-400 text-center mb-12">미래 보안의 중심: CNAPP</h2>
+            <p class="text-center text-slate-400 text-xl max-w-3xl mx-auto mb-16 leading-relaxed">
+                과거에는 CSPM, CWPP, CSNS를 개별 솔루션으로 분리 운영했지만, 이제는 이를 통합하여 클라우드 애플리케이션의 생명 주기 전체를 보호하는 <span class="text-blue-300 font-bold">CNAPP (Cloud-Native Application Protection Platform)</span>이 표준이 되었습니다.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+                <div class="p-8 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300">
+                    <div class="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center mb-6 text-blue-400"><i class="fas fa-cog text-xl"></i></div>
+                    <h4 class="text-xl font-bold mb-4">Post-Deployment</h4>
+                    <p class="text-sm text-slate-400 mb-6">설계된 인프라가 배포된 직후의 상태를 상시 감시하여 '설정 오류'를 제거합니다.</p>
+                    <div class="text-blue-400 font-black text-2xl tracking-tighter">CSPM</div>
+                </div>
+                <div class="p-8 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300">
+                    <div class="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center mb-6 text-green-400"><i class="fas fa-play text-xl"></i></div>
+                    <h4 class="text-xl font-bold mb-4">Real-time Execution</h4>
+                    <p class="text-sm text-slate-400 mb-6">애플리케이션이 실행 중인 런타임 환경에서 '공격자의 행위'를 실시간으로 차단합니다.</p>
+                    <div class="text-green-400 font-black text-2xl tracking-tighter">CWPP</div>
+                </div>
+                <div class="p-8 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300">
+                    <div class="w-12 h-12 rounded-full bg-orange-500/20 flex items-center justify-center mb-6 text-orange-400"><i class="fas fa-random text-xl"></i></div>
+                    <h4 class="text-xl font-bold mb-4">Traffic In-transit</h4>
+                    <p class="text-sm text-slate-400 mb-6">데이터가 전송되는 모든 경로를 감시하여 '침입 및 데이터 유출'을 원천 봉쇄합니다.</p>
+                    <div class="text-orange-400 font-black text-2xl tracking-tighter">CSNS</div>
+                </div>
+            </div>
+
+            <div class="mt-20 p-10 rounded-3xl bg-blue-600/10 border border-blue-500/30 text-center">
+                <p class="text-2xl font-bold text-blue-200 mb-4">"최고의 보안 아키텍처는 보이지 않게 작동하는 것입니다."</p>
+                <p class="text-slate-400">우리는 아키텍처 강의를 통해 이 세 가지 요소를 유기적으로 결합하여<br/>공격 불가능한 인프라를 설계하는 방법을 학습할 것입니다.</p>
+            </div>
+        </article>
+
+    </main>
+
+    <footer class="footer">
+        <div class="max-w-5xl mx-auto">
+            <div class="flex justify-center space-x-12 mb-10 text-slate-500">
+                <div class="text-center"><p class="font-black text-2xl mb-1">CSPM</p><p class="text-xs uppercase tracking-widest">Posture</p></div>
+                <div class="text-center"><p class="font-black text-2xl mb-1">CWPP</p><p class="text-xs uppercase tracking-widest">Runtime</p></div>
+                <div class="text-center"><p class="font-black text-2xl mb-1">CSNS</p><p class="text-xs uppercase tracking-widest">Network</p></div>
+            </div>
+            <p class="font-bold text-white mb-2">Putto's Lectures - IP 직업훈련 전문가과정</p>
+            <p class="text-xs tracking-wide">© 2026 Putto's Lectures. All Rights Reserved. This content is for professional training purposes only.</p>
+        </div>
+    </footer>
+
+</body>
+</html>

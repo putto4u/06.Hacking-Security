@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: transparent; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+    </style>
+    <script>tailwind.config = { darkMode: 'class' }</script>
+</head>
+<body class="p-6 pt-20 md:p-10 md:pt-24 max-w-5xl mx-auto">
+
+                <div class="prose prose-invert prose-slate max-w-none prose-img:rounded-xl prose-a:text-cyan-400 hover:prose-a:text-cyan-300 prose-headings:text-slate-100 prose-strong:text-cyan-100 bg-slate-900/40 p-8 rounded-2xl border border-slate-700/50 shadow-xl">
+                    <h2>🌟 Kali Linux 중고급 실전 해킹 및 보안 전문가 과정</h2>
+<p>본 과정은 기본적인 리눅스 사용 경험과 네트워크 지식을 갖춘 수강생을 대상으로, <strong>Kali Linux</strong>를 활용한 심층적인 <strong>모의 해킹(Penetration Testing)</strong> 기술과 실무 <strong>보안 분석</strong> 능력을 배양하는 것을 목표로 합니다.</p>
+<hr />
+<h3>I. 핵심 환경 구축 및 고급 활용 ⚙️</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">주제</th>
+<th style="text-align: left;">주요 내용 및 강조 포인트</th>
+<th style="text-align: left;">실전 팁 및 오해/실수 방지</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>고급 설치 및 최적화</strong></td>
+<td style="text-align: left;"><strong>Persistent Storage</strong>를 활용한 USB Live 환경 구축, 가상 환경(VirtualBox/VMware)에서의 <strong>네트워크 브리징(Bridging)</strong> 설정 및 보안, 스냅샷(Snapshot) 활용 전략.</td>
+<td style="text-align: left;">⚠️ <strong>오해 방지:</strong> Live 환경과 설치 환경의 차이점, 브리징과 NAT의 실무적 차이점. <strong>팁:</strong> <code>$apt update</code> 후 <code>$apt upgrade -y</code>는 필수!</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>PowerShell &amp; Empire 통합</strong></td>
+<td style="text-align: left;"><strong>Windows 환경</strong> 공격을 위한 PowerShell Empire(혹은 최신 대체 프레임워크) 설정 및 활용. <strong>C2(Command and Control)</strong> 프레임워크 이해.</td>
+<td style="text-align: left;">💡 <strong>실전 팁:</strong> 방화벽 우회를 위한 PowerShell 인코딩 및 스크립트 난독화(Obfuscation) 기법.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>커널 및 도구 심층 분석</strong></td>
+<td style="text-align: left;"><strong>Kali Tools</strong>의 구조적 이해 (어떤 스크립트/바이너리로 동작하는가), 특정 도구의 소스 코드(Source Code) 분석 및 커스터마이징 (예: <code>nmap</code> 스크립트 수정).</td>
+<td style="text-align: left;">📚 <strong>중요:</strong> 모든 도구의 <code>$man</code> 페이지를 읽는 습관. <strong>팁:</strong> 필요한 도구가 없을 때 직접 컴파일(Compile)하는 방법.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3>II. 심층 네트워크 및 시스템 모의 해킹 🌐</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">주제</th>
+<th style="text-align: left;">주요 내용 및 강조 포인트</th>
+<th style="text-align: left;">실전 팁 및 오해/실수 방지</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>고급 포트 스캐닝 및 탐지 우회</strong></td>
+<td style="text-align: left;"><strong>Nmap</strong>의 NSE(Nmap Scripting Engine) 심화 활용, <strong>Idle Scan</strong>, <strong>Decoy</strong> 옵션 등 IDS/IPS 탐지를 우회하는 스캐닝 기법. <strong>방화벽(Firewall)</strong> 탐지 및 우회 전략.</td>
+<td style="text-align: left;">⚠️ <strong>실수 방지:</strong> 대규모 스캔 시 발생할 수 있는 네트워크 부하 및 로그 분석 회피 기법. <strong>팁:</strong> <strong>[Shodan]</strong> 검색을 활용한 외부 정보 수집 연동.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>서비스 취약점 분석 및 익스플로잇</strong></td>
+<td style="text-align: left;"><strong>Metasploit Framework (MSF)</strong> 고급 활용 (Meterpreter 스크립팅, Post-exploitation 모듈 개발). <strong>Buffer Overflow</strong> 취약점 분석 기초 및 실습.</td>
+<td style="text-align: left;">💡 <strong>중요:</strong> <strong>[CVE (Common Vulnerabilities and Exposures)]</strong> 데이터베이스 활용법. <strong>팁:</strong> 익스플로잇 실패 시 <strong>디버깅(Debugging)</strong>을 통한 원인 분석.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>운영체제 권한 상승 (Privilege Escalation)</strong></td>
+<td style="text-align: left;">Linux/Windows <strong>커널(Kernel)</strong> 익스플로잇, SUID/GUID 바이너리 악용, 설정 오류(Misconfiguration) 이용, <strong>Pass-the-Hash</strong> 및 <strong>Kerberoasting</strong> 기법.</td>
+<td style="text-align: left;">📚 <strong>실전 팁:</strong> 공격 대상 시스템의 환경 변수 및 서비스 계정 철저 분석. <strong>오해:</strong> <code>sudo -i</code>만 찾으면 끝이 아님.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3>III. 웹 애플리케이션 및 무선 보안 💻</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">주제</th>
+<th style="text-align: left;">주요 내용 및 강조 포인트</th>
+<th style="text-align: left;">실전 팁 및 오해/실수 방지</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>웹 취약점 분석 심화</strong></td>
+<td style="text-align: left;"><strong>[OWASP Top 10]</strong> 기반 심화 분석. <strong>SQL Injection (Blind/Time-based)</strong>, <strong>XXE (XML External Entity)</strong>, <strong>Insecure Deserialization</strong> 공격. <strong>Burp Suite</strong> 고급 활용 (Intruder, Scanner, Extender).</td>
+<td style="text-align: left;">⚠️ <strong>중요:</strong> 웹 공격 전 <strong>디렉토리/파일 열거(Directory/File Enumeration)</strong>의 중요성. <strong>팁:</strong> <strong>[웹쉘(Web Shell)]</strong> 업로드 및 관리 기법.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>무선 네트워크 해킹 (Wi-Fi)</strong></td>
+<td style="text-align: left;">WPA2-PSK/Enterprise 공격 (4-Way Handshake 캡처 및 크래킹, EAP Spoofing), 악성 <strong>AP (Rogue AP)</strong> 구축 및 중간자 공격(MITM). <strong>Aircrack-ng</strong> 심화.</td>
+<td style="text-align: left;">📚 <strong>오해 방지:</strong> WPS는 공격이 쉽지만, WPA2-Enterprise 환경에서는 인증서 관리가 중요. <strong>팁:</strong> 공격 시 <strong>안테나 감도 및 채널</strong> 설정 최적화.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>클라우드 및 컨테이너 보안</strong></td>
+<td style="text-align: left;">Docker/Kubernetes 환경 취약점 분석 기초. AWS/Azure 등 <strong>클라우드 환경</strong>에서의 접근 제어 및 설정 오류 분석 (간단한 실습).</td>
+<td style="text-align: left;">💡 <strong>중요:</strong> 클라우드 환경에서는 <strong>API 키</strong> 및 <strong>IAM 역할</strong> 관리가 핵심 취약점.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3>IV. 침해 사고 분석 및 방어 전략 (Blue Team 기초) 🚨</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">주제</th>
+<th style="text-align: left;">주요 내용 및 강조 포인트</th>
+<th style="text-align: left;">실전 팁 및 오해/실수 방지</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>로그 분석 및 은닉술</strong></td>
+<td style="text-align: left;">시스템/네트워크 <strong>로그 분석</strong> (Syslog, Windows Event Log) 기초. 공격 흔적을 지우는 <strong>안티-포렌식</strong> 기법 (Timestomp, Log Cleansing).</td>
+<td style="text-align: left;">⚠️ <strong>실수 방지:</strong> 공격 흔적을 완벽히 지우기 어려우므로, 방어자 입장에서 <strong>탐지(Detection)</strong> 능력을 향상시키는 관점 필요. <strong>팁:</strong> <code>$history</code> 파일 관리.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>침입 탐지 시스템 (IDS/IPS) 우회 및 대응</strong></td>
+<td style="text-align: left;"><strong>Snort/Suricata</strong> 규칙(Rule) 분석 및 우회 기법. <strong>Payload 분할(Fragmentation)</strong> 및 <strong>다형성(Polymorphism)</strong> 활용.</td>
+<td style="text-align: left;">📚 <strong>중요:</strong> IDS/IPS는 완벽한 방어책이 아님을 인지하고, <strong>다중 계층 방어 (Defense-in-Depth)</strong> 전략 설명.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>취약점 조치 및 보고서 작성</strong></td>
+<td style="text-align: left;">모의 해킹 결과의 <strong>위험도 평가 (Risk Assessment)</strong> 방법론. 실무적인 <strong>보안 권고안(Mitigation Plan)</strong> 작성 및 <strong>전문가 보고서</strong> 포맷 (기술적 설명 + 비즈니스 영향).</td>
+<td style="text-align: left;">💡 <strong>실전 팁:</strong> 비기술 직군을 위한 보고서 요약본 작성 능력.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>강사님의 전문성</strong>을 살려, 각 모듈을 시작하기 전에 해당 주제가 <strong>IT 전략 계획</strong>이나 <strong>DB 보안</strong>과 어떻게 연관되는지 간단히 설명해 주시면 수강생들의 시야를 넓히는 데 큰 도움이 될 것입니다. 이 강의록을 <strong>GitHub</strong>에 올리실 때, 각 주제별로 실습 예제 파일을 함께 제공하시면 완벽한 중고급 과정이 될 것입니다! 👍</p>
+                </div>
+                </body></html>

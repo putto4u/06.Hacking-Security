@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: transparent; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+    </style>
+    <script>tailwind.config = { darkMode: 'class' }</script>
+</head>
+<body class="p-6 pt-20 md:p-10 md:pt-24 max-w-5xl mx-auto">
+
+                <div class="prose prose-invert prose-slate max-w-none prose-img:rounded-xl prose-a:text-cyan-400 hover:prose-a:text-cyan-300 prose-headings:text-slate-100 prose-strong:text-cyan-100 bg-slate-900/40 p-8 rounded-2xl border border-slate-700/50 shadow-xl">
+                    <p>요청하신 내용은 단순한 부팅 디스크를 넘어, <strong>16GB USB 메모리 자체를 운영체제가 완전히 설치된 휴대용 드라이브</strong>로 구축하는 방법입니다. 이는 마치 외장 하드에 PC를 설치하는 것과 같습니다. 이 방식으로 구축하면 모든 설정, 설치된 도구, 데이터가 영구적으로 저장됩니다.</p>
+<p>이 작업을 위한 전문적인 실행 전략을 단계별로 안내합니다.</p>
+<hr />
+<h2>1. 프로젝트 준비: 이중 USB 방식 (Dual-USB Strategy)</h2>
+<p>완전한 설치를 위해서는 설치를 진행할 **소스(Installer)**와 설치될 <strong>타겟(Target)</strong> 드라이브가 필요합니다.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">구분</th>
+<th style="text-align: left;">역할</th>
+<th style="text-align: left;">용량 권장</th>
+<th style="text-align: left;">주의사항</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Installer USB (소스)</strong></td>
+<td style="text-align: left;">Kali Linux 설치 부팅 미디어</td>
+<td style="text-align: left;">8GB 이상</td>
+<td style="text-align: left;">Rufus 등으로 ISO를 굽는 용도.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Target USB (타겟)</strong></td>
+<td style="text-align: left;"><strong>Kali Linux가 설치될 최종 드라이브</strong></td>
+<td style="text-align: left;">16GB</td>
+<td style="text-align: left;"><strong>(핵심)</strong> 이 드라이브 전체가 설치에 사용됩니다.</td>
+</tr>
+</tbody>
+</table>
+<h3>💡 실전 팁: 속도와 안정성</h3>
+<p>USB 3.0 이상을 지원하는 메모리를 사용해야 설치 속도와 실제 운영체제 구동 속도에서 병목 현상을 최소화할 수 있습니다. 16GB는 최소한의 용량이며, 보안 분석 도구를 추가 설치할 경우 여유 공간이 부족할 수 있습니다.</p>
+<hr />
+<h2>2. Installer USB 제작 및 부팅</h2>
+<ol>
+<li><strong>Kali Linux ISO 다운로드:</strong><ul>
+<li><a href="https://www.google.com/search?q=https://www.kali.org/get-kali/%23kali-installer-images">Kali Linux 공식 웹사이트</a>에서 최신 Installer ISO를 다운로드합니다.</li>
+</ul>
+</li>
+<li><strong>Installer USB 제작:</strong><ul>
+<li><strong>Rufus</strong>를 실행하여 <strong>Installer USB</strong>에 다운로드한 ISO 파일을 굽습니다.</li>
+<li>파티션 방식은 설치할 PC의 메인보드 설정에 맞춰 <strong>GPT</strong> (UEFI 환경) 또는 <strong>MBR</strong> (Legacy BIOS)을 선택합니다.</li>
+</ul>
+</li>
+<li><strong>시스템 부팅 설정:</strong><ul>
+<li>호스트 PC에 <strong>Installer USB</strong>와 <strong>Target USB (16GB)</strong> 두 개를 모두 연결합니다.</li>
+<li>PC를 재부팅하고 BIOS/UEFI 설정으로 진입하여, 부팅 우선순위를 <strong>Installer USB</strong>로 설정하거나 부팅 메뉴(F12, F2, Del 등)를 통해 선택합니다.</li>
+</ul>
+</li>
+</ol>
+<hr />
+<h2>3. 설치 과정: 디스크 지정 및 파티션 전략 (Danger Zone)</h2>
+<p>부팅이 시작되면 Kali Linux 설치 화면이 나옵니다. **"Graphical install"**을 선택하여 진행합니다.</p>
+<p>가장 중요한 단계는 <strong>디스크 파티션 설정</strong>입니다.</p>
+<ol>
+<li>
+<p><strong>언어/위치/키보드 설정</strong> 후, 네트워크 설정 및 호스트 이름 설정을 진행합니다.</p>
+</li>
+<li>
+<p><strong>디스크 파티션 방식 선택:</strong></p>
+<ul>
+<li>파티션 설정 단계에서 **"수동(Manual)"**을 선택합니다. <strong>(강조)</strong></li>
+</ul>
+</li>
+<li>
+<p><strong>Target USB (16GB) 식별:</strong></p>
+<ul>
+<li>PC의 내부 디스크(HDD/SSD)가 <code>/dev/sda</code>이고, Installer USB가 <code>/dev/sdb</code>라면, **Target USB는 <code>/dev/sdc</code>**와 같이 식별될 것입니다.</li>
+<li><strong>용량(16GB)을 기준으로 Target USB를 정확하게 확인</strong>하고 선택합니다. <strong>절대 내부 디스크를 선택해서는 안 됩니다.</strong></li>
+</ul>
+</li>
+<li>
+<p><strong>파티션 생성 (Target USB 내):</strong></p>
+<ul>
+<li>선택한 <strong>Target USB (16GB)</strong> 내에서 새 파티션 테이블을 생성합니다.</li>
+<li>다음과 같이 최소 2개의 파티션을 생성합니다.<ul>
+<li><strong>Swap 영역 (선택 사항):</strong> RAM 크기의 1배\~1.5배 (예: 2GB). 파일 시스템: <strong>Swap area</strong>.</li>
+<li><strong>루트 영역 (<code>/</code>):</strong> 나머지 모든 공간 (예: 14GB). 마운트 지점: <strong><code>/</code> (Root)</strong>. 파일 시스템: <strong>Ext4</strong> (권장).</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>파티션 나누기 완료 및 변경 사항 디스크에 쓰기</strong>를 선택하여 설치를 진행합니다.</p>
+</li>
+</ol>
+<hr />
+<h2>4. 부트로더 설치 및 마무리 (GRUB Installation)</h2>
+<p>설치 마무리 단계에서 <strong>GRUB 부트로더를 설치할 장치</strong>를 묻습니다. 이 단계가 가장 큰 실수 유발 구간입니다.</p>
+<ol>
+<li><strong>"부트로더를 마스터 부트 레코드에 설치하시겠습니까?"</strong> 질문에 **"예"**를 선택합니다.</li>
+<li><strong>부트로더 설치 장치 지정:</strong><ul>
+<li><strong>(/dev/sda 등의 PC 내부 디스크가 아닌)</strong> <strong>Target USB (16GB)에 해당하는 장치</strong>를 선택합니다.</li>
+<li>예: <code>/dev/sdc</code> (16GB USB 메모리의 최상위 장치)</li>
+</ul>
+</li>
+<li>설치가 완료되면 PC를 재부팅하고 <strong>Installer USB</strong>를 제거합니다.</li>
+</ol>
+<hr />
+<h2>5. 최종 휴대용 시스템 활용</h2>
+<p>재부팅 시 **Target USB (16GB)**로 부팅하면, 완벽하게 설치된 칼리 리눅스 환경으로 접속됩니다. 이제 이 USB는 휴대용 PC처럼 기능하며, 모든 작업 내용과 설정이 저장됩니다.</p>
+<h3>⚠️ 보안 전문가의 조언 (자주 실수하는 부분)</h3>
+<ul>
+<li><strong>PC 내부 GRUB 오염 방지:</strong> 부트로더를 Target USB가 아닌 호스트 PC의 내부 디스크(<code>/dev/sda</code> 등)에 설치할 경우, 호스트 PC의 부팅 기록(Windows/macOS)이 꼬여버릴 수 있습니다. <strong>반드시 부트로더는 Target USB에 설치</strong>해야 합니다.</li>
+<li><strong>성능 기대치:</strong> USB 3.0이라도 내부 SSD/HDD만큼의 속도를 기대하기는 어렵습니다. 디스크 I/O 속도가 느릴 경우 많은 도구를 동시에 실행할 때 체감 속도가 저하될 수 있습니다.</li>
+<li><strong>활용성:</strong> 이 방식으로 구축된 시스템은 가상 머신보다 호스트 하드웨어 자원에 직접 접근이 가능하므로, 무선 랜 카드나 기타 하드웨어 관련 테스트(예: 무선 침투 테스트)를 진행할 때 더욱 유리합니다.</li>
+</ul>
+                </div>
+                </body></html>

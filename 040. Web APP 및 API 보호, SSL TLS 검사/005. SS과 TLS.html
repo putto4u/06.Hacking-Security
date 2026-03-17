@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SSL/TLS 검사 이해</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700;900&display=swap');
+        body { font-family: 'Noto Sans KR', sans-serif; line-height: 2; color: #334155; background-color: #f3f4f6; scroll-behavior: smooth; }
+        .main-container { max-width: 1100px; margin: 50px auto; background: white; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1); border-radius: 8px; overflow: hidden; }
+        
+        /* Book Header Design */
+        .book-header { padding: 120px 100px 80px; background: linear-gradient(to right, #0f172a, #1e293b); color: white; position: relative; }
+        .book-header::after { content: ""; position: absolute; bottom: 0; left: 0; width: 100%; height: 5px; background: #3b82f6; }
+        .book-title { font-size: 3.5rem; font-weight: 900; line-height: 1.1; letter-spacing: -0.04em; margin-bottom: 25px; }
+        .book-subtitle { font-size: 1.5rem; color: #94a3b8; font-weight: 300; letter-spacing: -0.01em; }
+        
+        /* Section Layout */
+        .section-wrapper { padding: 100px 100px; border-bottom: 1px solid #f1f5f9; position: relative; }
+        .section-heading { font-size: 2.25rem; font-weight: 900; color: #0f172a; margin-bottom: 50px; display: flex; align-items: center; }
+        .section-heading::before { content: ""; width: 8px; height: 40px; background: #3b82f6; margin-right: 20px; border-radius: 4px; }
+        
+        /* Milestone Navigation */
+        .milestone-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin: 3rem 0; }
+        .milestone-card { border: 1px solid #e2e8f0; padding: 25px; background: #fff; border-radius: 12px; transition: all 0.3s ease; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+        .milestone-card:hover { border-color: #3b82f6; transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        .milestone-tag { font-size: 0.75rem; font-weight: 900; color: #3b82f6; text-transform: uppercase; margin-bottom: 10px; display: block; letter-spacing: 0.15em; }
+        .milestone-title { font-size: 1rem; font-weight: 700; color: #1e293b; line-height: 1.4; }
+
+        .content-body { font-size: 1.15rem; text-align: justify; word-break: keep-all; }
+        .highlight { color: #2563eb; font-weight: 700; background: #eff6ff; padding: 0 4px; border-radius: 4px; }
+        
+        /* Visual Elements */
+        .diagram-container { background: #f8fafc; border: 1px solid #f1f5f9; padding: 60px; margin: 60px 0; border-radius: 16px; }
+        .tech-box { background: #f1f5f9; border-left: 6px solid #475569; padding: 40px; margin: 40px 0; border-radius: 0 16px 16px 0; }
+        .tech-box-label { font-weight: 900; color: #1e293b; margin-bottom: 15px; display: block; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        
+        .risk-box { background: #fff1f2; border-left: 6px solid #e11d48; padding: 40px; margin: 40px 0; border-radius: 0 16px 16px 0; }
+        .risk-box-label { font-weight: 900; color: #9f1239; margin-bottom: 15px; display: block; font-size: 1.1rem; }
+
+        /* Tables */
+        table { width: 100%; margin: 50px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        th { background: #1e293b; color: white; padding: 20px; text-align: left; font-weight: 700; }
+        td { padding: 20px; border-bottom: 1px solid #f1f5f9; background: #fff; }
+        tr:last-child td { border-bottom: none; }
+        
+        footer { background: #0f172a; color: #94a3b8; padding: 100px; }
+        .glossary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; margin-top: 50px; }
+        .glossary-term { font-weight: 700; color: #f1f5f9; display: block; margin-bottom: 10px; font-size: 1.1rem; }
+        .glossary-desc { font-size: 0.95rem; color: #94a3b8; line-height: 1.7; }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <!-- Title Section -->
+        <header class="book-header">
+            <h1 class="book-title">SSL/TLS 검사 이해</h1>
+            <p class="book-subtitle">암호화 트래픽 분석 및 엔터프라이즈 보안 가시성 확보 전략</p>
+        </header>
+
+        <!-- Milestone Overview -->
+        <section class="section-wrapper bg-slate-50">
+            <h2 class="text-xs font-black text-slate-400 mb-10 uppercase tracking-[0.3em]">Technical Milestones</h2>
+            <div class="milestone-grid">
+                <div class="milestone-card">
+                    <span class="milestone-tag">01. Evolution</span>
+                    <h3 class="milestone-title">프로토콜의 기술적 변천과<br>호환성 분석</h3>
+                </div>
+                <div class="milestone-card">
+                    <span class="milestone-tag">02. Principles</span>
+                    <h3 class="milestone-title">통신 보안 체계를 지탱하는<br>3대 핵심 원칙</h3>
+                </div>
+                <div class="milestone-card">
+                    <span class="milestone-tag">03. Handshake</span>
+                    <h3 class="milestone-title">연결 확립 메커니즘:<br>TCP 및 TLS 핸드쉐이크</h3>
+                </div>
+                <div class="milestone-card">
+                    <span class="milestone-tag">04. Visibility</span>
+                    <h3 class="milestone-title">가시성 사각지대와<br>심층 분석 엔진의 필요성</h3>
+                </div>
+                <div class="milestone-card">
+                    <span class="milestone-tag">05. Architecture</span>
+                    <h3 class="milestone-title">중간자 개입(MITM) 기반의<br>통신 프로세스 설계</h3>
+                </div>
+                <div class="milestone-card">
+                    <span class="milestone-tag">06. Trust Model</span>
+                    <h3 class="milestone-title">인증서 체인과<br>PKI 계층적 신뢰 구조</h3>
+                </div>
+                <div class="milestone-card">
+                    <span class="milestone-tag">07. Implementation</span>
+                    <h3 class="milestone-title">실무 구축 전략 및<br>인프라 과금 체계 분석</h3>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 1 -->
+        <section class="section-wrapper">
+            <h2 class="section-heading">프로토콜의 기술적 변천과 호환성 분석</h2>
+            <div class="content-body space-y-8">
+                <p>
+                    <span class="highlight">SSL (Secure Sockets Layer, 보안 소켓 계층)</span>은 1994년 넷스케이프(Netscape) 사가 최초로 설계한 통신 보안 프로토콜입니다. 초기 설계상의 구조적 결함이 발견됨에 따라 1999년부터 <span class="highlight">IETF (Internet Engineering Task Force, 국제 인터넷 표준화 기구)</span>가 이를 표준화하여 <span class="highlight">TLS (Transport Layer Security, 전송 계층 보안)</span>로 공식 명칭을 변경하였습니다.
+                </p>
+                <p>
+                    현재의 엔지니어링 환경에서 SSL은 모든 버전(1.0, 2.0, 3.0)이 심각한 취약점으로 인해 폐기되었습니다. 실무에서는 <span class="highlight">TLS 1.2</span>가 광범위한 호환성을 담당하고 있으며, 최신 규격인 <span class="highlight">TLS 1.3</span> 도입이 강력히 권고되고 있습니다. TLS 1.3은 핸드쉐이크 과정을 최적화하여 지연 시간을 단축하고 보안성이 입증되지 않은 암호화 방식들을 제거하여 안전성을 높였습니다.
+                </p>
+            </div>
+            
+            <div class="diagram-container">
+                <svg viewBox="0 0 800 220" xmlns="http://www.w3.org/2000/svg" class="mx-auto w-full">
+                    <rect x="10" y="10" width="780" height="180" rx="12" fill="#fff" stroke="#e2e8f0" stroke-width="2"/>
+                    <line x1="100" y1="100" x2="700" y2="100" stroke="#cbd5e1" stroke-width="8" stroke-linecap="round"/>
+                    
+                    <circle cx="150" cy="100" r="14" fill="#ef4444" />
+                    <text x="150" y="70" text-anchor="middle" font-weight="900" fill="#ef4444" font-size="16">SSL 3.0</text>
+                    <text x="150" y="145" text-anchor="middle" font-size="12" fill="#94a3b8">취약점 과다로 인한 폐기</text>
+                    
+                    <circle cx="450" cy="100" r="14" fill="#3b82f6" />
+                    <text x="450" y="70" text-anchor="middle" font-weight="900" fill="#3b82f6" font-size="16">TLS 1.2</text>
+                    <text x="450" y="145" text-anchor="middle" font-size="12" fill="#94a3b8">현재 업계 표준적 호환성 제공</text>
+                    
+                    <circle cx="650" cy="100" r="18" fill="#22c55e" />
+                    <text x="650" y="70" text-anchor="middle" font-weight="900" fill="#166534" font-size="16">TLS 1.3</text>
+                    <text x="650" y="145" text-anchor="middle" font-size="12" fill="#94a3b8">보안 및 성능이 최적화된 최신 규격</text>
+                </svg>
+                <p class="text-xs text-slate-400 mt-6 text-center">도표 1.1: 보안 통신 프로토콜의 표준화 로드맵 및 상태</p>
+            </div>
+
+            <div class="tech-box">
+                <span class="tech-box-label">기술 분석: POODLE 공격의 영향</span>
+                <p>2014년에 발표된 <span class="highlight">POODLE (Padding Oracle On Downgraded Legacy Encryption, 구형 암호화 방식 하향 공격)</span>은 의도적으로 보안 수준을 SSL 3.0으로 낮추어 암호를 해독하는 공격 방식입니다. 이를 방지하기 위해 현대의 보안 시스템은 취약한 구형 프로토콜의 연결 시도를 명시적으로 차단해야 합니다.</p>
+            </div>
+        </section>
+
+        <!-- Section 2 -->
+        <section class="section-wrapper">
+            <h2 class="section-heading">암호화 보안 체계를 구성하는 3대 핵심 원칙</h2>
+            <div class="content-body space-y-8">
+                <p>SSL/TLS 프로토콜은 통신 경로의 무결성을 확보하기 위해 <span class="highlight">인증 (Authentication)</span>, <span class="highlight">암호화 (Encryption)</span>, <span class="highlight">무결성 (Integrity)</span>이라는 세 가지 핵심 기제를 유기적으로 결합하여 사용하고 있습니다.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10 mt-12">
+                <div class="border border-slate-200 p-12 rounded-xl bg-white shadow-sm">
+                    <div class="text-3xl mb-6">👤</div>
+                    <h3 class="font-bold text-xl mb-4 text-slate-900">1. 인증</h3>
+                    <p class="text-sm leading-relaxed text-slate-500">
+                        통신 주체의 신원을 디지털 인증서로 검증합니다. 비대칭키 알고리즘을 활용하여 서버의 신뢰성을 입증하며 위장 사이트 접근을 원천적으로 차단합니다.
+                    </p>
+                </div>
+                <div class="border border-slate-200 p-12 rounded-xl bg-white shadow-sm">
+                    <div class="text-3xl mb-6">🔒</div>
+                    <h3 class="font-bold text-xl mb-4 text-slate-900">2. 암호화</h3>
+                    <p class="text-sm leading-relaxed text-slate-500">
+                        데이터를 난독화하여 도청을 방지합니다. <span class="highlight">Confidentiality (기밀성)</span>를 보장하기 위해 대칭키와 비대칭키를 결합한 하이브리드 방식을 채택합니다.
+                    </p>
+                </div>
+                <div class="border border-slate-200 p-12 rounded-xl bg-white shadow-sm">
+                    <div class="text-3xl mb-6">📜</div>
+                    <h3 class="font-bold text-xl mb-4 text-slate-900">3. 무결성</h3>
+                    <p class="text-sm leading-relaxed text-slate-500">
+                        전송 데이터의 위변조 여부를 해시 알고리즘으로 검증합니다. <span class="highlight">Integrity (무결성)</span>를 확보하여 단 1비트의 데이터 변조도 즉각 식별할 수 있습니다.
+                    </p>
+                </div>
+            </div>
+
+            <div class="tech-box mt-16">
+                <span class="tech-box-label">아키텍처 설계론: 하이브리드 암호 시스템</span>
+                <p>SSL/TLS는 초기 핸드쉐이크 시 무거운 연산이 필요한 <span class="highlight">비대칭키 (Asymmetric Key, 공개키 방식)</span>로 안전하게 비밀번호를 교환한 후, 실제 전송 시에는 속도가 빠른 <span class="highlight">대칭키 (Symmetric Key, 비밀키 방식)</span> 알고리즘을 사용하여 효율성과 보안성을 동시에 충족시키고 있습니다.</p>
+            </div>
+        </section>
+
+        <!-- New Section 3: Handshake Depth -->
+        <section class="section-wrapper">
+            <h2 class="section-heading">연결 확립 메커니즘: TCP 및 TLS 핸드쉐이크</h2>
+            <div class="content-body space-y-8">
+                <p>
+                    네트워크 통신이 이루어지기 위해서는 하위 계층의 연결이 선행되어야 합니다. <span class="highlight">TCP (Transmission Control Protocol, 전송 제어 프로토콜)</span> 핸드쉐이크가 <span class="highlight">L4 (4계층, 전송 계층)</span>에서의 신뢰성 있는 통로를 개설한다면, <span class="highlight">TLS (Transport Layer Security, 전송 계층 보안)</span> 핸드쉐이크는 그 통로 위에 보안이라는 외벽을 쌓는 과정입니다.
+                </p>
+                <p>
+                    최신 규격인 <span class="highlight">TLS 1.3</span>은 기존 TLS 1.2 대비 핸드쉐이크에 소요되는 <span class="highlight">RTT (Round Trip Time, 왕복 시간)</span>를 2회에서 1회로 단축시켜, 연결 속도를 비약적으로 향상시켰습니다.
+                </p>
+            </div>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 850 500" xmlns="http://www.w3.org/2000/svg" class="mx-auto w-full">
+                    <!-- Background -->
+                    <rect x="0" y="0" width="850" height="500" rx="12" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
+                    
+                    <!-- Headers -->
+                    <text x="150" y="40" text-anchor="middle" font-weight="900" fill="#1e293b">클라이언트 (사용자)</text>
+                    <text x="700" y="40" text-anchor="middle" font-weight="900" fill="#1e293b">웹 서버 (서비스)</text>
+                    
+                    <!-- Timeline lines -->
+                    <line x1="150" y1="60" x2="150" y2="480" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4,2"/>
+                    <line x1="700" y1="60" x2="700" y2="480" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4,2"/>
+
+                    <!-- TCP 3-Way Handshake Section -->
+                    <rect x="20" y="70" width="810" height="110" rx="8" fill="#f8fafc" stroke="#3b82f6" stroke-width="1" stroke-opacity="0.2"/>
+                    <text x="35" y="90" font-weight="900" fill="#3b82f6" font-size="12">TCP 3-단계 핸드쉐이크 (4계층)</text>
+                    
+                    <path d="M 150 100 L 700 120" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrow-blue)"/>
+                    <text x="425" y="105" text-anchor="middle" font-size="11" fill="#3b82f6">1. SYN (동기화 요청)</text>
+                    
+                    <path d="M 700 130 L 150 150" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrow-blue)"/>
+                    <text x="425" y="135" text-anchor="middle" font-size="11" fill="#3b82f6">2. SYN/ACK (응답 및 수락)</text>
+                    
+                    <path d="M 150 160 L 700 170" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrow-blue)"/>
+                    <text x="425" y="160" text-anchor="middle" font-size="11" fill="#3b82f6">3. ACK (최종 확인)</text>
+
+                    <!-- TLS Handshake Section -->
+                    <rect x="20" y="190" width="810" height="280" rx="8" fill="#fff7ed" stroke="#f59e0b" stroke-width="1" stroke-opacity="0.2"/>
+                    <text x="35" y="210" font-weight="900" fill="#f59e0b" font-size="12">TLS 핸드쉐이크 (보안 계층)</text>
+                    
+                    <path d="M 150 230 L 700 250" stroke="#f59e0b" stroke-width="2" marker-end="url(#arrow-orange)"/>
+                    <text x="425" y="235" text-anchor="middle" font-size="11" fill="#c2410c">1. 클라이언트 인사 (Client Hello) - 암호 알고리즘 제안</text>
+                    
+                    <path d="M 700 270 L 150 290" stroke="#f59e0b" stroke-width="2" marker-end="url(#arrow-orange)"/>
+                    <text x="425" y="275" text-anchor="middle" font-size="11" fill="#c2410c">2. 서버 인사 및 인증서 전송 (Server Hello, Certificate)</text>
+                    
+                    <path d="M 150 310 L 700 330" stroke="#f59e0b" stroke-width="2" marker-end="url(#arrow-orange)"/>
+                    <text x="425" y="315" text-anchor="middle" font-size="11" fill="#c2410c">3. 키 교환 요청 (Key Exchange)</text>
+                    
+                    <path d="M 700 350 L 150 370" stroke="#f59e0b" stroke-width="2" marker-end="url(#arrow-orange)"/>
+                    <text x="425" y="355" text-anchor="middle" font-size="11" fill="#c2410c">4. 암호 규격 변경 및 완료 (Change Cipher Spec, Finished)</text>
+
+                    <rect x="200" y="400" width="450" height="40" rx="20" fill="#22c55e"/>
+                    <text x="425" y="425" text-anchor="middle" fill="white" font-weight="900">보안 터널 형성 (데이터 암호화 전송 시작)</text>
+
+                    <defs>
+                        <marker id="arrow-blue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#3b82f6" /></marker>
+                        <marker id="arrow-orange" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#f59e0b" /></marker>
+                    </defs>
+                </svg>
+                <p class="text-xs text-slate-400 mt-6 text-center">도표 3.1: TCP 3-단계 핸드쉐이크와 TLS 보안 핸드쉐이크의 연계 공정</p>
+            </div>
+
+            <div class="tech-box">
+                <span class="tech-box-label">비교 분석: TCP vs TLS 핸드쉐이크</span>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>구분</th>
+                            <th>TCP 핸드쉐이크</th>
+                            <th>TLS 핸드쉐이크</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="font-bold">계층 (OSI 7)</td>
+                            <td>4계층 (전송 계층)</td>
+                            <td>5~7계층 (세션/표현/응용 계층)</td>
+                        </tr>
+                        <tr>
+                            <td class="font-bold">주요 목적</td>
+                            <td>신뢰성 있는 물리적 통로 개설</td>
+                            <td>데이터 암호화 및 대상 신원 인증</td>
+                        </tr>
+                        <tr>
+                            <td class="font-bold">작동 시점</td>
+                            <td>가장 먼저 수행 (연결의 시작)</td>
+                            <td>TCP 연결이 성공적으로 확립된 후 수행</td>
+                        </tr>
+                        <tr>
+                            <td class="font-bold">실패 시 영향</td>
+                            <td>통신 자체가 불가능함</td>
+                            <td>통신은 가능하나 '안전하지 않음' 경고 발생</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Section 4 -->
+        <section class="section-wrapper">
+            <h2 class="section-heading">보안 사각지대와 심층 패킷 분석 엔진의 필요성</h2>
+            <div class="content-body space-y-8">
+                <p>오늘날 엔터프라이즈 환경에서 대다수의 트래픽이 암호화됨에 따라 보안 관리자의 통제 범위를 벗어나는 <span class="highlight">Visibility Gap (가시성 사각지대)</span>이 확대되고 있습니다. 공격자들은 악성 코드를 암호화 터널 내부에 은닉하여 기존 보안 장비의 탐지망을 우회하는 전략을 활용합니다.</p>
+            </div>
+            
+            <div class="diagram-container">
+                <svg viewBox="0 0 800 240" xmlns="http://www.w3.org/2000/svg" class="mx-auto w-full">
+                    <rect x="50" y="50" width="130" height="90" rx="8" fill="#3b82f6"/>
+                    <text x="115" y="100" text-anchor="middle" fill="white" font-weight="900">내부 사용자</text>
+                    
+                    <path d="M 180 95 L 620 95" stroke="#94a3b8" stroke-width="34" stroke-dasharray="12,6" opacity="0.3"/>
+                    <circle cx="400" cy="95" r="16" fill="#ef4444"/>
+                    <text x="400" y="101" text-anchor="middle" fill="white" font-weight="900" font-size="18">!</text>
+                    
+                    <rect x="385" y="135" width="30" height="85" fill="#1e293b"/>
+                    <text x="400" y="240" text-anchor="middle" fill="#1e293b" font-weight="900" font-size="14">기존 보안 시스템</text>
+                    <text x="580" y="130" text-anchor="middle" fill="#ef4444" font-size="13" font-weight="900">암호화된 위협 감별 불가</text>
+                </svg>
+                <p class="text-xs text-slate-400 mt-6 text-center">도표 4.1: 암호화 터널을 이용한 위협 은닉 및 탐지 한계</p>
+            </div>
+            
+            <div class="tech-box">
+                <span class="tech-box-label">DPI (Deep Packet Inspection, 심층 패킷 분석)의 역할</span>
+                <p><span class="highlight">DPI (Deep Packet Inspection, 심층 패킷 분석)</span>는 패킷의 헤더뿐만 아니라 실제 데이터 본문(Payload)까지 정밀하게 조사하여 위협을 탐지하는 기술입니다. 암호화 트래픽 환경에서는 복호화 과정을 선행해야만 DPI 엔진이 정상적으로 위협을 식별하고 차단할 수 있습니다.</p>
+            </div>
+        </section>
+
+        <!-- Section 5 -->
+        <section class="section-wrapper">
+            <h2 class="section-heading">중간자 개입(MITM) 기반의 통신 아키텍처 설계</h2>
+            <div class="content-body space-y-8">
+                <p>트래픽에 대한 심층 검사를 수행하기 위해서는 검사 장비가 클라이언트와 서버 사이에서 각각의 독립적인 세션을 수립하는 <span class="highlight">MITM (Man-in-the-Middle, 중간자 개입)</span> 아키텍처를 도입해야 합니다.</p>
+            </div>
+            
+            <div class="diagram-container">
+                <svg viewBox="0 0 800 350" xmlns="http://www.w3.org/2000/svg" class="mx-auto w-full">
+                    <rect x="50" y="120" width="140" height="120" rx="8" fill="#3b82f6"/>
+                    <text x="120" y="185" text-anchor="middle" fill="white" font-weight="900">클라이언트</text>
+                    
+                    <rect x="320" y="70" width="160" height="230" rx="12" fill="#f59e0b" stroke="#d97706" stroke-width="2"/>
+                    <text x="400" y="120" text-anchor="middle" fill="white" font-weight="900">보안 장비</text>
+                    <rect x="340" y="150" width="120" height="110" rx="8" fill="white" fill-opacity="0.4"/>
+                    <text x="400" y="190" text-anchor="middle" fill="#92400e" font-size="13" font-weight="900">심층 분석 (DPI)</text>
+                    <text x="400" y="220" text-anchor="middle" fill="#92400e" font-size="11" font-weight="700">복호화 및 필터링</text>
+                    
+                    <rect x="610" y="120" width="140" height="120" rx="8" fill="#1e293b"/>
+                    <text x="680" y="185" text-anchor="middle" fill="white" font-weight="900">웹 서버</text>
+                    
+                    <path d="M 190 180 L 320 180" stroke="#3b82f6" stroke-width="6" marker-end="url(#arrow-blue)"/>
+                    <path d="M 480 180 L 610 180" stroke="#1e293b" stroke-width="6" marker-end="url(#arrow-dark)"/>
+                    
+                    <defs>
+                        <marker id="arrow-blue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#3b82f6" /></marker>
+                        <marker id="arrow-dark" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#1e293b" /></marker>
+                    </defs>
+                </svg>
+            </div>
+
+            <div class="tech-box">
+                <span class="tech-box-label">데이터 분석 공정의 이해</span>
+                <p>1. 사용자의 요청을 장비가 가로채어 목적지 서버와 통신을 시작합니다. <br> 2. 장비는 서버인 것처럼 위장하여 클라이언트와 복호화 가능한 세션을 체결합니다. <br> 3. 평문 상태에서 위협 스캔을 완료한 후, 다시 목적지 서버의 보안 규격에 맞춰 암호화하여 전달합니다.</p>
+            </div>
+        </section>
+
+        <!-- Section 6 -->
+        <section class="section-wrapper">
+            <h2 class="section-heading">계층적 인증서 체인 및 PKI 신뢰성 모델</h2>
+            <div class="content-body space-y-8">
+                <p>SSL/TLS 검사 시 사용자의 단말에서 보안 경고가 발생하는 것을 방지하기 위해 <span class="highlight">PKI (Public Key Infrastructure, 공개키 기반 구조)</span>에 입각한 신뢰 전파가 필수적입니다.</p>
+            </div>
+
+            <div class="diagram-container">
+                <svg viewBox="0 0 800 380" xmlns="http://www.w3.org/2000/svg" class="mx-auto w-full max-w-2xl">
+                    <rect x="250" y="20" width="300" height="75" rx="8" fill="#0f172a" />
+                    <text x="400" y="65" text-anchor="middle" fill="white" font-weight="900">최상위 루트 인증 기관 (Root CA)</text>
+                    
+                    <path d="M 400 95 L 400 155" stroke="#94a3b8" stroke-width="3" stroke-dasharray="10,5" marker-end="url(#cert-tip)"/>
+
+                    <rect x="200" y="155" width="400" height="95" rx="8" fill="#fff" stroke="#2563eb" stroke-width="3" />
+                    <text x="400" y="200" text-anchor="middle" fill="#1e293b" font-weight="900">검사 보안 장비 (Sub-CA)</text>
+                    <text x="400" y="230" text-anchor="middle" fill="#2563eb" font-size="12" font-weight="900">동적 사이트 인증서 서명 (On-the-fly)</text>
+                    
+                    <path d="M 400 250 L 400 310" stroke="#94a3b8" stroke-width="3" stroke-dasharray="10,5" marker-end="url(#cert-tip)"/>
+
+                    <rect x="280" y="310" width="240" height="65" rx="8" fill="#2563eb" />
+                    <text x="400" y="350" text-anchor="middle" fill="white" font-weight="900">동적 사이트 인증서</text>
+
+                    <defs><marker id="cert-tip" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#94a3b8" /></marker></defs>
+                </svg>
+            </div>
+
+            <div class="tech-box">
+                <span class="tech-box-label">GPO (Group Policy Object) 배포 전략</span>
+                <p>보안 장비가 신뢰받는 인증 기관으로 작동하려면 해당 장비의 루트 인증서를 전사의 모든 단말에 미리 등록해야 합니다. <span class="highlight">GPO (Group Policy Object, 그룹 정책 개체)</span>를 활용하여 단말의 '신뢰할 수 있는 루트 보관소'에 이를 일괄 배포하는 자동화 관리가 권장됩니다.</p>
+            </div>
+        </section>
+
+        <!-- Section 7 -->
+        <section class="section-wrapper">
+            <h2 class="section-heading">운영 전략 및 클라우드 인프라 과금 분석</h2>
+            <div class="content-body space-y-8">
+                <p>복호화 과정은 기술적 선택일 뿐이며 법적 책임과 인프라 효율성을 고려한 <span class="highlight">Selective Inspection (선택적 검사)</span> 정책이 반드시 병행되어야 합니다.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-10 mt-12">
+                <div class="risk-box">
+                    <span class="risk-box-label">복호화 우회 (Bypass) 대상</span>
+                    <ul class="space-y-4 text-sm text-slate-800 leading-relaxed font-medium">
+                        <li><strong>금융 및 뱅킹:</strong> 정보의 기밀성 보장 및 보안 충돌 방지</li>
+                        <li><strong>의료 및 건강 사이트:</strong> 민감 정보 보호 및 법적 책임 소지 방지</li>
+                        <li><strong>인증서 핀닝 적용 앱:</strong> 고정 인증서 사용으로 인한 서비스 차단 방지</li>
+                    </ul>
+                </div>
+                <div class="tech-box">
+                    <span class="tech-box-label">심층 검사 (Inspection) 대상</span>
+                    <ul class="space-y-4 text-sm text-slate-800 leading-relaxed font-medium">
+                        <li><strong>웹 메일 및 클라우드 저장소:</strong> 정보 유출 경로에 대한 상시 감시</li>
+                        <li><strong>비인가 SNS 및 메신저:</strong> 내부 기밀 유출 및 위협 유입 탐지</li>
+                        <li><strong>신규 또는 미분류 도메인:</strong> 악성 코드 배포지로 의심되는 사이트 차단</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3 class="text-2xl font-black mt-16 mb-8 text-slate-900 border-b-2 border-slate-900 pb-2">AWS 클라우드 인프라 보안 비용 구성</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>솔루션 구성 요소</th>
+                        <th>기술적 가치 및 역할</th>
+                        <th>과금 산정 기준 (서울 리전 기준)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="font-bold">AWS Network Firewall</td>
+                        <td>네트워크 게이트웨이 레벨의 통합 TLS 복호화/검사</td>
+                        <td>엔드포인트당 $0.395/시간 + 데이터 처리 $0.065/GB (트래픽 비례)</td>
+                    </tr>
+                    <tr>
+                        <td class="font-bold">AWS Private CA</td>
+                        <td>검사용 사설 인증서 발행 및 신뢰 기반 제공</td>
+                        <td>CA당 고정 월 $400 + 인증서 발행 수량별 추가 요금</td>
+                    </tr>
+                    <tr>
+                        <td class="font-bold">Gateway Load Balancer</td>
+                        <td>검사 장비의 고가용성 확보 및 부하 분산 처리</td>
+                        <td>시간당 $0.0125 + 데이터 처리 $0.008/GB</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Technical Reference Footer -->
+        <footer>
+            <h4 class="text-2xl font-black text-white mb-12 border-b border-slate-700 pb-6 uppercase tracking-widest">전문 기술 용어 색인 (Glossary)</h4>
+            <div class="glossary-grid">
+                <div class="glossary-entry">
+                    <span class="term">SSL (Secure Sockets Layer, 보안 소켓 계층)</span>
+                    <p class="glossary-desc">통신 구간 암호화를 위해 넷스케이프 사가 설계한 초기 프로토콜로 현재는 취약점으로 인해 폐기되었습니다.</p>
+                </div>
+                <div class="glossary-entry">
+                    <span class="term">TLS (Transport Layer Security, 전송 계층 보안)</span>
+                    <p class="glossary-desc">IETF가 SSL을 보완하여 표준화한 현대 보안 통신 규격으로 현재 가장 널리 사용됩니다.</p>
+                </div>
+                <div class="glossary-entry">
+                    <span class="term">DPI (Deep Packet Inspection, 심층 패킷 분석)</span>
+                    <p class="glossary-desc">패킷의 실제 데이터 내용까지 정밀 분석하여 애플리케이션 및 위협 정보를 식별하는 기술입니다.</p>
+                </div>
+                <div class="glossary-entry">
+                    <span class="term">MITM (Man-in-the-Middle, 중간자 개입)</span>
+                    <p class="glossary-desc">두 통신 주체 사이에 개입하여 트래픽을 가로채거나 검사하는 방식입니다.</p>
+                </div>
+                <div class="glossary-entry">
+                    <span class="term">PKI (Public Key Infrastructure, 공개키 기반 구조)</span>
+                    <p class="glossary-desc">디지털 인증서와 신뢰 체계를 통해 정보의 신원과 보안을 보장하는 인프라입니다.</p>
+                </div>
+                <div class="glossary-entry">
+                    <span class="term">TCP (Transmission Control Protocol, 전송 제어 프로토콜)</span>
+                    <p class="glossary-desc">데이터 전송의 신뢰성을 보장하기 위한 4계층 핵심 통신 프로토콜입니다.</p>
+                </div>
+                <div class="glossary-entry">
+                    <span class="term">RTT (Round Trip Time, 왕복 시간)</span>
+                    <p class="glossary-desc">패킷이 송신지에서 수신지를 거쳐 다시 송신지로 돌아오는 데 걸리는 시간입니다.</p>
+                </div>
+                <div class="glossary-entry">
+                    <span class="term">GPO (Group Policy Object, 그룹 정책 개체)</span>
+                    <p class="glossary-desc">AD 환경에서 수많은 단말기의 설정을 중앙에서 일괄적으로 제어하는 관리 정책입니다.</p>
+                </div>
+            </div>
+            <p class="mt-20 text-center text-xs opacity-40">© 2026 IP Vocational Training Specialist Program. 본 문서는 전문가용 기술 가이드를 목적으로 작성되었습니다.</p>
+        </footer>
+    </div>
+
+    <div class="max-w-[1100px] mx-auto mt-12 p-10 text-sm text-slate-400 font-bold border-t border-slate-200">
+        Next Step: TLS 1.3 핸드쉐이크 단계별 패킷 분석 및 암호 알고리즘 최적화 사례 고찰
+    </div>
+
+</body>
+</html>
