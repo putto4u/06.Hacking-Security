@@ -1,1 +1,512 @@
-sdf
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTM & NAC: 통합 보안 및 접근 제어 전략</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            line-height: 1.8;
+            color: #1e293b;
+            background-color: #f1f5f9;
+        }
+        .page-container {
+            max-width: 1000px;
+            margin: 3rem auto;
+            background: #ffffff;
+            padding: 5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        .page-break {
+            margin-top: 5rem;
+            padding-top: 5rem;
+            border-top: 2px dashed #e2e8f0;
+        }
+        .concept-block {
+            border-left: 6px solid #1e293b;
+            background-color: #f8fafc;
+            padding: 2rem;
+            margin: 2.5rem 0;
+            border-radius: 0 0.75rem 0.75rem 0;
+        }
+        .diagram-box {
+            border: 1px solid #cbd5e1;
+            border-radius: 1.25rem;
+            padding: 3rem;
+            margin: 3rem 0;
+            background-color: #ffffff;
+            text-align: center;
+        }
+        .highlight-blue { color: #1d4ed8; font-weight: 700; }
+        .highlight-red { color: #b91c1c; font-weight: 700; }
+        .footnote {
+            font-size: 0.85rem;
+            color: #475569;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid #f1f5f9;
+        }
+        .step-tag {
+            display: inline-block;
+            background: #1e293b;
+            color: white;
+            padding: 0.3rem 1.2rem;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-container">
+        <!-- Page 1: Introduction to UTM -->
+        <section>
+            <header class="mb-16 text-center">
+                <h1 class="text-5xl font-black text-slate-900 mb-6">통합 보안 및 접근 제어 전략</h1>
+                <p class="text-xl text-slate-500 font-medium">UTM과 NAC를 통한 엔터프라이즈 방어 체계</p>
+                <div class="h-1 w-24 bg-blue-600 mx-auto mt-6"></div>
+            </header>
+
+            <div class="step-tag">PAGE 01. 통합 보안의 필연성</div>
+            <h2 class="text-3xl font-bold text-slate-800 mb-8"><i class="fas fa-boxes mr-3 text-blue-600"></i>UTM의 정의와 탄생 배경</h2>
+            
+            <div class="concept-block">
+                <p class="text-lg">
+                    <span class="highlight-blue">UTM(Unified Threat Management, 통합 위협 관리)</span>은 방화벽, IPS, 안티바이러스, VPN 등 다양한 보안 기능을 단일 하드웨어 장비에 통합하여 관리 효율성을 극대화한 솔루션입니다.
+                </p>
+            </div>
+
+            <p class="mb-6">
+                과거에는 각 보안 기능마다 별도의 장비를 도입하여 운영했습니다. 하지만 네트워크 복잡도가 증가함에 따라 개별 장비 관리의 한계, 보안 사각지대 발생, 그리고 막대한 유지보수 비용 문제가 대두되었습니다. UTM은 이러한 페인 포인트(Pain Point)를 해결하기 위해 등장했습니다.
+            </p>
+
+            <div class="diagram-box">
+                <p class="text-sm font-bold text-slate-500 mb-8">[그림 1-1] 개별 보안 장비와 UTM의 구조 비교</p>
+                <svg viewBox="0 0 700 200" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Legacy -->
+                    <rect x="50" y="50" width="60" height="40" rx="5" fill="#e2e8f0" stroke="#64748b" />
+                    <text x="80" y="75" text-anchor="middle" font-size="10">FW</text>
+                    <rect x="120" y="50" width="60" height="40" rx="5" fill="#e2e8f0" stroke="#64748b" />
+                    <text x="150" y="75" text-anchor="middle" font-size="10">IPS</text>
+                    <rect x="190" y="50" width="60" height="40" rx="5" fill="#e2e8f0" stroke="#64748b" />
+                    <text x="220" y="75" text-anchor="middle" font-size="10">VPN</text>
+                    <text x="135" y="110" text-anchor="middle" font-size="10" font-weight="bold">개별 관리 (복잡성 증가)</text>
+                    
+                    <!-- Arrow -->
+                    <path d="M300 100 L380 100" stroke="#334155" stroke-width="2" marker-end="url(#arrowhead)" />
+                    
+                    <!-- UTM -->
+                    <rect x="420" y="40" width="230" height="100" rx="10" fill="#dbeafe" stroke="#2563eb" stroke-width="2" />
+                    <text x="535" y="75" text-anchor="middle" font-size="14" font-weight="bold" fill="#1d4ed8">UTM (All-in-One)</text>
+                    <text x="535" y="100" text-anchor="middle" font-size="10" fill="#1d4ed8">FW + IPS + VPN + AV + AS</text>
+                    
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#334155" />
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+        </section>
+
+        <!-- Page 2: Core Functions of UTM -->
+        <section class="page-break">
+            <div class="step-tag">PAGE 02. 다층 방어 체계</div>
+            <h2 class="text-3xl font-bold text-slate-800 mb-8"><i class="fas fa-layer-group mr-3 text-blue-600"></i>UTM의 5대 핵심 보안 기능</h2>
+
+            <div class="space-y-6">
+                <div class="p-6 border rounded-xl bg-white shadow-sm">
+                    <h3 class="font-bold text-slate-800 mb-2">1. 차세대 방화벽 (Next-Generation Firewall)</h3>
+                    <p class="text-sm text-slate-600">L7 기반의 애플리케이션 제어와 사용자 식별 기능을 제공합니다.</p>
+                </div>
+                <div class="p-6 border rounded-xl bg-white shadow-sm">
+                    <h3 class="font-bold text-slate-800 mb-2">2. 침입 방지 시스템 (IPS, Intrusion Prevention System)</h3>
+                    <p class="text-sm text-slate-600">네트워크 트래픽을 실시간으로 전수 검사하여 악성 행위를 차단합니다.</p>
+                </div>
+                <div class="p-6 border rounded-xl bg-white shadow-sm">
+                    <h3 class="font-bold text-slate-800 mb-2">3. 가상 사설망 (VPN, Virtual Private Network)</h3>
+                    <p class="text-sm text-slate-600">IPSec이나 SSL 방식을 통해 원격지 간 안전한 터널링을 구축합니다.</p>
+                </div>
+                <div class="p-6 border rounded-xl bg-white shadow-sm">
+                    <h3 class="font-bold text-slate-800 mb-2">4. 게이트웨이 안티바이러스 (Gateway Anti-Virus)</h3>
+                    <p class="text-sm text-slate-600">네트워크 관문에서 파일 전송 시 악성코드 포함 여부를 검사합니다.</p>
+                </div>
+                <div class="p-6 border rounded-xl bg-white shadow-sm">
+                    <h3 class="font-bold text-slate-800 mb-2">5. 콘텐츠/스팸 필터링 (Content & Spam Filtering)</h3>
+                    <p class="text-sm text-slate-600">유해 사이트 접속 차단 및 불필요한 메일 트래픽을 제어합니다.</p>
+                </div>
+            </div>
+
+            <div class="diagram-box">
+                <p class="text-sm font-bold text-slate-500 mb-8">[그림 2-1] UTM 내부 엔진의 데이터 처리 흐름</p>
+                <svg viewBox="0 0 600 150" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="20" y="50" width="80" height="50" rx="5" fill="#f1f5f9" stroke="#334155" />
+                    <text x="60" y="80" text-anchor="middle" font-size="10">Packet In</text>
+                    
+                    <path d="M100 75 L150 75" stroke="#334155" stroke-width="2" marker-end="url(#arrowhead)" />
+                    
+                    <rect x="150" y="30" width="300" height="90" rx="10" fill="#eff6ff" stroke="#2563eb" />
+                    <text x="300" y="55" text-anchor="middle" font-size="12" font-weight="bold">Inspection Engine</text>
+                    <line x1="170" y1="75" x2="430" y2="75" stroke="#2563eb" stroke-width="1" stroke-dasharray="4" />
+                    <text x="300" y="95" text-anchor="middle" font-size="10">FW → IPS → AV → URL Filtering</text>
+                    
+                    <path d="M450 75 L500 75" stroke="#334155" stroke-width="2" marker-end="url(#arrowhead)" />
+                    
+                    <rect x="500" y="50" width="80" height="50" rx="5" fill="#dcfce7" stroke="#16a34a" />
+                    <text x="540" y="80" text-anchor="middle" font-size="10">Pass / Deny</text>
+                </svg>
+            </div>
+        </section>
+
+        <!-- Page 3: UTM Performance & Limitations -->
+        <section class="page-break">
+            <div class="step-tag">PAGE 03. 한계와 극복</div>
+            <h2 class="text-3xl font-bold text-slate-800 mb-8"><i class="fas fa-tachometer-alt mr-3 text-red-600"></i>UTM의 성능 병목 현상과 해결책</h2>
+
+            <div class="concept-block border-red-600">
+                <p>
+                    UTM의 최대 단점은 <span class="highlight-red">성능 병목(Performance Bottleneck)</span>입니다. 모든 보안 기능을 활성화할 경우, 단일 CPU가 처리해야 할 부하가 기하급수적으로 늘어나 네트워크 속도가 저하될 수 있습니다.
+                </p>
+            </div>
+
+            <div class="space-y-4">
+                <p>• <strong>해결책 1: ASIC (Application Specific Integrated Circuit, 특정 용도용 집적 회로)</strong> 기반 하드웨어 가속기 사용</p>
+                <p>• <strong>해결책 2: 분산 처리 아키텍처</strong>를 통한 병렬 검사 수행</p>
+                <p>• <strong>해결책 3: 불필요한 기능의 선별적 활성화</strong> (필요한 엔진만 가동)</p>
+            </div>
+
+            <div class="diagram-box">
+                <p class="text-sm font-bold text-slate-500 mb-8">[그림 3-1] 보안 기능 활성화에 따른 처리량(Throughput) 변화</p>
+                <svg viewBox="0 0 500 250" xmlns="http://www.w3.org/2000/svg">
+                    <line x1="50" y1="200" x2="450" y2="200" stroke="#334155" stroke-width="2" /> <!-- X -->
+                    <line x1="50" y1="200" x2="50" y2="50" stroke="#334155" stroke-width="2" /> <!-- Y -->
+                    
+                    <text x="450" y="220" text-anchor="end" font-size="10">보안 기능 활성화 수</text>
+                    <text x="40" y="50" text-anchor="end" font-size="10" transform="rotate(-90, 40, 50)">Throughput</text>
+                    
+                    <path d="M50 80 Q 250 100 450 190" fill="none" stroke="#dc2626" stroke-width="3" />
+                    <text x="300" y="130" font-size="10" fill="#dc2626">성능 저하 곡선</text>
+                    <circle cx="50" cy="80" r="5" fill="#3b82f6" />
+                    <text x="60" y="70" font-size="10">FW Only</text>
+                    <circle cx="450" cy="190" r="5" fill="#ef4444" />
+                    <text x="430" y="180" font-size="10">Full UTM</text>
+                </svg>
+            </div>
+        </section>
+
+        <!-- Page 4: NGFW vs UTM -->
+        <section class="page-break">
+            <div class="step-tag">PAGE 04. 시장의 구분</div>
+            <h2 class="text-3xl font-bold text-slate-800 mb-8"><i class="fas fa-balance-scale mr-3 text-slate-700"></i>NGFW와 UTM의 차이점 이해</h2>
+
+            <div class="overflow-hidden rounded-xl border mt-8">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr>
+                            <th class="p-4 bg-slate-800 text-white">비교 항목</th>
+                            <th class="p-4 bg-slate-800 text-white">UTM</th>
+                            <th class="p-4 bg-slate-800 text-white">NGFW (Next-Gen Firewall)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white">
+                        <tr>
+                            <td class="p-4 font-bold border-b">대상 고객</td>
+                            <td class="p-4 border-b text-center">중소기업 (SMB)</td>
+                            <td class="p-4 border-b text-center">대기업 (Enterprise)</td>
+                        </tr>
+                        <tr>
+                            <td class="p-4 font-bold border-b">설계 중점</td>
+                            <td class="p-4 border-b text-center">기능의 통합과 편의성</td>
+                            <td class="p-4 border-b text-center">고성능과 심층 분석</td>
+                        </tr>
+                        <tr>
+                            <td class="p-4 font-bold border-b">아키텍처</td>
+                            <td class="p-4 border-b text-center">멀티 보안 엔진 통합</td>
+                            <td class="p-4 border-b text-center">단일 패스(Single-Pass) 병렬 처리</td>
+                        </tr>
+                        <tr>
+                            <td class="p-4 font-bold">비용 효율</td>
+                            <td class="p-4 text-center">매우 높음</td>
+                            <td class="p-4 text-center">중간 (기능별 라이선스 별도)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="footnote">
+                * <strong>AWS 보안 참고:</strong> AWS 환경에서는 <strong>AWS Network Firewall(VPC 경계에서 트래픽을 제어하는 관리형 방화벽 서비스)</strong>이 NGFW에 가깝게 동작합니다. 
+                <span class="text-red-600 font-bold">(※ 이 서비스는 고정 시간당 요금과 데이터 처리당 비용이 발생하는 유료 서비스입니다.)</span>
+            </div>
+        </section>
+
+        <!-- Page 5: Introduction to NAC -->
+        <section class="page-break">
+            <div class="step-tag">PAGE 05. 내부 위협의 통제</div>
+            <h2 class="text-3xl font-bold text-slate-800 mb-8"><i class="fas fa-user-check mr-3 text-indigo-600"></i>NAC의 정의 및 등장 배경</h2>
+            
+            <div class="concept-block border-indigo-600">
+                <p class="text-lg">
+                    <span class="highlight-blue">NAC(Network Access Control, 네트워크 접근 제어)</span>는 네트워크에 접속하는 모든 단말기의 보안 상태를 검검하고, 인증된 사용자 및 기기만 접속을 허용하는 보안 솔루션입니다.
+                </p>
+            </div>
+
+            <p class="mb-6 font-medium">"방화벽이 외부 침입을 막는다면, NAC는 내부망으로 들어오는 입구를 지킵니다."</p>
+            
+            <div class="space-y-4">
+                <p>• <strong>가시성(Visibility) 확보</strong>: 누가, 언제, 어떤 기기로 접속했는지 파악</p>
+                <p>• <strong>보안 규정 준수(Compliance)</strong>: 백신 미설치, OS 보안 업데이트 미흡 단말기 차단</p>
+                <p>• <strong>동적 권한 부여</strong>: 인사 정보와 연동하여 부서별 접근 권한 자동 할당</p>
+            </div>
+
+            <div class="diagram-box">
+                <p class="text-sm font-bold text-slate-500 mb-8">[그림 5-1] NAC의 기본 동작 개념: '검역 후 입장'</p>
+                <svg viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Terminal -->
+                    <rect x="20" y="70" width="80" height="60" rx="5" fill="#f1f5f9" stroke="#334155" />
+                    <text x="60" y="105" text-anchor="middle" font-size="10">신규 단말기</text>
+                    
+                    <path d="M100 100 L180 100" stroke="#334155" stroke-width="2" marker-end="url(#arrowhead)" />
+                    
+                    <!-- Quarantine -->
+                    <circle cx="250" cy="100" r="50" fill="#fee2e2" stroke="#dc2626" stroke-width="2" />
+                    <text x="250" y="105" text-anchor="middle" font-size="12" font-weight="bold" fill="#991b1b">검역소(Quarantine)</text>
+                    
+                    <!-- Policy Server -->
+                    <rect x="200" y="10" width="100" height="40" fill="#e0e7ff" stroke="#4338ca" />
+                    <text x="250" y="35" text-anchor="middle" font-size="10">NAC 정책 서버</text>
+                    <path d="M250 50 L250 70" stroke="#4338ca" stroke-width="2" stroke-dasharray="2" />
+
+                    <!-- Allowed -->
+                    <path d="M300 100 L450 100" stroke="#16a34a" stroke-width="2" marker-end="url(#arrowhead)" />
+                    <text x="375" y="90" text-anchor="middle" font-size="10" fill="#16a34a">정상 판정 시</text>
+                    
+                    <rect x="450" y="60" width="120" height="80" rx="10" fill="#dcfce7" stroke="#16a34a" />
+                    <text x="510" y="105" text-anchor="middle" font-size="12" font-weight="bold">내부 네트워크</text>
+                </svg>
+            </div>
+        </section>
+
+        <!-- Page 6: NAC Operation Process -->
+        <section class="page-break">
+            <div class="step-tag">PAGE 06. 운영 프로세스</div>
+            <h2 class="text-3xl font-bold text-slate-800 mb-8"><i class="fas fa-sync mr-3 text-indigo-600"></i>NAC의 4단계 동작 프로세스</h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                <div class="p-6 bg-white border-l-4 border-indigo-500 shadow-sm">
+                    <h4 class="font-bold text-indigo-800">1단계: 탐지 및 식별</h4>
+                    <p class="text-xs text-slate-500 mb-2">(Detection & Device Fingerprinting)</p>
+                    <p class="text-sm">네트워크 접속을 감지하고 기기 종류, OS 버전, MAC 주소 등을 식별합니다.</p>
+                </div>
+                <div class="p-6 bg-white border-l-4 border-indigo-500 shadow-sm">
+                    <h4 class="font-bold text-indigo-800">2단계: 인증</h4>
+                    <p class="text-xs text-slate-500 mb-3">(Authentication)</p>
+                    <p class="text-sm">사용자 ID/PW 혹은 인증서를 통해 정당한 사용자인지 확인합니다.</p>
+                </div>
+                <div class="p-6 bg-white border-l-4 border-indigo-500 shadow-sm">
+                    <h4 class="font-bold text-indigo-800">3단계: 무결성 검사</h4>
+                    <p class="text-xs text-slate-500 mb-3">(Posture Assessment / Integrity Check)</p>
+                    <p class="text-sm">백신 실행 여부, 최신 패치 적용 여부 등 보안 정책 준수 상태를 검사합니다.</p>
+                </div>
+                <div class="p-6 bg-white border-l-4 border-indigo-500 shadow-sm">
+                    <h4 class="font-bold text-indigo-800">4단계: 권한 부여 및 격리</h4>
+                    <p class="text-xs text-slate-500 mb-3">(Authorization & Remediation)</p>
+                    <p class="text-sm">정상이면 접속 허용, 비정상이면 업데이트 페이지로 격리(VLAN 변경)시킵니다.</p>
+                </div>
+            </div>
+
+            <div class="diagram-box">
+                <p class="text-sm font-bold text-slate-500 mb-8">[그림 6-1] NAC의 상태 관리 사이클</p>
+                <svg viewBox="0 0 500 200" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="250" cy="100" r="70" fill="none" stroke="#6366f1" stroke-width="2" stroke-dasharray="5" />
+                    <text x="250" y="105" text-anchor="middle" font-size="12" font-weight="bold">지속적 모니터링</text>
+                    
+                    <circle cx="250" cy="30" r="25" fill="#indigo-600" />
+                    <text x="250" y="35" text-anchor="middle" font-size="10" fill="white">인증</text>
+                    <circle cx="320" cy="100" r="25" fill="#indigo-600" />
+                    <text x="320" y="105" text-anchor="middle" font-size="10" fill="white">검사</text>
+                    <circle cx="250" cy="170" r="25" fill="#indigo-600" />
+                    <text x="250" y="175" text-anchor="middle" font-size="10" fill="white">권한</text>
+                    <circle cx="180" cy="100" r="25" fill="#indigo-600" />
+                    <text x="180" y="105" text-anchor="middle" font-size="10" fill="white">조치</text>
+                </svg>
+            </div>
+        </section>
+
+        <!-- Page 7: NAC Components -->
+        <section class="page-break">
+            <div class="step-tag">PAGE 07. 구성 요소</div>
+            <h2 class="text-3xl font-bold text-slate-800 mb-8"><i class="fas fa-network-wired mr-3 text-indigo-600"></i>NAC 시스템의 주요 구성 요소</h2>
+
+            <div class="concept-block">
+                <p>성공적인 NAC 구축을 위해서는 정책을 결정하는 서버와 정책을 집행하는 네트워크 장비 간의 긴밀한 연동이 필수적입니다.</p>
+            </div>
+
+            <div class="space-y-6">
+                <div class="flex items-start gap-4">
+                    <div class="bg-indigo-100 p-3 rounded-lg"><i class="fas fa-server text-indigo-600"></i></div>
+                    <div>
+                        <h4 class="font-bold">정책 서버 (Policy Server)</h4>
+                        <p class="text-sm text-slate-600">모든 인증 및 검사 정책을 관리하고 결정하는 '브레인' 역할을 합니다.</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-4">
+                    <div class="bg-indigo-100 p-3 rounded-lg"><i class="fas fa-laptop-code text-indigo-600"></i></div>
+                    <div>
+                        <h4 class="font-bold">에이전트 (Agent)</h4>
+                        <p class="text-sm text-slate-600">사용자 PC에 설치되어 보안 상태를 수집하고 서버로 보고합니다. (최근에는 에이전트리스 방식도 확산 중)</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-4">
+                    <div class="bg-indigo-100 p-3 rounded-lg"><i class="fas fa-door-closed text-indigo-600"></i></div>
+                    <div>
+                        <h4 class="font-bold">네트워크 접근 장비 (NAS, Network Access Server)</h4>
+                        <p class="text-sm text-slate-600">L2/L3 스위치 혹은 무선 AP로, 정책 서버의 명령을 받아 물리적 포트를 차단하거나 VLAN을 변경합니다.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footnote">
+                * 관련 기술: <strong>RADIUS (Remote Authentication Dial-In User Service, 원격 인증 서비스)</strong> 및 <strong>802.1X (포트 기반 네트워크 인증 표준)</strong>이 NAC의 핵심 프로토콜로 사용됩니다.
+            </div>
+        </section>
+
+        <!-- Page 8: UTM & NAC Collaboration -->
+        <section class="page-break">
+            <div class="step-tag">PAGE 08. 협업 방어</div>
+            <h2 class="text-3xl font-bold text-slate-800 mb-8"><i class="fas fa-link mr-3 text-emerald-600"></i>UTM과 NAC의 협업 모델</h2>
+
+            <div class="concept-block border-emerald-600 bg-emerald-50">
+                <p class="text-lg">
+                    UTM과 NAC는 상호 보완적인 관계입니다. <span class="highlight-blue">NAC가 내부망 진입을 통제</span>하면, <span class="highlight-red">UTM은 통과한 트래픽의 악성 여부를 검사</span>합니다.
+                </p>
+            </div>
+
+            <div class="diagram-box">
+                <p class="text-sm font-bold text-slate-500 mb-8">[그림 8-1] UTM-NAC 복합 방어 시나리오</p>
+                <svg viewBox="0 0 700 250" xmlns="http://www.w3.org/2000/svg">
+                    <!-- User -->
+                    <circle cx="50" cy="150" r="20" fill="#cbd5e1" />
+                    <text x="50" y="190" text-anchor="middle" font-size="10">User</text>
+                    
+                    <!-- NAC Step -->
+                    <rect x="150" y="120" width="120" height="60" rx="5" fill="#e0e7ff" stroke="#4338ca" />
+                    <text x="210" y="155" text-anchor="middle" font-size="12" font-weight="bold">1. NAC (인증)</text>
+                    
+                    <path d="M270 150 L350 150" stroke="#334155" stroke-width="2" marker-end="url(#arrowhead)" />
+                    
+                    <!-- Internal Net -->
+                    <rect x="350" y="120" width="120" height="60" rx="5" fill="#f8fafc" stroke="#334155" />
+                    <text x="410" y="155" text-anchor="middle" font-size="10">내부망 접속</text>
+                    
+                    <path d="M410 120 L410 80" stroke="#334155" stroke-width="2" marker-end="url(#arrowhead)" />
+                    
+                    <!-- UTM Step -->
+                    <rect x="350" y="20" width="120" height="60" rx="5" fill="#fee2e2" stroke="#dc2626" />
+                    <text x="410" y="55" text-anchor="middle" font-size="12" font-weight="bold">2. UTM (검사)</text>
+                    
+                    <path d="M470 50 L550 50" stroke="#334155" stroke-width="2" marker-end="url(#arrowhead)" />
+                    <text x="600" y="55" text-anchor="middle" font-size="10">Internet Out</text>
+                </svg>
+            </div>
+
+            <div class="bg-emerald-900 text-white p-8 rounded-xl">
+                <h4 class="font-bold text-yellow-400 mb-2">실무 적용 예시</h4>
+                <p class="text-sm">
+                    사용자가 사무실 자리에 앉아 PC를 켭니다. <strong>NAC</strong>가 인증을 수행하고 최신 백신 상태를 확인한 뒤 포트를 열어줍니다. 
+                    이후 사용자가 인터넷에서 파일을 다운로드할 때, <strong>UTM</strong>의 안티바이러스 엔진이 해당 파일의 악성 여부를 실시간으로 스캔합니다.
+                </p>
+            </div>
+        </section>
+
+        <!-- Page 9: Cloud Environment -->
+        <section class="page-break">
+            <div class="step-tag">PAGE 09. 클라우드 보안 적용</div>
+            <h2 class="text-3xl font-bold text-slate-800 mb-8"><i class="fab fa-aws mr-3 text-orange-500"></i>클라우드 환경에서의 NAC와 UTM</h2>
+
+            <p class="mb-8">클라우드 환경에서는 물리적 장비 대신 <span class="highlight-blue">가상화된 보안 서비스(SECaaS, Security as a Service)</span> 형태로 보안을 구현합니다.</p>
+
+            <div class="space-y-6">
+                <div class="p-6 bg-orange-50 border rounded-lg">
+                    <h4 class="font-bold text-orange-800 mb-2">클라우드형 NAC: AWS Client VPN & IAM</h4>
+                    <p class="text-sm">사용자 인증과 기기 보안 체크를 수행하며, 엔드포인트 보안 상태에 따라 접근 권한을 동적으로 제어합니다.</p>
+                    <p class="mt-2 text-xs text-slate-500">※ AWS Client VPN은 활성 연결당 요금과 엔드포인트 시간당 요금이 부과됩니다.</p>
+                </div>
+                <div class="p-6 bg-orange-50 border rounded-lg">
+                    <h4 class="font-bold text-orange-800 mb-2">클라우드형 UTM: Managed Firewall</h4>
+                    <p class="text-sm">VPC(Virtual Private Cloud) 관문에서 통합 위협 관리를 수행합니다. (Deep Packet Inspection 포함)</p>
+                    <p class="mt-2 text-xs text-slate-500">※ AWS Network Firewall 등을 활용하며 데이터 처리 용량에 따라 과금됩니다.</p>
+                </div>
+            </div>
+
+            <div class="diagram-box">
+                <p class="text-sm font-bold text-slate-500 mb-8">[그림 9-1] 클라우드 보안 아키텍처 모델</p>
+                <svg viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="50" y="30" width="500" height="140" rx="20" fill="none" stroke="#f97316" stroke-width="2" stroke-dasharray="5" />
+                    <text x="300" y="25" text-anchor="middle" font-size="12" font-weight="bold" fill="#f97316">AWS Cloud (VPC)</text>
+                    
+                    <rect x="100" y="60" width="120" height="80" fill="#fff7ed" stroke="#f97316" />
+                    <text x="160" y="105" text-anchor="middle" font-size="10">IAM/Client VPN</text>
+                    <text x="160" y="125" text-anchor="middle" font-size="8">(NAC Role)</text>
+                    
+                    <rect x="380" y="60" width="120" height="80" fill="#fff7ed" stroke="#f97316" />
+                    <text x="440" y="105" text-anchor="middle" font-size="10">NW Firewall</text>
+                    <text x="440" y="125" text-anchor="middle" font-size="8">(UTM Role)</text>
+                    
+                    <path d="M220 100 L380 100" stroke="#f97316" stroke-width="2" stroke-dasharray="4" />
+                </svg>
+            </div>
+        </section>
+
+        <!-- Page 10: Checklist -->
+        <section class="page-break">
+            <div class="step-tag">PAGE 10. 실무 가이드</div>
+            <h2 class="text-3xl font-bold text-slate-800 mb-8"><i class="fas fa-clipboard-list mr-3 text-slate-700"></i>도입 및 운영 체크리스트</h2>
+
+            <div class="concept-block">
+                <p>성공적인 보안 시스템 구축을 위해 다음 사항을 반드시 검토하십시오.</p>
+            </div>
+
+            <div class="space-y-4">
+                <div class="flex items-center gap-4 p-4 border rounded-lg">
+                    <input type="checkbox" checked disabled class="w-5 h-5">
+                    <p class="text-sm font-medium">네트워크 환경 분석: UTM 도입 시 현재 및 향후 3년 트래픽 증설 계획 반영 여부</p>
+                </div>
+                <div class="flex items-center gap-4 p-4 border rounded-lg">
+                    <input type="checkbox" checked disabled class="w-5 h-5">
+                    <p class="text-sm font-medium">에이전트 호환성: NAC 도입 시 임직원 PC의 다양한 OS(Win/Mac/Linux) 지원 여부</p>
+                </div>
+                <div class="flex items-center gap-4 p-4 border rounded-lg">
+                    <input type="checkbox" checked disabled class="w-5 h-5">
+                    <p class="text-sm font-medium">비상 대책(Fail-Open/Close): 보안 장비 장애 시 네트워크 단절 여부 정책 수립</p>
+                </div>
+                <div class="flex items-center gap-4 p-4 border rounded-lg">
+                    <input type="checkbox" checked disabled class="w-5 h-5">
+                    <p class="text-sm font-medium">관리 프로세스: 보안 경고 발생 시 대응 시나리오 및 담당자 지정 여부</p>
+                </div>
+            </div>
+
+            <div class="expert-card p-8 bg-slate-900 text-white rounded-xl mt-12">
+                <h4 class="text-xl font-bold text-yellow-400 mb-4">최종 정리: 통합 방어의 가치</h4>
+                <p class="text-sm leading-relaxed">
+                    현대 보안은 단일 솔루션으로 완성되지 않습니다. <strong>UTM</strong>을 통해 외부 위협에 대응하고, <strong>NAC</strong>를 통해 내부 단말기를 통제하며, 이들을 유기적으로 결합하는 <strong>심층 방어(Defense in Depth)</strong>가 정보보호의 핵심입니다. 
+                    특히 클라우드 전환기에는 가시성 확보와 제로 트러스트 원칙을 바탕으로 한 접근 제어가 더욱 중요해질 것입니다.
+                </p>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="mt-20 pt-10 border-t border-slate-200 text-center text-slate-400 text-sm">
+            <p>© 2026 Enterprise Security Professional Academy. All rights reserved.</p>
+            <p class="mt-2">본 교재는 IP 직업훈련 전문가 과정의 보안 모듈로 설계되었습니다.</p>
+        </footer>
+    </div>
+
+</body>
+</html>
