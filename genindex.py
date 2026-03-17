@@ -153,8 +153,9 @@ def generate_index():
 
     # ---------------------------------------------------------------------------
     # [3] 메인 레이아웃 (주소창 Hash 제어 스크립트 포함)
+    # 수정 내역: 불필요한 f 접두어 제거 및 CSS 중괄호 {{ }} -> { } 원복
     # ---------------------------------------------------------------------------
-    index_html = f"""<!DOCTYPE html>
+    index_html = """<!DOCTYPE html>
 <html lang="ko" class="dark">
 <head>
     <meta charset="UTF-8">
@@ -164,7 +165,7 @@ def generate_index():
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
-        body {{ 
+        body { 
             font-family: 'Noto Sans KR', sans-serif; 
             background-color: #020617; 
             background-image: linear-gradient(to bottom, rgba(2, 6, 23, 0.85), rgba(2, 6, 23, 0.98)), 
@@ -176,12 +177,11 @@ def generate_index():
             height: 100vh;
             width: 100vw;
             overflow: hidden; 
-        }}
-        .neon-glow {{ text-shadow: 0 0 8px rgba(34, 211, 238, 0.6); }}
+        }
+        .neon-glow { text-shadow: 0 0 8px rgba(34, 211, 238, 0.6); }
     </style>
 </head>
 <body class="relative">
-    <!-- 저자 박스: 클릭 시 목차로 이동하며 Hash도 초기화 -->
     <a href="#toc.html" onclick="setFrameSource('toc.html')" class="absolute top-5 right-5 md:top-6 md:right-8 z-50 group cursor-pointer block">
         <div class="flex items-center space-x-1.5 bg-slate-900/80 py-1.5 px-3 rounded-lg border border-cyan-900/50 backdrop-blur-md shadow-[0_0_10px_rgba(8,145,178,0.2)] transition-all duration-300 group-hover:border-cyan-400/60 group-hover:shadow-[0_0_15px_rgba(34,211,238,0.4)]">
             <div class="relative flex h-2 w-2 mr-0.5">
@@ -241,68 +241,7 @@ def generate_index():
                     md_text = f.read()
 
                 md_html = markdown.markdown(md_text, extensions=['fenced_code', 'tables'])
+                
+                # 본문 변환 f-string 유지 (md_html 변수 치환용)
                 doc_content = f'''
-                <div class="prose prose-invert prose-slate max-w-none prose-img:rounded-xl prose-a:text-cyan-400 hover:prose-a:text-cyan-300 prose-headings:text-slate-100 prose-strong:text-cyan-100 bg-slate-900/40 p-8 rounded-2xl border border-slate-700/50 shadow-xl">
-                    {md_html}
-                </div>
-                '''
-                full_doc_html = doc_html_header + doc_content + doc_html_footer
-                with open(html_path, 'w', encoding='utf-8') as f:
-                    f.write(full_doc_html)
-
-    # [5] 디렉토리 탐색 및 목차 생성
-    for root, dirs, files in os.walk('.'):
-        dirs[:] = [d for d in dirs if d not in exclude_dirs]
-        rel_path = os.path.relpath(root, '.')
-        html_files = sorted([f for f in files if f.endswith('.html') and f not in exclude_files])
-        if html_files:
-            structure[rel_path] = html_files
-
-    for folder in sorted(structure.keys()):
-        files = structure[folder]
-        is_root = folder == "."
-        display_folder = "Root Directory" if is_root else folder
-        base_icon = "fa-server" if is_root else "fa-folder-open"
-        initial_folder_icon = "fa-server" if is_root else "fa-folder"
-        
-        toc_body += f"""
-        <div class="folder-section bg-slate-900/60 rounded-xl border border-slate-700/80 shadow-lg">
-            <div class="folder-header flex items-center p-4 cursor-pointer group hover:bg-slate-800/80 rounded-t-xl transition-colors" 
-                 onclick="toggleFolder(this)" data-base-icon="{base_icon}">
-                <i class="folder-icon fas {initial_folder_icon} text-cyan-500 w-6 text-center text-lg transition-transform duration-300 group-hover:scale-110"></i>
-                <h2 class="text-base font-bold text-slate-200 ml-3 group-hover:text-cyan-300 tracking-wide">{display_folder}</h2>
-                <span class="text-cyan-600/80 text-[10px] font-mono ml-3 font-bold bg-slate-950/50 px-2 py-1 rounded-md">[{len(files)}]</span>
-                <i class="fas fa-chevron-down ml-auto text-slate-500 text-sm transition-transform duration-300 chevron-icon"></i>
-            </div>
-            <div class="list-container grid transition-all duration-300 ease-in-out opacity-0 border-t border-transparent" style="grid-template-rows: 0fr;">
-                <div class="overflow-hidden bg-slate-950/40 rounded-b-xl">
-                    <ul class="py-2">
-        """
-        
-        for file in files:
-            # 파일 경로 계산 (경로 구분자 '/'로 통일)
-            file_path = (os.path.join(folder, file) if not is_root else file).replace('\\', '/')
-            display_name = file.replace('.html', '').replace('_', ' ').replace('-', ' ')
-            
-            # 링크 클릭 시 updateParentHash 호출하여 주소창 동기화
-            toc_body += f"""
-                        <li>
-                            <a href="{file_path}" target="content-frame" onclick="updateParentHash('{file_path}')"
-                               class="list-hover flex items-center py-3 px-5 border-l-2 border-transparent group text-sm">
-                                <i class="fas fa-file-code text-slate-600 mr-3 group-hover:text-cyan-400"></i>
-                                <span class="text-slate-300 font-medium group-hover:text-cyan-100">{display_name}</span>
-                            </a>
-                        </li>
-            """
-        toc_body += "</ul></div></div></div>"
-
-    # [6] 파일 저장
-    with open('index.html', 'w', encoding='utf-8') as f:
-        f.write(index_html)
-    with open('toc.html', 'w', encoding='utf-8') as f:
-        f.write(toc_html_header + toc_body + toc_html_footer)
-    
-    print(f"System Log: {datetime.now().strftime('%H:%M:%S')} - Hash-based navigation enabled. URLs are now persistent.")
-
-if __name__ == "__main__":
-    generate_index()
+                <div class="prose prose-invert prose-slate max-w-none prose-img:rounded-xl prose-a:text-cyan-400 hover:prose-a:text-cyan-300 prose-headings:text-slate-100 prose-strong:text-cyan-100 bg-slate-900/40 p-8 rounded
