@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ubuntu: NFS 파일 서버 구축 및 클라이언트 마운트 실무</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700;900&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: #ffffff; color: #1e293b; line-height: 1.8; }
+        .section-header { border-bottom: 4px solid #0f172a; padding-bottom: 1.5rem; margin-bottom: 3.5rem; margin-top: 6rem; }
+        .sub-section-title { border-left: 5px solid #0f172a; padding-left: 1.5rem; margin-top: 4.5rem; margin-bottom: 2rem; font-weight: 900; }
+        .code-block {
+            background-color: #0f172a;
+            color: #f8fafc;
+            padding: 1.75rem;
+            border-radius: 0.75rem;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+            border: 1px solid #334155;
+            margin: 2rem 0;
+            overflow-x: auto;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .code-comment { color: #64748b; font-style: italic; }
+        .code-output { color: #34d399; }
+        .code-keyword { color: #38bdf8; font-weight: bold; }
+        .info-box { background-color: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #3b82f6; padding: 2rem; border-radius: 0.5rem; margin: 2rem 0; }
+        .warning-box { background-color: #fef2f2; border: 1px solid #fecaca; border-left: 4px solid #ef4444; padding: 2rem; border-radius: 0.5rem; margin: 2rem 0; }
+        .highlight-line { background-color: rgba(255, 255, 255, 0.05); display: block; padding-left: 1rem; border-left: 3px solid #38bdf8; margin: 0.25rem 0; }
+        .image-placeholder { background-color: #f8fafc; border: 2px dashed #cbd5e1; padding: 4rem 2rem; text-align: center; color: #64748b; margin: 3rem 0; border-radius: 0.75rem; box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05); }
+        .footnote { font-size: 0.85rem; color: #64748b; margin-top: 0.5rem; padding-left: 1rem; border-left: 2px solid #cbd5e1; }
+        .reference-link { font-size: 0.8rem; color: #3b82f6; text-decoration: none; font-weight: bold; }
+        .reference-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body class="p-6 md:p-16 max-w-5xl mx-auto">
+
+    <!-- Header Section -->
+    <header class="mb-24 border-b-8 border-slate-900 pb-12">
+        <div class="flex items-center gap-2 mb-4">
+            <span class="bg-slate-900 text-white px-3 py-1 text-xs font-bold uppercase tracking-widest rounded-sm">Enterprise Infrastructure</span>
+            <span class="text-slate-500 font-mono text-xs">Storage Architecture Ver 9.2</span>
+        </div>
+        <h1 class="text-5xl font-black mb-8 tracking-tighter text-slate-900 leading-tight">Ubuntu Linux<br><span class="text-blue-600">NFS 서버 구축 및 클라이언트 마운트</span></h1>
+        <p class="text-slate-700 text-xl leading-relaxed mb-6 font-medium">
+            본 매뉴얼은 리눅스 및 유닉스(Unix) 환경에서 고성능 네트워크 파일 공유의 표준으로 자리 잡은 NFS(Network File System, 네트워크 파일 시스템)를 최신 우분투(Ubuntu) 환경에 구축하고, 클라이언트 노드에서 안정적으로 연결(Mount) 및 해제하는 실무 아키텍처 가이드를 제공합니다.
+        </p>
+        <div class="text-right">
+            <a href="https://ubuntu.com/server/docs/network-file-system-nfs" target="_blank" class="reference-link flex items-center justify-end gap-1">
+                <i data-lucide="external-link" class="w-3 h-3"></i> Ubuntu 공식 NFS(Network File System) 문서 참조
+            </a>
+        </div>
+    </header>
+
+    <!-- Section 1: Server Installation -->
+    <section id="server-setup">
+        <h2 class="section-header text-3xl font-black text-slate-900 uppercase tracking-tight">NFS 서버 패키지 설치 및 스토리지 준비</h2>
+        
+        <p class="mb-6 text-slate-700 text-lg">NFS는 커널(Kernel, 운영체제의 핵심부) 레벨에서 동작하므로 매우 빠르고 가볍습니다. 서버 역할을 수행할 우분투 인스턴스에 코어 데몬(Daemon, 백그라운드 프로세스) 패키지를 설치하고 데이터를 저장할 물리적 경로를 프로비저닝(Provisioning, 자원 할당)합니다.</p>
+
+        <div class="code-block">
+            <span class="code-comment"># 1. 시스템 패키지 인덱스 업데이트 및 NFS 커널 서버 패키지 설치</span><br>
+            $ <span class="code-keyword">sudo apt update</span><br>
+            $ <span class="code-keyword">sudo apt install -y nfs-kernel-server</span><br><br>
+
+            <span class="code-comment"># 2. 클라이언트와 공유할 최상위 디렉토리 생성 (예: /srv/nfs/shared)</span><br>
+            $ <span class="code-keyword">sudo mkdir -p /srv/nfs/shared</span><br><br>
+
+            <span class="code-comment"># 3. NFS 접근을 위한 권한 초기화 및 소유권 변경</span><br>
+            <span class="code-comment"># 보안상 특정 로컬 계정에 종속되지 않도록 nobody 계정 및 nogroup 그룹으로 매핑합니다.</span><br>
+            $ <span class="code-keyword">sudo chown nobody:nogroup /srv/nfs/shared</span><br>
+            $ <span class="code-keyword">sudo chmod -R 0775 /srv/nfs/shared</span>
+        </div>
+
+        <p class="footnote">
+            <strong>nobody:nogroup 권한의 의미:</strong> 외부 클라이언트가 NFS 서버에 접속할 때, 기본적으로 클라이언트의 root 권한은 서버 측에서 익명 권한(nobody)으로 축소(Squash, 강등)됩니다. 이를 통해 악의적인 클라이언트가 서버의 중요 시스템 파일을 수정하는 것을 방지하는 핵심 보안 메커니즘입니다.
+        </p>
+    </section>
+
+    <!-- Section 2: Exports Configuration (Expanded) -->
+    <section id="exports-config">
+        <h2 class="section-header text-3xl font-black text-slate-900 uppercase tracking-tight">Export(접근 제어) 파일 환경 설정 심층 분석</h2>
+        
+        <p class="mb-6 text-slate-700 text-lg">NFS(Network File System, 네트워크 파일 시스템) 서버의 핵심 보안 및 성능 최적화는 <code>/etc/exports</code> 파일의 정밀한 구성에 달려 있습니다. 이 파일은 특정 IP(Internet Protocol, 인터넷 통신 규약) 대역의 클라이언트에게 부여할 권한과 I/O(Input/Output, 파일 입출력) 방식을 제어하는 ACL(Access Control List, 접근 제어 목록) 역할을 수행합니다.</p>
+
+        <div class="code-block">
+            <span class="code-comment"># 텍스트 에디터로 NFS 설정 파일 열기</span><br>
+            $ <span class="code-keyword">sudo nano /etc/exports</span><br><br>
+
+            <span class="code-comment"># 기본 문법 형식: [공유할_경로] [허용대상_IP_또는_도메인]([옵션1],[옵션2],...)</span><br>
+            <span class="highlight-line">/srv/nfs/shared  192.168.0.0/24(rw,sync,no_subtree_check)</span>
+        </div>
+
+        <h3 class="sub-section-title text-2xl text-blue-900">1. 호스트 타겟팅 (Host Targeting) 기법</h3>
+        <p class="mb-4 text-slate-700 text-lg">공유 폴더에 접근할 수 있는 대상을 제한하는 것은 가장 기초적이고 강력한 보안 조치입니다. 다음과 같은 다양한 패턴으로 대상을 지정할 수 있습니다.</p>
+
+        <div class="info-box border-l-emerald-500">
+            <ul class="space-y-4 text-slate-700">
+                <li><strong class="text-slate-900">단일 IP 지정:</strong> <code class="bg-gray-100 px-2 rounded">192.168.0.50</code> (특정 웹/앱 서버 인스턴스 한 대만 허용할 때 사용)</li>
+                <li><strong class="text-slate-900">CIDR(Classless Inter-Domain Routing, 클래스 없는 도메인 간 라우팅) 대역:</strong> <code class="bg-gray-100 px-2 rounded">192.168.0.0/24</code> (해당 서브넷망 내부의 모든 시스템에 접근을 허용할 때 사용. 엔터프라이즈 환경의 표준 방식입니다.)</li>
+                <li><strong class="text-slate-900">와일드카드(Wildcard) 도메인:</strong> <code class="bg-gray-100 px-2 rounded">*.example.com</code> (해당 도메인을 사용하는 모든 호스트를 허용합니다.)</li>
+            </ul>
+        </div>
+
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-8 my-10 shadow-sm relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-2 h-full bg-emerald-500"></div>
+            <h4 class="text-center font-bold text-slate-800 mb-8 text-sm tracking-widest uppercase flex justify-center items-center gap-2">
+                <i data-lucide="shield-check" class="w-5 h-5 text-emerald-600"></i> NFS 서버의 ACL(Access Control List, 접근 제어 목록) 기반 클라이언트 연결 허용/차단 논리 구조
+            </h4>
+
+            <div class="flex flex-col md:flex-row items-stretch justify-between gap-8 relative">
+                <!-- Clients Area -->
+                <div class="flex flex-col gap-6 w-full md:w-1/3 justify-center">
+                    <!-- Allowed Client -->
+                    <div class="bg-white border-2 border-emerald-200 rounded-lg p-5 shadow-sm relative">
+                        <div class="absolute -right-4 top-1/2 transform -translate-y-1/2 text-emerald-500 bg-white rounded-full p-0.5 shadow-sm border border-emerald-100 z-10 hidden md:block">
+                            <i data-lucide="check-circle-2" class="w-6 h-6"></i>
+                        </div>
+                        <div class="flex items-center gap-3 mb-2">
+                            <i data-lucide="pc-case" class="w-6 h-6 text-emerald-600"></i>
+                            <span class="font-bold text-slate-800 text-sm">인가된 내부 클라이언트</span>
+                        </div>
+                        <div class="text-xs text-slate-600 font-mono bg-slate-50 p-2 rounded border border-slate-100">IP: 192.168.0.50<br>Subnet: 192.168.0.0/24</div>
+                    </div>
+
+                    <!-- Denied Client -->
+                    <div class="bg-white border-2 border-red-200 rounded-lg p-5 shadow-sm relative opacity-90">
+                        <div class="absolute -right-4 top-1/2 transform -translate-y-1/2 text-red-500 bg-white rounded-full p-0.5 shadow-sm border border-red-100 z-10 hidden md:block">
+                            <i data-lucide="x-circle" class="w-6 h-6"></i>
+                        </div>
+                        <div class="flex items-center gap-3 mb-2">
+                            <i data-lucide="globe" class="w-6 h-6 text-red-600"></i>
+                            <span class="font-bold text-slate-800 text-sm">비인가 외부 호스트</span>
+                        </div>
+                        <div class="text-xs text-slate-600 font-mono bg-slate-50 p-2 rounded border border-slate-100">IP: 10.0.0.5<br>Subnet: 외부 망(External)</div>
+                    </div>
+                </div>
+
+                <!-- Firewall / NFS Exports Area -->
+                <div class="flex flex-col items-center justify-center w-full md:w-1/3 z-0">
+                    <div class="bg-slate-800 border-2 border-slate-600 rounded-xl p-6 text-center w-full shadow-lg">
+                        <i data-lucide="shield-alert" class="w-12 h-12 text-amber-400 mx-auto mb-4 drop-shadow"></i>
+                        <h5 class="font-bold text-white text-base mb-2">보안 필터링 및 접근 제어</h5>
+                        <div class="text-xs text-slate-300 font-mono bg-slate-900 p-3 rounded border border-slate-700 mb-3 text-left space-y-1 shadow-inner">
+                            <div><span class="text-emerald-400 font-bold inline-block w-12">ALLOW</span> 192.168.0.0/24</div>
+                            <div><span class="text-red-400 font-bold inline-block w-12">DENY</span> All Others</div>
+                        </div>
+                        <p class="text-[11px] text-slate-400 tracking-wide bg-slate-700/50 p-1.5 rounded inline-block">/etc/exports (NFS ACL)</p>
+                    </div>
+                </div>
+
+                <!-- Server Area -->
+                <div class="flex flex-col justify-center w-full md:w-1/3 relative">
+                    <div class="hidden md:flex flex-col items-center absolute -left-10 top-1/2 transform -translate-y-1/2 z-10">
+                        <span class="text-[10px] font-bold font-mono text-emerald-600 mb-1 bg-white px-2 rounded-full border border-emerald-200 shadow-sm">Mount Granted</span>
+                        <i data-lucide="arrow-right" class="w-6 h-6 text-emerald-500"></i>
+                    </div>
+
+                    <div class="bg-blue-50 border-2 border-blue-200 rounded-xl p-6 shadow-md text-center h-full flex flex-col justify-center">
+                        <i data-lucide="hard-drive" class="w-14 h-14 text-blue-600 mx-auto mb-5 drop-shadow-md"></i>
+                        <h5 class="font-black text-slate-800 text-lg mb-2">NFS 스토리지 서버</h5>
+                        <div class="text-sm text-blue-800 font-mono bg-white p-2.5 rounded border border-blue-200 mb-4 font-bold shadow-inner">/srv/nfs/shared</div>
+                        <p class="text-[11px] text-slate-600 leading-relaxed bg-blue-100/50 p-2.5 rounded font-medium border border-blue-100">서브넷 마스크(Subnet Mask) 255.255.255.0 대역의 인가된 패킷만 파일 I/O(입출력) 접근 허용</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h3 class="sub-section-title text-2xl text-blue-900">2. 파일 I/O 및 성능 옵션 (Performance & I/O)</h3>
+        <p class="mb-4 text-slate-700 text-lg">데이터의 무결성(Integrity, 데이터가 손상되지 않고 정확함)을 우선할 것인지, I/O 처리 속도를 우선할 것인지에 따라 동기화 방식을 결정해야 합니다.</p>
+
+        <div class="info-box">
+            <ul class="space-y-6 text-slate-700">
+                <li>
+                    <strong class="text-slate-900 text-lg block mb-2"><code class="bg-blue-50 text-blue-800 px-2 py-0.5 rounded border border-blue-200">rw</code> 및 <code class="bg-blue-50 text-blue-800 px-2 py-0.5 rounded border border-blue-200">ro</code> (읽기/쓰기 제어)</strong>
+                    클라이언트에게 읽기 및 쓰기 권한을 모두 부여하려면 <code>rw(Read/Write)</code>를, 백업 이미지 저장소처럼 데이터가 변조되면 안 되는 경우 읽기 전용인 <code>ro(Read Only)</code>를 사용합니다.
+                </li>
+                <li>
+                    <strong class="text-slate-900 text-lg block mb-2"><code class="bg-blue-50 text-blue-800 px-2 py-0.5 rounded border border-blue-200">sync</code> (데이터 동기화 기록)</strong>
+                    클라이언트의 데이터 쓰기 요청 시, NFS 서버의 물리적 디스크(디스크 캐시가 아닌 실제 플래터나 낸드플래시)에 <strong>완전히 기록이 끝난 후에만</strong> 클라이언트에게 성공 응답(ACK)을 보냅니다. 정전 등 돌발 장애 시 데이터 유실(Data Loss)을 방지하는 엔터프라이즈 필수 옵션입니다.
+                </li>
+                <li>
+                    <strong class="text-slate-900 text-lg block mb-2"><code class="bg-blue-50 text-blue-800 px-2 py-0.5 rounded border border-blue-200">async</code> (데이터 비동기 기록)</strong>
+                    서버의 메모리(RAM) 버퍼에만 데이터가 올라가면 즉시 클라이언트에게 성공 응답을 보냅니다. 체감 속도와 성능은 비약적으로 상승하지만, 디스크 기록 전 서버 전원이 차단되면 데이터가 증발하는 치명적 단점이 있습니다.
+                </li>
+                <li>
+                    <strong class="text-slate-900 text-lg block mb-2"><code class="bg-blue-50 text-blue-800 px-2 py-0.5 rounded border border-blue-200">no_subtree_check</code> (서브트리 검사 비활성화)</strong>
+                    기본적으로 NFS는 클라이언트가 접근하려는 파일이 해당 공유 볼륨의 올바른 하위 디렉토리(Subtree) 내부에 있는지 매번 추적 검사합니다. 그러나 파일의 이름이 변경되거나 이동할 때 이 추적이 끊어지면 "Stale File Handle(만료된 파일 핸들)" 오류가 발생합니다. 현대 아키텍처에서는 시스템 안정성과 부하 감소를 위해 이 검사를 끄는 <code>no_subtree_check</code> 옵션을 <strong>표준으로 권장</strong>합니다.
+                </li>
+            </ul>
+        </div>
+
+        <h3 class="sub-section-title text-2xl text-blue-900">3. 권한 축소 및 매핑 기술 (UID/GID Squashing)</h3>
+        <p class="mb-4 text-slate-700 text-lg">가장 중요한 보안 개념입니다. '스쿼싱(Squashing, 짓누르기/축소)'은 클라이언트 시스템에서 접근하는 사용자의 시스템 권한(UID/GID)을 NFS 서버 단에서 강제로 안전한 익명 권한으로 낮추어 버리는 매핑(Mapping) 기술입니다.</p>
+
+        <div class="info-box border-l-purple-500">
+            <ul class="space-y-5 text-slate-700">
+                <li>
+                    <strong class="text-slate-900 block mb-1"><code class="bg-gray-100 px-2 rounded">root_squash</code> (기본값)</strong>
+                    클라이언트 측에서 최고 관리자(root, UID 0) 권한으로 NFS 서버에 파일을 쓰려고 하면, 서버는 이를 즉시 익명 계정인 <code>nobody(또는 nfsnobody)</code> 권한으로 강등시킵니다. 클라이언트 해킹 시 서버 인프라까지 장악되는 것을 막아줍니다.
+                </li>
+                <li>
+                    <strong class="text-slate-900 block mb-1"><code class="bg-gray-100 px-2 rounded">all_squash</code></strong>
+                    클라이언트가 root이든, 일반 사용자(User)이든 상관없이 <strong>모든 연결 권한</strong>을 <code>nobody</code>로 축소시킵니다. 공용 데이터베이스 덤프 저장소나 불특정 다수가 접근하는 퍼블릭 볼륨(Public Volume) 구성 시 사용됩니다.
+                </li>
+                <li>
+                    <strong class="text-slate-900 block mb-1"><code class="bg-gray-100 px-2 rounded">anonuid=1000, anongid=1000</code></strong>
+                    <code>all_squash</code> 옵션과 함께 사용되며, 축소된 익명 사용자의 권한을 서버에 존재하는 <strong>특정 UID/GID(사용자/그룹 식별자) 번호로 지정</strong>해 줍니다. 파일 소유권 관리가 매우 깔끔해집니다.
+                </li>
+            </ul>
+        </div>
+
+        <div class="warning-box">
+            <h4 class="font-bold text-red-700 mb-3 flex items-center gap-2 uppercase tracking-tighter text-lg">
+                <i data-lucide="alert-triangle" class="w-6 h-6"></i> 절대 사용 금지 : no_root_squash 옵션
+            </h4>
+            <p class="text-red-800 text-sm leading-relaxed mb-4">
+                <code>no_root_squash</code>는 스쿼싱(권한 축소)을 수행하지 않는다는 뜻입니다. 즉, 클라이언트 PC의 root 사용자가 NFS 서버 볼륨에서도 동일한 최고 관리자(root) 대우를 받게 됩니다.
+            </p>
+            <p class="text-red-800 text-sm font-bold bg-red-100 p-3 rounded">
+                ※ 리스크: 악의적인 클라이언트가 악성 바이너리(Binary, 실행 파일)에 SetUID(루트 권한 상승 플래그)를 설정하여 NFS 서버에 업로드하는 순간, 전체 스토리지 서버가 랜섬웨어 등 심각한 보안 침해(Breach)에 노출됩니다. OS(운영체제) 디스크리스 부팅 같은 특수 목적 외에는 절대 구성하지 마십시오.
+            </p>
+        </div>
+
+        <div class="image-placeholder mt-8 mb-12">
+            <h4 class="font-bold text-slate-800 mb-2 text-sm tracking-widest uppercase flex justify-center items-center gap-2">
+                <i data-lucide="users" class="w-5 h-5 text-purple-600"></i> 
+            </h4>
+            <p class="text-sm">클라이언트 측 UID 0 (root) ➔ NFS Server ➔ UID 65534 (nobody) 변환 매핑 구조</p>
+        </div>
+
+        <h3 class="sub-section-title text-2xl text-blue-900">4. 실무 설정 템플릿 예시 및 적용</h3>
+        <p class="mb-4 text-slate-700 text-lg">앞서 설명한 옵션들을 조합하여 인프라 목적에 맞는 <code>/etc/exports</code> 구성을 완성합니다. 설정 완료 후 데몬 재시작 없이 즉시 반영합니다.</p>
+
+        <div class="code-block m-0">
+            <span class="code-comment"># [실무 예제 1] 사내망 백업 저장소 (모든 사용자를 특정 UID 백업 계정으로 통합)</span><br>
+            <span class="highlight-line">/srv/nfs/backup  10.0.0.0/16(rw,sync,no_subtree_check,all_squash,anonuid=1005,anongid=1005)</span><br><br>
+
+            <span class="code-comment"># [실무 예제 2] 웹 서버 클러스터 소스코드 공유 (안전한 기본 보안 유지)</span><br>
+            <span class="highlight-line">/srv/nfs/www  172.16.10.0/24(rw,sync,no_subtree_check,root_squash)</span><br><br>
+
+            <span class="code-comment"># 설정 테이블 갱신 (-a: 모든 공유 목록 갱신, -r: 기존 목록 제거 후 리로드, -v: 상세 출력)</span><br>
+            $ <span class="code-keyword">sudo exportfs -arv</span><br>
+            <span class="code-output">exporting 10.0.0.0/16:/srv/nfs/backup</span><br>
+            <span class="code-output">exporting 172.16.10.0/24:/srv/nfs/www</span><br><br>
+
+            <span class="code-comment"># NFS 서버 커널 서비스 안정화 및 상시 활성화</span><br>
+            $ <span class="code-keyword">sudo systemctl restart nfs-kernel-server</span><br>
+            $ <span class="code-keyword">sudo systemctl enable nfs-kernel-server</span>
+        </div>
+    </section>
+
+    <!-- Section 3: Firewall & Architecture -->
+    <section id="architecture">
+        <h2 class="section-header text-3xl font-black text-slate-900 uppercase tracking-tight">방화벽 허용 및 아키텍처 도식화</h2>
+        
+        <p class="mb-6 text-slate-700 text-lg">NFS 통신을 허용하기 위해 UFW(Uncomplicated Firewall, 우분투 기본 방화벽)에서 접근 제어 규칙을 추가합니다. 허용할 서브넷(Subnet, 부분 망) 대역을 명시적으로 지정하여 보안을 강화합니다.</p>
+
+        <div class="code-block">
+            <span class="code-comment"># 192.168.0.0/24 대역에서 들어오는 NFS 포트(TCP/UDP 2049) 접근 허용</span><br>
+            $ <span class="code-keyword">sudo ufw allow from 192.168.0.0/24 to any port nfs</span><br>
+            <span class="code-output">Rule added</span><br><br>
+            <span class="code-comment"># 상태 확인</span><br>
+            $ <span class="code-keyword">sudo ufw status</span>
+        </div>
+
+        <div class="image-placeholder mt-12 relative overflow-hidden bg-slate-50 border-slate-200">
+            <div class="absolute top-0 left-0 w-2 h-full bg-blue-500"></div>
+            <h4 class="text-center font-bold text-slate-800 mb-8 text-sm tracking-widest uppercase flex justify-center items-center gap-2">
+                <i data-lucide="network" class="w-5 h-5 text-blue-600"></i> 
+            </h4>
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4 text-left">
+                <!-- Client Node -->
+                <div class="bg-white border border-slate-300 p-6 rounded-xl w-full md:w-5/12 shadow-sm">
+                    <div class="text-blue-600 font-bold mb-2 flex items-center gap-2"><i data-lucide="server" class="w-5 h-5"></i> Client Node (Web/App)</div>
+                    <div class="text-sm text-slate-600 bg-slate-100 p-3 rounded font-mono mb-2 border border-slate-200">IP: 192.168.0.50<br>Mount: /mnt/nfs_client</div>
+                    <div class="text-xs text-slate-500">클라이언트 커널의 VFS(가상 파일 시스템)를 통해 원격 저장소를 로컬 디스크처럼 인식</div>
+                </div>
+                
+                <!-- Protocol Arrow -->
+                <div class="text-slate-400 flex flex-col items-center flex-shrink-0">
+                    <span class="text-xs font-bold font-mono text-emerald-600 mb-1 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 shadow-sm">RPC / TCP 2049</span>
+                    <i data-lucide="arrow-right-left" class="w-8 h-8 text-slate-300 rotate-90 md:rotate-0 my-2"></i>
+                </div>
+                
+                <!-- Server Node -->
+                <div class="bg-slate-900 border border-slate-700 p-6 rounded-xl w-full md:w-5/12 shadow-xl text-slate-200">
+                    <div class="text-emerald-400 font-bold mb-2 flex items-center gap-2"><i data-lucide="database" class="w-5 h-5"></i> NFS Storage Server</div>
+                    <div class="text-sm text-slate-300 bg-slate-800 p-3 rounded font-mono mb-2 border border-slate-600">IP: 192.168.0.100<br>Export: /srv/nfs/shared</div>
+                    <div class="text-xs text-slate-400">nfs-kernel-server 및 rpcbind 데몬이 포트를 수신하고 데이터를 블록(Block) 단위로 처리</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 4: Client Connection -->
+    <section id="client-connect">
+        <h2 class="section-header text-3xl font-black text-slate-900 uppercase tracking-tight">클라이언트 접속 확인 및 수동 마운트(Mount)</h2>
+        
+        <p class="mb-6 text-slate-700 text-lg">NFS 공유 자원을 활용할 클라이언트 서버(Ubuntu 기반)로 이동하여, 접속에 필요한 패키지를 설치하고 수동으로 파일 시스템을 연결(Mount)하여 검증합니다.</p>
+
+        <div class="code-block">
+            <span class="code-comment"># 1. 클라이언트 시스템용 NFS 지원 패키지 설치</span><br>
+            $ <span class="code-keyword">sudo apt update && sudo apt install -y nfs-common</span><br><br>
+
+            <span class="code-comment"># 2. 원격 NFS 서버(192.168.0.100)의 공유 가능 폴더 목록(Export List) 조회</span><br>
+            $ <span class="code-keyword">showmount -e 192.168.0.100</span><br>
+            <span class="code-output">Export list for 192.168.0.100:<br>
+            /srv/nfs/shared 192.168.0.0/24</span><br><br>
+
+            <span class="code-comment"># 3. 로컬에 마운트(연결)할 빈 디렉토리(마운트 포인트) 생성</span><br>
+            $ <span class="code-keyword">sudo mkdir -p /mnt/nfs_client</span><br><br>
+
+            <span class="code-comment"># 4. 수동 마운트 실행 (-t nfs : 파일 시스템 타입을 nfs로 명시)</span><br>
+            $ <span class="code-keyword">sudo mount -t nfs 192.168.0.100:/srv/nfs/shared /mnt/nfs_client</span><br><br>
+
+            <span class="code-comment"># 5. 연결 확인 및 파일 시스템 디스크 사용량(Disk Free) 조회</span><br>
+            $ <span class="code-keyword">df -h -T | grep nfs</span><br>
+            <span class="code-output">192.168.0.100:/srv/nfs/shared  nfs4  100G  1.5G   99G   2% /mnt/nfs_client</span>
+        </div>
+
+        <p class="footnote">
+            <strong>df -h -T 옵션 해설:</strong> <code>-h</code>는 사람이 읽기 쉬운 단위(GB, MB)로 출력하고, <code>-T</code>는 파일 시스템의 타입(Type, 예: nfs4, ext4, xfs)을 함께 출력하여 직관적인 확인을 돕습니다.
+        </p>
+    </section>
+
+    <!-- Section 5: Persistent Mount & Unmount -->
+    <section id="persistent-mount">
+        <h2 class="section-header text-3xl font-black text-slate-900 uppercase tracking-tight">영구 마운트(fstab) 및 시스템 연결 해제(umount)</h2>
+        
+        <h3 class="sub-section-title text-2xl text-blue-900">1. 부팅 시 자동 연결을 위한 fstab(File System Table) 등록</h3>
+        <p class="mb-4 text-slate-700 text-lg">수동 마운트는 시스템이 재부팅(Reboot)되면 연결이 해제됩니다. 영구적인 연결을 유지하기 위해 운영체제의 파일 시스템 정보 테이블(<code>/etc/fstab</code>)에 환경을 등록해야 합니다.</p>
+
+        <div class="code-block">
+            <span class="code-comment"># fstab 파일 편집기 열기</span><br>
+            $ <span class="code-keyword">sudo nano /etc/fstab</span><br><br>
+
+            <span class="code-comment"># 파일 최하단에 다음 구문을 추가합니다.</span><br>
+            <span class="code-comment"># 형식: [서버IP:경로] [로컬_마운트포인트] [파일시스템종류] [마운트옵션] [덤프] [검사순서]</span><br>
+            <span class="highlight-line">192.168.0.100:/srv/nfs/shared  /mnt/nfs_client  nfs  defaults,_netdev,soft,timeo=10  0  0</span>
+        </div>
+
+        <div class="info-box border-l-amber-500">
+            <h4 class="font-bold text-slate-900 mb-3 flex items-center gap-2">
+                <i data-lucide="lightbulb" class="w-5 h-5 text-amber-500"></i> 실전 팁 (Practical Tips) : 엔터프라이즈급 fstab 옵션
+            </h4>
+            <p class="text-slate-700 text-sm leading-relaxed">
+                클라우드 환경이나 네트워크가 불안정한 환경에서 단순 <code>defaults</code> 옵션만 사용하면, 부팅 시 네트워크가 아직 올라오지 않았을 때 시스템 부팅이 멈추는 장애(Hang)가 발생할 수 있습니다.<br><br>
+                - <code class="bg-gray-100 px-1 rounded font-bold">_netdev</code>: 시스템 부팅 시 네트워크 서브시스템이 완전히 시작된 이후에 마운트를 시도하도록 강제합니다.<br>
+                - <code class="bg-gray-100 px-1 rounded font-bold">soft</code>: 네트워크 연결이 끊기면 일정 시간 후 재시도를 포기하고 타임아웃(Timeout) 오류를 발생시켜 시스템 전체가 멈추는 것을 방지합니다.<br>
+                - <code class="bg-gray-100 px-1 rounded font-bold">timeo=10</code>: 응답 대기 시간을 10데시초(Decisecond, 1초)로 짧게 설정하여 빠른 장애 탐지를 돕습니다.
+            </p>
+        </div>
+
+        <h3 class="sub-section-title text-2xl text-red-800">2. 마운트 해제(Unmount) 실무 절차</h3>
+        <p class="mb-4 text-slate-700 text-lg">스토리지 마이그레이션(Migration, 데이터 이관)이나 유지보수를 위해 현재 연결된 NFS 볼륨의 논리적 연결을 안전하게 해제(Umount)하는 방법입니다.</p>
+
+        <div class="code-block">
+            <span class="code-comment"># 1. 대상 디렉토리의 현재 사용 여부 확인 및 안전한 해제</span><br>
+            $ <span class="code-keyword">sudo umount /mnt/nfs_client</span><br><br>
+
+            <span class="code-comment"># 2. "device is busy" (장치 사용 중) 오류 발생 시 대처법</span><br>
+            <span class="code-comment"># 시스템 내의 다른 프로세스가 해당 폴더를 점유하고 있을 때 강제로 지연 해제(Lazy Unmount)를 수행합니다.</span><br>
+            $ <span class="code-keyword">sudo umount -l /mnt/nfs_client</span><br><br>
+
+            <span class="code-comment"># 강제 옵션(-f, Force) (주로 NFS 서버가 응답하지 않는 네트워크 단절 상황에 사용)</span><br>
+            $ <span class="code-keyword">sudo umount -f /mnt/nfs_client</span>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="mt-40 pt-16 border-t-4 border-slate-900">
+        <div class="text-slate-500 text-sm leading-relaxed space-y-4 font-light">
+            <p>본 매뉴얼은 Ubuntu 커널 기반 시스템에서 대규모 파일 공유 아키텍처를 구현하기 위한 NFS 표준 실무 가이드입니다. 스케일 아웃(Scale-out, 노드 확장) 스토리지 클러스터를 구성할 경우 CephFS나 GlusterFS와 같은 분산 파일 시스템과 함께 성능 및 가용성(Availability)을 비교하여 설계해야 합니다.</p>
+        </div>
+        <div class="mt-8 text-center text-slate-400 font-mono text-[10px] tracking-widest uppercase">
+            © 2026 Chief System Architect. All Infrastructure Secured.
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
