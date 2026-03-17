@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>우분투 최신 버전 명세 및 실무 로그 분석 아키텍처</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #1e3a8a; /* Deep Blue */
+            --accent-color: #2563eb; /* Bright Blue */
+            --text-main: #1f2937;
+            --text-muted: #4b5563;
+            --bg-page: #f8fafc;
+            --bg-card: #ffffff;
+        }
+        
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+            background-color: var(--bg-page);
+            color: var(--text-main);
+            line-height: 1.8;
+            letter-spacing: -0.01em;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .textbook-container {
+            max-width: 1200px;
+            margin: 60px auto;
+            background-color: var(--bg-card);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+            border-radius: 16px;
+            padding: 80px 100px;
+        }
+
+        .page-break {
+            margin-bottom: 120px;
+            padding-bottom: 80px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .page-break:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        h2 {
+            font-size: 2.75rem;
+            font-weight: 900;
+            color: #0f172a;
+            margin-bottom: 50px;
+            padding-bottom: 20px;
+            border-bottom: 4px solid var(--primary-color);
+            line-height: 1.3;
+            word-break: keep-all;
+        }
+
+        h3 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-top: 60px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+        }
+
+        h3::before {
+            content: "";
+            display: inline-block;
+            width: 6px;
+            height: 28px;
+            background-color: var(--accent-color);
+            margin-right: 14px;
+            border-radius: 4px;
+        }
+
+        .block-sentence {
+            background: linear-gradient(145deg, #f8fafc 0%, #f1f5f9 100%);
+            border-left: 6px solid var(--accent-color);
+            padding: 32px 40px;
+            margin: 40px 0;
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: #334155;
+            border-radius: 0 12px 12px 0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            word-break: keep-all;
+            line-height: 1.9;
+        }
+
+        .diagram-box {
+            background-color: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            border-radius: 16px;
+            padding: 60px 40px;
+            margin: 60px 0;
+            text-align: center;
+            color: #64748b;
+            font-size: 1.15rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .diagram-box:hover {
+            background-color: #f1f5f9;
+            border-color: #94a3b8;
+        }
+
+        .diagram-caption {
+            display: block;
+            margin-top: 24px;
+            font-size: 0.95rem;
+            color: #94a3b8;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 50px 0;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        }
+
+        th, td {
+            padding: 24px 30px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+            border-right: 1px solid #e2e8f0;
+            line-height: 1.7;
+        }
+
+        th:last-child, td:last-child {
+            border-right: none;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 1.15rem;
+            letter-spacing: 0.02em;
+        }
+
+        td {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            background-color: #ffffff;
+        }
+
+        tr:nth-child(even) td {
+            background-color: #f8fafc;
+        }
+
+        .notice-box {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            border-left: 8px solid #ef4444;
+            padding: 30px 40px;
+            margin-top: 50px;
+            border-radius: 8px 12px 12px 8px;
+            box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.1);
+        }
+
+        .notice-title {
+            color: #991b1b;
+            font-weight: 800;
+            font-size: 1.25rem;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+        }
+
+        .notice-title::before {
+            content: "⚠️";
+            margin-right: 10px;
+            font-size: 1.4rem;
+        }
+
+        .notice-text {
+            color: #7f1d1d;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            word-break: keep-all;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin-bottom: 40px;
+        }
+
+        ul li {
+            position: relative;
+            padding-left: 36px;
+            margin-bottom: 24px;
+            font-size: 1.15rem;
+            color: var(--text-muted);
+            line-height: 1.8;
+            word-break: keep-all;
+        }
+
+        ul li::before {
+            content: "■";
+            position: absolute;
+            left: 0;
+            color: var(--accent-color);
+            font-size: 0.9rem;
+            top: 6px;
+        }
+
+        .highlight {
+            background-color: #fef08a;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: 700;
+            color: #854d0e;
+        }
+
+        .code-inline {
+            background-color: #1e293b;
+            color: #38bdf8;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-family: 'D2Coding', 'Consolas', monospace;
+            font-size: 1.05rem;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+        }
+
+        .footnote {
+            font-size: 0.95rem;
+            color: #64748b;
+            border-top: 1px dashed #cbd5e1;
+            padding-top: 12px;
+            margin-top: 20px;
+        }
+
+        a {
+            color: var(--accent-color);
+            text-decoration: none;
+            border-bottom: 1px solid var(--accent-color);
+            padding-bottom: 2px;
+            transition: color 0.2s, border-color 0.2s;
+        }
+
+        a:hover {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        /* 문서 메인 타이틀 전용 스타일 추가 */
+        .document-header {
+            text-align: center;
+            margin-bottom: 100px;
+            padding-bottom: 60px;
+            border-bottom: 2px solid #e2e8f0;
+            position: relative;
+        }
+
+        .document-header::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 6px;
+            background-color: var(--accent-color);
+            border-radius: 4px;
+        }
+
+        .category-badge {
+            display: inline-block;
+            background-color: #eff6ff;
+            color: var(--accent-color);
+            padding: 10px 24px;
+            border-radius: 999px;
+            font-weight: 800;
+            font-size: 1.1rem;
+            margin-bottom: 28px;
+            letter-spacing: 0.05em;
+            border: 1px solid #bfdbfe;
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.1);
+        }
+
+        .main-title {
+            font-size: 3.8rem;
+            font-weight: 900;
+            color: #0f172a;
+            line-height: 1.25;
+            letter-spacing: -0.03em;
+            margin-bottom: 30px;
+            word-break: keep-all;
+        }
+
+        .sub-title {
+            font-size: 1.45rem;
+            color: #64748b;
+            font-weight: 500;
+            word-break: keep-all;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+
+<div class="textbook-container">
+
+    <!-- 문서 메인 타이틀 영역 -->
+    <div class="document-header">
+        <div class="category-badge">엔터프라이즈 인프라 아키텍처 시리즈</div>
+        <h1 class="main-title">우분투 시스템 로그 분석 및<br>실시간 위협 탐지 아키텍처</h1>
+        <p class="sub-title">LTS(Long Term Support, 장기 지원) 버전 기반<br>서버 운영 및 디지털 포렌식(Digital Forensics, 전자 법의학) 실무 가이드</p>
+    </div>
+
+    <!-- 1페이지 -->
+    <div class="page-break">
+        <h2>리눅스 핵심 로그의 종류와 아키텍처 상의 역할</h2>
+        
+        <div class="block-sentence">
+            엔터프라이즈(Enterprise, 기업용) 리눅스 운영 체제에서 발생하는 모든 시스템 이벤트, 서비스 동작 상태, 보안 위협 및 에러는 지정된 전용 디렉터리인 <span class="code-inline">/var/log</span> 하위에 정형화된 텍스트 형태로 안전하게 기록됩니다.
+        </div>
+
+        <div class="diagram-box">
+            <!-- 시각화 도식: /var/log 디렉터리 계층 구조 -->
+            <div class="flex flex-col md:flex-row items-center justify-center gap-8 py-4 font-sans">
+                <div class="flex flex-col gap-6 w-full md:w-1/3">
+                    <div class="bg-slate-200 text-slate-800 px-6 py-5 rounded-xl font-bold shadow-sm border border-slate-300">
+                        커널 영역 (Kernel Space)
+                        <div class="text-sm font-normal text-slate-500 mt-2">운영체제 코어, 물리적 하드웨어 제어</div>
+                    </div>
+                    <div class="bg-indigo-100 text-indigo-800 px-6 py-5 rounded-xl font-bold shadow-sm border border-indigo-200">
+                        사용자 영역 (User Space)
+                        <div class="text-sm font-normal text-indigo-500 mt-2">어플리케이션, 데몬 프로세스 구동</div>
+                    </div>
+                </div>
+                
+                <div class="hidden md:flex flex-col gap-12 text-3xl text-slate-300 font-black">
+                    <div>➔</div>
+                    <div>➔</div>
+                </div>
+                
+                <div class="flex flex-col gap-4 w-full md:w-1/2 text-left">
+                    <div class="bg-white px-6 py-4 rounded-xl font-bold shadow-md border-l-8 border-slate-500 text-slate-800 flex items-center justify-between">
+                        <div>/var/log/dmesg<br><span class="text-sm font-normal text-slate-500">하드웨어 인식 및 부팅 진단 기록</span></div>
+                        <span class="text-2xl opacity-50">⚙️</span>
+                    </div>
+                    <div class="bg-white px-6 py-4 rounded-xl font-bold shadow-md border-l-8 border-indigo-500 text-slate-800 flex items-center justify-between">
+                        <div>/var/log/syslog<br><span class="text-sm font-normal text-slate-500">시스템 통합 이벤트 및 데몬 상태</span></div>
+                        <span class="text-2xl opacity-50">📝</span>
+                    </div>
+                    <div class="bg-white px-6 py-4 rounded-xl font-bold shadow-md border-l-8 border-rose-500 text-slate-800 flex items-center justify-between">
+                        <div>/var/log/auth.log<br><span class="text-sm font-normal text-slate-500">계정 인증 세션 및 침입 시도 이력</span></div>
+                        <span class="text-2xl opacity-50">🛡️</span>
+                    </div>
+                </div>
+            </div>
+            <span class="diagram-caption">※ 커널 영역과 사용자 영역(User Space)에서 발생하는 이벤트가 각각의 전용 로그 파일로 라우팅되는 과정을 나타냅니다.</span>
+        </div>
+
+        <div class="block-sentence">
+            최고 수준의 시스템 아키텍트(System Architect, 시스템 설계자)는 각 로그 파일의 생성 원리와 목적을 명확히 파악하여, 장애 발생 시 원인을 역추적하는 디지털 포렌식(Digital Forensics, 전자 법의학) 및 트러블슈팅(Troubleshooting, 문제 해결)의 최우선 단서로 활용해야 합니다.
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 25%;">로그 파일 경로</th>
+                    <th style="width: 25%;">명칭</th>
+                    <th style="width: 50%;">핵심 역할 및 기록 내용</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="font-bold text-slate-900">/var/log/syslog</td>
+                    <td>System Log<br>(시스템 통합 로그)</td>
+                    <td>커널(Kernel, 운영 체제 핵심 코어) 수준의 이벤트부터 각종 데몬(Daemon, 백그라운드 서비스)의 동작 상태 및 오류까지 모든 내역을 통합하여 기록하는 포괄적인 시스템 장부입니다.</td>
+                </tr>
+                <tr>
+                    <td class="font-bold text-slate-900">/var/log/auth.log</td>
+                    <td>Authentication Log<br>(인증 및 보안 로그)</td>
+                    <td>SSH(Secure Shell, 원격 보안 셸) 로그인 시도, sudo(Super User Do, 최고 관리자 권한 실행)를 통한 권한 상승 등 시스템의 보안 및 계정 인증과 관련된 모든 세션 성립 기록이 남습니다.</td>
+                </tr>
+                <tr>
+                    <td class="font-bold text-slate-900">/var/log/dmesg</td>
+                    <td>Diagnostic Message<br>(커널 진단 메시지)</td>
+                    <td>서버 부팅 과정에서 커널이 출력하는 물리적 하드웨어 장치 인식, 디바이스 드라이버 로드 및 물리 메모리 할당 상태를 기록합니다.</td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="footnote">주석: RedHat(레드햇)이나 CentOS 계열의 운영체제에서는 syslog 대신 /var/log/messages, auth.log 대신 /var/log/secure 경로를 사용합니다.</div>
+    </div>
+
+    <!-- 2페이지 -->
+    <div class="page-break">
+        <h2>시스템 로그별 상세 메시지 종류와 딥다이브 분석</h2>
+        
+        <div class="block-sentence">
+            로그 파일 내부에 기록되는 텍스트 라인은 전역적으로 일정한 규칙(Timestamp, Hostname, Daemon, Message 본문)을 준수합니다. 각 로그 파일에서 빈번하게 관찰되는 핵심 에러 메시지의 패턴을 식별하는 것은 신속한 원인 규명의 첫걸음입니다.
+        </div>
+
+        <div class="diagram-box">
+            <!-- 시각화 도식: 로그 메시지 분해 -->
+            <div class="bg-[#1e1e2e] rounded-xl p-8 shadow-inner text-left font-mono text-[1.05rem] overflow-x-auto my-4 border border-[#313244]">
+                <div class="flex flex-wrap gap-3 items-center mb-6">
+                    <span class="bg-[#a6e3a1]/20 text-[#a6e3a1] px-4 py-2 rounded border border-[#a6e3a1]/30">Oct 12 10:23:45</span>
+                    <span class="bg-[#89b4fa]/20 text-[#89b4fa] px-4 py-2 rounded border border-[#89b4fa]/30">websrv01</span>
+                    <span class="bg-[#cba6f7]/20 text-[#cba6f7] px-4 py-2 rounded border border-[#cba6f7]/30">sshd[1234]:</span>
+                    <span class="bg-[#f38ba8]/20 text-[#f38ba8] px-4 py-2 rounded border border-[#f38ba8]/30">Failed password for invalid user admin from 192.168.1.100 port 44820 ssh2</span>
+                </div>
+                <div class="flex flex-col md:flex-row gap-4 text-[0.95rem] font-sans mt-8 justify-between text-center max-w-5xl border-t border-[#45475a] pt-6 relative">
+                    <div class="flex-1 text-[#a6e3a1] font-bold">
+                        <span class="block mb-2 text-xl">↑</span>
+                        타임스탬프<br><span class="text-xs font-normal opacity-70">(Timestamp)</span>
+                    </div>
+                    <div class="flex-1 text-[#89b4fa] font-bold">
+                        <span class="block mb-2 text-xl">↑</span>
+                        호스트명<br><span class="text-xs font-normal opacity-70">(Hostname)</span>
+                    </div>
+                    <div class="flex-1 text-[#cba6f7] font-bold">
+                        <span class="block mb-2 text-xl">↑</span>
+                        데몬 프로세스 및 PID<br><span class="text-xs font-normal opacity-70">(Daemon)</span>
+                    </div>
+                    <div class="flex-[1.5] text-[#f38ba8] font-bold md:text-left pl-0 md:pl-8">
+                        <span class="block mb-2 text-xl md:text-center">↑</span>
+                        <div class="md:text-center">이벤트 상세 메시지<br><span class="text-xs font-normal opacity-70">(Message Body)</span></div>
+                    </div>
+                </div>
+            </div>
+            <span class="diagram-caption">※ 예시: "Oct 12 10:23:45 websrv01 sshd[1234]: Failed password..." 문자열의 각 블록이 내포하는 아키텍처적 의미를 시각적으로 분해합니다.</span>
+        </div>
+
+        <div class="block-sentence">
+            아래 표는 실무 운영 환경에서 가장 흔하게 마주치는 시스템별 장애 알림 메시지와, 해당 메시지가 내포하고 있는 시스템 수준의 아키텍처적 위협 요소를 분석한 명세서입니다.
+        </div>
+
+        <h3>주요 로그 메시지 패턴 아키텍처 분석</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 20%;">대상 로그</th>
+                    <th style="width: 35%;">로그 메시지 패턴 (원문 발췌)</th>
+                    <th style="width: 45%;">아키텍처적 의미 및 딥다이브 분석</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td rowspan="2" class="font-bold text-slate-900 bg-slate-50">/var/log/auth.log</td>
+                    <td class="code-inline">Failed password for invalid user...</td>
+                    <td><span class="highlight">비정상 접근 시도 탐지</span><br>존재하지 않는 계정명으로 로그인을 무작위로 시도한 기록입니다. 이는 외부 해커의 전형적인 브루트 포스(Brute Force, 무차별 대입) 공격 징후입니다.</td>
+                </tr>
+                <tr>
+                    <td class="code-inline">Accepted publickey for root...</td>
+                    <td><span class="highlight">인증 키 기반 정상 세션</span><br>비밀번호가 아닌 SSH Key(보안 셸 암호화 키 쌍)를 이용하여 안전하게 서버에 접속(세션 성립)했음을 인증하는 정상적인 상태 메시지입니다.</td>
+                </tr>
+                <tr>
+                    <td rowspan="2" class="font-bold text-slate-900 bg-slate-50">/var/log/syslog</td>
+                    <td class="code-inline">Out of memory: Killed process...</td>
+                    <td><span class="highlight">물리적 자원 고갈 (치명적 장애)</span><br>서버의 가용 RAM 용량이 임계치를 초과하여, 커널 내장 모듈인 OOM-Killer(Out Of Memory Killer, 메모리 확보 메커니즘)가 점유율이 높은 프로세스(주로 DB)를 강제 종료시켰음을 뜻합니다.</td>
+                </tr>
+                <tr>
+                    <td class="code-inline">Started Nginx Web Server.</td>
+                    <td><span class="highlight">서비스 구동 완료</span><br>Systemd(System Daemon, 시스템 관리 데몬)에 의해 웹 서비스가 정상적으로 메모리에 적재되어 트래픽 수신 대기 상태가 되었음을 알립니다.</td>
+                </tr>
+                <tr>
+                    <td class="font-bold text-slate-900 bg-slate-50">/var/log/dmesg</td>
+                    <td class="code-inline">eth0: link up, 1000Mbps, full-duplex</td>
+                    <td><span class="highlight">물리 계층(L1) 활성화</span><br>네트워크 랜카드(NIC)인 eth0가 상위 스위치 장비와 정상적으로 협상되어 1Gbps 속도로 양방향 통신(Full-duplex, 전이중 방식)을 개시했음을 의미합니다.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 3페이지 -->
+    <div class="page-break">
+        <h2>실무 환경에서의 로그 분석 및 전략적 활용례</h2>
+        
+        <div class="block-sentence">
+            대규모 엔터프라이즈 환경에서 로그 데이터는 단순한 텍스트 덩어리가 아닙니다. 이는 외부의 지능형 사이버 위협(APT)을 선제적으로 탐지하고, 내부 클라우드 리소스의 고갈을 사전에 방어하기 위한 가장 핵심적인 측정 지표(Metric)입니다.
+        </div>
+
+        <div class="diagram-box">
+            <!-- 시각화 도식: SIEM 중앙 수집 아키텍처 -->
+            <div class="flex flex-col md:flex-row items-stretch justify-center gap-6 py-6 font-sans">
+                <!-- 로그 발생지 -->
+                <div class="bg-white p-6 rounded-2xl shadow border border-slate-200 w-full md:w-1/3 flex flex-col">
+                    <h4 class="font-bold text-slate-800 mb-4 border-b pb-3 flex items-center gap-2"><span class="text-xl">🌐</span> 로그 발생 소스 (Sources)</h4>
+                    <div class="flex flex-col gap-3 text-left">
+                        <div class="bg-slate-50 p-3 rounded-lg text-sm font-bold text-slate-700 border border-slate-200">웹 서버 군 (Nginx, Apache)<br><span class="text-xs font-normal text-slate-500">access.log, error.log</span></div>
+                        <div class="bg-slate-50 p-3 rounded-lg text-sm font-bold text-slate-700 border border-slate-200">데이터베이스 (MySQL, Redis)<br><span class="text-xs font-normal text-slate-500">slow_query.log, syslog</span></div>
+                        <div class="bg-slate-50 p-3 rounded-lg text-sm font-bold text-slate-700 border border-slate-200">네트워크 보안 (UFW, IPTables)<br><span class="text-xs font-normal text-slate-500">kern.log, auth.log</span></div>
+                    </div>
+                </div>
+                
+                <!-- 파이프라인 화살표 -->
+                <div class="flex items-center justify-center text-3xl text-blue-400 font-black">
+                    <div class="animate-pulse transform rotate-90 md:rotate-0">⇒</div>
+                </div>
+                
+                <!-- 중앙 수집소 (SIEM) -->
+                <div class="bg-blue-50 p-6 rounded-2xl shadow border border-blue-200 w-full md:w-1/3 flex flex-col relative overflow-hidden">
+                    <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-blue-500 opacity-10 rounded-full"></div>
+                    <h4 class="font-bold text-blue-800 mb-4 border-b border-blue-200 pb-3 flex items-center gap-2 relative z-10"><span class="text-xl">☁️</span> 중앙 관제 (SIEM)</h4>
+                    <div class="bg-blue-600 text-white p-5 rounded-xl text-center font-bold shadow-lg flex-1 flex flex-col justify-center relative z-10">
+                        <div class="text-lg mb-2">CloudWatch / ELK</div>
+                        <div class="bg-blue-800/50 p-2 rounded text-xs font-normal mt-2">정규화 (Normalization)</div>
+                        <div class="bg-blue-800/50 p-2 rounded text-xs font-normal mt-2">패턴 매칭 (Pattern Matching)</div>
+                    </div>
+                </div>
+
+                <!-- 파이프라인 화살표 -->
+                <div class="flex items-center justify-center text-3xl text-rose-400 font-black">
+                    <div class="animate-pulse transform rotate-90 md:rotate-0">⇒</div>
+                </div>
+
+                <!-- 위협 탐지 -->
+                <div class="bg-rose-50 p-6 rounded-2xl shadow border border-rose-200 w-full md:w-1/3 flex flex-col relative overflow-hidden">
+                    <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-rose-500 opacity-10 rounded-full"></div>
+                    <h4 class="font-bold text-rose-800 mb-4 border-b border-rose-200 pb-3 flex items-center gap-2 relative z-10"><span class="text-xl">🚨</span> 위협 탐지 (Detection)</h4>
+                    <div class="bg-white p-4 rounded-xl shadow-md border-l-4 border-rose-500 text-left relative z-10 flex-1 flex flex-col justify-center">
+                        <div class="text-[0.9rem] font-black text-rose-600 mb-2">Warning: Brute Force</div>
+                        <div class="text-[0.8rem] text-slate-600 leading-relaxed font-mono">
+                            <span class="font-bold text-slate-800">Target:</span> auth.log<br>
+                            <span class="font-bold text-slate-800">Source IP:</span> 192.168.1.100<br>
+                            <span class="font-bold text-rose-500 mt-2 block">▶ Auto-Block Rule Applied</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <span class="diagram-caption">※ 여러 대의 분산 서버에서 발생하는 로그를 중앙으로 수집하여 실시간 위협을 식별하는 SIEM(Security Information and Event Management) 구축 아키텍처 예시입니다.</span>
+        </div>
+
+        <div class="block-sentence">
+            특히 Public IP(공인 IP)를 통해 인터넷에 개방형으로 노출된 인프라는 전 세계 봇넷(Botnet)으로부터 끊임없는 스캐닝과 공격을 받게 되므로, 정기적이고 자동화된 로그 감사(Audit, 시스템 감시 및 분석)가 필수적인 시스템 운영 절차입니다.
+        </div>
+
+        <h3>실무 운영 및 인프라 보안 활용 사례</h3>
+        <ul>
+            <li><strong>해킹 공격 즉각 탐지 및 네트워크 차단:</strong> <span class="code-inline">/var/log/auth.log</span> 모니터링 중 특정 IP(Internet Protocol, 인터넷 규약) 주소가 짧은 시간 내에 수백 번의 인증 실패 로그를 남겼다면, 방화벽(UFW, iptables 또는 클라우드 보안 그룹) 레벨에서 해당 IP를 즉각 영구 차단 조치하여 침해를 방어해야 합니다.</li>
+            <li><strong>물리적/논리적 메모리 장애 선제 분석:</strong> 서버가 원인 불명으로 서비스 중단(Down) 상태가 된 경우, <span class="code-inline">/var/log/syslog</span>를 분석하여 'Out of memory' 발생 여부를 파악합니다. 사실 확인 시 지연 없이 스케일 업(Scale-up, 하드웨어 사양 수직 확장) 또는 Swap(스왑, 디스크를 활용한 가상 메모리 공간) 파티션의 증설을 단행해야 합니다.</li>
+            <li><strong>클라우드 연동 트래픽 및 과금 방어:</strong> AWS CloudTrail(아마존 웹 서비스 클라우드트레일, 관리형 API 추적 서비스)과 같은 API(Application Programming Interface, 애플리케이션 프로그래밍 인터페이스) 호출 이력 로그를 리눅스 내부 데몬 로그와 교차 검증하여, 불법적인 자원 생성 스크립트 실행을 조기에 식별합니다.</li>
+        </ul>
+
+        <div class="notice-box">
+            <div class="notice-title">클라우드 로깅 아키텍처 비용 최적화 경고</div>
+            <div class="notice-text">
+                AWS 인프라 환경에서 CloudTrail, CloudWatch Logs 등 완전 관리형 로깅 서비스를 사용할 경우, 기본 무료 제공량을 초과하는 대량의 시스템 이벤트 기록 처리 및 S3(Simple Storage Service, 아마존 객체 스토리지 서비스) 장기 보관 용량에 대하여 <strong>예상치 못한 막대한 유료 과금(추가 비용 발생)</strong>이 발생할 수 있습니다. 
+                <br><br>
+                따라서 아키텍트로서 인프라 설계 시 로그의 중요도 및 규정에 따라 보존 주기를 명확히 산정하고, 불필요한 과거 로그는 Glacier(글래시어, 저비용 아카이브 스토리지)로 이관되거나 자동 삭제되도록 수명 주기 정책(Lifecycle Policy)을 강제하여 선제적으로 비용 최적화를 수행해야 합니다.
+            </div>
+        </div>
+    </div>
+
+    <!-- 4페이지 -->
+    <div class="page-break">
+        <h2>실시간 로그 모니터링(Real-time Monitoring) 파이프라인 구성</h2>
+        
+        <div class="block-sentence">
+            상용 서비스 오픈(Launch) 직후나 대규모 트래픽이 유입되는 크리티컬(Critical, 치명적이고 중요한)한 시점에 장애가 발생하면, 시스템 엔지니어는 현재 시점의 에러 데이터 흐름을 실시간으로 추적하는 파이프라인(Pipeline, 데이터 연속 처리 단계)을 즉시 가동해야 합니다.
+        </div>
+
+        <div class="diagram-box">
+            <!-- 시각화 도식: CLI 터미널 시뮬레이터 -->
+            <div class="bg-[#121212] rounded-xl shadow-2xl overflow-hidden my-6 border border-[#2d2d2d] text-left mx-auto max-w-4xl">
+                <!-- 터미널 헤더 바 -->
+                <div class="bg-[#2d2d2d] px-4 py-3 flex items-center justify-between border-b border-[#000000]">
+                    <div class="flex gap-2">
+                        <div class="w-3.5 h-3.5 rounded-full bg-[#ff5f56]"></div>
+                        <div class="w-3.5 h-3.5 rounded-full bg-[#ffbd2e]"></div>
+                        <div class="w-3.5 h-3.5 rounded-full bg-[#27c93f]"></div>
+                    </div>
+                    <div class="text-[0.8rem] text-slate-400 font-sans font-bold select-none">root@websrv-production:~</div>
+                    <div class="w-12"></div> <!-- 균형을 위한 빈 공간 -->
+                </div>
+                <!-- 터미널 본문 -->
+                <div class="p-6 font-mono text-[1.05rem] leading-loose text-[#d4d4d4] bg-[#1e1e1e]">
+                    <div class="text-[#4af626] mb-6 font-bold">
+                        <span class="text-[#a5a5a5] font-normal">root@websrv-production:~#</span> tail -f /var/log/auth.log | grep --color "Failed"
+                    </div>
+                    <div class="opacity-80 text-[#9cdcfe]">Oct 12 10:23:40 websrv01 sshd[1230]: <span class="text-[#f14c4c] font-bold bg-[#f14c4c]/20 px-1 rounded">Failed</span> password for invalid user oracle from 192.168.1.100 port 44810 ssh2</div>
+                    <div class="opacity-80 text-[#9cdcfe]">Oct 12 10:23:45 websrv01 sshd[1234]: <span class="text-[#f14c4c] font-bold bg-[#f14c4c]/20 px-1 rounded">Failed</span> password for invalid user admin from 192.168.1.100 port 44820 ssh2</div>
+                    <div class="text-[#9cdcfe]">Oct 12 10:23:47 websrv01 sshd[1235]: <span class="text-[#f14c4c] font-bold bg-[#f14c4c]/20 px-1 rounded">Failed</span> password for invalid user root from 192.168.1.100 port 44824 ssh2</div>
+                    <div class="mt-4 text-[#a5a5a5] font-black animate-pulse">_</div>
+                </div>
+            </div>
+            <span class="diagram-caption">※ 수많은 정상 트래픽 로그 속에서 tail 명령어와 grep 파이프를 조합하여 특정 Error(붉은색 텍스트) 구문만 실시간으로 필터링 추적하는 터미널 CLI 시뮬레이션입니다.</span>
+        </div>
+
+        <div class="block-sentence">
+            도입에 수개월이 소요되는 무거운 서드파티(3rd-party, 제3자 제공) 통합 관제 솔루션에 의존하기 이전에, 리눅스 본연의 CLI(Command Line Interface, 텍스트 명령줄 인터페이스) 환경에서 제공되는 핵심 유틸리티만 조합하더라도 지연 없는 초당 실시간 모니터링 통제소를 즉각 구축할 수 있습니다.
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 20%;">명령어 (CLI)</th>
+                    <th style="width: 25%;">기능 및 의미</th>
+                    <th style="width: 55%;">전문 아키텍트의 실무 적용 방법론</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="font-bold text-slate-900">tail -f</td>
+                    <td>Tail Follow<br>(꼬리 지속 추적)</td>
+                    <td>지정한 텍스트 파일의 마지막 10줄을 선 출력한 뒤 프로세스를 점유하며, 파일에 새로운 I/O 쓰기 작업(로그 추가)이 발생할 때마다 터미널 화면을 0.1초의 지연 없이 즉시 갱신합니다. 서버 접속 시 가장 먼저 습관적으로 입력하는 명령어입니다.<br><span class="code-inline mt-3 inline-block">tail -f /var/log/syslog</span></td>
+                </tr>
+                <tr>
+                    <td class="font-bold text-slate-900">journalctl -f</td>
+                    <td>Journal Control Follow<br>(저널 제어 지속 추적)</td>
+                    <td>Systemd 환경에서 통제되는 데몬 서비스들의 바이너리 로그를 사람이 읽을 수 있는 텍스트로 디코딩하여 실시간 스트리밍합니다. Nginx나 MySQL 등 특정 어플리케이션 계층 서비스만의 에러를 독점적으로 감시할 때 압도적으로 유리합니다.<br><span class="code-inline mt-3 inline-block">journalctl -f -u nginx.service</span></td>
+                </tr>
+                <tr>
+                    <td class="font-bold text-slate-900">grep</td>
+                    <td>Global Regular Expression Print<br>(전역 정규 표현식 인쇄)</td>
+                    <td>실시간 스트리밍 명령어 뒤에 파이프라인 기호(<span class="code-inline text-white">|</span>)로 연결합니다. 초당 수천 줄씩 폭주하는 방대한 로그 트래픽 속에서, 분석가가 사전에 정의한 특정 문자열(예: Error, Failed, Denied)이 포함된 라인만 필터링 출력하여 감시 효율을 극대화합니다.<br><span class="code-inline mt-3 inline-block">tail -f /var/log/auth.log | grep "Failed"</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+</body>
+</html>
