@@ -105,8 +105,8 @@ def generate_index():
     </footer>
 
     <script>
-        // 전역 상태 변수: 모든 폴더가 펼쳐져 있는지 여부를 추적합니다.
-        let isAllExpanded = true;
+        // 전역 상태 변수: 디폴트를 'false'로 변경하여 모든 폴더가 처음에는 접혀있도록 설정합니다.
+        let isAllExpanded = false;
 
         // 개별 폴더를 펼치거나 접는 함수
         function toggleFolder(element) {
@@ -234,13 +234,13 @@ def generate_index():
     # 3. 루트 인덱스 HTML 생성
     # ---------------------------------------------------------------------------
     
-    # 전체 펼치기/접기(Expand/Collapse All) 전역 제어 버튼 영역 추가
+    # 전체 펼치기/접기(Expand/Collapse All) 전역 제어 버튼: 처음 상태를 접힌 상태(EXPAND ALL)로 변경
     if structure:
         content_body += """
         <div class="flex justify-end mb-6">
             <button onclick="toggleAllFolders()" class="group flex items-center space-x-2 bg-slate-900/80 hover:bg-slate-800 text-cyan-400 py-2.5 px-5 rounded-xl border border-cyan-900/50 hover:border-cyan-500/50 transition-all duration-300 shadow-lg backdrop-blur-md">
-                <i class="fas fa-folder-open text-lg transition-transform group-hover:scale-110" id="global-toggle-icon"></i>
-                <span class="font-mono text-sm font-bold tracking-widest" id="global-toggle-text">COLLAPSE ALL</span>
+                <i class="fas fa-folder text-lg transition-transform group-hover:scale-110" id="global-toggle-icon"></i>
+                <span class="font-mono text-sm font-bold tracking-widest" id="global-toggle-text">EXPAND ALL</span>
             </button>
         </div>
         """
@@ -254,22 +254,25 @@ def generate_index():
         base_icon = "fa-server" if is_root else "fa-folder-open"
         closed_icon = "fa-server" if is_root else "fa-folder"
         
-        # 각 폴더 섹션(Section) 컨테이너 및 헤더 구성
+        # [변경점] 1. Section 태그의 여백(p-6) 제거 및 overflow-hidden 추가하여 내부를 딱 맞게 가림
+        #         2. Header 태그 내부에만 패딩(px-6 py-5) 부여
+        #         3. 초기 상태를 접힘(grid-rows-[0fr] opacity-0)으로 설정 및 아이콘 상태 변경
         content_body += f"""
-        <section class="folder-section mb-10 bg-slate-900/60 p-6 rounded-2xl border border-slate-800/80 backdrop-blur-sm shadow-xl transition-all duration-300">
-            <div class="folder-header flex items-center space-x-3 mb-4 border-b border-slate-700/80 pb-3 cursor-pointer group hover:border-cyan-500/50 transition-colors" 
+        <section class="folder-section mb-6 bg-slate-900/60 rounded-2xl border border-slate-800/80 backdrop-blur-sm shadow-xl transition-all duration-300 overflow-hidden">
+            <div class="folder-header flex items-center space-x-3 px-6 py-5 cursor-pointer group hover:bg-slate-800/40 transition-colors" 
                  onclick="toggleFolder(this)" 
                  data-base-icon="{base_icon}" 
                  data-closed-icon="{closed_icon}">
-                <i class="folder-icon fas {base_icon} text-cyan-500 text-xl drop-shadow-md transition-all duration-300 group-hover:scale-110"></i>
+                <i class="folder-icon fas {closed_icon} text-cyan-500 text-xl drop-shadow-md transition-all duration-300 group-hover:scale-110"></i>
                 <h2 class="text-xl font-bold text-slate-100 tracking-wide text-glow group-hover:text-cyan-300 transition-colors">{display_folder}</h2>
                 <span class="text-cyan-600/80 text-xs font-mono ml-2 font-bold bg-slate-950/50 px-2 py-1 rounded-md">[{len(files)} OBJECTS]</span>
-                <i class="fas fa-chevron-up ml-auto text-slate-500 transition-transform duration-300 chevron-icon group-hover:text-cyan-400"></i>
+                <i class="fas fa-chevron-up rotate-180 ml-auto text-slate-500 transition-transform duration-300 chevron-icon group-hover:text-cyan-400"></i>
             </div>
             
-            <div class="list-container grid transition-all duration-300 ease-in-out grid-rows-[1fr] opacity-100">
+            <div class="list-container grid transition-all duration-300 ease-in-out grid-rows-[0fr] opacity-0">
                 <div class="overflow-hidden">
-                    <ul class="space-y-2 font-mono text-sm md:text-base pt-2">
+                    <div class="px-6 pb-6">
+                        <ul class="space-y-2 font-mono text-sm md:text-base pt-4 border-t border-slate-700/80">
         """
         
         for file in files:
@@ -277,19 +280,20 @@ def generate_index():
             display_name = file.replace('.html', '').replace('_', ' ').replace('-', ' ')
             
             content_body += f"""
-                        <li>
-                            <a href="{file_path}" target="_blank" class="list-hover flex items-center py-3 px-4 rounded-lg border-l-4 border-transparent bg-slate-950/40 group">
-                                <span class="text-slate-500 mr-4 group-hover:text-cyan-400 transition-colors">
-                                    <i class="fas fa-chevron-right text-xs"></i>
-                                </span>
-                                <span class="text-slate-200 font-medium group-hover:text-cyan-300 transition-colors drop-shadow-sm">{display_name}</span>
-                                <span class="ml-auto text-slate-600 text-xs opacity-0 group-hover:opacity-100 transition-opacity tracking-widest">/{file}</span>
-                            </a>
-                        </li>
+                            <li>
+                                <a href="{file_path}" target="_blank" class="list-hover flex items-center py-3 px-4 rounded-lg border-l-4 border-transparent bg-slate-950/40 group">
+                                    <span class="text-slate-500 mr-4 group-hover:text-cyan-400 transition-colors">
+                                        <i class="fas fa-chevron-right text-xs"></i>
+                                    </span>
+                                    <span class="text-slate-200 font-medium group-hover:text-cyan-300 transition-colors drop-shadow-sm">{display_name}</span>
+                                    <span class="ml-auto text-slate-600 text-xs opacity-0 group-hover:opacity-100 transition-opacity tracking-widest">/{file}</span>
+                                </a>
+                            </li>
             """
             
         content_body += """
-                    </ul>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </section>
