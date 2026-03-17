@@ -182,14 +182,181 @@
                     <span class="code-output">Password for [WORKGROUP\smbuser]:</span><br>
                     <span class="code-output">Try "help" to get a list of possible commands.</span><br>
                     smb: \> <span class="code-keyword">ls</span><br>
-                    <span class="code-output">  .               D        0  Tue Mar 17 14:00:00 2026<br>
-                    &nbsp;&nbsp;..              D        0  Tue Mar 17 14:00:00 2026</span>
+                    <span class="code-output">  .                D        0  Tue Mar 17 14:00:00 2026<br>
+                    &nbsp;&nbsp;..               D        0  Tue Mar 17 14:00:00 2026</span>
                 </div>
             </div>
         </div>
         
-        <div class="image-placeholder mt-8">
-            
+        <!-- [도식화 이미지 삽입: 프로세스 흐름] -->
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-8 my-10 shadow-sm relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-2 h-full bg-blue-500"></div>
+            <h4 class="text-center font-bold text-slate-800 mb-8 text-sm tracking-widest uppercase flex justify-center items-center gap-2">
+                <i data-lucide="network" class="w-5 h-5 text-blue-600"></i> 클라이언트별 Samba 파일 서버 접속 및 인증 프로세스 도식화
+            </h4>
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                <!-- Client -->
+                <div class="bg-white border-2 border-blue-200 rounded-lg p-5 text-center w-full md:w-1/3 shadow-sm hover:shadow-md transition-shadow">
+                    <div class="text-blue-600 mb-3 flex justify-center"><i data-lucide="laptop" class="w-10 h-10"></i></div>
+                    <div class="font-black text-slate-900 text-base">클라이언트 (Client)</div>
+                    <div class="text-sm text-slate-500 mt-1">Windows / Linux OS</div>
+                    <div class="mt-3 text-xs bg-slate-100 text-slate-700 px-3 py-1.5 rounded-md font-mono border border-slate-200">SMB Client / Explorer</div>
+                </div>
+                <!-- Arrow 1 -->
+                <div class="text-slate-400 flex flex-col items-center">
+                    <span class="text-xs font-bold font-mono text-blue-600 mb-1 bg-blue-50 px-2 rounded">TCP 139 / 445</span>
+                    <i data-lucide="arrow-right" class="w-8 h-8 text-blue-400 rotate-90 md:rotate-0"></i>
+                </div>
+                <!-- Auth -->
+                <div class="bg-white border-2 border-indigo-200 rounded-lg p-5 text-center w-full md:w-1/3 shadow-sm hover:shadow-md transition-shadow relative">
+                    <div class="absolute -top-3 -right-3 bg-indigo-100 border border-indigo-300 rounded-full p-1 shadow-sm">
+                        <i data-lucide="lock" class="w-4 h-4 text-indigo-600"></i>
+                    </div>
+                    <div class="text-indigo-600 mb-3 flex justify-center"><i data-lucide="shield-check" class="w-10 h-10"></i></div>
+                    <div class="font-black text-slate-900 text-base">인증 (Authentication)</div>
+                    <div class="text-sm text-slate-500 mt-1">Samba Database</div>
+                    <div class="mt-3 text-xs bg-indigo-50 text-indigo-800 px-3 py-1.5 rounded-md font-mono border border-indigo-200">smbuser 자격 증명 확인</div>
+                </div>
+                <!-- Arrow 2 -->
+                <div class="text-slate-400 flex flex-col items-center">
+                    <span class="text-xs font-bold font-mono text-emerald-600 mb-1 bg-emerald-50 px-2 rounded">Access Granted</span>
+                    <i data-lucide="arrow-right" class="w-8 h-8 text-emerald-400 rotate-90 md:rotate-0"></i>
+                </div>
+                <!-- Server -->
+                <div class="bg-slate-900 border-2 border-slate-800 rounded-lg p-5 text-center w-full md:w-1/3 shadow-xl hover:shadow-2xl transition-shadow text-white">
+                    <div class="text-emerald-400 mb-3 flex justify-center"><i data-lucide="hard-drive" class="w-10 h-10 drop-shadow-[0_0_8px_rgba(52,211,153,0.6)]"></i></div>
+                    <div class="font-black text-slate-100 text-base">Samba 서버 (Server)</div>
+                    <div class="text-sm text-slate-400 mt-1">/srv/samba/shared</div>
+                    <div class="mt-3 text-xs bg-slate-800 text-emerald-300 px-3 py-1.5 rounded-md font-mono border border-slate-700">[PublicShare] 폴더 접근</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 새로 추가된 상세 접속 가이드 섹션 -->
+        <h3 class="section-title text-2xl text-blue-800">1. Windows 환경 네트워크 드라이브 영구 매핑(Mapping) 실무</h3>
+        <p class="mb-4 text-slate-700">단순 1회성 접근이 아닌, PC 재부팅 후에도 지속적으로 연결을 유지하기 위해 운영체제(OS)의 네트워크 드라이브(Z: 등)로 할당하는 실무 표준 절차입니다.</p>
+        
+        <div class="info-box">
+            <ul class="space-y-4 text-slate-700 list-disc pl-5">
+                <li><strong class="text-slate-900">GUI(Graphical User Interface, 그래픽 사용자 인터페이스) 방식:</strong> 파일 탐색기를 열고 <strong>[내 PC(This PC)]</strong> 우클릭 ➔ <strong>[네트워크 드라이브 연결(Map network drive)]</strong> 선택 ➔ 드라이브 문자(예: <code>Z:</code>) 선택 ➔ 폴더 란에 UNC(Universal Naming Convention, 범용 명명 규칙) 경로인 <code>\\192.168.0.100\PublicShare</code> 입력 ➔ '로그온할 때 다시 연결' 체크 후 마침.</li>
+                <li><strong class="text-slate-900">CLI(Command Line Interface, 명령줄 인터페이스) 방식:</strong> 관리자 권한으로 명령 프롬프트(CMD)를 실행하여 아래의 명령어를 입력합니다. 자동화를 위한 스크립트 작성 시 주로 활용됩니다.</li>
+            </ul>
+        </div>
+        
+        <div class="code-block">
+            <span class="code-comment"># Windows CMD에서 Z 드라이브로 영구 마운트 설정</span><br>
+            C:\> <span class="code-keyword">net use Z: \\192.168.0.100\PublicShare /user:smbuser "패스워드" /persistent:yes</span><br>
+            <span class="code-output">명령을 잘 실행했습니다.</span><br><br>
+            <span class="code-comment"># 자격 증명(Credential) 캐시 초기화가 필요한 경우 (접속 장애 시 트러블슈팅)</span><br>
+            C:\> <span class="code-keyword">cmdkey /delete:192.168.0.100</span>
+        </div>
+
+        <!-- [도식화 이미지 삽입: Windows 매핑 구조] -->
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-8 my-10 shadow-sm relative overflow-hidden">
+             <div class="absolute top-0 left-0 w-2 h-full bg-amber-500"></div>
+            <h4 class="text-center font-bold text-slate-800 mb-8 text-sm tracking-widest uppercase flex justify-center items-center gap-2">
+                <i data-lucide="layout-template" class="w-5 h-5 text-amber-600"></i> Windows 파일 탐색기 네트워크 드라이브 연결 화면 및 논리 구조
+            </h4>
+            <div class="flex flex-col md:flex-row gap-8 justify-center items-stretch">
+                <!-- GUI Mockup -->
+                <div class="bg-white border border-slate-300 rounded-lg shadow-md w-full md:w-1/2 overflow-hidden flex flex-col">
+                    <div class="bg-slate-100 border-b border-slate-300 px-4 py-3 flex items-center gap-2 text-sm text-slate-700 font-bold">
+                        <i data-lucide="folder-symlink" class="w-5 h-5 text-amber-500"></i> 네트워크 드라이브 연결 (GUI)
+                    </div>
+                    <div class="p-6 flex-grow">
+                        <div class="space-y-5 text-sm">
+                            <div class="flex items-center gap-4">
+                                <span class="w-24 text-slate-600 text-right font-medium">드라이브(D):</span>
+                                <span class="border-2 border-blue-400 bg-blue-50 px-4 py-1.5 rounded-md text-slate-900 font-mono font-bold flex items-center gap-2 shadow-inner">
+                                    <i data-lucide="hard-drive" class="w-4 h-4 text-blue-600"></i> Z:
+                                </span>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <span class="w-24 text-slate-600 text-right font-medium">폴더(O):</span>
+                                <span class="border border-slate-300 px-4 py-1.5 rounded-md text-slate-800 font-mono flex-1 bg-slate-50 shadow-inner">\\192.168.0.100\PublicShare</span>
+                            </div>
+                            <div class="flex flex-col gap-2 pl-28 pt-3">
+                                <div class="flex items-center gap-2">
+                                    <input type="checkbox" checked disabled class="w-4 h-4 text-blue-600 rounded border-gray-300">
+                                    <span class="text-slate-700 font-medium">로그온할 때 다시 연결</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <input type="checkbox" checked disabled class="w-4 h-4 text-blue-600 rounded border-gray-300">
+                                    <span class="text-slate-700 font-medium">다른 자격 증명을 사용하여 연결</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 p-4 border-t border-slate-200 flex justify-end gap-3">
+                        <span class="px-6 py-2 bg-slate-200 text-slate-600 rounded text-sm font-bold border border-slate-300">취소</span>
+                        <span class="px-6 py-2 bg-blue-600 text-white rounded text-sm font-bold shadow hover:bg-blue-700">마침</span>
+                    </div>
+                </div>
+                
+                <!-- Result Mockup -->
+                <div class="bg-white border border-slate-300 rounded-lg shadow-md w-full md:w-1/2 overflow-hidden flex flex-col justify-center items-center p-8 text-center relative">
+                    <div class="absolute top-4 right-4 bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full border border-emerald-300">
+                        Connected
+                    </div>
+                    <i data-lucide="database" class="w-20 h-20 text-blue-500 mb-6 drop-shadow-lg"></i>
+                    <div class="font-black text-slate-900 text-lg mb-2">PublicShare (\\192.168.0.100) (Z:)</div>
+                    <div class="text-xs text-slate-600 mb-6 bg-slate-100 px-4 py-1.5 rounded-full border border-slate-200 shadow-inner">
+                        파일 시스템: NTFS / CIFS 프로토콜
+                    </div>
+                    <div class="w-full bg-slate-200 rounded-full h-3 mb-2 shadow-inner overflow-hidden">
+                        <div class="bg-blue-500 h-3 rounded-full" style="width: 45%"></div>
+                    </div>
+                    <div class="text-xs text-slate-500 font-mono w-full text-right">
+                        450 GB 중 247 GB 사용 가능
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h4 class="font-bold text-slate-900 mt-8 mb-3 flex items-center gap-2">
+            <i data-lucide="unplug" class="w-5 h-5 text-red-500"></i> Windows 마운트 해제(Unmount, 네트워크 드라이브 연결 끊기)
+        </h4>
+        <p class="mb-3 text-slate-700 text-sm">연결된 네트워크 자원의 사용이 종료되었거나, 접속 계정을 변경하기 위해 기존 마운트를 해제하는 절차입니다.</p>
+        <div class="code-block">
+            <span class="code-comment"># CLI 방식: 연결된 Z 드라이브 논리적 연결 해제 및 삭제</span><br>
+            C:\> <span class="code-keyword">net use Z: /delete</span><br>
+            <span class="code-output">Z:이(가) 삭제되었습니다.</span>
+        </div>
+
+        <hr class="my-12 border-slate-200">
+
+        <h3 class="section-title text-2xl text-blue-800">2. Linux 환경 CIFS 마운트(Mount) 실무</h3>
+        <p class="mb-4 text-slate-700">리눅스 클라이언트 서버 간의 대용량 데이터 백업이나 도커(Docker) 볼륨(Volume)으로 활용하기 위해 운영체제 레벨에서 CIFS(Common Internet File System, 공통 인터넷 파일 시스템) 마운트(Mount, 논리적 장치 연결)를 수행하는 방법입니다.</p>
+
+        <div class="code-block">
+            <span class="code-comment"># 1. CIFS 파일 시스템 지원 유틸리티 패키지 설치</span><br>
+            $ <span class="code-keyword">sudo apt update && sudo apt install -y cifs-utils</span><br><br>
+
+            <span class="code-comment"># 2. 로컬 마운트 포인트(Mount Point, 연결 지점) 디렉토리 생성</span><br>
+            $ <span class="code-keyword">sudo mkdir -p /mnt/samba_client</span><br><br>
+
+            <span class="code-comment"># 3. 수동 마운트 테스트 (uid, gid는 로컬 시스템 사용자의 ID 번호)</span><br>
+            $ <span class="code-keyword">sudo mount -t cifs //192.168.0.100/PublicShare /mnt/samba_client -o username=smbuser,password=사용자암호,uid=1000,gid=1000</span><br><br>
+
+            <span class="code-comment"># 4. 부팅 시 자동 마운트를 위한 fstab(File System Table, 파일 시스템 정보 테이블) 등록</span><br>
+            $ <span class="code-keyword">sudo nano /etc/fstab</span><br>
+            <span class="code-comment"># 파일 최하단에 아래 라인 추가 (보안을 위해 credentials 파일 생성 방식 권장)</span><br>
+            <span class="highlight-line">//192.168.0.100/PublicShare  /mnt/samba_client  cifs  username=smbuser,password=사용자암호,uid=1000,gid=1000  0  0</span>
+        </div>
+
+        <p class="text-sm text-slate-500 mt-2 pl-4 border-l-2 border-slate-300">
+            * <strong>보안 팁(Security Tip):</strong> <code>/etc/fstab</code>에 평문 패스워드를 직접 기재하는 것은 보안 위협이 될 수 있으므로, 별도의 <code>.smbcredentials</code> 파일을 생성하고 권한을 <code>600</code>으로 부여한 뒤, fstab 옵션에 <code>credentials=/path/to/.smbcredentials</code> 형식으로 연결하는 아키텍처 구성을 적극 권장합니다.
+        </p>
+
+        <h4 class="font-bold text-slate-900 mt-8 mb-3 flex items-center gap-2">
+            <i data-lucide="unplug" class="w-5 h-5 text-red-500"></i> Linux 마운트 해제(Unmount, 시스템 연결 해제)
+        </h4>
+        <p class="mb-3 text-slate-700 text-sm">리눅스 시스템에서 마운트된 공유 디렉토리의 연결을 안전하게 분리하는 명령어입니다.</p>
+        <div class="code-block">
+            <span class="code-comment"># 마운트 포인트 정상 연결 해제</span><br>
+            $ <span class="code-keyword">sudo umount /mnt/samba_client</span><br><br>
+            <span class="code-comment"># 강제 해제가 필요한 경우 (Device is busy 에러 발생 시 -l(지연 해제) 옵션 사용)</span><br>
+            $ <span class="code-keyword">sudo umount -l /mnt/samba_client</span>
         </div>
 
     </section>
