@@ -1,7 +1,7 @@
 import os
 import markdown
 from datetime import datetime 
-
+ 
 def generate_index():
     # 제외할 폴더 및 파일 설정
     exclude_dirs = {'.git', '.github', '.pytest_cache', '__pycache__', 'assets'}
