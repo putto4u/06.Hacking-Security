@@ -3,26 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security & Cloud Hacking Lab</title>
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+        
+        /* 기본 글꼴 및 다크 모드 배경색 설정 */
         body { 
             font-family: 'Noto Sans KR', sans-serif; 
-            background-color: transparent; 
+            background-color: #020617; 
             color: #f8fafc; 
-            margin: 0; padding: 0;
+            /* 전체 화면 배경 이미지 적용 및 투명도(Overlay) 설정: 텍스트 가시성을 위해 어두운 오버레이 강화 */
+            background-image: linear-gradient(to bottom, rgba(2, 6, 23, 0.75), rgba(2, 6, 23, 0.95)), 
+                              url('image_1a3201.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center center;
         }
+
+        /* 텍스트 리스트 호버 효과: 터미널 스타일 */
+        .list-hover {
+            transition: all 0.2s ease;
+        }
+        .list-hover:hover {
+            color: #22d3ee; 
+            padding-left: 0.75rem; 
+            background-color: rgba(15, 23, 42, 0.8); 
+            border-left-color: #0ea5e9;
+        }
+
+        /* 텍스트 가시성을 높이는 그림자 효과 클래스 */
+        .text-glow {
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+        }
+        .neon-glow {
+            text-shadow: 0 0 8px rgba(34, 211, 238, 0.6);
+        }
+        
+        /* 커스텀 스크롤바 (선택적 시각 강화) */
         ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
     </style>
-    <script>tailwind.config = { darkMode: 'class' }</script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
 </head>
-<body class="p-6 pt-20 md:p-10 md:pt-24 max-w-5xl mx-auto">
+<body class="min-h-screen flex flex-col">
+    <header class="py-24 px-6 relative overflow-hidden">
+        
+        <a href="https://putto4u.github.io/06.Hacking-Security" class="absolute top-6 left-6 md:left-10 z-20 group cursor-pointer block" target="_blank" rel="noopener noreferrer">
+            <div class="flex items-center space-x-2 bg-slate-900/80 py-2 px-4 rounded-xl border border-cyan-900/50 backdrop-blur-md shadow-[0_0_15px_rgba(8,145,178,0.2)] transition-all duration-300 group-hover:border-cyan-400/60 group-hover:shadow-[0_0_20px_rgba(34,211,238,0.4)]">
+                <div class="relative flex h-3 w-3 mr-1">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
+                </div>
+                <span class="font-mono text-[10px] md:text-xs text-slate-400 tracking-wider">CHIEF SYSTEM ARCHITECT <span class="text-cyan-500 ml-1">❯</span></span>
+                <span class="font-black text-cyan-300 tracking-widest font-mono text-sm md:text-base neon-glow ml-1">PUTTO</span>
+                <span class="font-bold text-slate-200 tracking-widest font-mono text-sm md:text-base">'S LECTURES</span>
+            </div>
+        </a>
 
-                <div class="prose prose-invert prose-slate max-w-none prose-img:rounded-xl prose-a:text-cyan-400 hover:prose-a:text-cyan-300 prose-headings:text-slate-100 prose-strong:text-cyan-100 bg-slate-900/40 p-8 rounded-2xl border border-slate-700/50 shadow-xl">
+        <div class="max-w-4xl mx-auto relative z-10 text-center mt-8">
+            <div class="inline-flex items-center justify-center space-x-3 mb-8 bg-slate-950/60 p-4 rounded-2xl backdrop-blur-md border border-slate-700/80 shadow-2xl">
+                <i class="fas fa-user-secret text-4xl text-cyan-400 drop-shadow-lg"></i>
+                <span class="text-slate-500">|</span>
+                <i class="fas fa-shield-halved text-4xl text-blue-500 drop-shadow-lg"></i>
+            </div>
+            
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-2 pb-2 bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 via-blue-400 to-indigo-400 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">
+                Cloud Security & Hacking Lab
+            </h1>
+            
+            <p class="mt-8 text-slate-100 font-medium text-lg md:text-xl max-w-2xl mx-auto leading-relaxed text-glow">
+                실전 클라우드 인프라 보안 및 모의 해킹 시나리오 연구 자료 저장소
+            </p>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-4xl mx-auto px-6 py-8 w-full">
+
+                <div class="bg-slate-950/90 p-8 md:p-12 rounded-2xl shadow-2xl border border-slate-700/50 backdrop-blur-xl prose prose-invert prose-slate max-w-none prose-img:rounded-xl prose-a:text-cyan-400 hover:prose-a:text-cyan-300 prose-headings:text-slate-100 prose-strong:text-cyan-100">
                     <h1>DoS DDoS 공격 및 방어 전략</h1>
 <p>인프라 가용성(Availability)을 위협하는 서비스 거부 공격은 2026년 현재 더욱 정교화된 AI 봇넷(Botnet)을 활용하여 전례 없는 규모로 발생하고 있습니다. 본 섹션에서는 고전적인 네트워크 계층 공격부터 최신의 애플리케이션 계층 공격까지, 그리고 이를 방어하기 위한 지능형 완화 전략을 다룹니다.</p>
 <hr />
@@ -64,4 +129,92 @@
 <hr />
 <p><strong>Next Step: 시스템 취약점 공격 분석</strong></p>
                 </div>
-                </body></html>
+                
+    </main>
+    <footer class="border-t border-slate-800/80 py-8 text-center text-slate-400 text-sm bg-slate-950/90 backdrop-blur-md mt-auto">
+        <p class="font-mono">&copy; 2026 Putto's Lectures. All rights reserved. <span class="text-cyan-800 font-bold ml-2">| ACCESS SECURED.</span></p>
+    </footer>
+
+    <script>
+        // 전역 상태 변수: 모든 폴더가 펼쳐져 있는지 여부를 추적합니다.
+        let isAllExpanded = true;
+
+        // 개별 폴더를 펼치거나 접는 함수
+        function toggleFolder(element) {
+            // 클릭된 헤더의 부모 섹션(Section) 및 내부 리스트 컨테이너(Container) 탐색
+            const section = element.closest('.folder-section');
+            const listContainer = section.querySelector('.list-container');
+            const folderIcon = element.querySelector('.folder-icon');
+            const chevronIcon = element.querySelector('.chevron-icon');
+            
+            // 데이터 속성(Data Attributes)에 저장된 아이콘 클래스명 불러오기
+            const baseIcon = element.getAttribute('data-base-icon');
+            const closedIcon = element.getAttribute('data-closed-icon');
+
+            // 현재 리스트가 펼쳐진 상태인지 확인 (CSS Grid 속성 기준)
+            const isExpanded = listContainer.classList.contains('grid-rows-[1fr]');
+
+            if (isExpanded) {
+                // 접기(Collapse) 액션 수행
+                listContainer.classList.remove('grid-rows-[1fr]', 'opacity-100');
+                listContainer.classList.add('grid-rows-[0fr]', 'opacity-0');
+                
+                // 우측 화살표 아이콘 회전
+                chevronIcon.classList.add('rotate-180');
+                
+                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 닫힘 상태로 변경
+                if (baseIcon !== 'fa-server') {
+                    folderIcon.classList.remove('fa-folder-open');
+                    folderIcon.classList.add('fa-folder');
+                }
+            } else {
+                // 펼치기(Expand) 액션 수행
+                listContainer.classList.remove('grid-rows-[0fr]', 'opacity-0');
+                listContainer.classList.add('grid-rows-[1fr]', 'opacity-100');
+                
+                // 우측 화살표 아이콘 원상 복구
+                chevronIcon.classList.remove('rotate-180');
+                
+                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 열림 상태로 변경
+                if (baseIcon !== 'fa-server') {
+                    folderIcon.classList.remove('fa-folder');
+                    folderIcon.classList.add('fa-folder-open');
+                }
+            }
+        }
+
+        // 전체 폴더를 일괄적으로 펼치거나 접는 함수
+        function toggleAllFolders() {
+            // 전역 상태 반전
+            isAllExpanded = !isAllExpanded;
+            
+            // DOM(Document Object Model, 문서 객체 모델)에서 모든 폴더 헤더 요소 선택
+            const headers = document.querySelectorAll('.folder-header');
+            const globalBtnIcon = document.getElementById('global-toggle-icon');
+            const globalBtnText = document.getElementById('global-toggle-text');
+
+            headers.forEach(header => {
+                const section = header.closest('.folder-section');
+                const listContainer = section.querySelector('.list-container');
+                const isCurrentlyExpanded = listContainer.classList.contains('grid-rows-[1fr]');
+
+                // 현재 개별 폴더의 상태가 전역 상태 목표와 다를 경우에만 토글 함수 실행
+                if (isAllExpanded !== isCurrentlyExpanded) {
+                    toggleFolder(header);
+                }
+            });
+
+            // 전역 토글 버튼의 UI(User Interface, 사용자 인터페이스) 업데이트
+            if (isAllExpanded) {
+                globalBtnIcon.classList.remove('fa-folder');
+                globalBtnIcon.classList.add('fa-folder-open');
+                globalBtnText.innerText = 'COLLAPSE ALL';
+            } else {
+                globalBtnIcon.classList.remove('fa-folder-open');
+                globalBtnIcon.classList.add('fa-folder');
+                globalBtnText.innerText = 'EXPAND ALL';
+            }
+        }
+    </script>
+</body>
+</html>
