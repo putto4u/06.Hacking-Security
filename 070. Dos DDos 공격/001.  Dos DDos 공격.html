@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DoS 및 DDoS 공격과 방어 전략 실습</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+        }
+        .terminal-bg { background-color: #020617; border: 1px solid #1e293b; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-blur: xl; }
+        .code-block { font-family: 'Fira Code', monospace; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <!-- Header: 기술 사양 및 타이틀 -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Cloud Security Lab</span>
+                    <span class="text-slate-500 font-mono text-[10px]">SEC-DDOS-01 | Infrastructure Availability</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
+                    DoS 및 DDoS 공격과 방어 전략<br><span class="text-slate-100 text-2xl">지능형 봇넷 대응 및 인프라 완화 아키텍처</span>
+                </h1>
+            </div>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    THREAT LEVEL: CRITICAL
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">Chief System Architect ❯ Putto</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-24">
+
+        <!-- Section 1: 이론 및 아키텍처 도식 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                1. DoS 및 DDoS 공격의 이해 (Understanding Attack Vectors)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-8 leading-relaxed">
+                    인프라 가용성(Availability, 시스템이 정상적으로 서비스를 제공할 수 있는 상태)을 위협하는 서비스 거부 공격은 2026년 현재 더욱 정교화된 <strong class="text-cyan-400">AI(Artificial Intelligence, 인공지능) 봇넷(Botnet)</strong>을 활용하여 전례 없는 규모로 발생하고 있습니다. 공격의 핵심 목적은 시스템 자원인 CPU(Central Processing Unit, 중앙 처리 장치), 메모리(Memory), 네트워크 대역폭(Network Bandwidth)을 고갈시켜 정당한 사용자의 접근을 원천 차단하는 것입니다.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                    <div class="bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                        <div class="text-red-400 mb-4"><i data-lucide="waves" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2">볼륨 공격 (Volumetric Attacks)</h4>
+                        <p class="text-sm text-slate-400 leading-relaxed">
+                            ICMP(Internet Control Message Protocol, 인터넷 제어 메시지 프로토콜) 플러딩이나 UDP(User Datagram Protocol, 사용자 데이터그램 프로토콜) 증폭 공격을 통해 타겟의 물리적 네트워크 대역폭을 거대한 트래픽으로 가득 채워 마비시킵니다.
+                        </p>
+                    </div>
+                    <div class="bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                        <div class="text-amber-400 mb-4"><i data-lucide="network" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2">프로토콜 공격 (Protocol Attacks)</h4>
+                        <p class="text-sm text-slate-400 leading-relaxed">
+                            TCP(Transmission Control Protocol, 전송 제어 프로토콜)의 3-Way Handshake(3방향 핸드셰이크) 연결 과정을 악용한 SYN Flood 공격 등으로 방화벽이나 로드 밸런서(Load Balancer)의 유효 세션(Session) 테이블 상태를 고갈시킵니다.
+                        </p>
+                    </div>
+                    <div class="bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                        <div class="text-purple-400 mb-4"><i data-lucide="cpu" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2">애플리케이션 공격 (L7 Attacks)</h4>
+                        <p class="text-sm text-slate-400 leading-relaxed">
+                            HTTP(HyperText Transfer Protocol) GET/POST 플러딩과 같이 정상적인 웹 요청으로 완벽히 위장하여, 백엔드 데이터베이스 조회 등 서버의 실질적인 연산 자원을 극도로 소모시키는 L7(Layer 7, 애플리케이션 계층) 공격입니다.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 도식화 인포그래픽 영역 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner overflow-hidden relative">
+                    <div class="absolute top-0 left-0 w-2 h-full bg-red-500"></div>
+                    <h4 class="text-center font-bold text-slate-400 mb-10 text-xs tracking-widest uppercase flex justify-center items-center gap-2">
+                        <i data-lucide="siren" class="w-4 h-4 text-red-500"></i> [도식: 대규모 분산 서비스 거부 (DDoS) 공격 아키텍처 흐름도]
+                    </h4>
+                    
+                    <div class="flex flex-col lg:flex-row items-center justify-between gap-6 relative">
+                        <!-- C&C and Botnet -->
+                        <div class="flex flex-col items-center w-full lg:w-1/3">
+                            <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl shadow-lg text-center mb-6 relative">
+                                <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-red-900/80 text-red-400 text-[9px] px-2 py-0.5 rounded border border-red-500/50 whitespace-nowrap">COMMAND & CONTROL</div>
+                                <i data-lucide="terminal-square" class="w-8 h-8 text-red-500 mx-auto mb-2"></i>
+                                <div class="font-bold text-slate-200 text-xs">C&C 서버 (해커)</div>
+                            </div>
+                            
+                            <div class="flex gap-4 justify-center">
+                                <div class="bg-red-950/30 border border-red-900/50 p-3 rounded-lg text-center">
+                                    <i data-lucide="bot" class="w-6 h-6 text-red-400 mx-auto"></i>
+                                    <div class="text-[10px] text-slate-400 mt-1">Zombie PC</div>
+                                </div>
+                                <div class="bg-red-950/30 border border-red-900/50 p-3 rounded-lg text-center">
+                                    <i data-lucide="bot" class="w-6 h-6 text-red-400 mx-auto"></i>
+                                    <div class="text-[10px] text-slate-400 mt-1">IoT Bot</div>
+                                </div>
+                                <div class="bg-red-950/30 border border-red-900/50 p-3 rounded-lg text-center hidden md:block">
+                                    <i data-lucide="bot" class="w-6 h-6 text-red-400 mx-auto"></i>
+                                    <div class="text-[10px] text-slate-400 mt-1">Cloud Bot</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Traffic Flow -->
+                        <div class="flex flex-col justify-center items-center w-full lg:w-1/3 my-8 lg:my-0 relative">
+                            <!-- Massive Attack Traffic -->
+                            <div class="flex flex-col items-center w-full">
+                                <span class="text-[10px] text-red-400 font-mono font-bold bg-red-950/50 px-3 py-1 rounded-full mb-2">Volumetric / SYN / HTTP Flood</span>
+                                <div class="h-16 w-full bg-gradient-to-r from-red-500/10 via-red-500/40 to-red-600/80 rounded flex items-center justify-end pr-2 border-y border-red-500/30">
+                                    <i data-lucide="chevrons-right" class="w-8 h-8 text-white animate-pulse"></i>
+                                </div>
+                            </div>
+                            <!-- Small Normal Traffic buried inside -->
+                            <div class="absolute bottom-1/4 left-1/4 flex items-center bg-emerald-950/80 border border-emerald-500/50 rounded-full px-2 py-0.5 z-10">
+                                <i data-lucide="user" class="w-3 h-3 text-emerald-400 mr-1"></i>
+                                <span class="text-[8px] text-emerald-300 font-mono">정상 유저 트래픽 (Buried)</span>
+                            </div>
+                        </div>
+
+                        <!-- Target Server -->
+                        <div class="flex flex-col items-center w-full lg:w-1/3">
+                            <div class="bg-slate-800 border-2 border-red-500/50 p-8 rounded-2xl shadow-[0_0_30px_rgba(239,68,68,0.2)] text-center relative overflow-hidden">
+                                <div class="absolute top-0 left-0 w-full h-full bg-red-500/10 animate-pulse"></div>
+                                <i data-lucide="server-crash" class="w-16 h-16 text-red-500 mx-auto mb-4 relative z-10"></i>
+                                <div class="font-black text-slate-100 text-lg relative z-10">타겟 오리진 서버</div>
+                                <div class="text-[11px] text-slate-400 mt-2 font-mono relative z-10">자원 고갈 (Resource Exhaustion)<br>서비스 마비 (Service Down)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: 지능형 완화 전략 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                2. 지능형 DDoS 완화 전략 (Intelligent Mitigation)
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="section-card rounded-3xl p-8 border-cyan-900/30 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-cyan-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">DEFENSE CORE 01</div>
+                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                        <i data-lucide="brain-circuit" class="w-6 h-6 text-cyan-400"></i> AI 기반 행동 분석 스크러빙
+                    </h3>
+                    <p class="text-sm text-slate-300 leading-relaxed mb-4">
+                        현대적인 방어 체계는 단순한 포트 차단을 넘어, 유입되는 트래픽을 정제하는 <strong class="text-cyan-400">스크러빙(Scrubbing)</strong> 센터 기술을 핵심으로 합니다. AI 모델이 평상시의 정상 트래픽 패턴(Baseline)을 머신러닝으로 학습하여, 공격 봇이 생성하는 미세한 비정상 패턴(예: HTTP 요청 간격의 기계적인 일정함, 비정상적인 헤더 조합 등)을 즉시 포착하고 선별적으로 드롭(Drop)시킵니다.
+                    </p>
+                </div>
+                
+                <div class="section-card rounded-3xl p-8 border-indigo-900/30 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">DEFENSE CORE 02</div>
+                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                        <i data-lucide="globe-2" class="w-6 h-6 text-indigo-400"></i> 엣지 완화 및 애니캐스트 라우팅
+                    </h3>
+                    <ul class="space-y-5 text-sm text-slate-300">
+                        <li class="flex items-start gap-3">
+                            <i data-lucide="shield-check" class="w-5 h-5 text-indigo-500 shrink-0 mt-0.5"></i> 
+                            <div>
+                                <strong class="text-slate-100 block mb-1">엣지 단의 차단 (Edge Mitigation)</strong>
+                                사용자(혹은 해커)에게 물리적으로 가장 가까운 CDN(Content Delivery Network, 콘텐츠 전송 네트워크) 거점(PoP)에서 악성 페이로드를 선제적으로 차단하여, 실제 데이터가 위치한 오리진(Origin) 서버의 대역폭을 보호합니다.
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i data-lucide="route" class="w-5 h-5 text-indigo-500 shrink-0 mt-0.5"></i> 
+                            <div>
+                                <strong class="text-slate-100 block mb-1">애니캐스트 (Anycast) 라우팅</strong>
+                                단일 IP 주소로 유입되는 거대한 공격 트래픽을 BGP 라우팅 프로토콜을 이용해 전 세계 수십 개의 엣지 네트워크로 분산 수용(Sinkhole)시킴으로써, 대규모 볼륨 공격의 파괴력을 물리적으로 상쇄시킵니다.
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: 실전 방어 및 모니터링 기법 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                3. 실전 방어 및 모니터링 기법 (Practical Defense)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-12">
+                <p class="text-slate-300 text-lg leading-relaxed">
+                    CERT(Computer Emergency Response Team, 침해 사고 대응팀) 팀장의 관점에서 DDoS 방어의 핵심은 단순히 트래픽을 막는 것이 아니라, <strong class="text-cyan-400">'명확한 가시성(Visibility) 확보'</strong>와 <strong class="text-cyan-400">'자동화된 대응(Automated Response)'</strong> 체계를 구축하는 것입니다.
+                </p>
+
+                <!-- Step 01: Rate Limiting -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black italic">TECH 01</span>
+                        <h3 class="text-xl font-bold text-slate-100">임계치 기반 차단 (Rate Limiting) 아키텍처</h3>
+                    </div>
+                    <div class="pl-12">
+                        <p class="text-sm text-slate-400 mb-4">동일한 IP 주소 또는 특정 세션 식별자 단위로 허용되는 초당 요청 수(RPS)나 동시 연결 수를 제한하여, L7 계층의 비정상적인 트래픽 폭주를 인프라 앞단(WAF 또는 API Gateway)에서 억제합니다.</p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">WAF Rule Log</div>
+                            <div class="text-slate-500 mb-1"># [Alert] Rate limit exceeded for IP: 203.0.113.45</div>
+                            <div class="text-emerald-400">Action Applied: BLOCK (Duration: 300s)</div>
+                            <div class="text-slate-400 mt-2">Rule: Block IPs making > 2000 requests per 5 minutes to /api/v1/login</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 02: Challenge Mechanism -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black italic">TECH 02</span>
+                        <h3 class="text-xl font-bold text-slate-100">챌린지 (Challenge) 메커니즘을 통한 봇 식별</h3>
+                    </div>
+                    <div class="pl-12">
+                        <p class="text-sm text-slate-400 mb-4">요청을 보낸 클라이언트가 실제 브라우저를 사용하는 인간(Human)인지, 파이썬(Python) 등으로 제작된 단순 공격용 스크립트 봇인지 식별하기 위해 보이지 않는 검증 절차를 수행합니다.</p>
+                        <ul class="list-disc pl-5 space-y-2 text-sm text-slate-300 mb-4">
+                            <li><strong class="text-slate-200">HTTP 302 리다이렉션:</strong> 클라이언트가 HTTP 쿠키(Cookie)와 리다이렉트를 정상적으로 처리할 수 있는지 검증합니다.</li>
+                            <li><strong class="text-slate-200">JavaScript 챌린지:</strong> 백그라운드에서 복잡한 자바스크립트 연산(JS Challenge)을 클라이언트에게 요구하여, 브라우저 렌더링 엔진(V8 등)이 없는 더미 봇을 걸러냅니다.</li>
+                            <li><strong class="text-slate-200">CAPTCHA:</strong> 의심스러운 패턴이 지속될 경우 최종적으로 시각적 퀴즈를 제시하여 인간임을 증명하게 합니다.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: 전문가 분석 및 과금 경고 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                4. 아키텍트 인사이트 및 클라우드 과금 경고 (Expert Insight)
+            </h2>
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-10">
+                <div class="flex flex-col md:flex-row gap-8 items-stretch">
+                    
+                    <!-- Expert Tip -->
+                    <div class="flex-1 bg-slate-800/50 p-8 rounded-2xl border border-slate-700 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-16 h-16 bg-blue-500/10 rounded-bl-full"></div>
+                        <div class="text-blue-400 mb-4"><i data-lucide="lightbulb" class="w-10 h-10"></i></div>
+                        <h4 class="font-bold text-slate-100 text-lg mb-3">실전 방어 팁 : 맹목적 차단의 위험성</h4>
+                        <p class="text-sm text-slate-300 leading-relaxed mb-4">
+                            DDoS 공격 방어 시 운영자가 가장 흔히 저지르는 치명적 실수는, 임계치 알람에 당황하여 <strong class="text-white">모든 트래픽을 일괄 차단(Null Routing)</strong>하려다 결국 정상 고객의 서비스 접근까지 마비시켜 해커의 목적을 대신 달성해 주는 것입니다.
+                        </p>
+                        <p class="text-sm text-slate-300 leading-relaxed">
+                            반드시 <strong class="text-blue-400">BGP Flowspec (경계 경로 프로토콜 플로우 스펙)</strong> 등의 정밀 라우팅 제어 기술을 활용하여, 악의적인 공격 트래픽의 특성(Flow, 패킷의 출발지/목적지, 포트, 패킷 크기 등)만을 정밀하게 타격(Surgical Strike)하여 스크러빙 센터로 우회시키거나 차단해야 합니다.
+                        </p>
+                    </div>
+
+                    <!-- AWS Billing Warning -->
+                    <div class="flex-1 bg-red-950/20 p-8 rounded-2xl border border-red-900/50 relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-2 h-full bg-red-500"></div>
+                        <div class="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-black px-3 py-1 rounded-bl-lg uppercase tracking-widest font-mono">BILLING ALERT</div>
+                        
+                        <div class="text-red-400 mb-4 mt-2"><i data-lucide="calculator" class="w-10 h-10"></i></div>
+                        <h4 class="font-bold text-slate-100 text-lg mb-4 text-red-100">AWS DDoS 방어 솔루션 과금 체계</h4>
+                        
+                        <div class="space-y-5">
+                            <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700">
+                                <strong class="text-emerald-400 block mb-1 font-mono text-sm"><i class="fas fa-check-circle mr-1"></i>AWS Shield Standard</strong>
+                                <p class="text-xs text-slate-400 leading-relaxed">
+                                    모든 AWS 고객에게 <strong class="text-emerald-300">무료</strong>로 기본 제공됩니다. 일반적인 L3/L4(네트워크/전송 계층) 수준의 인프라 타겟 SYN/UDP 플러드 공격에 대한 기본적인 방어만 제공합니다.
+                                </p>
+                            </div>
+                            
+                            <div class="bg-red-900/40 p-4 rounded-xl border border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.1)]">
+                                <strong class="text-red-400 block mb-1 font-mono text-sm"><i class="fas fa-exclamation-triangle mr-1"></i>AWS Shield Advanced</strong>
+                                <p class="text-xs text-slate-300 leading-relaxed">
+                                    <strong class="text-white bg-red-600 px-1 rounded">월 $3,000 (약 400만 원)</strong>의 기본 구독 비용이 발생하는 고가 서비스입니다. 단, 대규모 DDoS 공격으로 인한 클라우드 인프라 아웃스케일링(Auto Scaling) 비용 전이를 전액 보상해주고, L7 애플리케이션 계층 자동 완화 기능 및 전담 SRT(Shield Response Team) 지원을 제공하므로 대규모 엔터프라이즈 서비스 운영 시에는 필수적인 투자로 간주됩니다.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+            © 2026 Putto's Lectures. All rights reserved. | ACCESS SECURED.
+        </div>
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic">
+            본 문서의 보안 아키텍처 및 완화 전략은 최신 위협 인텔리전스(Threat Intelligence)를 반영하여 지속적으로 업데이트됩니다.
+        </p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
