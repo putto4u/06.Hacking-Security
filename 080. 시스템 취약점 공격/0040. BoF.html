@@ -1,1 +1,230 @@
-sdf
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>시스템 해킹: BoF (Buffer Overflow) 실습</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+        }
+        .terminal-bg { background-color: #020617; border: 1px solid #1e293b; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-blur: xl; }
+        .code-block { font-family: 'Fira Code', monospace; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <!-- Header: 기술 사양 및 타이틀 -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Cyber Security Lab</span>
+                    <span class="text-slate-500 font-mono text-[10px]">SYS-SEC-01 | VULNERABILITY ANALYSIS</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
+                    BoF (Buffer Overflow)<br><span class="text-slate-100 text-2xl">버퍼 오버플로우: 제어 흐름 가로채기</span>
+                </h1>
+            </div>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    SCORE: 9.8 / CRITICAL
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">System Architect Pro</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-24">
+
+        <!-- Section 1: 이론 및 아키텍처 도식 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                아키텍처 개요 (Architecture Overview)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-10 leading-relaxed">
+                    프로그램이 데이터를 메모리에 저장할 때, 사전에 할당된 메모리 공간인 <strong class="text-cyan-400">버퍼 (Buffer, 임시 데이터 저장 공간)</strong>의 크기를 초과하여 데이터를 기록하려는 현상입니다. 
+                    입력값에 대한 경계 검사가 제대로 이루어지지 않을 때 발생하며, 넘쳐흐른 데이터가 인접한 메모리 주소를 덮어쓰게 됩니다. 이는 단순한 프로그램 충돌(Crash, 비정상 종료)을 넘어, 공격자가 시스템의 제어권을 탈취하고 악의적인 코드를 실행하게 만드는 가장 전통적이고 치명적인 시스템 해킹 취약점 중 하나입니다.
+                </p>
+
+                <!-- 도식화 인포그래픽 영역 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner">
+                    <h4 class="text-center font-bold text-slate-400 mb-8 text-xs tracking-widest uppercase">
+                        [도식: 메모리 버퍼 초과 및 인접 영역 오염 아키텍처]
+                    </h4>
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                        <!-- Component A -->
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-cyan-900/50 shadow-lg relative overflow-hidden">
+                            <div class="absolute inset-0 bg-cyan-500/10"></div>
+                            <i data-lucide="database" class="w-12 h-12 text-cyan-400 mx-auto mb-4 relative z-10"></i>
+                            <div class="font-black text-slate-100 text-sm relative z-10">할당된 버퍼 영역<br><span class="text-xs text-slate-400 font-normal">(정상적인 데이터 저장 공간)</span></div>
+                        </div>
+                        <!-- Arrow -->
+                        <div class="flex flex-col items-center">
+                            <span class="text-[10px] text-red-400 font-bold mb-1 tracking-widest">OVERFLOW</span>
+                            <i data-lucide="arrow-right" class="w-8 h-8 text-red-500 rotate-90 md:rotate-0"></i>
+                        </div>
+                        <!-- Component B -->
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-red-900/50 shadow-lg relative overflow-hidden">
+                            <div class="absolute inset-0 bg-red-500/10"></div>
+                            <i data-lucide="cpu" class="w-12 h-12 text-red-400 mx-auto mb-4 relative z-10"></i>
+                            <div class="font-black text-slate-100 text-sm relative z-10">인접 제어 메모리<br><span class="text-xs text-slate-400 font-normal">(RET 반환 주소 덮어쓰기)</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: 실습 환경 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                메모리 구조와 공격 원리 (Memory Structure & Principle)
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="section-card rounded-3xl p-8 border-cyan-900/30 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-cyan-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">STACK MEMORY</div>
+                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                        <i data-lucide="layers" class="w-6 h-6 text-cyan-400"></i> 스택(Stack)의 기본 구조
+                    </h3>
+                    <ul class="space-y-4 text-sm text-slate-300">
+                        <li class="flex items-start gap-3">
+                            <i data-lucide="check" class="w-4 h-4 text-cyan-500 mt-1 shrink-0"></i> 
+                            <div><strong class="text-slate-100">지역 변수 (Local Variables):</strong> 함수 내에서 선언된 임시 데이터가 쌓이는 공간입니다. 공격자는 주로 이 공간의 버퍼를 초과시킵니다.</div>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i data-lucide="check" class="w-4 h-4 text-cyan-500 mt-1 shrink-0"></i> 
+                            <div><strong class="text-slate-100">EBP (Extended Base Pointer, 베이스 포인터):</strong> 스택의 기준점 역할을 하는 레지스터로, 함수 호출 전의 스택 상태를 복원하는 데 사용됩니다.</div>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i data-lucide="check" class="w-4 h-4 text-cyan-500 mt-1 shrink-0"></i> 
+                            <div><strong class="text-slate-100">RET (Return Address, 반환 주소):</strong> 함수가 종료된 후 원래 돌아가야 할 실행 주소입니다. 공격의 핵심 타겟입니다.</div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="section-card rounded-3xl p-8 border-red-900/30 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">ATTACK VECTOR</div>
+                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                        <i data-lucide="crosshair" class="w-6 h-6 text-red-400"></i> 제어 흐름 가로채기 (Hijacking)
+                    </h3>
+                    <ul class="space-y-4 text-sm text-slate-300">
+                        <li class="flex items-start gap-3">
+                            <i data-lucide="alert-triangle" class="w-4 h-4 text-red-500 mt-1 shrink-0"></i> 
+                            <div><strong class="text-slate-100">페이로드(Payload) 주입:</strong> 지정된 버퍼 크기를 고의로 초과하는 악성 데이터를 밀어 넣습니다.</div>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i data-lucide="alert-triangle" class="w-4 h-4 text-red-500 mt-1 shrink-0"></i> 
+                            <div><strong class="text-slate-100">RET 변조:</strong> 넘쳐흐른 데이터가 EBP를 지나 RET(반환 주소) 값을 덮어씁니다.</div>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i data-lucide="alert-triangle" class="w-4 h-4 text-red-500 mt-1 shrink-0"></i> 
+                            <div><strong class="text-slate-100">셸코드(Shellcode) 실행:</strong> 프로그램의 실행 흐름을 공격자가 미리 삽입해 둔 악성 코드 위치로 강제로 변경하여 시스템 권한을 장악합니다.</div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: 명령어 및 절차 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                취약한 함수와 시큐어 코딩 (Vulnerable Functions & Secure Coding)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-12">
+                <!-- Step Block -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black italic">CODE</span>
+                        <h3 class="text-xl font-bold text-slate-100">입력값 검증 부재와 안전한 대체 함수 적용</h3>
+                    </div>
+                    <div class="pl-12">
+                        <p class="text-sm text-slate-400 mb-4">
+                            C/C++ 언어에서 데이터 입력 길이의 경계를 검증하지 않는 표준 라이브러리 함수(<code class="text-red-400 bg-red-900/30 px-1 rounded">strcpy()</code>, <code class="text-red-400 bg-red-900/30 px-1 rounded">gets()</code> 등)는 보안상 매우 취약합니다. 실무에서는 반드시 복사할 데이터의 최대 길이를 명시적으로 제한하는 안전한 함수(<code class="text-cyan-400 bg-cyan-900/30 px-1 rounded">strncpy()</code>, <code class="text-cyan-400 bg-cyan-900/30 px-1 rounded">fgets()</code> 등)로 대체하여 <strong>시큐어 코딩 (Secure Coding, 안전한 소프트웨어 개발 구현)</strong>을 적용해야 합니다.
+                        </p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                            <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative border-red-900/50">
+                                <div class="absolute top-4 right-4 text-red-500 text-[10px] uppercase font-black"><i class="fa-solid fa-bug mr-1"></i> Vulnerable Code</div>
+                                <div class="text-slate-400 mb-2">// 취약점: 버퍼 크기(10)를 확인하지 않음</div>
+                                <div class="text-slate-300"><span class="text-blue-400">char</span> buffer[<span class="text-orange-400">10</span>];</div>
+                                <div class="text-slate-300"><span class="text-red-400 font-bold">strcpy</span>(buffer, user_input);</div>
+                            </div>
+                            <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative border-cyan-900/50">
+                                <div class="absolute top-4 right-4 text-cyan-500 text-[10px] uppercase font-black"><i class="fa-solid fa-shield-halved mr-1"></i> Secure Code</div>
+                                <div class="text-slate-400 mb-2">// 보완: 복사할 최대 길이를 명시함</div>
+                                <div class="text-slate-300"><span class="text-blue-400">char</span> buffer[<span class="text-orange-400">10</span>];</div>
+                                <div class="text-slate-300"><span class="text-cyan-400 font-bold">strncpy</span>(buffer, user_input, <span class="text-blue-400">sizeof</span>(buffer)-<span class="text-orange-400">1</span>);</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: 전문가 분석 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                아키텍트 인사이트 (Expert Insight)
+            </h2>
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-10">
+                <div class="flex flex-col md:flex-row gap-8">
+                    <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700 hover:border-cyan-500/50 transition-colors">
+                        <div class="text-cyan-400 mb-4 flex items-center gap-2">
+                            <i data-lucide="lightbulb" class="w-6 h-6"></i>
+                            <h4 class="font-bold text-slate-100">실전 팁: 레거시 코드 진단</h4>
+                        </div>
+                        <p class="text-sm text-slate-300 leading-relaxed">
+                            레거시 (Legacy, 과거에 개발되어 현재까지 사용 중인 시스템) 코드를 클라우드로 마이그레이션하거나 보안 진단을 수행할 때, 가장 먼저 정적 분석 자동화 도구(SAST)를 활용하여 소스 코드 내에 취약한 문자열 처리 함수가 사용되었는지 전수 조사해야 합니다. 방치된 레거시 코드는 침해 사고의 가장 흔한 진입점입니다.
+                        </p>
+                    </div>
+                    <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700 hover:border-red-500/50 transition-colors">
+                        <div class="text-red-400 mb-4 flex items-center gap-2">
+                            <i data-lucide="shield-alert" class="w-6 h-6"></i>
+                            <h4 class="font-bold text-slate-100">자주 오해하는 부분: OS 보호 기법 맹신 금지</h4>
+                        </div>
+                        <p class="text-sm text-slate-300 leading-relaxed mb-4">
+                            "최신 운영체제는 자체 방어 기능이 뛰어나므로 코딩 시 신경 쓰지 않아도 된다"는 것은 매우 위험한 착각입니다. OS 차원의 우회 기법(ROP 등)들이 지속적으로 연구되고 있으므로, 근본적인 방어는 개발 단계에서의 입력값 길이 통제에서 출발해야 합니다.
+                        </p>
+                        <div class="text-xs text-slate-400 bg-slate-900 p-4 rounded-lg border border-slate-700">
+                            <strong>[참고] OS 기반의 보호 기법 (Mitigation, 완화 기술)</strong>
+                            <ul class="list-disc pl-4 mt-2 space-y-1">
+                                <li><strong>ASLR (Address Space Layout Randomization, 주소 공간 배치 난수화):</strong> 메모리 주소를 무작위로 변경하여 공격자의 주소 예측을 방해합니다.</li>
+                                <li><strong>DEP/NX (Data Execution Prevention / No-eXecute, 데이터 실행 방지):</strong> 스택 등 데이터 영역에 '실행 불가' 속성을 부여하여 셸코드 실행을 차단합니다.</li>
+                                <li><strong>Stack Canary (스택 카나리아, 버퍼 오버플로우 탐지 기법):</strong> 버퍼와 RET 사이에 검증 값을 삽입하여, 함수 종료 시 값의 변조 여부를 확인합니다. <span class="text-[10px] italic text-slate-500">*탄광의 카나리아 새에서 유래</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+            © 2026 Cyber Security Lab Architect. All rights reserved.
+        </div>
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto">
+            본 교재는 IP 직업훈련 전문가과정의 실무 향상을 목적으로 제작되었습니다.<br>
+            참고 문헌: <a href="https://cwe.mitre.org/data/definitions/119.html" target="_blank" class="text-cyan-600 hover:underline">CWE-119: Improper Restriction of Operations within the Bounds of a Memory Buffer (메모리 버퍼 경계 내 작업의 부적절한 제한)</a>
+        </p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
