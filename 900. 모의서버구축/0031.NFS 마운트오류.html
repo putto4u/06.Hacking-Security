@@ -1,0 +1,65 @@
+
+
+### 1. 설정 반영 및 서비스 재시작
+
+`/etc/exports` 파일을 수정한 후에는 반드시 다음 명령어를 실행하여 변경 사항을 적용해야 합니다.
+
+```bash
+# 1. 수정된 설정을 커널에 즉시 반영 (Re-export)
+sudo exportfs -ra
+
+# 2. NFS 서버 서비스 재시작
+sudo systemctl restart nfs-kernel-server
+
+# 3. 서비스가 정상적으로 동작 중인지 확인
+sudo systemctl status nfs-kernel-server
+```
+
+---
+
+### 2. 마운트 포인트 및 권한 설정
+
+공유하려는 디렉토리(`/srv/nfs/shared`)가 실제로 존재해야 하며, 클라이언트가 파일을 쓰고 읽을 수 있도록 적절한 권한이 부여되어야 합니다.
+
+```bash
+# 디렉토리가 없다면 생성
+sudo mkdir -p /srv/nfs/shared
+
+# 테스트를 위해 모든 사용자에게 권한 부여 (실무에서는 특정 계정 권한 권장)
+sudo chmod 777 /srv/nfs/shared
+```
+
+
+
+---
+
+### 3. 최종 확인 (Verification)
+
+이제 멈춤 현상이 발생했던 `showmount` 명령어를 다시 실행하여 서버가 정상적으로 리스트를 출력하는지 확인합니다.
+
+```bash
+# 서버 자신(192.168.100.3)의 공유 목록 확인
+showmount -e 192.168.100.3
+```
+
+**정상 출력 예시:**
+> `Export list for 192.168.100.3:`
+> `/srv/nfs/shared 192.168.100.0/24`
+
+---
+
+### 4. 클라이언트에서 마운트 테스트
+
+모든 설정이 완료되었다면, 클라이언트 위치(현재 `/mnt/nfs_client`)에서 마운트를 시도합니다.
+
+```bash
+# 마운트 실행
+sudo mount -t nfs 192.168.100.3:/srv/nfs/shared /mnt/nfs_client
+
+# 마운트 결과 확인
+df -h | grep nfs
+```
+
+* **비용 안내:** 현재 구성 중인 로컬 네트워크 기반 NFS 서비스는 별도의 소프트웨어 비용이 발생하지 않습니다. 다만, 향후 AWS로 확장하여 **AWS Storage Gateway**(AWS 스토리지 게이트웨이)를 통해 온프레미스와 연결할 경우, 게이트웨이 사용료 및 데이터 전송 비용이 발생할 수 있으니 참고하시기 바랍니다.
+
+Next Step: **NFS 마운트 상태 확인**
