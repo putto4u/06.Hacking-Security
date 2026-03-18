@@ -70,6 +70,15 @@
         
         <p class="mb-6 text-slate-700">네트워크를 통해 접근할 물리적 디렉토리를 생성하고, Samba 프로세스 및 인증된 사용자가 읽고 쓸 수 있도록 디렉토리 소유권과 퍼미션을 조정합니다.</p>
 
+        <div class="warning-box mb-6 !p-5 !bg-amber-50 border-l-4 !border-amber-500 shadow-inner rounded-r-lg">
+            <h5 class="text-amber-900 font-black flex items-center gap-2 mb-3 text-base">
+                <i data-lucide="shield-alert" class="w-5 h-5"></i> 리눅스 파일 시스템 권한 vs Samba 공유 권한의 상관관계
+            </h5>
+            <p class="text-amber-800 text-sm">
+                많은 실무자들이 <code>smb.conf</code>에서 <code>read only = no</code>를 설정하고도 클라이언트 접속 시 <strong>NT_STATUS_ACCESS_DENIED</strong> (접근 거부) 에러를 겪습니다. 이는 Samba 데몬에서 쓰기를 허용하더라도, 근간이 되는 리눅스 OS(Operating System, 운영체제)의 물리적 폴더 권한이 해당 접근 계정(예: <code>smbuser</code>)에게 쓰기(Write) 권한을 허용하지 않기 때문입니다. 실습 환경에서 이를 해결하기 위해 공유 폴더의 리눅스 퍼미션(Permission)을 <code>0777</code>로 전면 개방하여 물리적 쓰기 권한을 보장해야 합니다.
+            </p>
+        </div>
+
         <div class="code-block">
             <span class="code-comment"># 1. 파일 서버용 최상위 디렉토리 생성</span><br>
             $ <span class="code-keyword">sudo mkdir -p /srv/samba/shared</span><br><br>
@@ -77,8 +86,8 @@
             <span class="code-comment"># 2. 특정 시스템 계정에 종속되지 않도록 소유권 변경 (보안)</span><br>
             $ <span class="code-keyword">sudo chown nobody:nogroup /srv/samba/shared</span><br><br>
 
-            <span class="code-comment"># 3. 디렉토리 퍼미션 부여 (소유자/그룹은 읽기,쓰기,실행 허용)</span><br>
-            $ <span class="code-keyword">sudo chmod -R 0775 /srv/samba/shared</span>
+            <span class="code-comment"># 3. 디렉토리 퍼미션 부여 (smbuser의 파일 업로드를 위해 0777 쓰기 권한 개방)</span><br>
+            $ <span class="code-keyword">sudo chmod -R 0777 /srv/samba/shared</span>
         </div>
     </section>
 
@@ -209,6 +218,12 @@
                         <li>
                             <strong class="text-slate-900">최신 SMB 프로토콜 강제:</strong> 최신 우분투는 보안상 취약한 SMBv1(NT1) 프로토콜을 시스템 차원에서 차단합니다. CLI 클라이언트 접속 시 <code>-m SMB3</code> 옵션을 명시하여 최신 프로토콜 통신을 강제해야 협상 실패(Protocol negotiation failed) 에러를 방지할 수 있습니다.
                         </li>
+                        <li>
+                            <strong class="text-slate-900">파일 쓰기 권한 거부 (NT_STATUS_ACCESS_DENIED):</strong> <code>put imsi</code> 등 업로드 명령어 실행 시 이 에러가 발생한다면, Samba 로그인 계정이 <strong>리눅스 물리 디렉토리에 대한 쓰기 권한</strong>이 없는 것입니다. Chapter 2의 <code>chmod -R 0777</code> 설정이 누락되었는지 확인하세요.
+                        </li>
+                        <li>
+                            <strong class="text-slate-900">다중 파일 제어 문법 오류 (NT_STATUS_OBJECT_NAME_INVALID):</strong> 여러 파일을 다루기 위해 <code>get *</code>와 같이 와일드카드(Wildcard, <code>*</code>)를 쓰면 발생하는 문법 에러입니다. <code>get / put</code>은 단일 파일 전용이므로, 다중 제어 시에는 반드시 <strong><code>mget *</code></strong> 또는 <strong><code>mput *</code></strong> (Multiple Get/Put) 명령어를 사용해야 합니다.
+                        </li>
                     </ul>
                 </div>
 
@@ -218,14 +233,16 @@
                     $ <span class="code-keyword">smbclient //localhost/PublicShare -U smbuser -m SMB3</span><br>
                     <span class="code-output">Password for [WORKGROUP\smbuser]:</span><br><br>
 
-                    <span class="code-comment"># 2. 파일 업로드 (Put 명령어로 파일 넣기)</span><br>
+                    <span class="code-comment"># 2. 파일 업로드 (put: 단일 파일 / mput: 다중 파일)</span><br>
                     smb: \> <span class="code-keyword">put smb_test.txt</span><br>
                     <span class="code-output">putting file smb_test.txt as \smb_test.txt (0.0 kb/s)</span><br>
+                    <span class="code-comment"># 주의: 다중 업로드 시에는 'mput *' 명령어를 활용합니다.</span><br><br>
+
+                    <span class="code-comment"># 3. 파일 다운로드 및 삭제 (get/mget, rm)</span><br>
                     smb: \> <span class="code-keyword">ls</span><br>
                     <span class="code-output">  .                  D        0  Wed Mar 18 10:00:00 2026<br>
-                    &nbsp;&nbsp;smb_test.txt       A        0  Wed Mar 18 10:01:00 2026</span><br><br>
-
-                    <span class="code-comment"># 3. 파일 삭제 (Rm 명령어로 파일 지우기)</span><br>
+                    &nbsp;&nbsp;smb_test.txt       A        0  Wed Mar 18 10:01:00 2026</span><br>
+                    smb: \> <span class="code-keyword">get smb_test.txt</span> <span class="code-comment"># 다중 다운로드 시 mget * 사용</span><br>
                     smb: \> <span class="code-keyword">rm smb_test.txt</span><br>
                     smb: \> <span class="code-keyword">exit</span>
                 </div>
