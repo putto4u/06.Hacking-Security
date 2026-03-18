@@ -1,65 +1,260 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NFS 서버 최적화 및 클라이언트 연결 실증</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+        }
+        .terminal-bg { background-color: #020617; border: 1px solid #1e293b; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-blur: xl; }
+        .code-block { font-family: 'Fira Code', monospace; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+    </style>
+</head>
+<body class="antialiased pb-20">
 
+    <!-- Header: 기술 사양 및 타이틀 -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Cyber Security Lab</span>
+                    <span class="text-slate-500 font-mono text-[10px]">INFRA-NFS-02 | Network Storage</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
+                    NFS 서버 최적화 및 클라이언트 연결 실증<br><span class="text-slate-100 text-2xl">서비스 가용성 확보와 네트워크 파일 공유 검증</span>
+                </h1>
+            </div>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-blue-500/10 text-blue-400 border border-blue-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    STABILITY: 9.0
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">System Architect Pro</p>
+            </div>
+        </div>
+    </header>
 
-### 1. 설정 반영 및 서비스 재시작
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-24">
 
-`/etc/exports` 파일을 수정한 후에는 반드시 다음 명령어를 실행하여 변경 사항을 적용해야 합니다.
+        <!-- Section 1: 아키텍처 개요 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                1. 아키텍처 개요 (Architecture Overview)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-10 leading-relaxed">
+                    NFS(Network File System, 네트워크 파일 시스템) 환경 설정의 마지막 단계는 구성된 정책을 커널(Kernel, 운영체제 핵심부)에 반영하고 서비스의 가용성(Availability, 서비스가 중단 없이 지속되는 능력)을 확인하는 것입니다. 설정 파일인 <code class="text-cyan-400">/etc/exports</code>의 수정 내용은 단순 저장만으로는 적용되지 않으며, RPC(Remote Procedure Call, 원격 프로시저 호출) 데몬과 통신하여 리엑스포트(Re-export, 재공유 설정 반영) 과정을 거쳐야 합니다.
+                </p>
 
-```bash
-# 1. 수정된 설정을 커널에 즉시 반영 (Re-export)
-sudo exportfs -ra
+                <!-- 도식화 인포그래픽 영역 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner">
+                    <h4 class="text-center font-bold text-slate-400 mb-8 text-xs tracking-widest uppercase">
+                        [도식: NFS 설정 반영 및 마운트 프로세스 흐름]
+                    </h4>
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                        <!-- Server Config -->
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-cyan-900/50 shadow-lg">
+                            <i data-lucide="file-edit" class="w-12 h-12 text-cyan-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm italic">SERVER CONFIG</div>
+                            <div class="text-[10px] text-slate-500 mt-1 font-mono">/etc/exports</div>
+                        </div>
+                        <!-- Arrow -->
+                        <div class="flex flex-col items-center">
+                            <i data-lucide="chevrons-right" class="w-8 h-8 text-cyan-500/50 rotate-90 md:rotate-0 animate-pulse"></i>
+                            <span class="text-[9px] text-cyan-600 font-mono">Re-export</span>
+                        </div>
+                        <!-- Kernel/Daemon -->
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-blue-900/50 shadow-lg relative overflow-hidden">
+                            <div class="absolute top-0 right-0 bg-blue-600/20 px-2 py-0.5 text-[8px] text-blue-400 font-bold uppercase">Kernel Level</div>
+                            <i data-lucide="refresh-cw" class="w-12 h-12 text-blue-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">NFS DAEMON</div>
+                        </div>
+                        <!-- Arrow -->
+                        <div class="flex flex-col items-center">
+                            <i data-lucide="arrow-right" class="w-8 h-8 text-slate-600 rotate-90 md:rotate-0"></i>
+                            <span class="text-[9px] text-slate-500 font-mono">TCP 2049</span>
+                        </div>
+                        <!-- Client Mount -->
+                        <div class="flex-1 text-center p-6 bg-indigo-950/20 border border-indigo-500/30 rounded-xl shadow-lg">
+                            <i data-lucide="hard-drive" class="w-12 h-12 text-indigo-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm italic">CLIENT MOUNT</div>
+                            <div class="text-[10px] text-slate-500 mt-1 font-mono">/mnt/nfs_client</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-# 2. NFS 서버 서비스 재시작
-sudo systemctl restart nfs-kernel-server
+        <!-- Section 2: 실습 구성 요소 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                2. 실습 구성 요소 (Components)
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="section-card rounded-3xl p-8 border-cyan-900/30 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-cyan-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">STORAGE NODE</div>
+                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                        <i data-lucide="server" class="w-6 h-6 text-cyan-400"></i> NFS 서버 (Server)
+                    </h3>
+                    <ul class="space-y-4 text-sm text-slate-300">
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-cyan-500"></i> <strong>IP Address:</strong> 192.168.100.3</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-cyan-500"></i> <strong>Export Path:</strong> /srv/nfs/shared</li>
+                    </ul>
+                </div>
+                <div class="section-card rounded-3xl p-8 border-indigo-900/30 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">CLIENT NODE</div>
+                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                        <i data-lucide="terminal" class="w-6 h-6 text-indigo-400"></i> NFS 클라이언트 (Client)
+                    </h3>
+                    <ul class="space-y-4 text-sm text-slate-300">
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-indigo-500"></i> <strong>Network:</strong> 192.168.100.0/24 Subnet</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-indigo-500"></i> <strong>Mount Point:</strong> /mnt/nfs_client</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
 
-# 3. 서비스가 정상적으로 동작 중인지 확인
-sudo systemctl status nfs-kernel-server
-```
+        <!-- Section 3: 명령어 및 절차 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                3. 실증 및 구현 (Implementation)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-16">
+                
+                <!-- Step 01 -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black italic">STEP 01</span>
+                        <h3 class="text-xl font-bold text-slate-100">설정 반영 및 서비스 활성화</h3>
+                    </div>
+                    <div class="pl-12">
+                        <p class="text-sm text-slate-400 mb-4">수정된 <code class="text-slate-200">/etc/exports</code> 파일의 내용을 커널에 즉시 반영하고 백그라운드 프로세스인 데몬(Daemon)을 재시작하여 정상 동작 여부를 검증합니다.</p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">NFS Server</div>
+                            <div class="text-slate-500 mb-1"># 1. 수정된 설정을 커널에 즉시 반영 (Re-export)</div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">sudo exportfs -ra</span></div>
+                            
+                            <div class="text-slate-500 mt-4 mb-1"># 2. NFS 서버 서비스 재시작</div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">sudo systemctl restart nfs-kernel-server</span></div>
+                            
+                            <div class="text-slate-500 mt-4 mb-1"># 3. 서비스가 정상적으로 동작 중인지 상태 확인</div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">sudo systemctl status nfs-kernel-server</span></div>
+                        </div>
+                    </div>
+                </div>
 
----
+                <!-- Step 02 -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black italic">STEP 02</span>
+                        <h3 class="text-xl font-bold text-slate-100">마운트 포인트 및 권한 구성</h3>
+                    </div>
+                    <div class="pl-12">
+                        <p class="text-sm text-slate-400 mb-4">공유하려는 물리적 디렉토리가 실제로 존재해야 하며, 클라이언트가 데이터를 읽고 쓸 수 있도록 디렉토리 소유권 및 퍼미션(Permission, 권한)을 조정합니다.</p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative border-l-4 border-blue-500/30">
+                            <div class="text-slate-500 mb-1"># 디렉토리가 없다면 생성</div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">sudo mkdir -p /srv/nfs/shared</span></div>
+                            
+                            <div class="text-slate-500 mt-4 mb-1"># 테스트를 위해 모든 사용자에게 권한 부여</div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">sudo chmod 777 /srv/nfs/shared</span></div>
+                        </div>
+                        <p class="text-[10px] text-slate-500 mt-2 italic font-sans leading-relaxed">※ 실무 환경에서는 보안을 위해 777 대신 특정 시스템 계정 권한 부여 및 ID Squashing(아이디 스쿼싱) 기법 적용을 적극 권장합니다.</p>
+                    </div>
+                </div>
 
-### 2. 마운트 포인트 및 권한 설정
+                <!-- Step 03 -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black italic">STEP 03</span>
+                        <h3 class="text-xl font-bold text-slate-100">최종 유효성 검증 (Verification)</h3>
+                    </div>
+                    <div class="pl-12">
+                        <p class="text-sm text-slate-400 mb-4">멈춤 현상이 해결되었는지 확인하기 위해 <code class="text-slate-200">showmount</code> 명령어를 다시 실행하여 서버가 정상적으로 공유 리스트를 출력하는지 확인합니다.</p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                            <div class="text-slate-500 mb-1"># 서버 자신(192.168.100.3)의 공유 목록 확인</div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">showmount -e 192.168.100.3</span></div>
+                            <div class="text-emerald-500 mt-2">Export list for 192.168.100.3:<br>/srv/nfs/shared 192.168.100.0/24</div>
+                        </div>
+                    </div>
+                </div>
 
-공유하려는 디렉토리(`/srv/nfs/shared`)가 실제로 존재해야 하며, 클라이언트가 파일을 쓰고 읽을 수 있도록 적절한 권한이 부여되어야 합니다.
+                <!-- Step 04 -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-emerald-500 text-slate-900 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black italic">STEP 04</span>
+                        <h3 class="text-xl font-bold text-slate-100">클라이언트 마운트 테스트 (Mount Test)</h3>
+                    </div>
+                    <div class="pl-12">
+                        <p class="text-sm text-slate-400 mb-4">모든 서버 설정이 완료되었다면 클라이언트 측 마운트 포인트(<code class="text-slate-200">/mnt/nfs_client</code>)에서 원격 볼륨을 연결합니다.</p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">NFS Client</div>
+                            <div class="text-slate-500 mb-1"># 마운트 실행</div>
+                            <div class="text-slate-200">$ <span class="text-emerald-400">sudo mount -t nfs 192.168.100.3:/srv/nfs/shared /mnt/nfs_client</span></div>
+                            
+                            <div class="text-slate-500 mt-4 mb-1"># 마운트 결과 확인 (Disk Free 사용)</div>
+                            <div class="text-slate-200">$ <span class="text-emerald-400">df -h | grep nfs</span></div>
+                            <div class="text-emerald-500 mt-1">192.168.100.3:/srv/nfs/shared  20G  1.2G   18G   7% /mnt/nfs_client</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-```bash
-# 디렉토리가 없다면 생성
-sudo mkdir -p /srv/nfs/shared
+        <!-- Section 4: 전문가 분석 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                4. 아키텍트 인사이트 (Expert Insight)
+            </h2>
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-10">
+                <div class="flex flex-col md:flex-row gap-8">
+                    <!-- Tip 1 -->
+                    <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                        <div class="text-cyan-400 mb-4"><i data-lucide="info" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2">로컬 네트워크 환경 비용 분석</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed font-medium">
+                            현재 구성 중인 온프레미스(On-Premise, 사내 구축형) 기반 NFS 서비스는 별도의 소프트웨어 구매 비용이 발생하지 않는 오픈소스 기반입니다. 초기 하드웨어 투자비(CapEx) 외에 운영 관리 비용 위주로 산정됩니다.
+                        </p>
+                    </div>
+                    <!-- Tip 2 -->
+                    <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-red-900/30">
+                        <div class="text-red-400 mb-4"><i data-lucide="shield-alert" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2">AWS 확장 시 유료 과금 주의</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed font-medium">
+                            향후 인프라를 AWS로 확장하여 <strong>AWS Storage Gateway (AWS 스토리지 게이트웨이, 유료)</strong>를 통해 클라우드 스토리지와 연결할 경우, 게이트웨이 시간당 이용료 및 월별 데이터 전송(Data Transfer) 비용이 발생합니다. 완전 관리형 NFS인 <strong>Amazon EFS (Elastic File System)</strong> 도입 시에도 데이터 저장량에 따른 <strong>사용량 기반 요금</strong>이 부과되므로 설계 시 TCO(Total Cost of Ownership, 총 소유 비용)를 반드시 검토해야 합니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-# 테스트를 위해 모든 사용자에게 권한 부여 (실무에서는 특정 계정 권한 권장)
-sudo chmod 777 /srv/nfs/shared
-```
+    </main>
 
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+            © 2026 Chief System Architect. All rights reserved.
+        </div>
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic font-medium">
+            본 문서는 시스템 인프라 구축의 안정성을 위해 작성되었으며, 실제 운영 환경에 적용하기 전 반드시 스테이징(Staging) 환경에서 사전 검증을 권장합니다.
+        </p>
+    </footer>
 
-
----
-
-### 3. 최종 확인 (Verification)
-
-이제 멈춤 현상이 발생했던 `showmount` 명령어를 다시 실행하여 서버가 정상적으로 리스트를 출력하는지 확인합니다.
-
-```bash
-# 서버 자신(192.168.100.3)의 공유 목록 확인
-showmount -e 192.168.100.3
-```
-
-**정상 출력 예시:**
-> `Export list for 192.168.100.3:`
-> `/srv/nfs/shared 192.168.100.0/24`
-
----
-
-### 4. 클라이언트에서 마운트 테스트
-
-모든 설정이 완료되었다면, 클라이언트 위치(현재 `/mnt/nfs_client`)에서 마운트를 시도합니다.
-
-```bash
-# 마운트 실행
-sudo mount -t nfs 192.168.100.3:/srv/nfs/shared /mnt/nfs_client
-
-# 마운트 결과 확인
-df -h | grep nfs
-```
-
-* **비용 안내:** 현재 구성 중인 로컬 네트워크 기반 NFS 서비스는 별도의 소프트웨어 비용이 발생하지 않습니다. 다만, 향후 AWS로 확장하여 **AWS Storage Gateway**(AWS 스토리지 게이트웨이)를 통해 온프레미스와 연결할 경우, 게이트웨이 사용료 및 데이터 전송 비용이 발생할 수 있으니 참고하시기 바랍니다.
-
-Next Step: **NFS 마운트 상태 확인**
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
