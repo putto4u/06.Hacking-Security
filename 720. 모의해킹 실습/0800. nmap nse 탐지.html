@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metasploit Framework: 침투 테스트 실습</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+        }
+        .terminal-bg { background-color: #020617; border: 1px solid #1e293b; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-blur: xl; }
+        .code-block { font-family: 'Fira Code', monospace; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+        .footnote { font-size: 0.85rem; color: #94a3b8; border-top: 1px dashed #334155; padding-top: 0.5rem; margin-top: 1rem; }
+        .terminal-text { white-space: pre-wrap; word-break: break-all; }
+        
+        /* Table Styling */
+        .cyber-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        .cyber-table th { background: rgba(30, 41, 59, 0.8); color: #38bdf8; font-weight: 700; padding: 1rem; text-align: left; border-bottom: 2px solid #0ea5e9; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .cyber-table td { padding: 1rem; border-bottom: 1px solid rgba(51, 65, 85, 0.5); color: #cbd5e1; font-size: 0.95rem; vertical-align: top; }
+        .cyber-table tr:hover td { background: rgba(15, 23, 42, 0.8); }
+        .cyber-table tr:last-child td { border-bottom: none; }
+
+        /* Highlight classes */
+        .cmd-input { color: #22d3ee; font-weight: 700; }
+        .cmd-output { color: #94a3b8; }
+        .cmd-success { color: #34d399; font-weight: 700; }
+        .cmd-warning { color: #fbbf24; }
+        .cmd-error { color: #f87171; }
+        .cmd-comment { color: #64748b; font-style: italic; }
+        .lua-keyword { color: #c678dd; font-weight: 700; }
+        .lua-string { color: #98c379; }
+        .lua-function { color: #61afef; }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <!-- Header: 기술 사양 및 타이틀 -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-indigo-600 text-white px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_15px_rgba(79,70,229,0.6)]">Vulnerability Assessment</span>
+                    <span class="text-slate-500 font-mono text-[10px]">SEC-VA-305 | Scripting Engine</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-indigo-500 to-purple-500 tracking-tight leading-tight">
+                    Apache 취약점 정밀 타격<br><span class="text-slate-100 text-2xl font-bold">NSE 커스텀 스크립트 작성 및 자동 진단 가이드</span>
+                </h1>
+            </div>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-indigo-900/40 text-indigo-400 border border-indigo-500/30 px-5 py-3 rounded-xl text-sm font-black font-mono shadow-lg flex flex-col items-end">
+                    <span class="text-[10px] text-slate-400 mb-1">AUTOMATION LEVEL</span>
+                    ADVANCED SCRIPTING
+                </div>
+                <p class="text-[10px] text-slate-500 mt-3 tracking-widest uppercase">System Architect Pro</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-32">
+
+        <!-- 섹션 1: 타겟 분석 및 아키텍처 개요 -->
+        <section>
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-10 tracking-tight flex items-center gap-3">
+                <i data-lucide="crosshair" class="w-8 h-8 text-cyan-400"></i> 타겟 분석 및 NSE 아키텍처 개요
+            </h2>
+            <div class="section-card rounded-3xl p-12 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-12 leading-relaxed block">
+                    본 실습은 Metasploitable 2의 아파치(Apache) 웹 서버 취약점을 정밀 타격하여 탐지할 수 있는 <strong>NSE (Nmap Scripting Engine, 엔맵 스크립팅 엔진)</strong> 활용법과 맞춤형 <strong>Lua (루아, 임베디드 스크립팅 언어)</strong> 스크립트 작성 가이드를 다룹니다. NSE는 단순한 포트 스캔을 넘어, 대상 네트워크 서비스의 버전 결함 및 보안 설정 오류를 자동으로 진단하고 검증하는 강력한 자동화 프레임워크입니다.
+                </p>
+
+                <div class="bg-slate-800/50 p-8 rounded-2xl border border-slate-700 mb-10">
+                    <h3 class="text-xl font-bold text-slate-100 mb-4 flex items-center gap-2">
+                        <i data-lucide="server" class="w-6 h-6 text-blue-400"></i> Metasploitable 2 아파치 타겟 집중 분석
+                    </h3>
+                    <p class="text-sm text-slate-300 leading-relaxed mb-6 block">
+                        가상의 취약한 환경인 Metasploitable 2에 설치된 아파치 웹 데몬은 고전적이고 치명적인 취약점들을 다수 포함하고 있도록 의도적으로 설계되었습니다. 특히 보안 진단 시 다음 세 가지 항목이 주요 1차 탐지 대상입니다.
+                    </p>
+                    <ul class="space-y-4 text-sm text-slate-300 ml-4">
+                        <li class="flex items-center gap-3">
+                            <i data-lucide="alert-triangle" class="w-5 h-5 text-yellow-500"></i>
+                            <strong>Apache 2.2.8 (Old version):</strong> 수많은 공개된 메모리 손상 버그와 <strong>DoS (Denial of Service, 서비스 거부 공격)</strong> 취약점을 내포한 심각한 구버전 시스템.
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <i data-lucide="bug" class="w-5 h-5 text-red-500"></i>
+                            <strong>PHP-CGI (CVE-2012-1823):</strong> URL의 쿼리 스트링(Query String)을 통해 소스 코드를 탈취하거나 <strong>RCE (Remote Code Execution, 원격 코드 실행)</strong>를 유발하는 치명적인 결함.
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <i data-lucide="folder-open" class="w-5 h-5 text-orange-500"></i>
+                            <strong>WebDAV 설정 오류:</strong> 인증되지 않은 사용자가 웹 서버 경로에 직접 파일을 생성하고 업로드할 수 있게 허용하는 <strong>WebDAV (Web Distributed Authoring and Versioning, 웹 분산 저작 및 버전 관리)</strong> 프로토콜 권한 설정 오류.
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 도식 1: NSE 아키텍처 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-10 shadow-inner">
+                    <h4 class="text-center font-bold text-slate-400 mb-10 text-sm tracking-widest uppercase">
+                        [도식 1: Nmap Scripting Engine (NSE) 구동 아키텍처]
+                    </h4>
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                        <div class="flex-1 text-center p-8 bg-slate-800 rounded-2xl border border-indigo-900/50 shadow-lg w-full">
+                            <i data-lucide="file-code-2" class="w-16 h-16 text-indigo-400 mx-auto mb-6"></i>
+                            <div class="font-black text-slate-100 text-lg">NSE Scripts (.nse)</div>
+                            <div class="text-xs text-slate-400 mt-3 font-mono">Lua 언어 기반 스크립트 모음</div>
+                        </div>
+                        <div class="flex flex-col items-center px-6">
+                            <i data-lucide="plus" class="w-8 h-8 text-slate-500"></i>
+                        </div>
+                        <div class="flex-1 text-center p-8 bg-slate-800 rounded-2xl border border-cyan-900/50 shadow-lg w-full">
+                            <i data-lucide="cpu" class="w-16 h-16 text-cyan-400 mx-auto mb-6"></i>
+                            <div class="font-black text-slate-100 text-lg">Nmap Core Engine</div>
+                            <div class="text-xs text-slate-400 mt-3 font-mono">포트 및 프로토콜 스캐너</div>
+                        </div>
+                        <div class="flex flex-col items-center px-6">
+                            <div class="text-xs text-yellow-400 font-bold mb-3 uppercase tracking-widest">HTTP Check</div>
+                            <i data-lucide="arrow-right-circle" class="w-10 h-10 text-cyan-600 rotate-90 md:rotate-0"></i>
+                        </div>
+                        <div class="flex-1 text-center p-8 bg-slate-800 rounded-2xl border border-red-900/50 shadow-lg w-full">
+                            <i data-lucide="server" class="w-16 h-16 text-red-400 mx-auto mb-6"></i>
+                            <div class="font-black text-slate-100 text-lg">Target Apache</div>
+                            <div class="text-xs text-slate-400 mt-3 font-mono">Port 80 (Vulnerable)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footnote mt-8 text-sm">
+                * <strong>CVE (Common Vulnerabilities and Exposures, 공통 취약점 및 노출):</strong> 전 세계적으로 알려진 소프트웨어의 보안 취약점을 식별하기 위해 부여되는 국제 표준 고유 식별 번호입니다.<br>
+                * <strong>CGI (Common Gateway Interface, 공통 게이트웨이 인터페이스):</strong> 웹 서버가 외부 프로그램(예: PHP 인터프리터)을 실행하여 동적 웹 페이지를 생성할 때 사용하는 표준 통신 규약입니다.
+            </div>
+        </section>
+
+        <!-- 섹션 2: 기존 NSE 스크립트를 이용한 탐지 -->
+        <section>
+            <h2 class="text-3xl font-black border-l-4 border-emerald-500 pl-4 text-slate-100 mb-10 tracking-tight flex items-center gap-3">
+                <i data-lucide="search-check" class="w-8 h-8 text-emerald-400"></i> 내장 NSE 스크립트 활용 (Built-in Scripts)
+            </h2>
+            <div class="section-card rounded-3xl p-12 shadow-2xl space-y-10">
+                <p class="text-slate-300 text-lg leading-relaxed block">
+                    새로운 스크립트를 직접 짜기 전, Nmap 프레임워크에 이미 내장되어 있는 방대한 취약점 DB 스크립트를 먼저 활용하는 것이 실무에서 가장 권장되는 효율적인 방법입니다.
+                </p>
+
+                <div class="bg-slate-900/90 rounded-xl p-8 shadow-inner relative border border-slate-700 overflow-x-auto">
+                    <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-red-500"></div><div class="w-3 h-3 rounded-full bg-yellow-500"></div><div class="w-3 h-3 rounded-full bg-green-500"></div></div>
+                    
+                    <!-- 커맨드 1 -->
+                    <div class="terminal-text mb-6"><span class="cmd-comment"># 1. 아파치 서버의 모든 알려진 취약점(vuln) 카테고리 스캔</span>
+<span class="cmd-output">kali@attacker:~$</span> <span class="cmd-input">nmap -p 80 --script vuln 192.168.1.100</span>
+<span class="cmd-comment"># [해설] Nmap의 스크립트 카테고리 중 'vuln(Vulnerability, 취약점)' 태그가 지정된 수백 개의 스크립트를 80번 포트에 일괄 구동시켜 알려진 CVE 결함을 스캔합니다.</span></div>
+                    
+                    <!-- 커맨드 2 -->
+                    <div class="terminal-text mb-6"><span class="cmd-comment"># 2. HTTP 열거 및 취약한 디렉터리(WebDAV 등) 집중 탐지</span>
+<span class="cmd-output">kali@attacker:~$</span> <span class="cmd-input">nmap -p 80 --script http-enum,http-methods,http-webdav-scan 192.168.1.100</span>
+<span class="cmd-comment"># [해설] 쉼표(,)를 통해 여러 개의 HTTP 전용 진단 스크립트를 동시 실행합니다. 디렉터리 구조를 열거(enum)하고, 허용된 HTTP 메서드(PUT, DELETE 등)를 확인하며, WebDAV 활성화 여부를 정밀 스캔합니다.</span></div>
+
+                    <!-- 결과 출력 및 해석 -->
+                    <div class="terminal-text"><span class="cmd-output">Starting Nmap 7.93...</span>
+<span class="cmd-output">PORT   STATE SERVICE</span>
+<span class="cmd-output">80/tcp open  http</span>
+<span class="cmd-error font-bold">| http-php-cgi-unset-env:</span>
+<span class="cmd-error font-bold">|   VULNERABLE: PHP-CGI Remote Code Execution (CVE-2012-1823)</span>
+<span class="cmd-error font-bold">|     State: VULNERABLE (Exploitable)</span>
+<span class="cmd-output">|_    IDs:  CVE:CVE-2012-1823</span>
+<span class="cmd-comment"># [결과 분석] Nmap 내장 스크립트가 대상 시스템에 치명적인 PHP-CGI 원격 코드 실행 취약점이 존재함을 성공적으로 탐지했습니다. 'Exploitable' 상태는 즉시 악용 가능하다는 최고 수준의 위험도를 의미합니다.</span></div>
+                </div>
+            </div>
+            
+            <div class="footnote mt-8 text-sm">
+                * <strong>Enumeration (열거):</strong> 대상 시스템에 어떠한 파일, 디렉터리, 사용자 계정 등이 존재하는지 무작위 대입이나 패턴 매칭을 통해 샅샅이 파악하는 스캐닝 기법입니다.
+            </div>
+        </section>
+
+        <!-- 섹션 3: 맞춤형 NSE 스크립트 제작 -->
+        <section>
+            <h2 class="text-3xl font-black border-l-4 border-indigo-500 pl-4 text-slate-100 mb-10 tracking-tight flex items-center gap-3">
+                <i data-lucide="file-code" class="w-8 h-8 text-indigo-400"></i> 맞춤형 NSE 스크립트 제작 (Custom Script)
+            </h2>
+            <div class="section-card rounded-3xl p-12 shadow-2xl space-y-10">
+                <p class="text-slate-300 text-lg leading-relaxed block">
+                    기존 DB에 없는 새로운 취약점이나 자사만의 특정 보안 정책 위반(예: 특정 관리자 페이지 노출 여부)을 점검하기 위해 <strong>Lua (루아)</strong> 언어를 사용하여 맞춤형 NSE 스크립트를 제작할 수 있습니다. 아래는 PHP-CGI 취약점 징후를 직접 확인하는 <code>apache-check.nse</code> 스크립트의 소스 코드 구조입니다.
+                </p>
+
+                <div class="bg-slate-900/90 rounded-xl p-8 shadow-inner relative border border-slate-700 overflow-x-auto">
+                    <div class="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] font-black px-4 py-1.5 rounded-bl-lg uppercase tracking-widest">apache-check.nse</div>
+                    
+                    <div class="terminal-text mb-2"><span class="cmd-comment">-- Metasploitable 2의 특정 아파치 취약 경로를 확인하는 맞춤형 Lua 스크립트</span>
+<span class="lua-keyword">local</span> http = <span class="lua-function">require</span> <span class="lua-string">"http"</span>
+<span class="lua-keyword">local</span> shortport = <span class="lua-function">require</span> <span class="lua-string">"shortport"</span>
+<span class="cmd-comment">-- [해설] 스크립트 구동에 필요한 HTTP 통신 모듈과 포트 판별(shortport) 라이브러리를 메모리에 불러옵니다(require).</span>
+
+description = <span class="lua-string">[[
+  Metasploitable 2의 Apache 및 PHP-CGI 취약점(CVE-2012-1823) 존재 여부를 자체적으로 체크합니다.
+]]</span>
+
+author = <span class="lua-string">"Sung-doo Won"</span>
+license = <span class="lua-string">"Same as Nmap"</span>
+categories = {<span class="lua-string">"vuln"</span>, <span class="lua-string">"discovery"</span>}
+<span class="cmd-comment">-- [해설] 스크립트의 메타데이터를 정의합니다. 카테고리를 설정하면 추후 nmap --script vuln 명령어 실행 시 자동 포함될 수 있습니다.</span>
+
+<span class="cmd-comment">-- 80번 포트나 HTTP 서비스가 열려 있을 때만 스크립트가 실행되도록 트리거(Trigger) 규칙 설정</span>
+portrule = shortport.http
+
+<span class="lua-keyword">action</span> = <span class="lua-keyword">function</span>(host, port)
+    <span class="cmd-comment">-- PHP-CGI 취약점(소스코드 노출)을 강제로 유도하는 특수 쿼리 스트링 파라미터(-s) 정의</span>
+    <span class="lua-keyword">local</span> path = <span class="lua-string">"/index.php?-s"</span> 
+    <span class="lua-keyword">local</span> response = http.<span class="lua-function">get</span>(host, port, path)
+    <span class="cmd-comment">-- [해설] 타겟 웹 서버로 GET 방식의 HTTP 요청을 전송하고 결과를 response 변수에 담습니다.</span>
+
+    <span class="cmd-comment">-- 응답 바디(Body)에 PHP 소스 코드 하이라이트 HTML 태그(<code>)가 평문으로 보인다면 취약한 것임</span>
+    <span class="lua-keyword">if</span> ( response.status == <span class="lua-keyword">200</span> <span class="lua-keyword">and</span> response.body:<span class="lua-function">match</span>(<span class="lua-string">"<code>"</span>) ) <span class="lua-keyword">then</span>
+        <span class="lua-keyword">return</span> <span class="lua-string">"Critical: PHP-CGI RCE (CVE-2012-1823) 취약점이 발견되었습니다!"</span>
+    <span class="lua-keyword">end</span>
+
+    <span class="lua-keyword">return</span> <span class="lua-string">"정상: 해당 취약점이 발견되지 않았습니다."</span>
+<span class="lua-keyword">end</span>
+<span class="cmd-comment">-- [해설] 메인 실행 함수(action)입니다. HTTP 상태 코드가 200(정상)이고, 반환된 응답 본문에 &lt;code&gt; 문자열 패턴 매칭(match)이 성공하면 경고 메시지를 터미널에 출력합니다.</span></div>
+                </div>
+            </div>
+            
+            <div class="footnote mt-8 text-sm">
+                * <strong>Lua (루아):</strong> 프로그램 내부에 쉽게 이식(Embedded)할 수 있도록 가볍고 빠르게 설계된 스크립팅 언어로, 게임 엔진이나 Nmap과 같은 보안 도구에서 확장 모듈을 작성할 때 널리 쓰입니다.<br>
+                * <strong>Pattern Matching (패턴 매칭):</strong> 텍스트 데이터 내에서 특정 문자열이나 정규 표현식 규칙에 부합하는 구조를 찾아내는 데이터 검사 기법입니다.
+            </div>
+        </section>
+
+        <!-- 섹션 4: 커스텀 스크립트 실행 및 결과 검증 -->
+        <section>
+            <h2 class="text-3xl font-black border-l-4 border-rose-500 pl-4 text-slate-100 mb-10 tracking-tight flex items-center gap-3">
+                <i data-lucide="play-circle" class="w-8 h-8 text-rose-400"></i> 커스텀 스크립트 실행 및 로그 검증
+            </h2>
+            <div class="section-card rounded-3xl p-12 shadow-2xl space-y-8">
+                <p class="text-slate-300 text-lg leading-relaxed block">
+                    작성한 Lua 기반 커스텀 스크립트(<code>apache-check.nse</code>)를 파일로 저장한 후, Kali Linux의 Nmap 엔진에 직접 로드하여 실행하는 실증 단계입니다.
+                </p>
+
+                <div class="bg-slate-900/90 rounded-xl p-8 shadow-inner relative border border-slate-700 overflow-x-auto">
+                    <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-red-500"></div><div class="w-3 h-3 rounded-full bg-yellow-500"></div><div class="w-3 h-3 rounded-full bg-green-500"></div></div>
+                    
+                    <div class="terminal-text mb-6"><span class="cmd-comment"># 1. 스크립트 실행 권한 부여 및 타겟 대상 실행</span>
+<span class="cmd-output">kali@attacker:~$</span> <span class="cmd-input">chmod +x apache-check.nse</span>
+<span class="cmd-output">kali@attacker:~$</span> <span class="cmd-input">nmap -p 80 --script ./apache-check.nse 192.168.1.100</span>
+<span class="cmd-comment"># [해설] 스크립트 파일이 위치한 현재 경로(./)를 명시하여 Nmap이 기본 내장 스크립트 폴더 대신 해당 파일을 로컬에서 직접 불러오도록 지시합니다.</span></div>
+                    
+                    <div class="terminal-text mb-2"><span class="cmd-output">Starting Nmap 7.93...</span>
+<span class="cmd-output">Nmap scan report for 192.168.1.100</span>
+<span class="cmd-output">PORT   STATE SERVICE</span>
+<span class="cmd-output">80/tcp open  http</span>
+<span class="cmd-error font-bold">|_apache-check: Critical: PHP-CGI RCE (CVE-2012-1823) 취약점이 발견되었습니다!</span>
+<span class="cmd-comment"># [결과 분석] 제작한 커스텀 NSE 스크립트가 타겟 시스템의 HTTP 응답에서 PHP 소스 하이라이트 태그(&lt;code&gt;) 노출을 성공적으로 패턴 매칭하여, 관리자에게 취약 상태를 보고했습니다. 커스텀 자동화 툴이 정상 동작함을 입증합니다.</span></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 섹션 5: 관리자 보안 설정 오류 분석 및 대응 -->
+        <section>
+            <h2 class="text-3xl font-black border-l-4 border-yellow-500 pl-4 text-slate-100 mb-10 tracking-tight flex items-center gap-3">
+                <i data-lucide="shield-check" class="w-8 h-8 text-yellow-400"></i> 아키텍트 대응 방안 (Remediation)
+            </h2>
+            <div class="section-card rounded-3xl p-12 shadow-2xl space-y-10">
+                <p class="text-slate-300 text-lg leading-relaxed block">
+                    이러한 NSE 자동화 탐지 및 해커의 스캐닝 정보 획득을 원천적으로 차단하고 시스템을 보호하기 위해, 서버 관리자(인프라 아키텍트)는 아파치 환경에서 다음과 같은 필수 보안 강화(Hardening) 조치를 적용해야 합니다.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-slate-800/60 p-8 rounded-2xl border border-yellow-900/50">
+                        <i data-lucide="ghost" class="w-10 h-10 text-yellow-500 mb-4"></i>
+                        <h3 class="text-lg font-bold text-slate-100 mb-3">1. 버전 정보 은닉 (Banner Grabbing 방어)</h3>
+                        <p class="text-sm text-slate-400 leading-relaxed mb-4">
+                            <code>httpd.conf</code> 파일에서 웹 서버의 운영체제와 상세 버전 정보를 외부에 노출하지 않도록 수정합니다. 이는 해커의 공격 벡터 식별을 지연시킵니다.
+                        </p>
+                        <div class="bg-black/50 p-3 rounded font-mono text-xs text-yellow-300 border border-slate-700">
+                            ServerTokens Prod<br>
+                            ServerSignature Off
+                        </div>
+                    </div>
+                    
+                    <div class="bg-slate-800/60 p-8 rounded-2xl border border-red-900/50">
+                        <i data-lucide="settings" class="w-10 h-10 text-red-500 mb-4"></i>
+                        <h3 class="text-lg font-bold text-slate-100 mb-3">2. 취약한 CGI 실행 제한</h3>
+                        <p class="text-sm text-slate-400 leading-relaxed mb-4">
+                            오래되고 보안 결함이 많은 CGI 모듈(<code>mod_cgi</code>) 사용을 중단하고 비활성화하십시오. 성능과 보안이 개선된 현대화된 <strong>PHP-FPM(FastCGI Process Manager)</strong> 방식으로 아키텍처를 전환해야 합니다.
+                        </p>
+                    </div>
+
+                    <div class="bg-slate-800/60 p-8 rounded-2xl border border-emerald-900/50">
+                        <i data-lucide="wrench" class="w-10 h-10 text-emerald-500 mb-4"></i>
+                        <h3 class="text-lg font-bold text-slate-100 mb-3">3. 시스템 보안 패치 적용</h3>
+                        <p class="text-sm text-slate-400 leading-relaxed mb-4">
+                            가장 근본적인 해결책입니다. 지원이 종료된 구버전 아파치(2.2.x 계열) 사용을 폐기하고, 최신 보안 패치와 메모리 보호 기법이 적용된 최신 안정화 버전(Apache 2.4.x 이상)으로 인프라를 전면 마이그레이션(Migration) 해야 합니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footnote mt-8 text-sm">
+                * <strong>Banner Grabbing (배너 그래빙):</strong> 서비스 포트에 접속하여 서버가 응답하는 초기 환영 메시지(배너)를 통해 해당 서버의 소프트웨어 종류와 버전을 수집하는 정보 획득 기법입니다.<br>
+                * <strong>Remediation (복구 및 개선):</strong> 발견된 보안 취약점을 제거하고 향후 동일한 위협이 발생하지 않도록 시스템 구조를 안전하게 개선하는 조치를 뜻합니다.
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+            © 2026 System Architect Pro. All rights reserved.
+        </div>
+        <p class="text-slate-600 text-xs leading-relaxed max-w-3xl mx-auto italic block">
+            본 교재는 IP 직업훈련 전문가과정 수강생을 위한 교육용 자료입니다. 기업의 인프라스트럭처 보안을 설계하고 방어 전략을 수립하기 위한 목적으로만 사용되어야 하며, 본 자료에 포함된 기술을 악용하여 발생하는 모든 책임은 사용자 본인에게 있습니다.
+        </p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
