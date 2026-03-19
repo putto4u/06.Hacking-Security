@@ -1,1 +1,414 @@
-ㄹㅇㄹ
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SSH Brute Force (SSH 무차별 대입 공격) 전문 교재</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+            word-break: keep-all;
+        }
+        .terminal-bg { background-color: #0f172a; border: 1px solid #1e293b; }
+        .section-card { background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(51, 65, 85, 0.4); backdrop-filter: blur(16px); }
+        .code-block { font-family: 'Fira Code', monospace; }
+        .page-marker { border-bottom: 1px solid #1e293b; margin: 8rem 0; position: relative; }
+        .page-marker::after { content: "TECHNICAL ANALYSIS PAGE / ARCHITECT LEVEL"; position: absolute; right: 0; top: -12px; font-size: 10px; color: #64748b; background: #020617; padding: 0 15px; letter-spacing: 2px; }
+        .indent-line { border-left: 3px solid #0ea5e9; padding-left: 2rem; margin: 2rem 0; }
+        .highlight-cyan { color: #22d3ee; font-weight: 700; }
+        .command-comment { color: #64748b; font-style: italic; font-size: 0.85rem; }
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: #020617; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 5px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+        .image-placeholder { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: 1px dashed #334155; border-radius: 1.5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3rem; margin: 2rem 0; }
+    </style>
+</head>
+<body class="antialiased pb-32">
+
+    <!-- Header: 전문 아키텍트 타이틀 -->
+    <header class="border-b border-slate-800 bg-slate-900/90 sticky top-0 z-50 backdrop-blur-xl">
+        <div class="max-w-7xl mx-auto px-8 py-10 flex justify-between items-end">
+            <div>
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="bg-gradient-to-r from-cyan-600 to-blue-600 text-white px-3 py-1 text-xs font-black uppercase tracking-[0.2em] rounded-md shadow-lg shadow-cyan-500/20">Infrastructure Security Lab</span>
+                    <span class="text-slate-500 font-mono text-xs">V.3.0.0 | EXPERT ARCHITECT</span>
+                </div>
+                <h1 class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white via-slate-300 to-slate-500 tracking-tighter leading-none mb-2">
+                    SSH Brute Force Attack Analysis
+                </h1>
+                <p class="text-cyan-500 text-xl font-medium tracking-tight italic">엔터프라이즈 환경에서의 인증 취약점 진단 및 침해 사고 대응 체계</p>
+            </div>
+            <div class="text-right border-l border-slate-800 pl-8 pb-2">
+                <div class="text-xs text-slate-500 uppercase font-bold tracking-widest mb-1">Threat Assessment</div>
+                <div class="text-red-500 text-3xl font-black font-mono tracking-tighter">CRITICAL ACCESS</div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-8 py-20 space-y-32">
+
+        <!-- [Page 1-2] 초록 (Abstract) 및 시스템 아키텍처 -->
+        <section>
+            <div class="flex items-center gap-4 mb-12">
+                <div class="h-1 w-12 bg-cyan-500"></div>
+                <h2 class="text-4xl font-black text-slate-100 uppercase tracking-tight">01. 초록 (Abstract) 및 메커니즘 도식</h2>
+            </div>
+            <div class="section-card rounded-[3rem] p-16 shadow-2xl relative overflow-hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-20">
+                    <div class="space-y-10">
+                        <div class="prose prose-invert max-w-none">
+                            <p class="text-slate-300 text-xl leading-relaxed font-light">
+                                본 문서는 <span class="highlight-cyan italic">SSH (Secure Shell, 보안 쉘)</span> 프로토콜의 <span class="text-white font-bold">Authentication (인증)</span> 단계를 목표로 하는 <span class="text-red-400 font-bold">Brute Force (무차별 대입 공격)</span>의 전 과정을 공학적으로 분석합니다.
+                            </p>
+                            <div class="indent-line text-slate-400">
+                                <h4 class="text-slate-100 font-bold mb-2">핵심 학습 목표</h4>
+                                <ul class="list-none space-y-2 text-sm">
+                                    <li class="flex items-center gap-2"><i data-lucide="check-square" class="text-cyan-500 w-4 h-4"></i> 정보 수집 단계에서의 배너 그래빙 및 버전 식별 기술 습득</li>
+                                    <li class="flex items-center gap-2"><i data-lucide="check-square" class="text-cyan-500 w-4 h-4"></i> 사전 대입 공격 도구의 매개변수 최적화 및 실행 엔진 이해</li>
+                                    <li class="flex items-center gap-2"><i data-lucide="check-square" class="text-cyan-500 w-4 h-4"></i> 공격 증적(Evidence)의 데이터베이스화 및 Spool 파일 관리</li>
+                                    <li class="flex items-center gap-2"><i data-lucide="check-square" class="text-cyan-500 w-4 h-4"></i> 보안 사고 보고서의 표준 목차 및 증거 자료 수립 절차</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 도식화: 초록 내용을 담은 시스템 구성도 -->
+                    <div class="space-y-6">
+                        <div class="image-placeholder">
+                            <i data-lucide="layout" class="w-12 h-12 text-slate-700 mb-4"></i>
+                            <div class="text-slate-500 text-[10px] uppercase tracking-[0.3em] mb-4">Architecture Diagram</div>
+                            <div class="w-full space-y-8">
+                                <!-- Attacker Side -->
+                                <div class="flex items-center justify-between px-6 py-4 bg-red-950/20 border border-red-500/30 rounded-2xl">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center shadow-lg shadow-red-500/20 text-white"><i data-lucide="shield-off" class="w-5 h-5"></i></div>
+                                        <div>
+                                            <div class="text-xs font-black text-red-400 uppercase">Attacker Node</div>
+                                            <div class="text-[10px] text-slate-500 italic">Metasploit + Spool Logging</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-[8px] text-slate-600 font-mono">192.168.1.5</div>
+                                    </div>
+                                </div>
+                                <!-- Communication Line -->
+                                <div class="relative flex justify-center py-2">
+                                    <div class="absolute inset-0 flex items-center justify-center">
+                                        <div class="w-full border-t border-dashed border-slate-700"></div>
+                                    </div>
+                                    <div class="relative bg-slate-900 px-4 py-1 border border-slate-700 rounded-full text-[8px] font-mono text-yellow-500">Iterative Auth (TCP/22)</div>
+                                </div>
+                                <!-- Target Side -->
+                                <div class="flex items-center justify-between px-6 py-4 bg-cyan-950/20 border border-cyan-500/30 rounded-2xl">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-10 h-10 bg-cyan-500 rounded-full flex items-center justify-center shadow-lg shadow-cyan-500/20 text-white"><i data-lucide="server" class="w-5 h-5"></i></div>
+                                        <div>
+                                            <div class="text-xs font-black text-cyan-400 uppercase">Target Node</div>
+                                            <div class="text-[10px] text-slate-500 italic">Vulnerable SSH Service</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-[8px] text-slate-600 font-mono">192.168.1.10</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="mt-8 text-[10px] text-slate-600 italic text-center">[도식 1: SSH Brute Force 공격 시뮬레이션 및 데이터 흐름도]</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="page-marker"></div>
+
+        <!-- [Page 3-5] 정보 수집 및 DB/Spool 로깅 -->
+        <section>
+            <div class="flex items-center gap-4 mb-12">
+                <div class="h-1 w-12 bg-blue-500"></div>
+                <h2 class="text-4xl font-black text-slate-100 uppercase tracking-tight">02. 정보 수집 및 정보의 증적화 (Logging)</h2>
+            </div>
+            <div class="section-card rounded-[3rem] p-16 space-y-12">
+                <div class="prose prose-invert max-w-none">
+                    <p class="text-slate-400 leading-relaxed">
+                        공격 전반의 활동을 기록하는 것은 보고서 작성 시 필수적인 단계입니다. 메타스플로잇의 <span class="highlight-cyan">Spool (스풀)</span> 기능과 <span class="highlight-cyan">Database Integration (데이터베이스 통합)</span> 기능을 활용하여 모든 명령과 출력을 증적 자료로 남깁니다.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                    <!-- Nmap Scan with Spooling -->
+                    <div class="space-y-6">
+                        <h4 class="text-lg font-bold text-white flex items-center gap-3"><i data-lucide="database" class="text-blue-400"></i> 탐색 데이터의 영구 저장</h4>
+                        <div class="terminal-bg rounded-3xl p-8 font-mono text-xs border-l-4 border-blue-600 shadow-2xl">
+                            <div class="space-y-4">
+                                <div class="text-slate-600 italic"># 모든 터미널 출력을 특정 파일에 실시간으로 기록(Spooling)하기 시작합니다.</div>
+                                <div class="text-white"><span class="text-blue-500">msf6</span> > spool /root/lab_results/ssh_recon_proof.txt</div>
+                                
+                                <div class="text-slate-600 italic mt-6"># 데이터베이스와 연동된 nmap 스캔을 수행하여 결과가 DB에 자동 저장되도록 합니다.</div>
+                                <div class="text-white"><span class="text-blue-500">msf6</span> > db_nmap -sV -p 22 192.168.1.10</div>
+                                
+                                <div class="text-slate-400 mt-4">
+                                    Nmap scan report for 192.168.1.10<br>
+                                    PORT   STATE SERVICE VERSION<br>
+                                    22/tcp open  ssh     OpenSSH 4.7p1 Debian 8ubuntu1 (protocol 2.0)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DB Verification -->
+                    <div class="bg-slate-900/50 rounded-3xl p-10 border border-slate-800">
+                        <h4 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-6">Database Query Result</h4>
+                        <div class="space-y-4">
+                            <p class="text-[11px] text-slate-400">데이터베이스에 저장된 서비스 정보를 확인하여 향후 공격 대상 리스트를 관리합니다.</p>
+                            <div class="bg-slate-950 p-6 rounded-xl font-mono text-[10px] text-blue-300">
+                                msf6 > services -p 22<br>
+                                host          port  proto  name  state  info<br>
+                                ----          ----  -----  ----  -----  ----<br>
+                                192.168.1.10  22    tcp    ssh   open   OpenSSH 4.7p1...
+                            </div>
+                            <div class="mt-4 p-4 bg-blue-500/5 border border-blue-500/20 rounded-lg">
+                                <div class="flex items-center gap-2 text-blue-400 text-[10px] font-bold uppercase"><i data-lucide="alert-circle" class="w-3 h-3"></i> Spool File Path</div>
+                                <div class="text-[10px] text-slate-500 mt-1">/root/lab_results/ssh_recon_proof.txt 에 모든 스캔 과정이 텍스트로 저장되었습니다.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="page-marker"></div>
+
+        <!-- [Page 6-10] 공격 수행 및 상세 분석 -->
+        <section>
+            <div class="flex items-center gap-4 mb-12">
+                <div class="h-1 w-12 bg-red-500"></div>
+                <h2 class="text-4xl font-black text-slate-100 uppercase tracking-tight">03. 공격 엔진 구동 및 출력물 심층 분석</h2>
+            </div>
+            
+            <div class="section-card rounded-[3rem] p-16 space-y-16">
+                <!-- 사전 파일 준비 안내 -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                    <div class="space-y-6">
+                        <h3 class="text-2xl font-black text-white">공격 사전 파일(Wordlists) 수립</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed">
+                            효과적인 공격을 위해서는 검증된 <span class="highlight-cyan italic">Wordlists (사전 파일)</span>가 필요합니다. Kali Linux는 기본 사전 외에도 외부 저장소에서 고품질의 사전을 다운로드할 수 있는 환경을 제공합니다.
+                        </p>
+                        <div class="bg-red-500/5 border border-red-500/20 rounded-2xl p-6 font-mono text-xs">
+                            <div class="text-slate-600 italic"># 외부 깃허브에서 최신 패스워드 사전 파일을 다운로드합니다.</div>
+                            <div class="text-white">wget https://raw.githubusercontent.com/brannondorsey/naive-hashcat/master/dicts/rockyou.txt</div>
+                            <div class="text-slate-600 italic mt-4"># 압축된 기본 사전을 해제하여 사용 준비를 마칩니다.</div>
+                            <div class="text-white">gunzip /usr/share/wordlists/rockyou.txt.gz</div>
+                        </div>
+                    </div>
+                    <div class="image-placeholder">
+                        <i data-lucide="list" class="w-12 h-12 text-slate-700 mb-4"></i>
+                        <span class="text-[10px] text-slate-500 uppercase font-black">Wordlist Strategy</span>
+                        <div class="mt-4 text-center space-y-2">
+                            <div class="text-xs font-bold text-slate-300">High Probability User List</div>
+                            <div class="text-[9px] text-slate-600 font-mono">root, admin, msfadmin, user, oracle...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 공격 시퀀스 분석 (각주 포함) -->
+                <div class="space-y-8">
+                    <h3 class="text-2xl font-black text-white">공격 시퀀스 및 출력물 해부 (Output Dissection)</h3>
+                    <div class="terminal-bg rounded-3xl p-10 font-mono text-xs leading-loose border-l-8 border-red-600 shadow-2xl relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-4 opacity-10"><i data-lucide="skull" class="w-32 h-32"></i></div>
+                        
+                        <div class="flex flex-col space-y-4">
+                            <!-- Line 1 -->
+                            <div class="group relative">
+                                <div class="text-white"><span class="text-red-500 font-bold">msf6</span> auxiliary(scanner/ssh/ssh_login) > <span class="text-white font-bold">run</span></div>
+                                <div class="bg-slate-800/80 p-3 rounded-lg mt-1 text-[10px] text-slate-400 border border-slate-700">
+                                    <span class="text-cyan-400 font-bold">[각주 1]:</span> 설정된 모든 매개변수(RHOSTS, USER_FILE, PASS_FILE)를 로드하여 공격 엔진을 초기화합니다.
+                                </div>
+                            </div>
+
+                            <!-- Line 2 -->
+                            <div class="group relative">
+                                <div class="text-slate-500">[*] 192.168.1.10:22 - Starting SSH login scanner...</div>
+                                <div class="bg-slate-800/80 p-3 rounded-lg mt-1 text-[10px] text-slate-400 border border-slate-700">
+                                    <span class="text-cyan-400 font-bold">[각주 2]:</span> 대상 서버의 22번 포트와 핸드쉐이크를 시도하며 스캔 세션을 활성화합니다.
+                                </div>
+                            </div>
+
+                            <!-- Line 3 -->
+                            <div class="group relative">
+                                <div class="text-slate-500">[*] 192.168.1.10:22 - Attempting 'root':'password'</div>
+                                <div class="bg-slate-800/80 p-3 rounded-lg mt-1 text-[10px] text-slate-400 border border-slate-700">
+                                    <span class="text-cyan-400 font-bold">[각주 3]:</span> 사전 파일에서 읽어온 'root' 사용자명과 'password' 비밀번호 조합으로 SSH AUTH REQUEST 패킷을 송신합니다.
+                                </div>
+                            </div>
+
+                            <!-- Line 4 (Success) -->
+                            <div class="group relative">
+                                <div class="text-green-400 font-black bg-green-900/20 px-3 py-1 inline-block">[+] 192.168.1.10:22 - Success: 'msfadmin':'msfadmin' (Session 1 Opened)</div>
+                                <div class="bg-slate-800/80 p-3 rounded-lg mt-1 text-[10px] text-slate-400 border border-slate-700">
+                                    <span class="text-cyan-400 font-bold">[각주 4]:</span> 인증에 성공하여 서버로부터 SSH_MSG_USERAUTH_SUCCESS 응답을 수신했습니다. 즉시 상호작용 가능한 세션을 메모리에 생성합니다.
+                                </div>
+                            </div>
+
+                            <!-- Line 5 -->
+                            <div class="group relative">
+                                <div class="text-slate-500">[*] Scanned 1 of 1 hosts (100% complete)</div>
+                                <div class="bg-slate-800/80 p-3 rounded-lg mt-1 text-[10px] text-slate-400 border border-slate-700">
+                                    <span class="text-cyan-400 font-bold">[각주 5]:</span> STOP_ON_SUCCESS 옵션이 활성화되어 있어 성공 즉시 나머지 모든 조합의 시도를 중단하고 스캔을 종료합니다.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="page-marker"></div>
+
+        <!-- [Page 11-15] 침해 사고 로그 분석 및 대응 -->
+        <section>
+            <div class="flex items-center gap-4 mb-12">
+                <div class="h-1 w-12 bg-cyan-500"></div>
+                <h2 class="text-4xl font-black text-slate-100 uppercase tracking-tight">04. 실시간 로그 탐지 및 기술적 대처</h2>
+            </div>
+            <div class="section-card rounded-[3rem] p-16 space-y-12">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-16">
+                    <!-- Log Analysis -->
+                    <div class="space-y-6">
+                        <h4 class="text-lg font-bold text-white flex items-center gap-3"><i data-lucide="eye" class="text-cyan-400"></i> 공격자의 흔적 (Log Evidence)</h4>
+                        <p class="text-sm text-slate-400 leading-relaxed">보안 관리자는 타겟 서버에서 발생하는 반복적인 <span class="text-red-400 font-bold italic">Failed password</span> 로그를 식별해야 합니다.</p>
+                        <div class="terminal-bg rounded-2xl p-6 font-mono text-[10px] border border-red-900/30">
+                            <div class="text-slate-500 italic"># 인증 실패 로그를 실시간으로 필터링하여 출력합니다.</div>
+                            <div class="text-white">tail -f /var/log/auth.log | grep --line-buffered "Failed password"</div>
+                            <div class="mt-4 text-red-500">
+                                Mar 20 08:15:01 SRV sshd[102]: Failed password for root from 192.168.1.5...<br>
+                                Mar 20 08:15:02 SRV sshd[104]: Failed password for admin from 192.168.1.5...<br>
+                                Mar 20 08:15:04 SRV sshd[106]: Failed password for guest from 192.168.1.5...
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Mitigation -->
+                    <div class="bg-slate-900/50 rounded-3xl p-10 border border-slate-800">
+                        <h4 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-6 text-center">Security Hardening Policy</h4>
+                        <div class="space-y-6">
+                            <div class="flex items-start gap-4">
+                                <div class="w-10 h-10 bg-green-500/10 rounded-xl flex items-center justify-center text-green-500 shrink-0"><i data-lucide="shield-check"></i></div>
+                                <div>
+                                    <div class="text-slate-100 text-sm font-bold uppercase">Fail2Ban Integration</div>
+                                    <div class="text-[10px] text-slate-500 mt-1 leading-relaxed">최근 5분 내 3회 이상 실패 시 해당 소스 IP를 24시간 동안 차단하도록 설정합니다.</div>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-4">
+                                <div class="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-500 shrink-0"><i data-lucide="key"></i></div>
+                                <div>
+                                    <div class="text-slate-100 text-sm font-bold uppercase">Key-based Auth Only</div>
+                                    <div class="text-[10px] text-slate-500 mt-1 leading-relaxed">/etc/ssh/sshd_config 내 PasswordAuthentication no 설정을 통해 원천 방어합니다.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="page-marker"></div>
+
+        <!-- [Page 16-20] 보안 사고 보고서 수립 -->
+        <section>
+            <div class="flex items-center gap-4 mb-12">
+                <div class="h-1 w-12 bg-slate-500"></div>
+                <h2 class="text-4xl font-black text-slate-100 uppercase tracking-tight">05. 침해 사고 보고서 수립 (Incident Reporting)</h2>
+            </div>
+            
+            <div class="bg-white text-slate-900 rounded-[3rem] p-20 shadow-2xl space-y-16">
+                <!-- Report Header -->
+                <div class="text-center space-y-4 border-b-8 border-slate-900 pb-12">
+                    <h1 class="text-5xl font-black tracking-tighter uppercase italic">Vulnerability Assessment Report</h1>
+                    <div class="flex justify-center gap-10 font-mono text-xs font-bold text-slate-500 mt-4">
+                        <span>RPT-ID: SEC-2026-SSH</span>
+                        <span>DATE: 2026-03-20</span>
+                        <span>CLASSIFICATION: CONFIDENTIAL</span>
+                    </div>
+                </div>
+
+                <!-- Table of Contents -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+                    <div class="md:col-span-1 border-r border-slate-200 pr-8">
+                        <h4 class="font-black text-xs uppercase tracking-widest text-slate-400 mb-6">Table of Contents</h4>
+                        <ul class="space-y-4 text-xs font-bold">
+                            <li class="hover:text-blue-600 transition-colors cursor-pointer">1. 개요 및 목적</li>
+                            <li class="hover:text-blue-600 transition-colors cursor-pointer">2. 점검 대상 및 환경</li>
+                            <li class="hover:text-blue-600 transition-colors cursor-pointer">3. 취약점 탐지 결과</li>
+                            <li class="hover:text-blue-600 transition-colors cursor-pointer">4. 위협 분석 및 위험도</li>
+                            <li class="hover:text-blue-600 transition-colors cursor-pointer">5. 대응 및 보안 권고</li>
+                            <li class="hover:text-blue-600 transition-colors cursor-pointer">6. 기술적 증거 (Appendix)</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="md:col-span-2 space-y-12">
+                        <!-- Content: Overview -->
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-black border-l-8 border-slate-900 pl-4">1. 개요 및 목적 (Executive Summary)</h3>
+                            <p class="text-sm leading-loose">
+                                본 보고서는 기업용 인프라 내 핵심 자산인 리눅스 서버의 SSH 인증 정책에 대한 보안성을 검증하기 위해 작성되었습니다. <span class="font-bold underline decoration-red-500 underline-offset-4">비정상적으로 단순한 계정 비밀번호 정책</span>이 외부 공격자에게 미치는 직접적인 영향력을 가시화하는 데 목적이 있습니다.
+                            </p>
+                        </div>
+
+                        <!-- Content: Vulnerability Analysis -->
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-black border-l-8 border-slate-900 pl-4">3. 취약점 탐지 결과 (Key Findings)</h3>
+                            <div class="bg-slate-100 p-8 rounded-2xl border-2 border-slate-200 space-y-4">
+                                <div class="flex items-center gap-3 text-red-600 font-bold text-xs uppercase"><i data-lucide="zap"></i> Critical Finding: Default Credentials</div>
+                                <p class="text-[12px] leading-relaxed">
+                                    대상 호스트(192.168.1.10)의 22번 포트 스캔 결과, <strong>OpenSSH 4.7p1</strong> 버전이 식별되었으며, 사전 대입 공격을 통해 1분 이내에 <span class="bg-yellow-200 px-1 italic">msfadmin</span> 계정의 권한을 획득하였습니다. 이는 패스워드 복잡성 규칙(Password Complexity Rule)이 전무함을 의미합니다.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Content: Recommendations -->
+                        <div class="space-y-4">
+                            <h3 class="text-xl font-black border-l-8 border-slate-900 pl-4">5. 보안 권고 (Recommendations)</h3>
+                            <div class="space-y-3 text-sm">
+                                <p class="flex items-start gap-2"><i data-lucide="check-circle" class="w-4 h-4 mt-1 text-green-600"></i> <span class="font-bold">계정 잠금 임계치 설정:</span> 5회 이상 실패 시 즉각 차단.</p>
+                                <p class="flex items-start gap-2"><i data-lucide="check-circle" class="w-4 h-4 mt-1 text-green-600"></i> <span class="font-bold">MFA 도입:</span> 비밀번호 유출 시에도 추가 인증으로 침투 차단.</p>
+                                <p class="flex items-start gap-2"><i data-lucide="check-circle" class="w-4 h-4 mt-1 text-green-600"></i> <span class="font-bold">포트 화이트리스팅:</span> 승인된 관리용 VPN 대역에서만 접속 허용.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-7xl mx-auto px-8 py-20 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-[0.4em] uppercase mb-8">
+            © 2026 GLOBAL INFRASTRUCTURE SECURITY ARCHITECT GROUP.
+        </div>
+        <div class="bg-red-500/5 border border-red-500/20 rounded-2xl p-8 max-w-4xl mx-auto">
+            <h4 class="text-red-400 font-black text-xs uppercase tracking-widest mb-4 flex justify-center items-center gap-2">
+                <i data-lucide="alert-triangle"></i> Legal Compliance & Ethics
+            </h4>
+            <p class="text-slate-600 text-[10px] leading-relaxed italic">
+                본 문서는 정보 보호 컨설팅 및 교육 목적으로 제작되었습니다. 문서 내에 기술된 모든 기술적 절차는 오직 소유자가 허가한 인프라 내에서만 수행되어야 합니다. 허가되지 않은 시스템에 대한 공격 시도는 정보통신망 이용촉진 및 정보보호 등에 관한 법률에 의거하여 엄중한 법적 처벌을 받을 수 있습니다.
+            </p>
+        </div>
+        <div class="mt-12 flex justify-center gap-4">
+            <span class="px-4 py-1.5 bg-slate-800 rounded-full text-[10px] text-slate-400 font-bold shadow-lg">ISO/IEC 27001</span>
+            <span class="px-4 py-1.5 bg-slate-800 rounded-full text-[10px] text-slate-400 font-bold shadow-lg">NIST 800-115</span>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
