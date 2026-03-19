@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>인프라 취약점 진단 실무: VM3 타겟 분석 및 서비스 침투 실습</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+            scroll-behavior: smooth;
+        }
+        .terminal-bg { background-color: #020617; border: 1px solid #1e293b; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-blur: xl; }
+        .code-block { font-family: 'Fira Code', monospace; }
+        .page-marker { border-top: 2px dashed #1e293b; margin-top: 100px; padding-top: 50px; position: relative; }
+        .page-marker::after { content: attr(data-page); position: absolute; top: -14px; right: 20px; background: #0ea5e9; color: #020617; padding: 2px 12px; border-radius: 99px; font-size: 10px; font-weight: 900; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <!-- Header: 기술 사양 및 타이틀 -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Advanced Penetration Testing</span>
+                    <span class="text-slate-500 font-mono text-[10px]">PROJECT ID: VM3-PENTEST-2026 | Infrastructure Security</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
+                    네트워크 서비스 취약점 분석 및 침투 실무<br><span class="text-slate-100 text-2xl">Target Node: 192.168.100.3 (VM3)</span>
+                </h1>
+            </div>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-blue-500/10 text-blue-400 border border-blue-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    SCORE: 8.5/10.0
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">Senior Security Architect</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-32">
+
+        <!-- Page 1: 아키텍처 개요 -->
+        <section id="page-1" class="page-marker" data-page="PAGE 01">
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                1. 침투 테스트 아키텍처 (Pentest Architecture)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-10 leading-relaxed">
+                    본 프로젝트의 공격 대상인 <span class="text-cyan-400 font-bold">192.168.100.3 (VM3)</span>는 다양한 인프라 서비스(FTP, SMB, NFS, SSH)가 활성화되어 있는 리눅스 시스템입니다. 
+                    우리는 공격자(Attacker) 관점에서 네트워크를 스캐닝하고, 발견된 취약한 설정을 통해 데이터 탈취 및 시스템 제어권을 획득하는 과정을 실습합니다.
+                </p>
+
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner">
+                    <h4 class="text-center font-bold text-slate-400 mb-8 text-xs tracking-widest uppercase">
+                        [도식: 침투 테스트 네트워크 구성도]
+                    </h4>
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-cyan-900/50 shadow-lg">
+                            <i data-lucide="terminal" class="w-12 h-12 text-cyan-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">Kali Linux (Attacker)</div>
+                            <div class="text-[10px] text-slate-500 mt-1">192.168.100.100</div>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <div class="text-[10px] text-cyan-500 font-bold mb-1">Scanning / Exploitation</div>
+                            <i data-lucide="arrow-right" class="w-8 h-8 text-slate-600 rotate-90 md:rotate-0"></i>
+                        </div>
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-red-900/50 shadow-lg">
+                            <i data-lucide="server" class="w-12 h-12 text-red-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">VM3 (Target Node)</div>
+                            <div class="text-[10px] text-slate-500 mt-1">192.168.100.3</div>
+                        </div>
+                    </div>
+                </div>
+                <p class="text-slate-500 text-xs mt-6 italic">
+                    * 주석: 침투 테스트(Penetration Testing)는 권한이 부여된 상태에서 실제 공격 기법을 사용하여 시스템의 보안 취약점을 찾아내는 보안 진단 방법입니다.
+                </p>
+            </div>
+        </section>
+
+        <!-- Page 2: Nmap 스캔 결과 심층 분석 -->
+        <section id="page-2" class="page-marker" data-page="PAGE 02">
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                2. Nmap 스캔 데이터 해석 (Port Analysis)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-8 leading-relaxed">
+                    제공된 <span class="text-cyan-400 font-bold">Nmap (Network Mapper)</span> 스캔 결과는 타겟 시스템의 공격 표면(Attack Surface)을 명확히 보여줍니다. 
+                    각 포트의 상태와 배너(Banner) 정보를 바탕으로 서비스의 버전 정보를 확인하여 취약점 데이터베이스와 매칭하는 과정이 필수적입니다.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+                    <div class="p-6 bg-slate-900/50 border border-slate-700 rounded-xl">
+                        <div class="text-cyan-400 font-black text-xl mb-2">PORT 21</div>
+                        <div class="text-xs text-slate-400 font-bold">vsftpd 3.0.5</div>
+                        <p class="text-[10px] text-slate-500 mt-2 italic">Anonymous Login Allowed (익명 로그인 허용)</p>
+                    </div>
+                    <div class="p-6 bg-slate-900/50 border border-slate-700 rounded-xl">
+                        <div class="text-blue-400 font-black text-xl mb-2">PORT 445</div>
+                        <div class="text-xs text-slate-400 font-bold">Samba smbd 4</div>
+                        <p class="text-[10px] text-slate-500 mt-2 italic">Shared Drive Enumeration (공유 드라이브 열거 가능)</p>
+                    </div>
+                    <div class="p-6 bg-slate-900/50 border border-slate-700 rounded-xl">
+                        <div class="text-indigo-400 font-black text-xl mb-2">PORT 2049</div>
+                        <div class="text-xs text-slate-400 font-bold">NFS (Network File System)</div>
+                        <p class="text-[10px] text-slate-500 mt-2 italic">Remote Mounting (원격 마운팅 노출)</p>
+                    </div>
+                </div>
+
+                <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                    <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">Nmap Report Summary</div>
+                    <div class="text-cyan-400 font-bold">Target IP: 192.168.100.3</div>
+                    <div class="text-slate-400 mt-2">Open Ports: 21, 22, 111, 139, 445, 2049</div>
+                    <div class="text-slate-500">OS: Linux 5.X (MikroTik/Ubuntu Based)</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Page 3: 공격 우선순위 선정 -->
+        <section id="page-3" class="page-marker" data-page="PAGE 03">
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                3. 취약점 진단 로드맵 (Exploitation Roadmap)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <div class="bg-slate-900/50 p-8 rounded-2xl border border-slate-700 mb-8">
+                    <h4 class="font-bold text-cyan-400 mb-4 flex items-center gap-2">
+                        <i data-lucide="target" class="w-5 h-5"></i> 단계별 침투 전략 (Step-by-Step Strategy)
+                    </h4>
+                    <div class="space-y-6">
+                        <div class="flex gap-4">
+                            <div class="w-10 h-10 rounded-full bg-cyan-500/20 text-cyan-500 flex items-center justify-center font-black flex-shrink-0">1</div>
+                            <div>
+                                <h5 class="text-slate-100 font-bold">정보 수집 및 열거 (Enumeration)</h5>
+                                <p class="text-xs text-slate-500">FTP 익명 로그인, Samba 공유 폴더 리스트 확인, NFS 마운트 포인트 조회를 통한 민감 정보 획득</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="w-10 h-10 rounded-full bg-blue-500/20 text-blue-500 flex items-center justify-center font-black flex-shrink-0">2</div>
+                            <div>
+                                <h5 class="text-slate-100 font-bold">취약점 분석 (Vulnerability Research)</h5>
+                                <p class="text-xs text-slate-500">vsftpd 3.0.5 및 OpenSSH 9.6p1 버전에 대한 기공개 취약점(CVE) 및 익스플로잇 코드 검색</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="w-10 h-10 rounded-full bg-indigo-500/20 text-indigo-500 flex items-center justify-center font-black flex-shrink-0">3</div>
+                            <div>
+                                <h5 class="text-slate-100 font-bold">침투 및 권한 획득 (Gaining Access)</h5>
+                                <p class="text-xs text-slate-500">수집된 자격 증명(Credentials) 혹은 취약점을 이용해 SSH 쉘 획득 또는 리버스 쉘 생성</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Page 4: FTP 익명 로그인 실습 -->
+        <section id="page-4" class="page-marker" data-page="PAGE 04">
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                4. FTP 취약점 실증 (FTP Exploitation)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-12">
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black italic">STEP 01</span>
+                        <h3 class="text-xl font-bold text-slate-100">익명 접속 (Anonymous Login)</h3>
+                    </div>
+                    <div class="pl-12">
+                        <p class="text-sm text-slate-400 mb-4">Nmap 결과에서 <code class="text-cyan-400">ftp-anon</code>이 활성화된 것을 확인했습니다. 이를 통해 사용자명 없이 서버에 접속하여 파일을 탐색합니다.</p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">Kali Linux Terminal</div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">ftp 192.168.100.3</span></div>
+                            <div class="text-slate-500 mt-2">Connected to 192.168.100.3.</div>
+                            <div class="text-slate-500">Name (192.168.100.3:kali): <span class="text-cyan-400">anonymous</span></div>
+                            <div class="text-slate-500">331 Please specify the password.</div>
+                            <div class="text-slate-500">Password: <span class="text-slate-400">(공백 엔터 혹은 아무 이메일)</span></div>
+                            <div class="text-green-400">230 Login successful.</div>
+                            <div class="text-slate-200">ftp> <span class="text-cyan-400">ls -R</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                    <div class="text-cyan-400 mb-4"><i data-lucide="lightbulb" class="w-8 h-8"></i></div>
+                    <h4 class="font-bold text-slate-100 mb-2">전문가 분석 (Analyst Tip)</h4>
+                    <p class="text-xs text-slate-400 leading-relaxed">FTP 서버에서 익명 접근을 허용하면 서버 내의 중요한 설정 파일, 소스 코드, 혹은 백업 데이터가 외부로 유출될 위험이 매우 큽니다. 발견 시 즉시 비활성화해야 합니다.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Page 5: SMB 공유 폴더 열거 -->
+        <section id="page-5" class="page-marker" data-page="PAGE 05">
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                5. Samba 서비스 분석 (SMB Enumeration)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-8 leading-relaxed">
+                    Samba 서비스는 파일 공유를 위해 사용되며, 잘못된 설정 시 권한 없는 사용자가 공유된 폴더의 목록을 보거나 접근할 수 있습니다.
+                </p>
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black italic">STEP 02</span>
+                        <h3 class="text-xl font-bold text-slate-100">공유 목록 확인 (Listing Shares)</h3>
+                    </div>
+                    <div class="pl-12">
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                            <div class="text-slate-200">$ <span class="text-cyan-400">smbclient -L //192.168.100.3 -N</span></div>
+                            <div class="text-slate-500 mt-2">Sharename       Type      Comment</div>
+                            <div class="text-slate-500">---------       ----      -------</div>
+                            <div class="text-cyan-400">print$          Disk      Printer Drivers</div>
+                            <div class="text-cyan-400">Backup          Disk      Critical Backup Files</div>
+                            <div class="text-slate-500">IPC$            IPC       IPC Service (VM3 server)</div>
+                        </div>
+                        <p class="text-sm text-slate-500 mt-4 italic">* 주석: <code class="text-slate-300">-N</code> 옵션은 패스워드 없이(Null Session) 접속을 시도하는 옵션입니다.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Page 6: NFS 마운트 포인트 탈취 -->
+        <section id="page-6" class="page-marker" data-page="PAGE 06">
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                6. NFS 원격 마운트 실습 (NFS Hijacking)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-8 leading-relaxed">
+                    NFS (Network File System)는 네트워크를 통해 파일 시스템을 마운트하게 해줍니다. 포트 2049가 열려있을 때, 어떤 디렉토리가 외부에 노출되어 있는지 확인합니다.
+                </p>
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black italic">STEP 03</span>
+                        <h3 class="text-xl font-bold text-slate-100">마운트 포인트 조회 (Showmount)</h3>
+                    </div>
+                    <div class="pl-12">
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative mb-6">
+                            <div class="text-slate-200">$ <span class="text-cyan-400">showmount -e 192.168.100.3</span></div>
+                            <div class="text-slate-500 mt-2">Export list for 192.168.100.3:</div>
+                            <div class="text-green-400">/home/user/public  (everyone)</div>
+                            <div class="text-red-400">/mnt/data          192.168.100.0/24</div>
+                        </div>
+                        <h4 class="text-slate-100 font-bold mb-4">공격자 마운트 시도 (Mounting)</h4>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                            <div class="text-slate-200">$ <span class="text-cyan-400">mkdir /tmp/target_nfs</span></div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">mount -t nfs 192.168.100.3:/home/user/public /tmp/target_nfs</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Page 7: RPCBind 서비스 맵핑 분석 -->
+        <section id="page-7" class="page-marker" data-page="PAGE 07">
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                7. RPCBind 및 포트맵 분석 (RPC Mapping)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-8 leading-relaxed">
+                    RPCBind (포트 111)는 어떤 RPC 프로그램이 어떤 포트에서 대기 중인지 정보를 제공합니다. 이를 통해 추가적인 숨겨진 서비스나 버전 정보를 식별할 수 있습니다.
+                </p>
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 mb-8">
+                    <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                        <div class="text-slate-200">$ <span class="text-cyan-400">rpcinfo -p 192.168.100.3</span></div>
+                        <div class="text-slate-500 mt-2">program vers proto   port  service</div>
+                        <div class="text-slate-500">100000    4   tcp    111  portmapper</div>
+                        <div class="text-slate-500">100003    3   tcp   2049  nfs</div>
+                        <div class="text-slate-500">100005    3   tcp  39655  mountd</div>
+                    </div>
+                </div>
+                <div class="bg-red-900/20 border border-red-500/30 p-6 rounded-2xl">
+                    <div class="text-red-400 mb-4"><i data-lucide="shield-alert" class="w-8 h-8"></i></div>
+                    <h4 class="font-bold text-slate-100 mb-2">보안 위협 (Security Risk)</h4>
+                    <p class="text-xs text-slate-400 leading-relaxed">RPCBind를 통해 내부 서비스의 정보를 외부에서 과도하게 수집할 수 있는 정보 노출 취약점(Information Disclosure)이 존재합니다. 방화벽에서 외부 차단이 권고됩니다.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Page 8: 취약점 검색 및 매칭 -->
+        <section id="page-8" class="page-marker" data-page="PAGE 08">
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                8. 오프라인 취약점 DB 검색 (Searchsploit)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-10 leading-relaxed">
+                    Nmap에서 식별된 버전 정보를 기반으로 칼리 리눅스 내장 도구인 <span class="text-cyan-400 font-bold">Searchsploit</span>을 사용하여 가용 공격 코드를 검색합니다.
+                </p>
+                <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative mb-8">
+                    <div class="text-slate-200">$ <span class="text-cyan-400">searchsploit vsftpd 3.0.5</span></div>
+                    <div class="text-slate-500 mt-2">----------------------------------------- ---------------------------------</div>
+                    <div class="text-slate-500"> Exploit Title                            |  Path</div>
+                    <div class="text-slate-500">----------------------------------------- ---------------------------------</div>
+                    <div class="text-slate-400"> vsftpd 3.0.x - Denial of Service         | linux/remote/49740.py</div>
+                    <div class="text-slate-500">----------------------------------------- ---------------------------------</div>
+                </div>
+                <p class="text-sm text-slate-400">
+                    * 결과 분석: vsftpd 3.0.5 버전은 원격 코드 실행(RCE) 보다는 서비스 거부(DoS) 공격에 취약함이 확인됩니다. 즉, 서비스 구성상의 허점(익명 로그인 등)을 노리는 것이 더 효과적일 수 있습니다.
+                </p>
+            </div>
+        </section>
+
+        <!-- Page 9: SSH 무차별 대입 공격 실습 -->
+        <section id="page-9" class="page-marker" data-page="PAGE 09">
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                9. SSH 자격 증명 공격 (Brute Force)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-8 leading-relaxed">
+                    익명 로그인을 통해 획득한 파일에서 사용자 이름 정보를 유추했을 경우, <span class="text-cyan-400 font-bold">Hydra</span>와 같은 도구를 이용해 패스워드 크래킹을 시도할 수 있습니다.
+                </p>
+                <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                    <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">Hydra Console</div>
+                    <div class="text-slate-200">$ <span class="text-cyan-400">hydra -l user -P /usr/share/wordlists/rockyou.txt ssh://192.168.100.3</span></div>
+                    <div class="text-slate-500 mt-2">Hydra v9.5 (c) 2023 by van Hauser/THC</div>
+                    <div class="text-slate-500">[22][ssh] host: 192.168.100.3   login: user   password: <span class="text-green-400">password123</span></div>
+                </div>
+                <div class="bg-indigo-900/20 border border-indigo-500/30 p-6 rounded-2xl mt-8">
+                    <h4 class="font-bold text-slate-100 mb-2">대응 방안 (Mitigation)</h4>
+                    <p class="text-xs text-slate-400 leading-relaxed">SSH 무차별 대입 공격을 방어하기 위해서는 <span class="font-bold text-indigo-400 italic">Fail2Ban</span> 설치, 강력한 패스워드 정책, 혹은 비밀번호 대신 <span class="font-bold text-indigo-400">SSH 키 기반 인증</span>을 사용하는 것이 필수입니다.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Page 10: 수집된 자격 증명 활용 -->
+        <section id="page-10" class="page-marker" data-page="PAGE 10">
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                10. 공격 체이닝 (Vulnerability Chaining)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-10 leading-relaxed">
+                    단일 취약점으로는 침투가 어려울 수 있으나, 여러 취약점을 결합하면 시스템 장악이 가능합니다.
+                </p>
+                <div class="flex flex-col md:flex-row gap-8 items-stretch">
+                    <div class="flex-1 bg-slate-800/80 p-6 rounded-2xl border border-slate-700 flex flex-col items-center justify-center text-center">
+                        <i data-lucide="folder-search" class="w-10 h-10 text-cyan-400 mb-4"></i>
+                        <h5 class="text-slate-100 font-bold mb-2">FTP/NFS/SMB</h5>
+                        <p class="text-[10px] text-slate-500">민감 파일 탐색 및<br>사용자 계정 정보 추출</p>
+                    </div>
+                    <div class="flex items-center justify-center">
+                        <i data-lucide="plus" class="w-6 h-6 text-slate-600"></i>
+                    </div>
+                    <div class="flex-1 bg-slate-800/80 p-6 rounded-2xl border border-slate-700 flex flex-col items-center justify-center text-center">
+                        <i data-lucide="key" class="w-10 h-10 text-blue-400 mb-4"></i>
+                        <h5 class="text-slate-100 font-bold mb-2">SSH Brute Force</h5>
+                        <p class="text-[10px] text-slate-500">추출된 사용자 정보를 기반으로<br>원격 쉘 접속 시도</p>
+                    </div>
+                    <div class="flex items-center justify-center">
+                        <i data-lucide="chevrons-right" class="w-6 h-6 text-cyan-500"></i>
+                    </div>
+                    <div class="flex-1 bg-cyan-900/30 p-6 rounded-2xl border border-cyan-500/30 flex flex-col items-center justify-center text-center">
+                        <i data-lucide="unlock" class="w-10 h-10 text-cyan-400 mb-4"></i>
+                        <h5 class="text-slate-100 font-bold mb-2">System Access</h5>
+                        <p class="text-[10px] text-slate-500">VM3 시스템에 대한<br>원격 쉘 권한 획득</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Page 11: 권한 상승 분석 -->
+        <section id="page-11" class="page-marker" data-page="PAGE 11">
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                11. 권한 상승 진단 (Privilege Escalation)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-8 leading-relaxed">
+                    시스템에 접속한 후, 일반 사용자(User) 권한에서 관리자(Root) 권한으로 상승할 수 있는 요소가 있는지 진단합니다.
+                </p>
+                <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                    <div class="text-slate-200">$ <span class="text-cyan-400">sudo -l</span></div>
+                    <div class="text-slate-500 mt-2">Matching Defaults entries for user on VM3:</div>
+                    <div class="text-slate-500">    env_reset, mail_badpass</div>
+                    <div class="text-slate-500">User user may run the following commands on VM3:</div>
+                    <div class="text-green-400">    (ALL : ALL) NOPASSWD: /usr/bin/python3</div>
+                </div>
+                <p class="text-sm text-slate-400 mt-6">
+                    * 위 결과는 <code class="text-cyan-400">python3</code> 명령을 패스워드 없이 sudo(관리자 권한)로 실행 가능함을 나타냅니다. 이는 즉각적인 루트 권한 획득이 가능함을 의미합니다.
+                </p>
+            </div>
+        </section>
+
+        <!-- Page 12: 데이터 엑스필트레이션 -->
+        <section id="page-12" class="page-marker" data-page="PAGE 12">
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                12. 민감 데이터 유출 (Data Exfiltration)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-10 leading-relaxed">
+                    침투 성공 후, 가장 중요한 목표는 데이터의 유출입니다. <code class="text-cyan-400">/etc/shadow</code> 파일을 탈취하여 시스템 내 다른 사용자들의 해시 정보를 획득합니다.
+                </p>
+                <div class="bg-slate-900/80 p-8 rounded-2xl border border-slate-700 shadow-inner">
+                    <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                        <div class="text-slate-200">$ <span class="text-cyan-400">sudo cat /etc/shadow | grep -E "root|user"</span></div>
+                        <div class="text-slate-500 mt-2">root:$6$Xp2...:19803:0:99999:7:::</div>
+                        <div class="text-slate-500">user:$6$zB9...:19803:0:99999:7:::</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Page 13: 흔적 제거 및 지속성 유지 -->
+        <section id="page-13" class="page-marker" data-page="PAGE 13">
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                13. 안티포렌식 및 지속성 (Post-Exploitation)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-8 leading-relaxed">
+                    실제 환경에서는 침투 성공 후 흔적을 지우거나 차후 재접속을 위한 백도어를 심는 행위가 이루어집니다.
+                </p>
+                <ul class="space-y-6">
+                    <li class="flex items-start gap-4">
+                        <i data-lucide="trash-2" class="w-6 h-6 text-red-500 mt-1"></i>
+                        <div>
+                            <span class="text-slate-100 font-bold">로그 파일 조작 (Log Manipulation):</span>
+                            <p class="text-xs text-slate-500 leading-relaxed"><code class="text-slate-400">/var/log/auth.log</code> 등의 파일에서 공격자 IP와 관련된 기록을 삭제합니다.</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-4">
+                        <i data-lucide="shield-check" class="w-6 h-6 text-green-500 mt-1"></i>
+                        <div>
+                            <span class="text-slate-100 font-bold">지속성 유지 (Persistence):</span>
+                            <p class="text-xs text-slate-500 leading-relaxed">공격자의 SSH Public Key를 <code class="text-slate-400">~/.ssh/authorized_keys</code>에 등록하여 패스워드 없이 재접속을 허용합니다.</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Page 14: 보안 강화 가이드 -->
+        <section id="page-14" class="page-marker" data-page="PAGE 14">
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                14. 인프라 보안 강화 대책 (Security Hardening)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="bg-slate-900/50 p-8 rounded-2xl border border-cyan-900/30">
+                        <h4 class="font-bold text-cyan-400 mb-6 flex items-center gap-2">
+                            <i data-lucide="check-circle" class="w-5 h-5"></i> 단기 조치 (Quick Fix)
+                        </h4>
+                        <ul class="space-y-4 text-sm text-slate-400">
+                            <li>- FTP 익명 로그인 비활성화</li>
+                            <li>- NFS 마운트 포인트에 대한 IP 접근 제어</li>
+                            <li>- Samba Guest 접근 차단</li>
+                        </ul>
+                    </div>
+                    <div class="bg-slate-900/50 p-8 rounded-2xl border border-indigo-900/30">
+                        <h4 class="font-bold text-indigo-400 mb-6 flex items-center gap-2">
+                            <i data-lucide="shield" class="w-5 h-5"></i> 장기 전략 (Strategic Hardening)
+                        </h4>
+                        <ul class="space-y-4 text-sm text-slate-400">
+                            <li>- 정기적인 취약점 스캔 (Vulnerability Scanning)</li>
+                            <li>- 최소 권한의 법칙(Principle of Least Privilege) 적용</li>
+                            <li>- EDR(Endpoint Detection and Response) 도입</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Page 15: 종합 평가 및 결과 보고 -->
+        <section id="page-15" class="page-marker" data-page="PAGE 15">
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                15. 최종 결과 요약 (Executive Summary)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl text-center space-y-8">
+                <div class="max-w-2xl mx-auto">
+                    <div class="inline-block p-4 rounded-full bg-blue-500/10 mb-6">
+                        <i data-lucide="clipboard-check" class="w-16 h-16 text-blue-400"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-100 mb-4">VM3 취약점 진단 프로젝트 완료</h3>
+                    <p class="text-slate-400 leading-relaxed mb-8">
+                        본 실습을 통해 Nmap 스캔 데이터로부터 실제 공격 경로(Attack Path)를 도출하고, 
+                        서비스 설정 오류가 시스템 전체 보안에 어떤 영향을 주는지 실증하였습니다. 
+                        인프라 아키텍트는 단순 기능 구현뿐 아니라 이러한 공격 관점에서의 보안 설계가 필수적입니다.
+                    </p>
+                    <div class="flex justify-center gap-4">
+                        <span class="px-4 py-2 bg-slate-800 rounded-full text-[10px] font-bold text-slate-400 uppercase tracking-widest">Reconnaissance</span>
+                        <span class="px-4 py-2 bg-slate-800 rounded-full text-[10px] font-bold text-slate-400 uppercase tracking-widest">Exploitation</span>
+                        <span class="px-4 py-2 bg-slate-800 rounded-full text-[10px] font-bold text-slate-400 uppercase tracking-widest">Remediation</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+            © 2026 INFRA SECURITY ARCHITECT PRO. All rights reserved.
+        </div>
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic">
+            본 교재에 포함된 모든 기술 정보와 실습 내용은 교육적 목적으로만 작성되었습니다. 
+            사전에 허가되지 않은 시스템에 대한 침투 시도는 법적 처벌의 대상이 될 수 있습니다.
+        </p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
