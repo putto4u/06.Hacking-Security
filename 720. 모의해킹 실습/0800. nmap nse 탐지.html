@@ -236,31 +236,110 @@ portrule = shortport.http
             </div>
         </section>
 
-        <!-- 섹션 4: 커스텀 스크립트 실행 및 결과 검증 -->
+        <!-- 섹션 4: 커스텀 스크립트 저장, 로드 및 실행 메커니즘 (신규 확장 영역) -->
         <section>
             <h2 class="text-3xl font-black border-l-4 border-rose-500 pl-4 text-slate-100 mb-10 tracking-tight flex items-center gap-3">
-                <i data-lucide="play-circle" class="w-8 h-8 text-rose-400"></i> 커스텀 스크립트 실행 및 로그 검증
+                <i data-lucide="folder-cog" class="w-8 h-8 text-rose-400"></i> 커스텀 스크립트 저장, 로드 및 실행 메커니즘
             </h2>
-            <div class="section-card rounded-3xl p-12 shadow-2xl space-y-8">
+            <div class="section-card rounded-3xl p-12 shadow-2xl space-y-12">
                 <p class="text-slate-300 text-lg leading-relaxed block">
-                    작성한 Lua 기반 커스텀 스크립트(<code>apache-check.nse</code>)를 파일로 저장한 후, Kali Linux의 Nmap 엔진에 직접 로드하여 실행하는 실증 단계입니다.
+                    작성된 스크립트를 <strong>CLI (Command Line Interface, 명령줄 인터페이스)</strong> 에디터로 저장하는 방법부터, 단발성으로 로컬에서 테스트하는 방법, 그리고 Nmap의 글로벌 스크립트 데이터베이스에 정식 모듈로 <strong>로드(Load)</strong>하여 언제든 명령어 하나로 실행하는 방법까지 전체 워크플로우를 아키텍트 관점에서 정리합니다.
                 </p>
 
-                <div class="bg-slate-900/90 rounded-xl p-8 shadow-inner relative border border-slate-700 overflow-x-auto">
-                    <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-red-500"></div><div class="w-3 h-3 rounded-full bg-yellow-500"></div><div class="w-3 h-3 rounded-full bg-green-500"></div></div>
-                    
-                    <div class="terminal-text mb-6"><span class="cmd-comment"># 1. 스크립트 실행 권한 부여 및 타겟 대상 실행</span>
-<span class="cmd-output">kali@attacker:~$</span> <span class="cmd-input">chmod +x apache-check.nse</span>
-<span class="cmd-output">kali@attacker:~$</span> <span class="cmd-input">nmap -p 80 --script ./apache-check.nse 192.168.1.100</span>
-<span class="cmd-comment"># [해설] 스크립트 파일이 위치한 현재 경로(./)를 명시하여 Nmap이 기본 내장 스크립트 폴더 대신 해당 파일을 로컬에서 직접 불러오도록 지시합니다.</span></div>
-                    
-                    <div class="terminal-text mb-2"><span class="cmd-output">Starting Nmap 7.93...</span>
-<span class="cmd-output">Nmap scan report for 192.168.1.100</span>
-<span class="cmd-output">PORT   STATE SERVICE</span>
-<span class="cmd-output">80/tcp open  http</span>
-<span class="cmd-error font-bold">|_apache-check: Critical: PHP-CGI RCE (CVE-2012-1823) 취약점이 발견되었습니다!</span>
-<span class="cmd-comment"># [결과 분석] 제작한 커스텀 NSE 스크립트가 타겟 시스템의 HTTP 응답에서 PHP 소스 하이라이트 태그(&lt;code&gt;) 노출을 성공적으로 패턴 매칭하여, 관리자에게 취약 상태를 보고했습니다. 커스텀 자동화 툴이 정상 동작함을 입증합니다.</span></div>
+                <!-- 도식 2: 스크립트 저장 및 로드 아키텍처 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-10 shadow-inner my-10">
+                    <h4 class="text-center font-bold text-slate-400 mb-10 text-sm tracking-widest uppercase">
+                        [도식 2: NSE 스크립트 전역 레지스트리 로드 메커니즘]
+                    </h4>
+                    <div class="flex flex-col lg:flex-row items-center justify-center gap-6">
+                        
+                        <!-- 스크립트 생성 -->
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-2xl border border-cyan-900/50 shadow-lg w-full">
+                            <i data-lucide="edit" class="w-10 h-10 text-cyan-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">1. 에디터 작성 (nano)</div>
+                            <div class="text-[10px] text-slate-400 mt-2 font-mono">./apache-check.nse</div>
+                        </div>
+
+                        <i data-lucide="arrow-right" class="w-6 h-6 text-slate-500 hidden lg:block"></i>
+
+                        <!-- 전역 디렉터리 이동 -->
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-2xl border border-yellow-900/50 shadow-lg w-full relative overflow-hidden">
+                            <div class="absolute top-0 right-0 bg-yellow-600 text-white text-[8px] font-black px-2 py-1 rounded-bl-lg uppercase">Global Path</div>
+                            <i data-lucide="folder-input" class="w-10 h-10 text-yellow-500 mx-auto mb-4 relative z-10"></i>
+                            <div class="font-black text-slate-100 text-sm relative z-10">2. 전역 스토리지 복사</div>
+                            <div class="text-[10px] text-slate-400 mt-2 font-mono relative z-10">/usr/share/nmap/scripts/</div>
+                        </div>
+
+                        <i data-lucide="arrow-right" class="w-6 h-6 text-slate-500 hidden lg:block"></i>
+
+                        <!-- DB 업데이트 -->
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-2xl border border-emerald-900/50 shadow-lg w-full">
+                            <i data-lucide="database-zap" class="w-10 h-10 text-emerald-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">3. Nmap DB 업데이트</div>
+                            <div class="text-[10px] text-slate-400 mt-2 font-mono">script.db 최신화</div>
+                        </div>
+
+                        <i data-lucide="arrow-right" class="w-6 h-6 text-slate-500 hidden lg:block"></i>
+
+                        <!-- 실행 -->
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-2xl border border-rose-900/50 shadow-lg w-full">
+                            <i data-lucide="play" class="w-10 h-10 text-rose-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">4. 전역 실행</div>
+                            <div class="text-[10px] text-slate-400 mt-2 font-mono">--script apache-check</div>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- 단계별 터미널 실행 내역 -->
+                <div class="space-y-8">
+                    <!-- Step 1: 저장 및 로컬 테스트 -->
+                    <div class="bg-slate-900/90 rounded-xl p-8 shadow-inner relative border border-slate-700 overflow-x-auto">
+                        <div class="absolute top-0 right-0 bg-cyan-600 text-white text-[10px] font-black px-4 py-1.5 rounded-bl-lg uppercase tracking-widest">Step 1: Local Test</div>
+                        <h4 class="text-cyan-400 font-bold mb-4 text-lg"><i data-lucide="terminal" class="inline w-5 h-5 mr-2"></i>파일 저장 및 로컬 경로 테스트 실행</h4>
+                        
+                        <div class="terminal-text mb-4"><span class="cmd-output">kali@attacker:~$</span> <span class="cmd-input">nano apache-check.nse</span>
+<span class="cmd-comment"># [해설] 리눅스 내장 텍스트 에디터인 nano를 실행하여 빈 파일을 생성하고, 앞서 설명한 Lua 스크립트 소스 코드를 붙여넣기 한 후 저장(Ctrl+O, Enter)하고 종료(Ctrl+X)합니다.</span></div>
+
+                        <div class="terminal-text mb-4"><span class="cmd-output">kali@attacker:~$</span> <span class="cmd-input">chmod +x apache-check.nse</span>
+<span class="cmd-comment"># [해설] 작성된 스크립트 파일이 운영체제에서 실행될 수 있도록 실행 권한(eXecute)을 부여합니다.</span></div>
+
+                        <div class="terminal-text mb-2"><span class="cmd-output">kali@attacker:~$</span> <span class="cmd-input">nmap -p 80 --script ./apache-check.nse 192.168.1.100</span>
+<span class="cmd-output">Starting Nmap 7.93...</span>
+<span class="cmd-error font-bold">|_apache-check: Critical: PHP-CGI RCE (CVE-2012-1823) 취약점이 발견되었습니다!</span>
+<span class="cmd-comment"># [해설] 스크립트를 Nmap 시스템에 등록하기 전, 현재 디렉터리를 의미하는 상대 경로(./)를 사용하여 단발성으로 로컬 테스트를 진행합니다. 오류 없이 탐지에 성공했습니다.</span></div>
+                    </div>
+
+                    <!-- Step 2: 글로벌 로드 -->
+                    <div class="bg-slate-900/90 rounded-xl p-8 shadow-inner relative border border-slate-700 overflow-x-auto">
+                        <div class="absolute top-0 right-0 bg-yellow-600 text-white text-[10px] font-black px-4 py-1.5 rounded-bl-lg uppercase tracking-widest">Step 2: Global Load</div>
+                        <h4 class="text-yellow-400 font-bold mb-4 text-lg"><i data-lucide="database" class="inline w-5 h-5 mr-2"></i>Nmap 전역 스크립트 데이터베이스에 로드(Load)</h4>
+                        
+                        <div class="terminal-text mb-4"><span class="cmd-output">kali@attacker:~$</span> <span class="cmd-input">sudo cp apache-check.nse /usr/share/nmap/scripts/</span>
+<span class="cmd-comment"># [해설] 로컬에서 테스트를 마친 파일을 Nmap 프레임워크가 공식적으로 스크립트들을 관리하는 전역 디렉터리 경로(/usr/share/nmap/scripts/)로 복사(Copy)합니다. 시스템 디렉터리이므로 root 권한(sudo)이 필요합니다.</span></div>
+
+                        <div class="terminal-text mb-2"><span class="cmd-output">kali@attacker:~$</span> <span class="cmd-input">sudo nmap --script-updatedb</span>
+<span class="cmd-output">Starting Nmap 7.93 ( https://nmap.org )</span>
+<span class="cmd-output">NSE: Updating rule database.</span>
+<span class="cmd-success">NSE: Script Database updated successfully.</span>
+<span class="cmd-comment"># [해설] 매우 중요한 단계입니다. 스크립트 파일을 폴더에 넣기만 해서는 Nmap이 인식하지 못합니다. --script-updatedb 명령을 실행하여 Nmap의 스크립트 색인 데이터베이스(script.db)를 최신화해야 비로소 프레임워크에 완전히 로드(Load)됩니다.</span></div>
+                    </div>
+
+                    <!-- Step 3: 글로벌 실행 -->
+                    <div class="bg-slate-900/90 rounded-xl p-8 shadow-inner relative border border-slate-700 overflow-x-auto">
+                        <div class="absolute top-0 right-0 bg-emerald-600 text-white text-[10px] font-black px-4 py-1.5 rounded-bl-lg uppercase tracking-widest">Step 3: Global Execution</div>
+                        <h4 class="text-emerald-400 font-bold mb-4 text-lg"><i data-lucide="play" class="inline w-5 h-5 mr-2"></i>공식 모듈로서의 전역 실행 및 최종 검증</h4>
+                        
+                        <div class="terminal-text mb-2"><span class="cmd-output">kali@attacker:~$</span> <span class="cmd-input">nmap -p 80 --script apache-check 192.168.1.100</span>
+<span class="cmd-output">Starting Nmap 7.93...</span>
+<span class="cmd-error font-bold">|_apache-check: Critical: PHP-CGI RCE (CVE-2012-1823) 취약점이 발견되었습니다!</span>
+<span class="cmd-comment"># [해설] 이제 상대 경로(./)나 확장자(.nse)를 입력할 필요가 없습니다. Nmap 내장 스크립트들과 동일하게 모듈의 이름(apache-check)만 호출하여 전역에서 즉시 실행할 수 있게 되었습니다. 엔터프라이즈 환경에서 자사만의 맞춤형 보안 진단 도구를 내재화(Internalization)하는 완벽한 아키텍처 흐름입니다.</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footnote mt-8 text-sm">
+                * <strong>/usr/share/nmap/scripts/:</strong> 칼리 리눅스 환경에서 Nmap의 모든 확장 스크립트(NSE) 파일들이 물리적으로 저장되는 기본 시스템 경로입니다.<br>
+                * <strong>script.db:</strong> Nmap이 수백 개의 스크립트 중 사용자가 입력한 이름이나 카테고리(예: vuln, default)를 빠르게 찾아 실행할 수 있도록 맵핑해둔 텍스트 기반의 색인 데이터베이스 파일입니다.
             </div>
         </section>
 
