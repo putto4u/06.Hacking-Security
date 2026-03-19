@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>제로 트러스트 아키텍처(Zero Trust Architecture): 보안 가이드라인 실습</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+        }
+        .terminal-bg { background-color: #020617; border: 1px solid #1e293b; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-filter: blur(12px); }
+        .code-block { font-family: 'Fira Code', monospace; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+        .page-marker { border-top: 1px dashed #1e293b; padding-top: 2rem; margin-top: 4rem; }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <!-- Header: 기술 사양 및 타이틀 -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Cyber Security Lab</span>
+                    <span class="text-slate-500 font-mono text-[10px]">ZTA-SEC-2026 | Infrastructure Security</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
+                    Zero Trust Architecture<br><span class="text-slate-100 text-2xl">아키텍처 이해 및 보안 가이드라인</span>
+                </h1>
+            </div>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    CORE SCORE: 9.8
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">Expert System Architect</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-32">
+
+        <!-- Section 1: 서론 및 패러다임 변화 -->
+        <section>
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-10 tracking-tight">
+                1. 보안 패러다임의 변화 (Security Paradigm Shift)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <div class="prose prose-invert max-w-none">
+                    <p class="text-slate-300 text-lg leading-relaxed mb-8">
+                        기존의 경계 보안 모델(Perimeter-based Security Model)은 내부 네트워크를 신뢰 구역으로, 외부를 비신뢰 구역으로 구분하였습니다. 그러나 클라우드 전환과 원격 근무의 확산으로 인해 네트워크의 경계가 사라지면서 "내부는 안전하다"는 전제가 무너졌습니다. 이에 따라 등장한 제로 트러스트(Zero Trust, 어떤 것도 신뢰하지 않음)는 모든 접속 요청을 매순간 검증하는 전략적 보안 체계입니다.
+                    </p>
+                    
+                    <div class="bg-blue-900/10 border border-blue-500/20 p-6 rounded-2xl mb-8">
+                        <h4 class="text-blue-400 font-bold mb-2">기존 보안과 제로 트러스트의 차이</h4>
+                        <p class="text-sm text-slate-400">
+                            과거에는 성벽(Firewall)을 높게 쌓아 침입을 막았으나, 내부자가 위협이 되거나 이미 침투한 공격자에게는 무력했습니다. 제로 트러스트는 '결코 신뢰하지 말고, 항상 검증하라(Never Trust, Always Verify)'는 원칙에 기반하여 정보 자산에 접근하는 모든 사용자, 장치, 네트워크 트래픽을 잠재적 위협으로 간주합니다.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 도식 1: 경계 보안 vs 제로 트러스트 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner mt-10">
+                    <h4 class="text-center font-bold text-slate-400 mb-10 text-xs tracking-widest uppercase">
+                        [도식 1: 보안 모델 비교 - 경계 보안 vs 제로 트러스트]
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                        <div class="text-center p-6 bg-slate-800/50 rounded-xl border border-red-900/30">
+                            <div class="text-red-400 font-bold mb-4">Legacy Perimeter Security</div>
+                            <div class="relative inline-block border-2 border-red-500 p-8 rounded-full mb-4">
+                                <i data-lucide="shield-check" class="w-12 h-12 text-red-500 opacity-50"></i>
+                                <div class="absolute inset-0 flex items-center justify-center font-black text-[10px]">Castle-and-Moat</div>
+                            </div>
+                            <p class="text-[10px] text-slate-400">한 번 통과하면 내부 리소스 자유 접근</p>
+                        </div>
+                        <div class="text-center p-6 bg-slate-800/50 rounded-xl border border-cyan-900/30">
+                            <div class="text-cyan-400 font-bold mb-4">Zero Trust Architecture</div>
+                            <div class="flex justify-center gap-2 mb-4">
+                                <i data-lucide="key" class="w-6 h-6 text-cyan-400"></i>
+                                <i data-lucide="key" class="w-6 h-6 text-cyan-400"></i>
+                                <i data-lucide="key" class="w-6 h-6 text-cyan-400"></i>
+                            </div>
+                            <p class="text-[10px] text-slate-400">매 요청마다 신원, 장치, 환경 정밀 검증</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: 제로 트러스트의 3대 핵심 원칙 -->
+        <section>
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-10 tracking-tight">
+                2. 핵심 원칙 (Core Principles)
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="section-card rounded-3xl p-8 border-cyan-900/30 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-cyan-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">PRINCIPLE 01</div>
+                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                        <i data-lucide="user-check" class="w-6 h-6 text-cyan-400"></i> 명시적 검증 (Verify Explicitly)
+                    </h3>
+                    <p class="text-sm text-slate-400 leading-relaxed">
+                        사용자의 신원(Identity), 위치(Location), 장치 상태(Device Health), 서비스/데이터 가용성(Resource Availability), 비정상 징후(Anomaly) 등을 기반으로 항상 승인 후 접근을 허용합니다.
+                    </p>
+                </div>
+                <div class="section-card rounded-3xl p-8 border-blue-900/30 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-blue-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">PRINCIPLE 02</div>
+                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                        <i data-lucide="lock" class="w-6 h-6 text-blue-400"></i> 최소 권한 부여 (Least Privilege Access)
+                    </h3>
+                    <p class="text-sm text-slate-400 leading-relaxed">
+                        사용자에게 직무에 필요한 만큼의 권한만 제공합니다. JIT(Just-In-Time, 적시 권한 부여) 및 JEA(Just-Enough-Administration, 적정 관리 권한)를 적용하여 데이터 노출 범위를 최소화합니다.
+                    </p>
+                </div>
+                <div class="section-card rounded-3xl p-8 border-indigo-900/30 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">PRINCIPLE 03</div>
+                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                        <i data-lucide="scan-eye" class="w-6 h-6 text-indigo-400"></i> 침해 가정 (Assume Breach)
+                    </h3>
+                    <p class="text-sm text-slate-400 leading-relaxed">
+                        공격자가 이미 네트워크 내부에 있다고 가정합니다. 위협 반경(Blast Radius)을 최소화하기 위해 네트워크를 마이크로 세그멘테이션(Micro-segmentation)하고 암호화와 가시성을 확보합니다.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: NIST 800-207 논리적 아키텍처 -->
+        <section>
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-10 tracking-tight">
+                3. NIST 800-207 기반 논리적 구성 (Logical Architecture)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-12">
+                <p class="text-slate-300">
+                    미국 국립표준기술연구소(National Institute of Standards and Technology, NIST)는 SP 800-207 문서를 통해 제로 트러스트의 추상적인 구성 요소를 정의했습니다. 핵심은 제어 평면(Control Plane)과 데이터 평면(Data Plane)의 분리입니다.
+                </p>
+
+                <!-- 도식 2: ZTA 구성 요소 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-10 shadow-inner">
+                    <h4 class="text-center font-bold text-slate-400 mb-10 text-xs tracking-widest uppercase">
+                        [도식 2: 제로 트러스트 논리적 컴포넌트 플로우]
+                    </h4>
+                    <div class="flex flex-col items-center gap-12">
+                        <!-- Policy Decision Point -->
+                        <div class="w-full max-w-2xl bg-indigo-900/20 border-2 border-dashed border-indigo-500/50 p-8 rounded-3xl relative">
+                            <span class="absolute -top-3 left-6 bg-indigo-600 px-3 py-0.5 text-[10px] font-bold rounded">CONTROL PLANE (PDP)</span>
+                            <div class="flex justify-around gap-4">
+                                <div class="text-center bg-slate-800 p-4 rounded-xl border border-slate-700 flex-1">
+                                    <div class="text-xs font-black text-indigo-400 mb-1">Policy Engine (PE)</div>
+                                    <div class="text-[10px] text-slate-500">신뢰 점수 계산 및 최종 승인</div>
+                                </div>
+                                <div class="text-center bg-slate-800 p-4 rounded-xl border border-slate-700 flex-1">
+                                    <div class="text-xs font-black text-indigo-400 mb-1">Policy Administrator (PA)</div>
+                                    <div class="text-[10px] text-slate-500">접속 세션 생성 및 차단</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <i data-lucide="chevrons-down" class="w-8 h-8 text-slate-600 animate-bounce"></i>
+
+                        <!-- Policy Enforcement Point -->
+                        <div class="w-full max-w-md bg-cyan-900/20 border-2 border-cyan-500/50 p-6 rounded-2xl relative text-center">
+                            <span class="absolute -top-3 left-6 bg-cyan-600 px-3 py-0.5 text-[10px] font-bold rounded">DATA PLANE (PEP)</span>
+                            <div class="font-black text-cyan-400">Policy Enforcement Point (PEP)</div>
+                            <p class="text-[10px] text-slate-400 mt-1">접속 게이트웨이 / 에이전트</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 긴 글 박스 처리 -->
+                <div class="terminal-bg rounded-2xl p-8 border-l-4 border-indigo-500">
+                    <h4 class="font-bold text-slate-100 mb-4 flex items-center gap-2">
+                        <i data-lucide="info" class="w-5 h-5 text-indigo-400"></i> 아키텍처 세부 용어 설명
+                    </h4>
+                    <ul class="space-y-4 text-sm text-slate-400">
+                        <li><strong class="text-slate-200">PDP (Policy Decision Point, 정책 결정 지점):</strong> 사용자 및 기기의 신뢰 수준을 평가하여 리소스 접근을 허용하거나 거부하는 의사결정 시스템입니다.</li>
+                        <li><strong class="text-slate-200">PEP (Policy Enforcement Point, 정책 실행 지점):</strong> PDP의 결정을 실제 통신에 적용하는 게이트웨이 역할을 수행하며, 승인되지 않은 트래픽은 데이터 평면 수준에서 차단합니다.</li>
+                        <li><strong class="text-slate-200">Trust Algorithm (신뢰 알고리즘):</strong> 정적 데이터(사용자 정보)와 동적 데이터(현재 위치, 접속 시간, 장치 보안 상태)를 결합하여 실시간 신뢰 점수를 산출합니다.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: 신원 및 장치 검증 가이드라인 -->
+        <section>
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-10 tracking-tight">
+                4. 가이드라인: 신원 및 장치 보안 (Identity & Device)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div>
+                        <h4 class="text-xl font-bold text-cyan-400 mb-6 flex items-center gap-2">
+                            <i data-lucide="fingerprint" class="w-6 h-6"></i> 강력한 신원 확인 (IAM)
+                        </h4>
+                        <ul class="space-y-4 text-slate-300 text-sm">
+                            <li class="bg-slate-800/50 p-4 rounded-xl border-l-2 border-cyan-500">
+                                <span class="block font-bold text-slate-100 mb-1">다중 인증 (Multi-Factor Authentication, MFA)</span>
+                                단일 비밀번호 기반 인증을 폐기하고 생체 인식, 하드웨어 보안 키(FIDO) 등을 필수 적용합니다.
+                            </li>
+                            <li class="bg-slate-800/50 p-4 rounded-xl border-l-2 border-cyan-500">
+                                <span class="block font-bold text-slate-100 mb-1">상황 인지 권한 부여 (Context-Aware Access)</span>
+                                사용자가 평소와 다른 지역에서 접속하거나 업무 시간 외 접근 시 추가 인증을 요구하거나 접근을 제한합니다.
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <!-- 도식 3: 장치 상태 검증 프로세스 -->
+                    <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-6">
+                        <h4 class="text-center font-bold text-slate-500 mb-6 text-[10px] tracking-widest">
+                            [도식 3: Device Health Attestation]
+                        </h4>
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-4 bg-slate-800 p-3 rounded-lg border border-slate-700">
+                                <div class="bg-blue-500/20 p-2 rounded"><i data-lucide="smartphone" class="w-4 h-4 text-blue-400"></i></div>
+                                <div class="text-[11px]">Check OS Patch Level</div>
+                                <i data-lucide="check" class="w-4 h-4 text-green-500 ml-auto"></i>
+                            </div>
+                            <div class="flex items-center gap-4 bg-slate-800 p-3 rounded-lg border border-slate-700">
+                                <div class="bg-blue-500/20 p-2 rounded"><i data-lucide="shield" class="w-4 h-4 text-blue-400"></i></div>
+                                <div class="text-[11px]">EDR/AV Engine Running</div>
+                                <i data-lucide="check" class="w-4 h-4 text-green-500 ml-auto"></i>
+                            </div>
+                            <div class="flex items-center gap-4 bg-slate-800 p-3 rounded-lg border border-slate-700 opacity-50">
+                                <div class="bg-red-500/20 p-2 rounded"><i data-lucide="skull" class="w-4 h-4 text-red-400"></i></div>
+                                <div class="text-[11px]">Jailbreak/Rooting Check</div>
+                                <i data-lucide="x" class="w-4 h-4 text-red-500 ml-auto"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: 네트워크 마이크로 세그멘테이션 -->
+        <section>
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-10 tracking-tight">
+                5. 가이드라인: 마이크로 세그멘테이션 (Micro-segmentation)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 mb-10">
+                    전통적인 네트워크는 내부망에 침투하면 모든 서버로 이동이 가능한 '평면형(Flat)' 구조였습니다. 제로 트러스트는 리소스 주위에 개별적인 가상 경계를 만들어 공격자가 옆으로 이동(Lateral Movement, 횡적 이동)하는 것을 원천 차단합니다.
+                </p>
+
+                <!-- 도식 4: 마이크로 세그멘테이션 개념 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 mb-10">
+                    <h4 class="text-center font-bold text-slate-400 mb-10 text-xs tracking-widest uppercase">
+                        [도식 4: Flat Network vs Micro-segmentation]
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="border border-red-900/50 p-6 rounded-xl relative">
+                            <span class="absolute -top-3 left-4 bg-red-900 text-[9px] px-2 rounded">FLAT (High Risk)</span>
+                            <div class="flex flex-wrap justify-center gap-4">
+                                <div class="bg-slate-700 p-2 rounded"><i data-lucide="server" class="w-6 h-6 text-red-500"></i></div>
+                                <i data-lucide="arrow-right" class="w-4 h-4 mt-3 text-red-500"></i>
+                                <div class="bg-slate-700 p-2 rounded"><i data-lucide="database" class="w-6 h-6 text-red-500"></i></div>
+                                <i data-lucide="arrow-right" class="w-4 h-4 mt-3 text-red-500"></i>
+                                <div class="bg-slate-700 p-2 rounded"><i data-lucide="cpu" class="w-6 h-6 text-red-500"></i></div>
+                            </div>
+                        </div>
+                        <div class="border border-cyan-900/50 p-6 rounded-xl relative">
+                            <span class="absolute -top-3 left-4 bg-cyan-900 text-[9px] px-2 rounded">ZTA (Segmented)</span>
+                            <div class="flex justify-center gap-4">
+                                <div class="border border-cyan-500 p-2 rounded-lg shadow-[0_0_10px_rgba(34,211,238,0.2)]"><i data-lucide="server" class="w-6 h-6"></i></div>
+                                <div class="border border-cyan-500 p-2 rounded-lg shadow-[0_0_10px_rgba(34,211,238,0.2)]"><i data-lucide="database" class="w-6 h-6"></i></div>
+                                <div class="border border-cyan-500 p-2 rounded-lg shadow-[0_0_10px_rgba(34,211,238,0.2)]"><i data-lucide="cpu" class="w-6 h-6"></i></div>
+                            </div>
+                            <p class="text-center text-[10px] text-cyan-400 mt-2">Individual Security Enclosures</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="bg-slate-800/30 p-6 rounded-2xl border border-slate-700">
+                        <h4 class="font-bold text-slate-100 mb-2">소프트웨어 정의 경계 (SDP)</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Software-Defined Perimeter (SDP, 소프트웨어 정의 경계)는 "Black Cloud" 개념을 사용하여 권한이 없는 사용자에게는 서버의 IP 주소 자체를 숨기는 기술입니다.
+                        </p>
+                    </div>
+                    <div class="bg-slate-800/30 p-6 rounded-2xl border border-slate-700">
+                        <h4 class="font-bold text-slate-100 mb-2">가시성 및 분석 (Visibility)</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            모든 네트워크 트래픽을 로그로 남기고 AI 분석을 통해 비정상적인 트래픽 패턴(예: 대량 데이터 유출 시도)을 실시간 탐지합니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 6: 보안 성숙도 모델 및 로드맵 -->
+        <section>
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-10 tracking-tight">
+                6. ZTA 구현 로드맵 (Maturity Model Roadmap)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <!-- 도식 5: 성숙도 모델 그래프 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-10 mb-12 shadow-inner">
+                    <h4 class="text-center font-bold text-slate-400 mb-12 text-xs tracking-widest uppercase">
+                        [도식 5: 제로 트러스트 성숙도 단계별 로드맵]
+                    </h4>
+                    <div class="flex items-end justify-between gap-4 h-64">
+                        <div class="flex-1 flex flex-col items-center">
+                            <div class="w-full bg-slate-700 h-16 rounded-t-xl relative group cursor-help">
+                                <div class="absolute -top-8 text-[10px] font-bold text-slate-500">Traditional</div>
+                            </div>
+                            <div class="text-[9px] mt-4 text-slate-500">Static Policies</div>
+                        </div>
+                        <div class="flex-1 flex flex-col items-center">
+                            <div class="w-full bg-blue-600 h-32 rounded-t-xl relative">
+                                <div class="absolute -top-8 text-[10px] font-bold text-blue-400">Advanced</div>
+                            </div>
+                            <div class="text-[9px] mt-4 text-blue-400">Identity Centric</div>
+                        </div>
+                        <div class="flex-1 flex flex-col items-center">
+                            <div class="w-full bg-cyan-500 h-52 rounded-t-xl relative shadow-[0_-5px_20px_rgba(34,211,238,0.3)]">
+                                <div class="absolute -top-8 text-[10px] font-bold text-cyan-300">Optimal</div>
+                                <div class="absolute inset-0 flex items-center justify-center"><i data-lucide="zap" class="w-6 h-6 text-white"></i></div>
+                            </div>
+                            <div class="text-[9px] mt-4 text-cyan-400">Fully Automated / AI</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="flex items-start gap-4 p-6 bg-slate-800/50 rounded-2xl border border-slate-700">
+                        <div class="bg-cyan-500/10 p-3 rounded-full text-cyan-400 font-black text-xs">Phase 1</div>
+                        <div>
+                            <h5 class="font-bold text-slate-100">가시성 확보 및 정적 자산 분석</h5>
+                            <p class="text-sm text-slate-400">어떤 장치와 사용자가 네트워크에 존재하는지 전수 조사(Inventory)하고, 중요 데이터의 위치를 파악합니다.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4 p-6 bg-slate-800/50 rounded-2xl border border-slate-700">
+                        <div class="bg-cyan-500/10 p-3 rounded-full text-cyan-400 font-black text-xs">Phase 2</div>
+                        <div>
+                            <h5 class="font-bold text-slate-100">조건부 액세스 및 신원 관리 고도화</h5>
+                            <p class="text-sm text-slate-400">MFA를 전사 적용하고, 단일 로그인(Single Sign-On, SSO) 환경과 연동하여 중앙 집중식 정책 제어를 구현합니다.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4 p-6 bg-slate-800/50 rounded-2xl border border-slate-700">
+                        <div class="bg-cyan-500/10 p-3 rounded-full text-cyan-400 font-black text-xs">Phase 3</div>
+                        <div>
+                            <h5 class="font-bold text-slate-100">동적 정책 및 자동화된 대응</h5>
+                            <p class="text-sm text-slate-400">지속적인 모니터링을 통해 위협이 탐지되면 즉시 세션을 끊거나 격리하는 자동화(SOAR) 시스템을 구축합니다.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 7: 실전 보안 가이드라인 (Implementation Guide) -->
+        <section>
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-10 tracking-tight">
+                7. 실무 구현 체크리스트 (Security Checklist)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                    <div class="space-y-4">
+                        <h4 class="font-bold text-indigo-400 border-b border-indigo-900 pb-2">신원 및 접근 제어</h4>
+                        <div class="flex items-center gap-3 text-sm text-slate-400">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-cyan-500"></i> 모든 사용자에게 MFA 적용 여부
+                        </div>
+                        <div class="flex items-center gap-3 text-sm text-slate-400">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-cyan-500"></i> 권한 없는 계정(Ghost Accounts) 정기 삭제
+                        </div>
+                        <div class="flex items-center gap-3 text-sm text-slate-400">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-cyan-500"></i> 관리자 권한에 대한 JIT(Just-In-Time) 승인 체계
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <h4 class="font-bold text-cyan-400 border-b border-cyan-900 pb-2">인프라 및 장치 보안</h4>
+                        <div class="flex items-center gap-3 text-sm text-slate-400">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-cyan-500"></i> 미인가 기기의 사내망 접속 차단 (NAC)
+                        </div>
+                        <div class="flex items-center gap-3 text-sm text-slate-400">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-cyan-500"></i> 중요 서버 구간 마이크로 세그멘테이션 완료
+                        </div>
+                        <div class="flex items-center gap-3 text-sm text-slate-400">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-cyan-500"></i> 전송 데이터 및 저장 데이터 암호화(TLS 1.3+)
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 도식 6: 전체 생태계 요약 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-12 mt-12 shadow-inner relative overflow-hidden">
+                    <h4 class="text-center font-bold text-slate-400 mb-10 text-xs tracking-widest uppercase">
+                        [도식 6: Zero Trust Ecosystem Summary]
+                    </h4>
+                    <div class="flex justify-center items-center gap-8 flex-wrap">
+                        <div class="px-6 py-4 rounded-full border border-cyan-500 bg-cyan-500/10 text-cyan-400 font-bold">Identity</div>
+                        <i data-lucide="plus" class="w-4 h-4 text-slate-600"></i>
+                        <div class="px-6 py-4 rounded-full border border-blue-500 bg-blue-500/10 text-blue-400 font-bold">Device</div>
+                        <i data-lucide="plus" class="w-4 h-4 text-slate-600"></i>
+                        <div class="px-6 py-4 rounded-full border border-indigo-500 bg-indigo-500/10 text-indigo-400 font-bold">Network</div>
+                        <i data-lucide="arrow-right" class="w-4 h-4 text-slate-600"></i>
+                        <div class="px-10 py-6 rounded-2xl bg-gradient-to-br from-cyan-600 to-indigo-700 text-white font-black shadow-2xl">SAFE ACCESS</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 8: 전문가 분석 -->
+        <section>
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-10 tracking-tight">
+                8. 아키텍트 인사이트 (Architect Insight)
+            </h2>
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-10">
+                <div class="flex flex-col md:flex-row gap-8">
+                    <div class="flex-1 bg-slate-800/50 p-8 rounded-2xl border border-slate-700">
+                        <div class="text-cyan-400 mb-4"><i data-lucide="lightbulb" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-4">성공적인 도입을 위한 팁</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed mb-4">
+                            제로 트러스트는 단일 솔루션이 아니라 전략입니다. 한 번에 모든 것을 바꾸려 하지 말고, 비즈니스 가치가 높고 리스크가 큰 리소스부터 단계적으로 적용하는 '점진적 접근법'이 필수적입니다.
+                        </p>
+                    </div>
+                    <div class="flex-1 bg-slate-800/50 p-8 rounded-2xl border border-slate-700">
+                        <div class="text-red-400 mb-4"><i data-lucide="shield-alert" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-4">자주 하는 실수 (Pitfalls)</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed mb-4">
+                            사용자 편의성을 고려하지 않은 무분별한 인증 요구는 생산성을 저하시킵니다. SSO와 상황 인지 인증을 통해 사용자가 눈치채지 못하는 'Invisible Security'를 구현하는 것이 아키텍트의 역량입니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+            © 2026 INFRASTRUCTURE SECURITY LAB. All rights reserved.
+        </div>
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic">
+            본 가이드라인은 NIST 800-207 및 CISA Zero Trust Maturity Model을 참조하여 작성되었습니다. 실무 적용 시에는 조직의 환경에 맞는 커스텀 정책 수립이 필요합니다.
+        </p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
