@@ -1,1 +1,482 @@
-sdf
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>리눅스 서버 보안 점검 가이드: 인프라 강화 실습</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+        }
+        .terminal-bg { background-color: #010409; border: 1px solid #1e293b; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.3); backdrop-filter: blur(12px); }
+        .code-block { font-family: 'Fira Code', monospace; }
+        .page-break { margin-top: 8rem; padding-top: 4rem; border-top: 1px dashed #1e293b; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <!-- Header -->
+    <header class="border-b border-slate-800 bg-slate-900/80 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_15px_rgba(34,211,238,0.6)]">Cyber Security Lab</span>
+                    <span class="text-slate-500 font-mono text-[10px]">SEC-LNX-2026 | Infrastructure Hardening</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight uppercase">
+                    Linux Server Security Audit<br><span class="text-slate-100 text-2xl font-bold">리눅스 서버 보안 점검 및 시스템 최적화 가이드</span>
+                </h1>
+            </div>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    STIG COMPLIANCE: 9.8/10
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase italic">Architected by Gemini</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-16">
+
+        <!-- Table of Contents -->
+        <section class="mb-32">
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
+                Table of Contents (목차)
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="section-card p-6 rounded-2xl flex items-center gap-4 hover:border-cyan-500/50 transition-colors cursor-pointer">
+                    <span class="text-cyan-500 font-black italic">01</span>
+                    <span class="text-slate-300 font-medium">계정 및 인증 보안 (Account & Authentication)</span>
+                </div>
+                <div class="section-card p-6 rounded-2xl flex items-center gap-4 hover:border-cyan-500/50 transition-colors cursor-pointer">
+                    <span class="text-cyan-500 font-black italic">02</span>
+                    <span class="text-slate-300 font-medium">서비스 및 네트워크 보안 (Service & Network)</span>
+                </div>
+                <div class="section-card p-6 rounded-2xl flex items-center gap-4 hover:border-cyan-500/50 transition-colors cursor-pointer">
+                    <span class="text-cyan-500 font-black italic">03</span>
+                    <span class="text-slate-300 font-medium">권한 및 파일 시스템 관리 (Permissions & FS)</span>
+                </div>
+                <div class="section-card p-6 rounded-2xl flex items-center gap-4 hover:border-cyan-500/50 transition-colors cursor-pointer">
+                    <span class="text-cyan-500 font-black italic">04</span>
+                    <span class="text-slate-300 font-medium">감사 및 로깅 정책 (Auditing & Logging)</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Module 1: 계정 및 인증 보안 -->
+        <section id="module-1" class="space-y-24">
+            <div class="flex items-center gap-4 mb-12">
+                <div class="h-px flex-1 bg-slate-800"></div>
+                <h2 class="text-3xl font-black text-cyan-400 uppercase tracking-tighter">Module 01: Account Security</h2>
+                <div class="h-px flex-1 bg-slate-800"></div>
+            </div>
+
+            <!-- Page 1.1: Root 접속 제한 -->
+            <div class="space-y-8">
+                <h3 class="text-2xl font-black text-slate-100 flex items-center gap-3">
+                    <span class="text-cyan-500">1.1</span> 원격 Root 접속 제한 (Restrict Remote Root Access)
+                </h3>
+                <div class="section-card rounded-3xl p-10 shadow-2xl space-y-8">
+                    <p class="text-slate-300 text-lg leading-relaxed">
+                        관리자 계정(Root User)으로의 직접 원격 접속은 무차별 대입 공격(Brute Force Attack)의 1순위 표적입니다. 일반 사용자 계정으로 접속 후 관리자 권한을 획득하는 다단계 인증 구조를 강제해야 합니다.
+                    </p>
+
+                    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner">
+                        <h4 class="text-center font-bold text-slate-400 mb-8 text-xs tracking-widest uppercase">
+                            [도식: 원격 인증 다중화 모델 (Multi-stage Auth Model)]
+                        </h4>
+                        <div class="flex flex-col md:flex-row items-center justify-around gap-4">
+                            <div class="text-center p-6 bg-slate-800 rounded-xl border border-red-900/50 w-full md:w-1/3">
+                                <i data-lucide="shield-x" class="w-10 h-10 text-red-500 mx-auto mb-4"></i>
+                                <div class="font-bold text-slate-100 text-sm italic">Direct Root Login</div>
+                                <div class="text-[10px] text-red-400 mt-2 uppercase">DENIED</div>
+                            </div>
+                            <i data-lucide="arrow-right" class="text-slate-600 hidden md:block"></i>
+                            <div class="text-center p-6 bg-slate-800 rounded-xl border border-cyan-900/50 w-full md:w-1/3">
+                                <i data-lucide="user-check" class="w-10 h-10 text-cyan-400 mx-auto mb-4"></i>
+                                <div class="font-bold text-slate-100 text-sm italic">Normal User (SSH)</div>
+                                <div class="text-[10px] text-cyan-500 mt-2 uppercase">STEP 1</div>
+                            </div>
+                            <i data-lucide="arrow-right" class="text-slate-600 hidden md:block"></i>
+                            <div class="text-center p-6 bg-slate-800 rounded-xl border border-blue-900/50 w-full md:w-1/3">
+                                <i data-lucide="key" class="w-10 h-10 text-blue-400 mx-auto mb-4"></i>
+                                <div class="font-bold text-slate-100 text-sm italic">SUDO Privilege</div>
+                                <div class="text-[10px] text-blue-500 mt-2 uppercase">STEP 2</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-4">
+                            <h4 class="text-cyan-400 font-bold text-sm uppercase flex items-center gap-2">
+                                <i data-lucide="file-text" class="w-4 h-4"></i> Configuration File
+                            </h4>
+                            <div class="terminal-bg p-4 rounded-xl font-mono text-xs text-slate-400">
+                                Path: <span class="text-slate-200">/etc/ssh/sshd_config</span><br><br>
+                                <span class="text-slate-500"># PermitRootLogin을 no로 설정</span><br>
+                                PermitRootLogin <span class="text-cyan-400">no</span>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <h4 class="text-cyan-400 font-bold text-sm uppercase flex items-center gap-2">
+                                <i data-lucide="terminal" class="w-4 h-4"></i> Execution Command
+                            </h4>
+                            <div class="terminal-bg p-4 rounded-xl font-mono text-xs text-slate-400">
+                                <span class="text-slate-500"># 설정 확인</span><br>
+                                $ grep "PermitRootLogin" /etc/ssh/sshd_config<br><br>
+                                <span class="text-slate-500"># 서비스 재시작</span><br>
+                                $ sudo systemctl restart sshd
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page 1.2: 패스워드 복잡성 정책 -->
+            <div class="space-y-8 page-break">
+                <h3 class="text-2xl font-black text-slate-100 flex items-center gap-3">
+                    <span class="text-cyan-500">1.2</span> 패스워드 복잡성 설정 (Password Complexity Policy)
+                </h3>
+                <div class="section-card rounded-3xl p-10 shadow-2xl space-y-8">
+                    <p class="text-slate-300 text-lg leading-relaxed">
+                        패스워드 취약점을 이용한 무작위 대입 공격(Dictionary Attack)을 방어하기 위해 최소 길이와 문자 조합을 PAM(Pluggable Authentication Modules, 탈착 가능한 인증 모듈)을 통해 강제합니다.
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="bg-slate-800/40 p-6 rounded-2xl border border-slate-700">
+                            <h4 class="font-bold text-slate-100 mb-4 flex items-center gap-2">
+                                <i data-lucide="settings" class="w-5 h-5 text-indigo-400"></i> 정책 상세 (Policy Details)
+                            </h4>
+                            <ul class="space-y-2 text-sm text-slate-400 italic">
+                                <li>- <span class="text-slate-200">minlen=12</span>: 최소 길이 12자</li>
+                                <li>- <span class="text-slate-200">dcredit=-1</span>: 숫자 최소 1자 포함</li>
+                                <li>- <span class="text-slate-200">ucredit=-1</span>: 대문자 최소 1자 포함</li>
+                                <li>- <span class="text-slate-200">lcredit=-1</span>: 소문자 최소 1자 포함</li>
+                                <li>- <span class="text-slate-200">ocredit=-1</span>: 특수문자 최소 1자 포함</li>
+                            </ul>
+                        </div>
+                        <div class="space-y-4">
+                            <h4 class="text-cyan-400 font-bold text-sm uppercase flex items-center gap-2">
+                                <i data-lucide="terminal" class="w-4 h-4"></i> Implementation
+                            </h4>
+                            <div class="terminal-bg p-4 rounded-xl font-mono text-xs text-slate-400">
+                                <span class="text-slate-500"># 파일: /etc/security/pwquality.conf</span><br>
+                                $ sudo vi /etc/security/pwquality.conf<br><br>
+                                <span class="text-slate-300"># 내용 수정</span><br>
+                                minlen = 12<br>
+                                dcredit = -1<br>
+                                ucredit = -1<br>
+                                lcredit = -1<br>
+                                ocredit = -1
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page 1.3: 계정 임계값 및 잠금 설정 -->
+            <div class="space-y-8 page-break">
+                <h3 class="text-2xl font-black text-slate-100 flex items-center gap-3">
+                    <span class="text-cyan-500">1.3</span> 계정 잠금 임계값 설정 (Account Lockout Threshold)
+                </h3>
+                <div class="section-card rounded-3xl p-10 shadow-2xl space-y-8">
+                    <p class="text-slate-300 text-lg leading-relaxed">
+                        연속적인 인증 실패 시 해당 계정을 일정 시간 동안 잠금 처리하여 자동화된 공격 도구의 성공 가능성을 차단합니다.
+                    </p>
+
+                    <div class="terminal-bg p-6 rounded-2xl font-mono text-sm relative">
+                        <div class="absolute top-4 right-4 text-slate-600 text-[10px] font-black uppercase">PAM Config</div>
+                        <div class="text-slate-500"># 파일: /etc/pam.d/password-auth & system-auth</div><br>
+                        <div class="text-slate-300">
+                            auth required pam_tally2.so deny=5 unlock_time=600<br>
+                            account required pam_tally2.so
+                        </div>
+                    </div>
+
+                    <div class="flex gap-4">
+                        <div class="flex-1 p-6 bg-red-900/10 border border-red-500/20 rounded-xl">
+                            <div class="text-red-400 font-black mb-2 flex items-center gap-2">
+                                <i data-lucide="shield-alert" class="w-5 h-5"></i> IMPORTANT
+                            </div>
+                            <p class="text-xs text-slate-400">Root 계정은 잠금에서 제외하거나, 예외 처리를 정교하게 설계하여 관리자의 실수로 서버 접근이 원천 차단되는 사고를 방지하십시오.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Module 2: 서비스 및 네트워크 보안 -->
+        <section id="module-2" class="space-y-24 page-break">
+            <div class="flex items-center gap-4 mb-12">
+                <div class="h-px flex-1 bg-slate-800"></div>
+                <h2 class="text-3xl font-black text-indigo-400 uppercase tracking-tighter">Module 02: Network Security</h2>
+                <div class="h-px flex-1 bg-slate-800"></div>
+            </div>
+
+            <!-- Page 2.1: 불필요한 서비스 제거 -->
+            <div class="space-y-8">
+                <h3 class="text-2xl font-black text-slate-100 flex items-center gap-3">
+                    <span class="text-indigo-500">2.1</span> 불필요한 서비스 비활성화 (Disable Unnecessary Services)
+                </h3>
+                <div class="section-card rounded-3xl p-10 shadow-2xl space-y-8">
+                    <p class="text-slate-300 text-lg leading-relaxed">
+                        공격 표면(Attack Surface, 공격 가능한 지점)을 줄이기 위해 현재 사용하지 않는 프로토콜이나 서비스를 중지하고 삭제합니다. 특히 취약한 레거시 서비스(Telnet, FTP, R-services)가 주요 점검 대상입니다.
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="p-6 bg-slate-900/50 rounded-xl border border-slate-800 flex flex-col items-center">
+                            <i data-lucide="zap-off" class="w-8 h-8 text-yellow-500 mb-4"></i>
+                            <span class="font-bold text-slate-200">Telnet</span>
+                            <span class="text-[10px] text-slate-500 mt-2 italic">Unencrypted Port 23</span>
+                        </div>
+                        <div class="p-6 bg-slate-900/50 rounded-xl border border-slate-800 flex flex-col items-center">
+                            <i data-lucide="file-warning" class="w-8 h-8 text-orange-500 mb-4"></i>
+                            <span class="font-bold text-slate-200">FTP</span>
+                            <span class="text-[10px] text-slate-500 mt-2 italic">Vulnerable Data Transfer</span>
+                        </div>
+                        <div class="p-6 bg-slate-900/50 rounded-xl border border-slate-800 flex flex-col items-center">
+                            <i data-lucide="cpu" class="w-8 h-8 text-blue-500 mb-4"></i>
+                            <span class="font-bold text-slate-200">Finger</span>
+                            <span class="text-[10px] text-slate-500 mt-2 italic">Info Leakage Risk</span>
+                        </div>
+                    </div>
+
+                    <div class="terminal-bg p-6 rounded-2xl font-mono text-sm">
+                        <span class="text-slate-500"># 실행중인 포트 및 서비스 확인</span><br>
+                        $ sudo netstat -tulpn<br><br>
+                        <span class="text-slate-500"># 서비스 중지 및 비활성화</span><br>
+                        $ sudo systemctl stop [service_name]<br>
+                        $ sudo systemctl disable [service_name]
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page 2.2: 방화벽 최적화 -->
+            <div class="space-y-8 page-break">
+                <h3 class="text-2xl font-black text-slate-100 flex items-center gap-3">
+                    <span class="text-indigo-500">2.2</span> 호스트 방화벽 설정 (Host-based Firewall Hardening)
+                </h3>
+                <div class="section-card rounded-3xl p-10 shadow-2xl space-y-8">
+                    <p class="text-slate-300 text-lg leading-relaxed">
+                        IPtables 또는 Firewalld를 사용하여 명시적으로 허용되지 않은 모든 인바운드 트래픽(Inbound Traffic, 들어오는 트래픽)을 기본적으로 차단(Default Deny)합니다.
+                    </p>
+
+                    <div class="bg-indigo-900/10 border border-indigo-500/20 p-8 rounded-2xl">
+                        <div class="flex items-center gap-2 mb-6 text-indigo-400 font-black uppercase text-xs">
+                            <i data-lucide="shield" class="w-4 h-4"></i> Firewall Rules (White-list Policy)
+                        </div>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between text-xs font-mono border-b border-slate-800 pb-2">
+                                <span class="text-slate-400">ALLOW HTTP/HTTPS (80, 443)</span>
+                                <span class="text-green-400">ENABLED</span>
+                            </div>
+                            <div class="flex items-center justify-between text-xs font-mono border-b border-slate-800 pb-2">
+                                <span class="text-slate-400">ALLOW SSH (Custom Port)</span>
+                                <span class="text-green-400">ENABLED</span>
+                            </div>
+                            <div class="flex items-center justify-between text-xs font-mono border-b border-slate-800 pb-2">
+                                <span class="text-slate-400">ALL OTHER TRAFFIC</span>
+                                <span class="text-red-500 font-bold italic">REJECTED</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="terminal-bg p-6 rounded-2xl font-mono text-sm">
+                        <span class="text-slate-500"># Firewalld 사용 예시</span><br>
+                        $ sudo firewall-cmd --permanent --add-service=http<br>
+                        $ sudo firewall-cmd --permanent --add-service=https<br>
+                        $ sudo firewall-cmd --reload
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Module 3: 권한 및 파일 시스템 -->
+        <section id="module-3" class="space-y-24 page-break">
+            <div class="flex items-center gap-4 mb-12">
+                <div class="h-px flex-1 bg-slate-800"></div>
+                <h2 class="text-3xl font-black text-emerald-400 uppercase tracking-tighter">Module 03: Permission Hardening</h2>
+                <div class="h-px flex-1 bg-slate-800"></div>
+            </div>
+
+            <!-- Page 3.1: 중요 파일 권한 점검 -->
+            <div class="space-y-8">
+                <h3 class="text-2xl font-black text-slate-100 flex items-center gap-3">
+                    <span class="text-emerald-500">3.1</span> 시스템 중요 파일 접근 권한 (Critical File Permissions)
+                </h3>
+                <div class="section-card rounded-3xl p-10 shadow-2xl space-y-8">
+                    <p class="text-slate-300 text-lg leading-relaxed">
+                        <code class="text-emerald-400">/etc/passwd</code>, <code class="text-emerald-400">/etc/shadow</code> 등 계정 정보 파일은 시스템 핵심 자산입니다. 소유자 외의 사용자가 쓰기 권한을 가지거나, 일반 사용자가 읽기 권한을 가지지 않도록 엄격히 관리합니다.
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+                        <div class="p-4 bg-slate-900 border border-slate-800 rounded-xl flex justify-between">
+                            <span class="text-slate-500">/etc/passwd</span>
+                            <span class="text-slate-200">644 (-rw-r--r--)</span>
+                        </div>
+                        <div class="p-4 bg-slate-900 border border-slate-800 rounded-xl flex justify-between">
+                            <span class="text-slate-500">/etc/shadow</span>
+                            <span class="text-slate-200">400 (-r--------)</span>
+                        </div>
+                    </div>
+
+                    <div class="terminal-bg p-6 rounded-2xl font-mono text-sm">
+                        <span class="text-slate-500"># 권한 일괄 수정 명령</span><br>
+                        $ sudo chmod 644 /etc/passwd<br>
+                        $ sudo chmod 400 /etc/shadow<br>
+                        $ sudo chown root:root /etc/passwd /etc/shadow
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page 3.2: SUID/SGID 탐색 -->
+            <div class="space-y-8 page-break">
+                <h3 class="text-2xl font-black text-slate-100 flex items-center gap-3">
+                    <span class="text-emerald-500">3.2</span> 불필요한 SUID/SGID 설정 파일 제거
+                </h3>
+                <div class="section-card rounded-3xl p-10 shadow-2xl space-y-8">
+                    <p class="text-slate-300 text-lg leading-relaxed">
+                        SUID(Set User ID) 파일은 일반 사용자가 파일을 실행할 때 파일 소유자(보통 Root)의 권한으로 실행되게 합니다. 이는 권한 상승 공격(Privilege Escalation)의 주요 경로이므로 정기적인 전수 조사가 필요합니다.
+                    </p>
+
+                    <div class="bg-slate-900/80 p-8 rounded-2xl border border-slate-800">
+                        <h4 class="text-center font-bold text-slate-500 mb-6 text-[10px] tracking-widest uppercase">
+                            [도식: SUID 실행 메커니즘 (SUID Execution Flow)]
+                        </h4>
+                        <div class="flex justify-center items-center gap-8">
+                            <div class="text-center">
+                                <div class="w-12 h-12 bg-slate-700 rounded-full flex items-center justify-center mx-auto border-2 border-slate-600 mb-2">
+                                    <i data-lucide="user" class="w-6 h-6 text-slate-400"></i>
+                                </div>
+                                <div class="text-[10px] text-slate-500">Low Priv User</div>
+                            </div>
+                            <div class="h-0.5 w-12 bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
+                            <div class="text-center">
+                                <div class="w-16 h-16 bg-emerald-900/20 rounded-xl flex items-center justify-center mx-auto border-2 border-emerald-500/50 mb-2">
+                                    <span class="text-emerald-500 font-black">SUID</span>
+                                </div>
+                                <div class="text-[10px] text-emerald-500">Binaries</div>
+                            </div>
+                            <div class="h-0.5 w-12 bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]"></div>
+                            <div class="text-center">
+                                <div class="w-12 h-12 bg-red-900/20 rounded-full flex items-center justify-center mx-auto border-2 border-red-500/50 mb-2">
+                                    <i data-lucide="unlock" class="w-6 h-6 text-red-500"></i>
+                                </div>
+                                <div class="text-[10px] text-red-400">Root Access</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="terminal-bg p-6 rounded-2xl font-mono text-sm">
+                        <span class="text-slate-500"># SUID 파일 검색</span><br>
+                        $ find / -user root -perm -4000 -print 2>/dev/null<br><br>
+                        <span class="text-slate-500"># 불필요한 파일 권한 제거</span><br>
+                        $ chmod -s [파일명]
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Module 4: 감사 및 로깅 -->
+        <section id="module-4" class="space-y-24 page-break">
+            <div class="flex items-center gap-4 mb-12">
+                <div class="h-px flex-1 bg-slate-800"></div>
+                <h2 class="text-3xl font-black text-blue-400 uppercase tracking-tighter">Module 04: Audit & Logging</h2>
+                <div class="h-px flex-1 bg-slate-800"></div>
+            </div>
+
+            <!-- Page 4.1: 감사 로깅 설정 -->
+            <div class="space-y-8">
+                <h3 class="text-2xl font-black text-slate-100 flex items-center gap-3">
+                    <span class="text-blue-500">4.1</span> 시스템 감사 기록 (System Auditing with Auditd)
+                </h3>
+                <div class="section-card rounded-3xl p-10 shadow-2xl space-y-8">
+                    <p class="text-slate-300 text-lg leading-relaxed">
+                        사고 발생 후 원인 분석 및 추적을 위해 시스템에서 발생하는 주요 이벤트(로그인, 파일 변경, 시스템 콜)를 Auditd(Linux Audit Daemon, 감사 데몬)를 통해 기록합니다.
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-4">
+                            <h4 class="text-blue-400 font-bold text-sm flex items-center gap-2 italic uppercase">
+                                <i data-lucide="check-square" class="w-4 h-4"></i> Monitoring Rules
+                            </h4>
+                            <div class="terminal-bg p-4 rounded-xl font-mono text-xs text-slate-400">
+                                Path: <span class="text-slate-200">/etc/audit/rules.d/audit.rules</span><br><br>
+                                <span class="text-slate-500"># 파일 수정 감시</span><br>
+                                -w /etc/passwd -p wa -k passwd_changes<br>
+                                -w /etc/shadow -p wa -k shadow_changes
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <h4 class="text-blue-400 font-bold text-sm flex items-center gap-2 italic uppercase">
+                                <i data-lucide="refresh-cw" class="w-4 h-4"></i> Apply Config
+                            </h4>
+                            <div class="terminal-bg p-4 rounded-xl font-mono text-xs text-slate-400">
+                                <span class="text-slate-500"># 서비스 재시작</span><br>
+                                $ sudo service auditd restart<br><br>
+                                <span class="text-slate-500"># 감사 로그 조회</span><br>
+                                $ ausearch -k passwd_changes
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Final Expert Insight -->
+        <section class="page-break">
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
+                Expert Insight (보안 아키텍트 조언)
+            </h2>
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-10">
+                <div class="flex flex-col md:flex-row gap-8">
+                    <div class="flex-1 bg-slate-800/30 p-8 rounded-2xl border border-slate-700 relative overflow-hidden group">
+                        <div class="absolute -right-4 -top-4 text-cyan-500/10 group-hover:text-cyan-500/20 transition-colors">
+                            <i data-lucide="cloud" class="w-32 h-32"></i>
+                        </div>
+                        <div class="text-cyan-400 mb-4"><i data-lucide="lightbulb" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2 italic">Cloud Security Warning (AWS 과금 주의)</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">AWS 환경에서 리눅스 보안을 자동화하기 위해 <strong>Amazon GuardDuty</strong>나 <strong>AWS Config</strong>를 활성화할 경우, 데이터 처리량에 따라 <span class="text-red-400 font-bold">상당한 비용이 발생</span>할 수 있습니다. 특히 대용량 로그를 분석 대상으로 설정할 때 프리티어 초과 여부를 반드시 확인하십시오.</p>
+                    </div>
+                    <div class="flex-1 bg-slate-800/30 p-8 rounded-2xl border border-slate-700 relative overflow-hidden group">
+                        <div class="absolute -right-4 -top-4 text-blue-500/10 group-hover:text-blue-500/20 transition-colors">
+                            <i data-lucide="shield" class="w-32 h-32"></i>
+                        </div>
+                        <div class="text-blue-400 mb-4"><i data-lucide="shield-check" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2 italic">Infrastructure as Code (IaC)</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">위 가이드의 모든 보안 설정은 <strong>Ansible</strong>이나 <strong>Terraform</strong>과 같은 IaC(인프라 구성 자동화 도구)를 통해 표준화된 템플릿으로 관리하는 것이 좋습니다. 수동 작업은 휴먼 에러의 가장 큰 원인입니다.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+            © 2026 CYBER SECURITY LABORATORY. ALL RIGHTS RESERVED.
+        </div>
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic">
+            본 문서는 리눅스 보안 강화를 위한 표준 가이드라인을 제시하며, 특정 운영 체제(CentOS, Ubuntu, RHEL)에 따라 세부 명령어가 다를 수 있습니다. 프로덕션 환경 적용 전 테스트 서버에서의 검증이 필수적입니다.
+        </p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
