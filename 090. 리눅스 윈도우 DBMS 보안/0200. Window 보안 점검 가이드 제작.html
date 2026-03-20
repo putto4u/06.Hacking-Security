@@ -1,1 +1,398 @@
-sdf
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>윈도우 서버 보안 점검 가이드: 인프라 강화 실습</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+        }
+        .terminal-bg { background-color: #010409; border: 1px solid #1e293b; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.3); backdrop-filter: blur(12px); }
+        .code-block { font-family: 'Fira Code', monospace; }
+        .page-break { margin-top: 8rem; padding-top: 4rem; border-top: 1px dashed #1e293b; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <!-- Header -->
+    <header class="border-b border-slate-800 bg-slate-900/80 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-blue-600 text-white px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_15px_rgba(37,99,235,0.6)]">Enterprise Security</span>
+                    <span class="text-slate-500 font-mono text-[10px]">SEC-WIN-2026 | Windows Server Hardening</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-500 to-purple-500 tracking-tight leading-tight uppercase">
+                    Windows Server Security Audit<br><span class="text-slate-100 text-2xl font-bold">윈도우 서버 보안 점검 및 시스템 최적화 가이드</span>
+                </h1>
+            </div>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-blue-500/10 text-blue-400 border border-blue-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    GPO COMPLIANCE: 9.9/10
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase italic">Architected by Gemini</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-16">
+
+        <!-- Table of Contents -->
+        <section class="mb-32">
+            <h2 class="text-2xl font-black border-l-4 border-blue-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
+                Table of Contents (목차)
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="section-card p-6 rounded-2xl flex items-center gap-4 hover:border-blue-500/50 transition-colors cursor-pointer">
+                    <span class="text-blue-500 font-black italic">01</span>
+                    <span class="text-slate-300 font-medium">계정 보안 정책 (Account & Password Policy)</span>
+                </div>
+                <div class="section-card p-6 rounded-2xl flex items-center gap-4 hover:border-blue-500/50 transition-colors cursor-pointer">
+                    <span class="text-blue-500 font-black italic">02</span>
+                    <span class="text-slate-300 font-medium">원격 접속 및 네트워크 보안 (RDP & Firewall)</span>
+                </div>
+                <div class="section-card p-6 rounded-2xl flex items-center gap-4 hover:border-blue-500/50 transition-colors cursor-pointer">
+                    <span class="text-blue-500 font-black italic">03</span>
+                    <span class="text-slate-300 font-medium">시스템 권한 및 서비스 관리 (Privileges & Services)</span>
+                </div>
+                <div class="section-card p-6 rounded-2xl flex items-center gap-4 hover:border-blue-500/50 transition-colors cursor-pointer">
+                    <span class="text-blue-500 font-black italic">04</span>
+                    <span class="text-slate-300 font-medium">이벤트 로그 및 감사 정책 (Audit & Event Log)</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Module 1: 계정 보안 정책 -->
+        <section id="module-1" class="space-y-24">
+            <div class="flex items-center gap-4 mb-12">
+                <div class="h-px flex-1 bg-slate-800"></div>
+                <h2 class="text-3xl font-black text-blue-400 uppercase tracking-tighter">Module 01: Account Security</h2>
+                <div class="h-px flex-1 bg-slate-800"></div>
+            </div>
+
+            <!-- Page 1.1: 관리자/게스트 계정 이름 변경 -->
+            <div class="space-y-8">
+                <h3 class="text-2xl font-black text-slate-100 flex items-center gap-3">
+                    <span class="text-blue-500">1.1</span> 관리자 및 게스트 계정 관리 (Administrator & Guest Account)
+                </h3>
+                <div class="section-card rounded-3xl p-10 shadow-2xl space-y-8">
+                    <p class="text-slate-300 text-lg leading-relaxed">
+                        윈도우 서버 설치 시 생성되는 기본 관리자 계정(Administrator)은 공격자의 주요 타겟입니다. 계정 이름을 변경하고 사용하지 않는 게스트(Guest) 계정은 반드시 비활성화해야 합니다.
+                    </p>
+
+                    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner">
+                        <h4 class="text-center font-bold text-slate-400 mb-8 text-xs tracking-widest uppercase">
+                            [도식: 계정 이름 변경을 통한 난독화 모델 (Account Obfuscation)]
+                        </h4>
+                        <div class="flex flex-col md:flex-row items-center justify-around gap-4">
+                            <div class="text-center p-6 bg-slate-800 rounded-xl border border-red-900/50 w-full md:w-1/3">
+                                <i data-lucide="user-x" class="w-10 h-10 text-red-500 mx-auto mb-4"></i>
+                                <div class="font-bold text-slate-100 text-sm italic">Administrator</div>
+                                <div class="text-[10px] text-red-400 mt-2 uppercase">RENAME TARGET</div>
+                            </div>
+                            <i data-lucide="chevrons-right" class="text-slate-600 hidden md:block"></i>
+                            <div class="text-center p-6 bg-slate-800 rounded-xl border border-blue-900/50 w-full md:w-1/3">
+                                <i data-lucide="user-plus" class="w-10 h-10 text-blue-400 mx-auto mb-4"></i>
+                                <div class="font-bold text-slate-100 text-sm italic">SEC_Admin_2026</div>
+                                <div class="text-[10px] text-blue-500 mt-2 uppercase">NEW IDENTITY</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-4">
+                            <h4 class="text-blue-400 font-bold text-sm uppercase flex items-center gap-2">
+                                <i data-lucide="mouse-pointer-2" class="w-4 h-4"></i> GUI Menu Path
+                            </h4>
+                            <div class="terminal-bg p-4 rounded-xl text-xs text-slate-400 leading-relaxed">
+                                <span class="text-blue-400 font-bold">로컬 보안 정책 (secpol.msc)</span><br>
+                                로컬 정책 > 보안 옵션<br>
+                                - <span class="text-slate-200">계정: 관리자 계정 이름 바꾸기</span>: [사용자 지정 이름]<br>
+                                - <span class="text-slate-200">계정: 게스트 계정 상태</span>: [사용 안 함]
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <h4 class="text-blue-400 font-bold text-sm uppercase flex items-center gap-2">
+                                <i data-lucide="terminal" class="w-4 h-4"></i> PowerShell Command
+                            </h4>
+                            <div class="terminal-bg p-4 rounded-xl font-mono text-xs text-slate-400">
+                                <span class="text-slate-500"># 관리자 계정 이름 변경</span><br>
+                                Rename-LocalUser -Name "Administrator" -NewName "SEC_Admin"<br><br>
+                                <span class="text-slate-500"># 게스트 계정 비활성화</span><br>
+                                Disable-LocalUser -Name "Guest"
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page 1.2: 패스워드 및 잠금 정책 -->
+            <div class="space-y-8 page-break">
+                <h3 class="text-2xl font-black text-slate-100 flex items-center gap-3">
+                    <span class="text-blue-500">1.2</span> 패스워드 복잡성 및 계정 잠금 정책 (Password & Lockout)
+                </h3>
+                <div class="section-card rounded-3xl p-10 shadow-2xl space-y-8">
+                    <p class="text-slate-300 text-lg leading-relaxed">
+                        패스워드 무작위 대입 공격(Brute Force Attack)을 방어하기 위해 복잡성 요건을 충족하고, 일정 횟수 이상 로그인 실패 시 계정을 강제 잠금하도록 설정합니다.
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="bg-slate-800/40 p-6 rounded-2xl border border-slate-700">
+                            <h4 class="font-bold text-slate-100 mb-4 flex items-center gap-2">
+                                <i data-lucide="shield-check" class="w-5 h-5 text-blue-400"></i> 보안 설정값 (Audit Values)
+                            </h4>
+                            <ul class="space-y-2 text-sm text-slate-400 italic">
+                                <li>- <span class="text-slate-200">최소 암호 길이</span>: 12자 이상</li>
+                                <li>- <span class="text-slate-200">암호 복잡성 요건 충족</span>: 사용</li>
+                                <li>- <span class="text-slate-200">계정 잠금 임계값</span>: 5회</li>
+                                <li>- <span class="text-slate-200">계정 잠금 기간</span>: 30분 이상</li>
+                            </ul>
+                        </div>
+                        <div class="space-y-4">
+                            <h4 class="text-blue-400 font-bold text-sm uppercase flex items-center gap-2">
+                                <i data-lucide="settings" class="w-4 h-4"></i> Menu Path
+                            </h4>
+                            <div class="terminal-bg p-4 rounded-xl text-xs text-slate-400 leading-relaxed">
+                                <span class="text-blue-400 font-bold">로컬 보안 정책 (secpol.msc)</span><br>
+                                계정 정책 > 암호 정책<br>
+                                - <span class="text-slate-200">복잡성 요건 충족</span>: 사용<br>
+                                계정 정책 > 계정 잠금 정책<br>
+                                - <span class="text-slate-200">계정 잠금 임계값</span>: 5회
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Module 2: 원격 접속 및 네트워크 보안 -->
+        <section id="module-2" class="space-y-24 page-break">
+            <div class="flex items-center gap-4 mb-12">
+                <div class="h-px flex-1 bg-slate-800"></div>
+                <h2 class="text-3xl font-black text-purple-400 uppercase tracking-tighter">Module 02: Network Security</h2>
+                <div class="h-px flex-1 bg-slate-800"></div>
+            </div>
+
+            <!-- Page 2.1: RDP 보안 강화 -->
+            <div class="space-y-8">
+                <h3 class="text-2xl font-black text-slate-100 flex items-center gap-3">
+                    <span class="text-purple-500">2.1</span> 원격 데스크톱 서비스 보안 (RDP Hardening)
+                </h3>
+                <div class="section-card rounded-3xl p-10 shadow-2xl space-y-8">
+                    <p class="text-slate-300 text-lg leading-relaxed">
+                        RDP(Remote Desktop Protocol, 원격 데스크톱 프로토콜)는 외부 공격의 주된 경로입니다. NLA(Network Level Authentication, 네트워크 수준 인증)를 강제하고 기본 포트(3389)를 변경하여 노출을 최소화합니다.
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-4">
+                            <h4 class="text-purple-400 font-bold text-sm uppercase flex items-center gap-2">
+                                <i data-lucide="monitor-dot" class="w-4 h-4"></i> RDP Port Modification
+                            </h4>
+                            <div class="terminal-bg p-4 rounded-xl font-mono text-xs text-slate-400">
+                                <span class="text-slate-500"># 레지스트리 경로</span><br>
+                                HKLM\SYSTEM\CurrentControlSet\Control\<br>
+                                Terminal Server\WinStations\RDP-Tcp<br><br>
+                                <span class="text-slate-200">PortNumber</span> 값을 <span class="text-purple-400">3389</span>에서 <span class="text-purple-400">33890</span> 등으로 변경
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <h4 class="text-purple-400 font-bold text-sm uppercase flex items-center gap-2">
+                                <i data-lucide="shield" class="w-4 h-4"></i> Menu Path (NLA)
+                            </h4>
+                            <div class="terminal-bg p-4 rounded-xl text-xs text-slate-400 leading-relaxed">
+                                <span class="text-purple-400 font-bold">시스템 속성 > 원격</span><br>
+                                - <span class="text-slate-200">네트워크 수준 인증을 사용하여 원격 데스크톱을 실행하는 컴퓨터에서만 연결 허용</span>: 체크(Enable)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page 2.2: 방화벽 정책 -->
+            <div class="space-y-8 page-break">
+                <h3 class="text-2xl font-black text-slate-100 flex items-center gap-3">
+                    <span class="text-purple-500">2.2</span> 고급 보안이 설정된 Windows 방화벽 (Windows Firewall)
+                </h3>
+                <div class="section-card rounded-3xl p-10 shadow-2xl space-y-8">
+                    <p class="text-slate-300 text-lg leading-relaxed">
+                        방화벽(Firewall, 네트워크 장벽)을 항상 활성화하고, 불필요한 인바운드 규칙(Inbound Rule, 들어오는 트래픽 규칙)을 제거합니다. 특히 ICMP(Ping) 응답 거부 설정을 통해 정보 수집 공격을 차단합니다.
+                    </p>
+
+                    <div class="terminal-bg p-6 rounded-2xl font-mono text-sm relative">
+                        <div class="absolute top-4 right-4 text-slate-600 text-[10px] font-black uppercase">PowerShell</div>
+                        <span class="text-slate-500"># 모든 프로필의 방화벽 활성화</span><br>
+                        <span class="text-slate-200">Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled True</span><br><br>
+                        <span class="text-slate-500"># 특정 포트(33890) 허용 규칙 추가</span><br>
+                        <span class="text-slate-200">New-NetFirewallRule -DisplayName "Custom RDP" -Direction Inbound -Action Allow -Protocol TCP -LocalPort 33890</span>
+                    </div>
+
+                    <div class="flex gap-4">
+                        <div class="flex-1 p-6 bg-purple-900/10 border border-purple-500/20 rounded-xl">
+                            <div class="text-purple-400 font-black mb-2 flex items-center gap-2 italic text-xs">
+                                <i data-lucide="info" class="w-4 h-4"></i> RE-APPLY METHOD
+                            </div>
+                            <p class="text-[10px] text-slate-400">설정 적용 후 <code class="text-slate-200">gpupdate /force</code> 명령어를 실행하여 도메인/로컬 그룹 정책을 즉시 갱신하십시오.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Module 3: 시스템 권한 및 서비스 관리 -->
+        <section id="module-3" class="space-y-24 page-break">
+            <div class="flex items-center gap-4 mb-12">
+                <div class="h-px flex-1 bg-slate-800"></div>
+                <h2 class="text-3xl font-black text-emerald-400 uppercase tracking-tighter">Module 03: System Hardening</h2>
+                <div class="h-px flex-1 bg-slate-800"></div>
+            </div>
+
+            <!-- Page 3.1: UAC 설정 -->
+            <div class="space-y-8">
+                <h3 class="text-2xl font-black text-slate-100 flex items-center gap-3">
+                    <span class="text-emerald-500">3.1</span> 사용자 계정 컨트롤 최적화 (UAC Optimization)
+                </h3>
+                <div class="section-card rounded-3xl p-10 shadow-2xl space-y-8">
+                    <p class="text-slate-300 text-lg leading-relaxed">
+                        UAC(User Account Control, 사용자 계정 컨트롤)는 악성 코드가 관리자 권한으로 자동 실행되는 것을 방지합니다. 보안 수준을 '항상 알림'으로 유지해야 합니다.
+                    </p>
+
+                    <div class="bg-slate-900/80 p-8 rounded-2xl border border-slate-800">
+                        <h4 class="text-center font-bold text-slate-500 mb-6 text-[10px] tracking-widest uppercase">
+                            [도식: UAC 권한 승인 프로세스 (UAC Authorization Flow)]
+                        </h4>
+                        <div class="flex justify-center items-center gap-8">
+                            <div class="text-center">
+                                <i data-lucide="file-code" class="w-10 h-10 text-slate-500 mx-auto mb-2"></i>
+                                <div class="text-[10px] text-slate-500">App Execution</div>
+                            </div>
+                            <i data-lucide="arrow-right" class="text-slate-700"></i>
+                            <div class="bg-emerald-900/20 border border-emerald-500/50 p-4 rounded-xl text-center">
+                                <span class="text-emerald-400 text-xs font-black">UAC PROMPT</span>
+                                <div class="text-[8px] text-slate-400 mt-1">Consent UI</div>
+                            </div>
+                            <i data-lucide="arrow-right" class="text-slate-700"></i>
+                            <div class="text-center">
+                                <i data-lucide="unlock" class="w-10 h-10 text-emerald-500 mx-auto mb-2"></i>
+                                <div class="text-[10px] text-emerald-500">Elevated Privilege</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-6 bg-slate-900/50 rounded-xl border border-slate-800">
+                            <span class="text-xs text-slate-500 block mb-2">Menu Path</span>
+                            <span class="text-sm text-slate-200">제어판 > 사용자 계정 > 사용자 계정 컨트롤 설정 변경</span><br>
+                            <span class="text-emerald-400 font-bold">최상단 (항상 알림)</span> 으로 설정
+                        </div>
+                        <div class="p-6 bg-slate-900/50 rounded-xl border border-slate-800">
+                            <span class="text-xs text-slate-500 block mb-2">Registry Key</span>
+                            <span class="text-xs font-mono text-slate-400 italic">HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\<br>Policies\System\ConsentPromptBehaviorAdmin</span><br>
+                            <span class="text-slate-200">Value: <span class="text-emerald-400">2</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Module 4: 감사 정책 및 로깅 -->
+        <section id="module-4" class="space-y-24 page-break">
+            <div class="flex items-center gap-4 mb-12">
+                <div class="h-px flex-1 bg-slate-800"></div>
+                <h2 class="text-3xl font-black text-red-400 uppercase tracking-tighter">Module 04: Audit & Event Log</h2>
+                <div class="h-px flex-1 bg-slate-800"></div>
+            </div>
+
+            <!-- Page 4.1: 감사 정책 설정 -->
+            <div class="space-y-8">
+                <h3 class="text-2xl font-black text-slate-100 flex items-center gap-3">
+                    <span class="text-red-500">4.1</span> 로컬 감사 정책 구성 (Audit Policy Configuration)
+                </h3>
+                <div class="section-card rounded-3xl p-10 shadow-2xl space-y-8">
+                    <p class="text-slate-300 text-lg leading-relaxed">
+                        누가 시스템에 접속하고 파일을 수정했는지 기록하기 위해 감사 정책(Audit Policy)을 활성화합니다. 실패한 로그인 시도는 반드시 기록되어야 합니다.
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-4">
+                            <h4 class="text-red-400 font-bold text-sm flex items-center gap-2 italic uppercase">
+                                <i data-lucide="check-square" class="w-4 h-4"></i> Audit Categories
+                            </h4>
+                            <div class="terminal-bg p-4 rounded-xl text-xs text-slate-400 leading-relaxed">
+                                <span class="text-blue-400 font-bold">로컬 보안 정책 > 로컬 정책 > 감사 정책</span><br>
+                                - <span class="text-slate-200">로그온 이벤트 감사</span>: 성공, 실패<br>
+                                - <span class="text-slate-200">계정 관리 감사</span>: 성공, 실패<br>
+                                - <span class="text-slate-200">시스템 이벤트 감사</span>: 성공, 실패
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <h4 class="text-red-400 font-bold text-sm flex items-center gap-2 italic uppercase">
+                                <i data-lucide="layout-list" class="w-4 h-4"></i> Event Viewer
+                            </h4>
+                            <div class="terminal-bg p-4 rounded-xl font-mono text-xs text-slate-400">
+                                <span class="text-slate-500"># 로그 용량 및 보관 정책 설정</span><br>
+                                $ Limit-EventLog -LogName Security -MaximumSize 128MB -RetentionDays 30
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Final Expert Insight -->
+        <section class="page-break">
+            <h2 class="text-2xl font-black border-l-4 border-blue-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
+                Architect Insight (보안 아키텍트 조언)
+            </h2>
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-10">
+                <div class="flex flex-col md:flex-row gap-8">
+                    <div class="flex-1 bg-slate-800/30 p-8 rounded-2xl border border-slate-700 relative overflow-hidden group">
+                        <div class="absolute -right-4 -top-4 text-blue-500/10 group-hover:text-blue-500/20 transition-colors">
+                            <i data-lucide="server" class="w-32 h-32"></i>
+                        </div>
+                        <div class="text-blue-400 mb-4"><i data-lucide="lightbulb" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2 italic">Active Directory 환경에서의 주의사항</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">AD(Active Directory) 환경에서는 로컬 정책보다 <strong>그룹 정책(GPO, Group Policy Object)</strong>이 우선순위를 가집니다. 로컬에서 설정을 변경해도 도메인 컨트롤러에 의해 원복될 수 있으므로, 대규모 환경에서는 반드시 <span class="text-blue-400 font-bold">GPMC.msc</span>를 통해 중앙 집중 관리를 수행하십시오.</p>
+                    </div>
+                    <div class="flex-1 bg-slate-800/30 p-8 rounded-2xl border border-slate-700 relative overflow-hidden group">
+                        <div class="absolute -right-4 -top-4 text-red-500/10 group-hover:text-red-500/20 transition-colors">
+                            <i data-lucide="cloud-lightning" class="w-32 h-32"></i>
+                        </div>
+                        <div class="text-red-400 mb-4"><i data-lucide="alert-triangle" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2 italic">Public Cloud Security (AWS/Azure)</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">AWS EC2 윈도우 인스턴스의 경우, 운영체제 내부 방화벽 외에도 <strong>Security Group(SG, 보안 그룹)</strong>에서 33890 포트가 오픈되어 있는지 확인해야 합니다. 인스턴스 외부 계층 보안과 내부 보안 정책을 <span class="text-red-400 font-bold">동기화(Synchronization)</span>하는 것이 핵심입니다.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+            © 2026 CYBER SECURITY LABORATORY. ALL RIGHTS RESERVED.
+        </div>
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic">
+            본 문서는 윈도우 서버 보안 강화를 위한 표준 가이드라인을 제시하며, 실제 운영 환경 적용 전 반드시 테스트 베드에서의 검증을 권고합니다. 특히 레지스트리 수정은 시스템 불능을 초래할 수 있으니 백업 후 진행하십시오.
+        </p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
