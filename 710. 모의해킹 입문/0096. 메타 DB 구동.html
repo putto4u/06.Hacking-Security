@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>모의 침투 프레임워크: 메타스플로잇 데이터베이스 활용 실습</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+        }
+        .terminal-bg { background-color: #010409; border: 1px solid #1e293b; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.3); backdrop-filter: blur(12px); }
+        .code-block { font-family: 'Fira Code', monospace; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <!-- Header -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Cyber Security Lab</span>
+                    <span class="text-slate-500 font-mono text-[10px]">MSF-DB-MGMT | Infrastructure</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
+                    Metasploit Framework Database<br><span class="text-slate-100 text-2xl font-bold">메타스플로잇 데이터베이스 정보 조회 및 자산 관리 가이드</span>
+                </h1>
+            </div>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    DB STATUS: CONNECTED
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">Security Infrastructure Pro</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-32">
+
+        <!-- Section 1: 환경 구성 및 초기화 -->
+        <section>
+            <div class="flex items-center gap-4 mb-8">
+                <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 tracking-tight">
+                    1. 데이터베이스 환경 구성 및 초기화 (DB Environment Setup & Initialization)
+                </h2>
+            </div>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-10">
+                <p class="text-slate-300 text-lg leading-relaxed">
+                    메타스플로잇은 **PostgreSQL(포스트그레SQL, 오픈소스 관계형 데이터베이스)**을 백엔드로 사용합니다. 메타스플로잇을 실행하기 전, 반드시 데이터베이스 서비스를 활성화하고 초기화(Initialization) 과정을 거쳐야 연동이 정상적으로 이루어집니다.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-3">
+                            <span class="bg-cyan-500 text-slate-900 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black italic">STEP 01</span>
+                            <h3 class="text-xl font-bold text-slate-100">서비스 활성화 (Service Start)</h3>
+                        </div>
+                        <p class="text-sm text-slate-400 pl-9">칼리 리눅스 프롬프트에서 PostgreSQL 서비스를 시작하고 부팅 시 자동 실행되도록 설정합니다.</p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner ml-9">
+                            <div class="text-slate-500 mb-2"># PostgreSQL 서비스 시작 및 활성화</div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">sudo systemctl start postgresql</span></div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">sudo systemctl enable postgresql</span></div>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-3">
+                            <span class="bg-cyan-500 text-slate-900 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black italic">STEP 02</span>
+                            <h3 class="text-xl font-bold text-slate-100">데이터베이스 초기화 (DB Init)</h3>
+                        </div>
+                        <p class="text-sm text-slate-400 pl-9">메타스플로잇 전용 데이터베이스 스키마와 사용자를 생성하기 위해 초기화 명령을 실행합니다.</p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner ml-9">
+                            <div class="text-slate-500 mb-2"># 메타스플로잇 DB 초기화 (최초 1회 필수)</div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">sudo msfdb init</span></div>
+                            <div class="text-slate-500 mt-4 mb-2"># msfconsole 실행 후 연결 상태 확인</div>
+                            <div class="text-slate-200">msf6 > <span class="text-cyan-400">db_status</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner">
+                    <h4 class="text-center font-bold text-slate-400 mb-8 text-xs tracking-widest uppercase">
+                        [도식: 메타스플로잇 데이터 연동 구조 (MSF-DB Architecture)]
+                    </h4>
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-cyan-900/50 shadow-lg">
+                            <i data-lucide="power" class="w-12 h-12 text-cyan-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">PostgreSQL 데몬 기동</div>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <i data-lucide="arrow-right" class="w-8 h-8 text-slate-600 rotate-90 md:rotate-0"></i>
+                        </div>
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-blue-900/50 shadow-lg">
+                            <i data-lucide="rotate-ccw" class="w-12 h-12 text-blue-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">msfdb init (초기화)</div>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <i data-lucide="arrow-right" class="text-slate-600 rotate-90 md:rotate-0"></i>
+                        </div>
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-indigo-900/50 shadow-lg">
+                            <i data-lucide="database" class="w-12 h-12 text-indigo-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">DB 연동 완료 (Persistence)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: 자산 및 서비스 조회 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                2. 자산 및 서비스 정보 조회 (Assets & Services Retrieval)
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Hosts -->
+                <div class="section-card rounded-3xl p-8 border-cyan-900/30 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-cyan-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">HOSTS</div>
+                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                        <i data-lucide="server" class="w-6 h-6 text-cyan-400"></i> 호스트 리스트 (Host List)
+                    </h3>
+                    <p class="text-sm text-slate-400 mb-6 leading-relaxed">데이터베이스에 저장된 모든 대상 IP 주소와 운영체제(OS, Operating System), 장치 정보를 확인하여 공격 대상 인벤토리를 관리합니다.</p>
+                    <div class="terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner space-y-2">
+                        <div class="text-slate-200">msf6 > <span class="text-cyan-400">hosts</span></div>
+                        <div class="text-slate-500"># 특정 칼럼(주소, OS명, 용도)만 지정해서 보기</div>
+                        <div class="text-slate-200">msf6 > <span class="text-cyan-400">hosts -c address,os_name,purpose</span></div>
+                        <div class="text-slate-500"># 현재 활성화된(Up) 호스트만 보기</div>
+                        <div class="text-slate-200">msf6 > <span class="text-cyan-400">hosts -u</span></div>
+                    </div>
+                </div>
+
+                <!-- Services -->
+                <div class="section-card rounded-3xl p-8 border-indigo-900/30 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">SERVICES</div>
+                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                        <i data-lucide="activity" class="w-6 h-6 text-indigo-400"></i> 서비스 리스트 (Services List)
+                    </h3>
+                    <p class="text-sm text-slate-400 mb-6 leading-relaxed">탐지된 열린 포트와 실행 중인 서비스(HTTP, SSH 등)를 확인하여 침투 경로(Port, 네트워크 서비스 지점)를 식별합니다.</p>
+                    <div class="terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner space-y-2">
+                        <div class="text-slate-200">msf6 > <span class="text-cyan-400">services</span></div>
+                        <div class="text-slate-500"># 80번 포트가 열린 대상만 필터링</div>
+                        <div class="text-slate-200">msf6 > <span class="text-cyan-400">services -p 80</span></div>
+                        <div class="text-slate-500"># 현재 구동 중인 TCP 프로토콜 서비스만 보기</div>
+                        <div class="text-slate-200">msf6 > <span class="text-cyan-400">services -u -r tcp</span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: 취약점 및 계정 정보 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                3. 취약점 및 탈취 정보 관리 (Vulns & Credentials)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-12">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-3">
+                            <span class="bg-cyan-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black italic shadow-[0_0_10px_rgba(34,211,238,0.4)]">01</span>
+                            <h3 class="text-xl font-bold text-slate-100">취약점 리스트 (Vulnerabilities List)</h3>
+                        </div>
+                        <p class="text-sm text-slate-400 pl-11">스캔 도구(Nmap, Nessus 등)를 통해 발견되었거나 실제 공격 성공으로 기록된 약점 목록을 확인합니다.</p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner ml-11">
+                            <div class="text-slate-200">msf6 > <span class="text-cyan-400">vulns</span></div>
+                            <div class="text-slate-500 mt-2"># 특정 포트와 연관된 상세 정보(Reference) 보기</div>
+                            <div class="text-slate-200">msf6 > <span class="text-cyan-400">vulns -p 445 -i</span></div>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-3">
+                            <span class="bg-blue-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black italic shadow-[0_0_10px_rgba(59,130,246,0.4)]">02</span>
+                            <h3 class="text-xl font-bold text-slate-100">탈취 계정 정보 (Credentials)</h3>
+                        </div>
+                        <p class="text-sm text-slate-400 pl-11">공격 성공 후 획득한 사용자 이름(Username)과 비밀번호(Password/Hash)를 통합 관리합니다.</p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner ml-11">
+                            <div class="text-slate-200">msf6 > <span class="text-cyan-400">creds</span></div>
+                            <div class="text-slate-500 mt-2"># 향후 횡적 이동(Lateral Movement, 인접 시스템 확장) 시 재사용</div>
+                            <div class="text-slate-200">msf6 > <span class="text-cyan-400">creds -v</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: 모듈 검색 및 워크스페이스 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                4. 모듈 검색 및 작업 공간 분리 (Module Search & Workspace)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-12">
+                <div class="space-y-6">
+                    <h3 class="text-xl font-bold text-slate-100 flex items-center gap-3 italic">
+                        <i data-lucide="search-code" class="w-6 h-6 text-pink-400"></i> 공격 모듈 검색 (Search & Show)
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner border-l-4 border-pink-500">
+                            <div class="text-slate-500 mb-2"># 특정 취약점(MS17-010, EternalBlue) 관련 모듈 검색</div>
+                            <div class="text-slate-200">msf6 > <span class="text-pink-400">search ms17-010</span></div>
+                            <div class="text-slate-500 mt-4 mb-2"># 조건 필터 검색 (Windows용 Exploit 모듈만 검색)</div>
+                            <div class="text-slate-200">msf6 > <span class="text-pink-400">search platform:windows type:exploit</span></div>
+                        </div>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner border-l-4 border-indigo-500">
+                            <div class="text-slate-500 mb-2"># 전체 목록 카테고리별 조회</div>
+                            <div class="text-slate-200">msf6 > <span class="text-indigo-400">show exploits</span></div>
+                            <div class="text-slate-200">msf6 > <span class="text-indigo-400">show auxiliary</span></div>
+                            <div class="text-slate-200">msf6 > <span class="text-indigo-400">show payloads</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900/60 p-8 rounded-2xl border border-slate-700">
+                    <div class="flex items-center gap-4 mb-4">
+                        <i data-lucide="folder-kanban" class="w-8 h-8 text-yellow-500"></i>
+                        <h4 class="text-lg font-black text-slate-100 uppercase tracking-widest">Workspace (워크스페이스, 작업 공간)</h4>
+                    </div>
+                    <p class="text-sm text-slate-400 mb-6 italic leading-relaxed">
+                        여러 프로젝트나 고객사를 대상으로 침투 테스트를 수행할 때 데이터가 섞이는 것을 방지하기 위해 작업 공간을 논리적으로 분리합니다.
+                    </p>
+                    <div class="terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner">
+                        <div class="text-slate-500 mb-2"># 새로운 작업 공간 추가 및 자동 전환</div>
+                        <div class="text-slate-200">msf6 > <span class="text-yellow-500">workspace -a project_alpha</span></div>
+                        <div class="text-slate-500 mt-4 mb-2"># 현재 작업 공간 목록 및 선택된 공간 확인</div>
+                        <div class="text-slate-200">msf6 > <span class="text-yellow-500">workspace</span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: 요약 및 주의사항 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                5. 아키텍트 인사이트 (Expert Insight)
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- 요약표 -->
+                <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-8 shadow-2xl">
+                    <h4 class="font-bold text-slate-100 mb-6 flex items-center gap-2">
+                        <i data-lucide="list-checks" class="text-cyan-400 w-5 h-5"></i> 정보 조회 명령어 요약
+                    </h4>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-slate-700">
+                                    <th class="py-3 px-2 text-cyan-500 font-black">조회 대상</th>
+                                    <th class="py-3 px-2 text-cyan-500 font-black">명령어</th>
+                                    <th class="py-3 px-2 text-cyan-500 font-black">핵심 용도</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-slate-400">
+                                <tr class="border-b border-slate-800/50">
+                                    <td class="py-3 px-2 font-bold text-slate-200">대상 서버</td>
+                                    <td class="py-3 px-2 font-mono">hosts</td>
+                                    <td class="py-3 px-2">공격 대상 인벤토리 관리</td>
+                                </tr>
+                                <tr class="border-b border-slate-800/50">
+                                    <td class="py-3 px-2 font-bold text-slate-200">열린 포트</td>
+                                    <td class="py-3 px-2 font-mono">services</td>
+                                    <td class="py-3 px-2">침투 경로(Port) 식별</td>
+                                </tr>
+                                <tr class="border-b border-slate-800/50">
+                                    <td class="py-3 px-2 font-bold text-slate-200">발견된 약점</td>
+                                    <td class="py-3 px-2 font-mono">vulns</td>
+                                    <td class="py-3 px-2">실제 공격 모듈 매칭용</td>
+                                </tr>
+                                <tr class="border-b border-slate-800/50">
+                                    <td class="py-3 px-2 font-bold text-slate-200">탈취된 암호</td>
+                                    <td class="py-3 px-2 font-mono">creds</td>
+                                    <td class="py-3 px-2">권한 상승 및 횡적 이동</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-2 font-bold text-slate-200">공격 도구</td>
+                                    <td class="py-3 px-2 font-mono">search</td>
+                                    <td class="py-3 px-2">취약점에 맞는 도구 선택</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- AWS 주의사항 -->
+                <div class="bg-red-900/10 border border-red-500/20 rounded-3xl p-8 shadow-2xl relative overflow-hidden group">
+                    <div class="absolute -right-4 -top-4 text-red-500/10 group-hover:text-red-500/20 transition-colors">
+                        <i data-lucide="shield-alert" class="w-32 h-32"></i>
+                    </div>
+                    <div class="text-red-400 mb-4"><i data-lucide="cloud-lightning" class="w-8 h-8"></i></div>
+                    <h4 class="font-bold text-slate-100 mb-2 italic uppercase">AWS Environment Precautions</h4>
+                    <p class="text-xs text-slate-400 leading-relaxed mb-4">
+                        AWS 환경에서 다수의 인스턴스를 대상으로 <code class="text-red-400">db_nmap</code> 스캔을 수행할 경우, 짧은 시간에 많은 패킷이 발생하여 **AWS Shield (DDoS 방어 서비스)**에 의해 차단되거나 보안 경고를 받을 수 있습니다.
+                    </p>
+                    <ul class="text-[10px] text-slate-500 space-y-2 list-disc pl-4 italic">
+                        <li>실습 시 스캔 속도를 조절하는 <span class="text-slate-300">-T3 이하</span>의 옵션을 권장합니다.</li>
+                        <li>과도한 트래픽 발생 시 <span class="text-red-400 font-bold underline">API 호출 및 트래픽 비용이 추가로 산정</span>될 수 있음을 유의하십시오.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+            © 2026 CYBER SECURITY LABORATORY. ALL RIGHTS RESERVED.
+        </div>
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic">
+            본 교재는 공식 메타스플로잇 프레임워크(<a href="https://www.metasploit.com/" class="text-cyan-500 underline">Metasploit Framework</a>) 문서 및 실무 환경을 바탕으로 작성되었습니다. 허가받지 않은 대상에 대한 스캔 및 공격 시도는 법적 처벌의 대상이 될 수 있습니다.
+        </p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
