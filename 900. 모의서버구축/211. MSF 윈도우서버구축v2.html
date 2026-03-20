@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metasploit on Windows VM: Complete Deployment Guide</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 2.2;
+        }
+        .terminal-bg { background-color: #020617; border: 1px solid #1e293b; }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-filter: blur(12px); }
+        .highlight-box { border-left: 4px solid #06b6d4; background: rgba(6, 182, 212, 0.05); padding: 2.5rem; border-radius: 0 2rem 2rem 0; }
+        .step-badge { @apply bg-cyan-500 text-slate-900 px-3 py-1 rounded-full font-black text-xs uppercase tracking-tighter; }
+        .menu-path { @apply bg-slate-800 text-cyan-400 px-2 py-0.5 rounded text-[11px] font-mono border border-slate-700 mx-1; }
+        .info-tag { @apply text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-400 uppercase; }
+    </style>
+</head>
+<body class="antialiased pb-60">
+
+    <!-- Header: 기술 사양 및 타이틀 -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-10 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="bg-cyan-500 text-slate-900 px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_15px_rgba(34,211,238,0.5)]">Security Engineering Lab</span>
+                    <span class="text-slate-500 font-mono text-[10px]">MSF-VM-WIN | Virtualized Pentest Env</span>
+                </div>
+                <h1 class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
+                    Windows VM & Metasploit<br><span class="text-slate-100 text-2xl uppercase tracking-widest">윈도우 가상 머신 기반 보안 실습 환경 구축</span>
+                </h1>
+            </div>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-8">
+                <div class="bg-blue-500/10 text-blue-400 border border-blue-500/20 px-6 py-3 rounded-2xl text-sm font-black font-mono shadow-xl">
+                    EXPERT ARCHITECT
+                </div>
+                <p class="text-[10px] text-slate-500 mt-3 tracking-widest uppercase italic">Infrastructure Security Specialist</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-24 space-y-64">
+
+        <!-- Section 1: 가상화 기반 윈도우 구축의 필요성 -->
+        <section>
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-6 text-slate-100 mb-12 tracking-tight">
+                1. 윈도우 VM 기반 환경의 기술적 가치 (Architectural Value)
+            </h2>
+            <div class="section-card rounded-[3rem] p-16 shadow-2xl">
+                <div class="prose prose-invert max-w-none mb-20">
+                    <p class="text-slate-300 text-xl leading-relaxed">
+                        메타스플로잇(Metasploit)을 윈도우용 가상 머신(VM, Virtual Machine)에 설치하는 것은 호스트 시스템의 보안 무결성을 유지하면서 윈도우 전용 페이로드(Payload, 전송되는 데이터/실행코드)를 정밀하게 분석하기 위함입니다. 특히 백신(AV, Anti-Virus) 예외 설정이나 방화벽 정책 테스트 시 가상화된 환경은 완벽한 격리(Isolation)를 보장합니다.
+                    </p>
+                </div>
+
+                <!-- 도식 1: 인프라 계층 구조 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-[2.5rem] p-12 shadow-inner">
+                    <h4 class="text-center font-bold text-slate-500 mb-12 text-xs tracking-widest uppercase">
+                        [도식 1: 윈도우 VM 기반 메타스플로잇 계층 모델]
+                    </h4>
+                    <div class="flex flex-col items-center gap-6">
+                        <div class="w-full max-w-md bg-indigo-900/20 border-2 border-indigo-500/50 p-8 rounded-3xl text-center">
+                            <div class="font-black text-indigo-400 uppercase text-sm">Metasploit Framework (MSF)</div>
+                            <p class="text-[10px] text-slate-500 mt-1 italic">Windows-native Installation</p>
+                        </div>
+                        <i data-lucide="layers" class="text-slate-700 w-8 h-8"></i>
+                        <div class="w-full max-w-lg bg-cyan-900/20 border-2 border-dashed border-cyan-500/40 p-6 rounded-2xl text-center">
+                            <div class="text-cyan-400 font-black mb-1 uppercase text-xs italic">Guest OS: Windows 10/11</div>
+                            <div class="h-1 bg-cyan-500/30 w-full rounded-full"></div>
+                        </div>
+                        <div class="w-full max-w-lg bg-slate-800 p-6 rounded-xl border border-slate-700 text-center">
+                            <div class="font-bold text-slate-400 uppercase text-xs">Hypervisor: Oracle VirtualBox</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: 윈도우 ISO 이미지 확보 -->
+        <section>
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-6 text-slate-100 mb-12 tracking-tight">
+                2. 윈도우 OS 이미지 확보 및 준비 (OS Image Acquisition)
+            </h2>
+            <div class="section-card rounded-[3rem] p-16 shadow-2xl space-y-20">
+                <div class="highlight-box">
+                    <h3 class="text-2xl font-bold text-cyan-400 mb-6 flex items-center gap-3">
+                        <i data-lucide="file-search" class="w-8 h-8"></i> 정식 평가판 이미지 활용
+                    </h3>
+                    <p class="text-slate-300 leading-relaxed">
+                        보안 실습용 윈도우는 마이크로소프트(Microsoft)에서 제공하는 평가판 ISO(International Organization for Standardization, 국제 표준화 기구 디스크 이미지) 파일을 활용하는 것이 가장 안전합니다.
+                    </p>
+                </div>
+
+                <!-- 도식 2: ISO 다운로드 워크플로우 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-[2.5rem] p-12 shadow-inner">
+                    <h4 class="text-center font-bold text-slate-500 mb-12 text-xs tracking-widest uppercase">
+                        [도식 2: MS Evaluation Center 다운로드 절차]
+                    </h4>
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                        <div class="flex-1 text-center space-y-4">
+                            <div class="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto border border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+                                <i data-lucide="globe" class="text-cyan-400"></i>
+                            </div>
+                            <div class="font-bold text-xs uppercase">1. 사이트 접속</div>
+                            <p class="text-[9px] text-slate-500">MS 평가 센터 이동</p>
+                        </div>
+                        <i data-lucide="chevrons-right" class="hidden md:block text-slate-700"></i>
+                        <div class="flex-1 text-center space-y-4">
+                            <div class="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto border border-blue-500">
+                                <i data-lucide="check-circle" class="text-blue-400"></i>
+                            </div>
+                            <div class="font-bold text-xs uppercase">2. 제품 선택</div>
+                            <p class="text-[9px] text-slate-500">Win 10/11 Enterprise</p>
+                        </div>
+                        <i data-lucide="chevrons-right" class="hidden md:block text-slate-700"></i>
+                        <div class="flex-1 text-center space-y-4">
+                            <div class="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto border border-indigo-500">
+                                <i data-lucide="download" class="text-indigo-400"></i>
+                            </div>
+                            <div class="font-bold text-xs uppercase">3. ISO 다운로드</div>
+                            <p class="text-[9px] text-slate-500">64-bit Edition</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="terminal-bg rounded-[2rem] p-12 border-l-4 border-indigo-500">
+                    <h4 class="text-xl font-bold text-slate-100 mb-8 flex items-center gap-2">
+                        <i data-lucide="external-link" class="w-5 h-5 text-indigo-400"></i> 공식 다운로드 링크 (Official URL)
+                    </h4>
+                    <div class="space-y-4">
+                        <a href="https://www.microsoft.com/ko-kr/evalcenter/" target="_blank" class="text-cyan-400 font-mono text-sm hover:underline block bg-slate-900 p-4 rounded-xl border border-slate-800 shadow-inner">
+                            https://www.microsoft.com/ko-kr/evalcenter/
+                        </a>
+                        <p class="text-xs text-slate-500 italic">
+                            *참고: 평가판은 90일 동안 모든 기능을 무료로 사용할 수 있으며, 기간 만료 후 스냅샷으로 초기화하여 재사용 가능합니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: 버추얼박스 VM 생성 및 설정 -->
+        <section>
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-6 text-slate-100 mb-12 tracking-tight">
+                3. 버추얼박스 가상 머신 생성 단계 (VM Creation)
+            </h2>
+            <div class="section-card rounded-[3rem] p-16 shadow-2xl space-y-20">
+                <p class="text-slate-300 text-lg">
+                    다운로드한 윈도우 ISO를 구동하기 위해 버추얼박스(VirtualBox)에서 새로운 가상 머신을 생성하고 리소스를 할당합니다.
+                </p>
+
+                <!-- 도식 3: VM 생성 설정 요약 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-[2.5rem] p-12 shadow-inner">
+                    <h4 class="text-center font-bold text-slate-500 mb-12 text-xs tracking-widest uppercase">
+                        [도식 3: Windows VM 하드웨어 할당 권장 사양]
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                        <div class="p-8 border border-slate-700 rounded-3xl bg-slate-800/50">
+                            <i data-lucide="cpu" class="w-10 h-10 mx-auto text-cyan-400 mb-4"></i>
+                            <div class="font-black text-slate-100 mb-1">CPU</div>
+                            <div class="text-[10px] text-slate-500">2 Cores 이상</div>
+                        </div>
+                        <div class="p-8 border border-indigo-500/30 rounded-3xl bg-indigo-900/10">
+                            <i data-lucide="ram" class="w-10 h-10 mx-auto text-indigo-400 mb-4"></i>
+                            <div class="font-black text-slate-100 mb-1">RAM</div>
+                            <div class="text-[10px] text-slate-500">4GB (4096MB) 이상</div>
+                        </div>
+                        <div class="p-8 border border-slate-700 rounded-3xl bg-slate-800/50">
+                            <i data-lucide="hard-drive" class="w-10 h-10 mx-auto text-blue-400 mb-4"></i>
+                            <div class="font-black text-slate-100 mb-1">Storage</div>
+                            <div class="text-[10px] text-slate-500">VDI 60GB 이상</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-12">
+                    <div class="flex flex-col md:flex-row gap-10 items-start">
+                        <div class="w-14 h-14 bg-cyan-500 text-slate-900 rounded-full flex items-center justify-center font-black italic shrink-0 shadow-[0_0_20px_rgba(6,182,212,0.4)]">01</div>
+                        <div class="flex-1">
+                            <h4 class="text-xl font-bold text-slate-100 mb-4">새 가상 머신 생성</h4>
+                            <p class="text-sm text-slate-400 leading-relaxed">
+                                <span class="menu-path">머신(M)</span> → <span class="menu-path">새로 만들기(N)...</span> 클릭. 
+                                이름은 <code class="text-cyan-400">Windows_Security_Lab</code>으로 지정하고, <span class="info-tag">ISO Image</span> 항목에서 다운로드한 윈도우 ISO 파일을 선택합니다.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex flex-col md:flex-row gap-10 items-start">
+                        <div class="w-14 h-14 bg-cyan-500 text-slate-900 rounded-full flex items-center justify-center font-black italic shrink-0 shadow-[0_0_20px_rgba(6,182,212,0.4)]">02</div>
+                        <div class="flex-1">
+                            <h4 class="text-xl font-bold text-slate-100 mb-4">윈도우 설치 진행</h4>
+                            <p class="text-sm text-slate-400 leading-relaxed">
+                                생성된 VM을 <span class="menu-path">시작</span>합니다. 윈도우 설치 화면에서 언어 및 자판 배열을 선택하고 설치를 완료합니다. 
+                                설치 중 '제품 키가 없음'을 선택하고 <span class="info-tag">Enterprise</span> 버전을 설치하십시오.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: 윈도우 보안 방어 해제 (가장 중요) -->
+        <section>
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-6 text-slate-100 mb-12 tracking-tight">
+                4. 사전 준비: 윈도우 보안 기능 비활성화 (Defender Hardening Bypass)
+            </h2>
+            <div class="section-card rounded-[3rem] p-16 shadow-2xl space-y-20">
+                <div class="highlight-box">
+                    <h3 class="text-2xl font-bold text-red-400 mb-6 flex items-center gap-3">
+                        <i data-lucide="shield-off" class="w-8 h-8"></i> 백신 차단 방지 (AV Exclusion)
+                    </h3>
+                    <p class="text-slate-300 text-lg leading-relaxed">
+                        메타스플로잇은 해킹 도구로 분류되므로 윈도우 디펜더(Windows Defender)가 설치 파일을 즉시 삭제합니다. 설치 전 **실시간 보호를 일시 중지**하고 **특정 폴더를 제외**해야 합니다.
+                    </p>
+                </div>
+
+                <!-- 도식 4: 보안 예외 설정 메뉴 경로 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-[2.5rem] p-12 shadow-inner">
+                    <h4 class="text-center font-bold text-slate-500 mb-12 text-xs tracking-widest uppercase">
+                        [도식 4: Windows Security 제외 설정 인터페이스 가이드]
+                    </h4>
+                    <div class="flex flex-col items-center gap-8">
+                        <div class="w-full max-w-2xl bg-slate-800 p-8 rounded-3xl border border-slate-700 shadow-2xl">
+                            <div class="flex items-center gap-4 mb-8">
+                                <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                                <div class="text-[10px] font-mono text-slate-500">Security Settings > Virus & threat protection</div>
+                            </div>
+                            <div class="space-y-4">
+                                <div class="p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-[11px] text-red-400 flex items-center justify-between">
+                                    <span>Real-time protection (실시간 보호)</span>
+                                    <span class="font-black">OFF</span>
+                                </div>
+                                <div class="p-4 bg-cyan-500/10 border border-cyan-500/30 rounded-xl text-[11px] text-cyan-400 flex items-center justify-between">
+                                    <span>Add an exclusion (제외 추가: 폴더)</span>
+                                    <span class="font-black italic">C:\metasploit-framework</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-[10px] text-slate-500 italic">※ 메뉴 경로: 시작 > 설정 > 업데이트 및 보안 > Windows 보안 > 바이러스 및 위협 방지 > 설정 관리 > 제외</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: 메타스플로잇 다운로드 및 설치 -->
+        <section>
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-6 text-slate-100 mb-12 tracking-tight">
+                5. 메타스플로잇 설치 마법사 진행 (MSF Installation)
+            </h2>
+            <div class="section-card rounded-[3rem] p-16 shadow-2xl space-y-20">
+                <p class="text-slate-300 text-lg">
+                    공식 배포처인 Rapid7(라피드세븐)의 깃허브에서 윈도우용 인스톨러(.msi)를 다운로드하여 설치 마법사를 진행합니다.
+                </p>
+
+                <!-- 도식 5: 설치 마법사 단계별 요약 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-[2.5rem] p-12 shadow-inner">
+                    <h4 class="text-center font-bold text-slate-500 mb-12 text-xs tracking-widest uppercase">
+                        [도식 5: Metasploit Framework Setup Wizard Flow]
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div class="p-6 bg-slate-800 rounded-2xl border border-slate-700 text-center">
+                            <div class="text-[9px] text-slate-600 mb-2">PAGE 1</div>
+                            <div class="font-black text-xs">웰컴 화면</div>
+                            <p class="text-[8px] mt-2 text-slate-500">Next 클릭</p>
+                        </div>
+                        <div class="p-6 bg-slate-800 rounded-2xl border border-slate-700 text-center">
+                            <div class="text-[9px] text-slate-600 mb-2">PAGE 2</div>
+                            <div class="font-black text-xs">라이선스 동의</div>
+                            <p class="text-[8px] mt-2 text-slate-500">I Accept 체크</p>
+                        </div>
+                        <div class="p-6 bg-cyan-900/30 rounded-2xl border-2 border-cyan-500/50 text-center">
+                            <div class="text-[9px] text-cyan-500 mb-2">PAGE 3</div>
+                            <div class="font-black text-xs italic">경로 지정</div>
+                            <p class="text-[8px] mt-2 text-cyan-400">C:\metasploit-framework</p>
+                        </div>
+                        <div class="p-6 bg-slate-800 rounded-2xl border border-slate-700 text-center">
+                            <div class="text-[9px] text-slate-600 mb-2">PAGE 4</div>
+                            <div class="font-black text-xs">최종 설치</div>
+                            <p class="text-[8px] mt-2 text-slate-500">Install 클릭</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="terminal-bg rounded-[2rem] p-12 border-l-4 border-cyan-500 shadow-2xl">
+                    <h4 class="text-xl font-bold text-slate-100 mb-8 flex items-center gap-3">
+                        <i data-lucide="download" class="w-6 h-6 text-cyan-400"></i> 다운로드 및 실행 (Download & Run)
+                    </h4>
+                    <div class="space-y-8 text-sm">
+                        <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800">
+                            <span class="block text-indigo-400 font-bold mb-2">공식 배포처 링크:</span>
+                            <a href="https://github.com/rapid7/metasploit-framework/wiki/Nightly-Installers" target="_blank" class="text-cyan-400 hover:underline font-mono">https://github.com/rapid7/metasploit-framework/wiki/Nightly-Installers</a>
+                        </div>
+                        <ul class="text-slate-400 space-y-4 leading-relaxed">
+                            <li class="flex items-start gap-2">
+                                <i data-lucide="check" class="text-cyan-500 w-4 h-4 mt-1"></i>
+                                <span>다운로드 후 <strong class="text-slate-100">metasploit-framework-latest.msi</strong> 파일을 우클릭하여 '관리자 권한으로 실행'합니다.</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i data-lucide="check" class="text-cyan-500 w-4 h-4 mt-1"></i>
+                                <span>설치 도중 압축 해제 과정에서 시간이 다소 소요될 수 있으므로 중단하지 마십시오. (약 5~10분)</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 6: 환경 변수 설정 및 첫 실행 -->
+        <section>
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-6 text-slate-100 mb-12 tracking-tight">
+                6. 환경 변수 등록 및 콘솔 기동 (Initialization)
+            </h2>
+            <div class="section-card rounded-[3rem] p-16 shadow-2xl space-y-20">
+                <p class="text-slate-300 text-lg">
+                    어느 경로에서나 메타스플로잇 명령어를 사용하기 위해 윈도우 환경 변수(Environment Variable)에 실행 경로를 등록하고 콘솔(Console)을 기동합니다.
+                </p>
+
+                <!-- 도식 6: 환경 변수 및 실행 흐름 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-[2.5rem] p-12 shadow-inner">
+                    <h4 class="text-center font-bold text-slate-500 mb-12 text-xs tracking-widest uppercase">
+                        [도식 6: 시스템 환경 변수 등록 및 MSFConsole 기동 플로우]
+                    </h4>
+                    <div class="flex items-center justify-center gap-8">
+                        <div class="p-6 bg-slate-800 rounded-xl border border-slate-700 flex flex-col items-center">
+                            <i data-lucide="settings-2" class="w-8 h-8 text-cyan-400 mb-2"></i>
+                            <span class="text-[10px]">환경 변수 편집</span>
+                        </div>
+                        <i data-lucide="arrow-right" class="text-slate-700"></i>
+                        <div class="p-6 bg-slate-800 rounded-xl border border-slate-700 flex flex-col items-center">
+                            <i data-lucide="folder-code" class="w-8 h-8 text-indigo-400 mb-2"></i>
+                            <span class="text-[10px]">bin 폴더 추가</span>
+                        </div>
+                        <i data-lucide="arrow-right" class="text-slate-700"></i>
+                        <div class="p-6 bg-cyan-900/30 rounded-xl border-2 border-cyan-500/50 flex flex-col items-center">
+                            <i data-lucide="terminal" class="w-8 h-8 text-cyan-400 mb-2 shadow-[0_0_10px_rgba(34,211,238,0.5)]"></i>
+                            <span class="text-[10px] font-bold">msfconsole</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div class="bg-slate-800/30 p-10 rounded-3xl border border-slate-700">
+                        <h4 class="font-bold text-slate-100 mb-6 flex items-center gap-2">
+                            <i data-lucide="info" class="w-5 h-5 text-cyan-400"></i> 수동 환경 변수 등록 (Manual PATH)
+                        </h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            인스톨러가 자동으로 등록하지 않은 경우:<br>
+                            1. <span class="menu-path">내 PC 우클릭</span> → <span class="menu-path">속성</span> → <span class="menu-path">고급 시스템 설정</span><br>
+                            2. <span class="menu-path">환경 변수</span> 클릭 → 시스템 변수 중 <strong class="text-slate-100">Path</strong> 선택 후 <span class="menu-path">편집</span><br>
+                            3. <span class="menu-path">새로 만들기</span> 후 <code class="text-cyan-400">C:\metasploit-framework\bin</code> 입력 후 확인
+                        </p>
+                    </div>
+                    <div class="terminal-bg p-8 rounded-3xl border border-slate-800 font-mono shadow-xl relative overflow-hidden">
+                        <div class="absolute top-0 right-0 bg-cyan-600 text-slate-900 text-[9px] font-black px-4 py-1 rounded-bl-xl uppercase">CMD</div>
+                        <div class="text-slate-500 text-[10px] mb-4 italic"># 관리자 권한 명령 프롬프트에서 입력</div>
+                        <div class="text-cyan-400 text-sm">$ <span class="text-slate-100">msfconsole</span></div>
+                        <div class="mt-8 text-[11px] text-slate-500 space-y-1">
+                            <div>[*] Starting the Metasploit Framework...</div>
+                            <div class="text-indigo-400">msf6 > _</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 7: 아키텍트 인사이트 -->
+        <section>
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-6 text-slate-100 mb-12 tracking-tight">
+                7. 전문가 제언 및 관리 팁 (Architect Insight)
+            </h2>
+            <div class="bg-slate-900/40 border border-slate-800 rounded-[3rem] p-16 shadow-2xl space-y-12">
+                <div class="flex flex-col md:flex-row gap-12">
+                    <div class="flex-1 bg-slate-800/50 p-10 rounded-3xl border border-slate-700">
+                        <div class="text-cyan-400 mb-6"><i data-lucide="camera" class="w-10 h-10"></i></div>
+                        <h4 class="font-black text-slate-100 text-xl mb-4">스냅샷 기능 활용 (Snapshots)</h4>
+                        <p class="text-sm text-slate-400 leading-relaxed">
+                            메타스플로잇 설치 및 DB(Database, 데이터베이스) 초기화가 완료된 후, 반드시 버추얼박스의 <strong class="text-slate-200">스냅샷(Snapshot)</strong> 기능을 사용해 현재 상태를 저장하십시오. 악성 페이로드 테스트 중 VM의 윈도우 커널(Kernel, 운영체제의 핵심부)이 손상되어도 즉각적인 복구가 가능합니다.
+                        </p>
+                    </div>
+                    <div class="flex-1 bg-slate-800/50 p-10 rounded-3xl border border-slate-700">
+                        <div class="text-indigo-400 mb-6"><i data-lucide="zap" class="w-10 h-10"></i></div>
+                        <h4 class="font-black text-slate-100 text-xl mb-4">루비 성능 최적화 (Ruby Performance)</h4>
+                        <p class="text-sm text-slate-400 leading-relaxed">
+                            윈도우용 메타스플로잇은 루비(Ruby) 언어 해석기를 기반으로 동작합니다. 따라서 최초 실행 시 로딩 속도가 느릴 수 있습니다. 가상 머신의 프로세서(CPU) 할당을 <strong>4코어</strong> 이상으로 설정하면 콘솔 로딩 속도를 비약적으로 향상시킬 수 있습니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto px-6 py-16 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[11px] tracking-widest uppercase mb-6">
+            © 2026 INFRASTRUCTURE & VIRTUALIZATION LAB. All rights reserved.
+        </div>
+        <p class="text-slate-600 text-[11px] leading-relaxed max-w-3xl mx-auto italic">
+            본 실무 가이드는 Oracle VM VirtualBox 7.x 및 Windows 10/11 Enterprise Evaluation 환경을 기준으로 제작되었습니다. 
+            가상 머신 내에서의 모든 보안 실습은 사전에 승인된 샌드박스(Sandbox, 격리된 안전 구역) 환경에서만 수행되어야 합니다.
+        </p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
