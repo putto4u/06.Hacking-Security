@@ -1,1 +1,345 @@
-sdf
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DB 서버 보안 점검 가이드: 데이터 자산 보호 실습</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+        }
+        .terminal-bg { background-color: #010409; border: 1px solid #1e293b; }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.3); backdrop-filter: blur(12px); }
+        .page-break { margin-top: 8rem; padding-top: 4rem; border-top: 1px dashed #1e293b; }
+        .db-badge { padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+        .badge-mysql { background: #00758f; color: white; }
+        .badge-oracle { background: #f80000; color: white; }
+        .badge-postgres { background: #336791; color: white; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <!-- Header -->
+    <header class="border-b border-slate-800 bg-slate-900/80 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-indigo-600 text-white px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_15px_rgba(79,70,229,0.6)]">Data Integrity Lab</span>
+                    <span class="text-slate-500 font-mono text-[10px]">SEC-DB-2026 | Multi-DBMS Hardening</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 tracking-tight leading-tight uppercase">
+                    Database Security Audit<br><span class="text-slate-100 text-2xl font-bold">데이터베이스 서버 보안 점검 및 강화 가이드라인</span>
+                </h1>
+            </div>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    ISO/IEC 27001 COMPLIANT
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase italic">Architected by Gemini</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-16">
+
+        <!-- Table of Contents -->
+        <section class="mb-32">
+            <h2 class="text-2xl font-black border-l-4 border-indigo-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
+                Table of Contents (목차)
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="section-card p-6 rounded-2xl flex items-center gap-4 hover:border-indigo-500/50 transition-colors cursor-pointer">
+                    <span class="text-indigo-500 font-black italic">01</span>
+                    <span class="text-slate-300 font-medium">인증 및 계정 보안 (Authentication & Account Security)</span>
+                </div>
+                <div class="section-card p-6 rounded-2xl flex items-center gap-4 hover:border-indigo-500/50 transition-colors cursor-pointer">
+                    <span class="text-indigo-500 font-black italic">02</span>
+                    <span class="text-slate-300 font-medium">네트워크 접속 제어 (Network Access Control)</span>
+                </div>
+                <div class="section-card p-6 rounded-2xl flex items-center gap-4 hover:border-indigo-500/50 transition-colors cursor-pointer">
+                    <span class="text-indigo-500 font-black italic">03</span>
+                    <span class="text-slate-300 font-medium">권한 관리 및 최소 권한 원칙 (Privilege & Least Privilege)</span>
+                </div>
+                <div class="section-card p-6 rounded-2xl flex items-center gap-4 hover:border-indigo-500/50 transition-colors cursor-pointer">
+                    <span class="text-indigo-500 font-black italic">04</span>
+                    <span class="text-slate-300 font-medium">데이터 암호화 및 감사 (Encryption & Auditing)</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Module 1: 인증 및 계정 보안 -->
+        <section id="module-1" class="space-y-24">
+            <div class="flex items-center gap-4 mb-12">
+                <div class="h-px flex-1 bg-slate-800"></div>
+                <h2 class="text-3xl font-black text-indigo-400 uppercase tracking-tighter">Module 01: Account Hardening</h2>
+                <div class="h-px flex-1 bg-slate-800"></div>
+            </div>
+
+            <div class="space-y-8">
+                <h3 class="text-2xl font-black text-slate-100 flex items-center gap-3">
+                    <span class="text-indigo-500">1.1</span> 기본 계정 및 패스워드 정책 (Default Account & Password Policy)
+                </h3>
+                <div class="section-card rounded-3xl p-10 shadow-2xl space-y-8">
+                    <p class="text-slate-300 text-lg leading-relaxed">
+                        DBMS 설치 시 기본으로 생성되는 관리자 계정(Administrative Account) 및 테스트용 익명 계정은 공격자의 침투 경로가 됩니다. **계정 난독화(Account Obfuscation)** 및 **패스워드 복잡성(Password Complexity)** 강제가 필수적입니다.
+                    </p>
+
+                    <!-- 도식: 계정 보안 아키텍처 -->
+                    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner">
+                        <h4 class="text-center font-bold text-slate-400 mb-8 text-xs tracking-widest uppercase">
+                            [도식: 데이터베이스 인증 계층 (DB Auth Layers)]
+                        </h4>
+                        <div class="flex flex-col md:flex-row items-center justify-around gap-4">
+                            <div class="text-center p-6 bg-slate-800 rounded-xl border border-red-900/50 w-full md:w-1/4">
+                                <i data-lucide="user-x" class="w-8 h-8 text-red-500 mx-auto mb-2"></i>
+                                <div class="text-[10px] text-slate-100 font-bold uppercase">Default Users</div>
+                                <div class="text-[8px] text-red-400 mt-1 italic">Drop/Disable</div>
+                            </div>
+                            <i data-lucide="arrow-right" class="text-slate-700 hidden md:block"></i>
+                            <div class="text-center p-6 bg-slate-800 rounded-xl border border-indigo-900/50 w-full md:w-1/4">
+                                <i data-lucide="key-round" class="w-8 h-8 text-indigo-400 mx-auto mb-2"></i>
+                                <div class="text-[10px] text-slate-100 font-bold uppercase">Password Policy</div>
+                                <div class="text-[8px] text-indigo-400 mt-1 italic">Complexity Enforced</div>
+                            </div>
+                            <i data-lucide="arrow-right" class="text-slate-700 hidden md:block"></i>
+                            <div class="text-center p-6 bg-slate-800 rounded-xl border border-pink-900/50 w-full md:w-1/4">
+                                <i data-lucide="shield-check" class="w-8 h-8 text-pink-500 mx-auto mb-2"></i>
+                                <div class="text-[10px] text-slate-100 font-bold uppercase">Access Control</div>
+                                <div class="text-[8px] text-pink-400 mt-1 italic">Role-based Auth</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Multi-DB 명령 비교 블록 -->
+                    <div class="space-y-6">
+                        <div class="grid grid-cols-1 gap-4">
+                            <!-- MySQL -->
+                            <div class="terminal-bg p-6 rounded-2xl">
+                                <div class="flex justify-between items-center mb-4">
+                                    <span class="db-badge badge-mysql">MySQL / MariaDB</span>
+                                    <span class="text-[10px] text-slate-500 uppercase font-mono italic">Configuration & SQL</span>
+                                </div>
+                                <div class="text-xs font-mono space-y-2">
+                                    <div class="text-slate-500">-- 익명 계정 삭제 및 Root 비밀번호 강화</div>
+                                    <div class="text-slate-200">DROP USER ''@'localhost';</div>
+                                    <div class="text-slate-200">INSTALL COMPONENT 'file://component_validate_password';</div>
+                                    <div class="text-slate-200">ALTER USER 'root'@'localhost' IDENTIFIED BY 'Strong_P@ssw0rd!';</div>
+                                </div>
+                            </div>
+                            <!-- Oracle -->
+                            <div class="terminal-bg p-6 rounded-2xl">
+                                <div class="flex justify-between items-center mb-4">
+                                    <span class="db-badge badge-oracle">Oracle Database</span>
+                                    <span class="text-[10px] text-slate-500 uppercase font-mono italic">PL/SQL Command</span>
+                                </div>
+                                <div class="text-xs font-mono space-y-2">
+                                    <div class="text-slate-500">-- 프로필을 통한 패스워드 정책 적용</div>
+                                    <div class="text-slate-200">ALTER PROFILE DEFAULT LIMIT FAILED_LOGIN_ATTEMPTS 5;</div>
+                                    <div class="text-slate-200">ALTER PROFILE DEFAULT LIMIT PASSWORD_LIFE_TIME 90;</div>
+                                    <div class="text-slate-200">ALTER USER SCOTT ACCOUNT LOCK; -- 불필요한 기본 계정 잠금</div>
+                                </div>
+                            </div>
+                            <!-- PostgreSQL -->
+                            <div class="terminal-bg p-6 rounded-2xl">
+                                <div class="flex justify-between items-center mb-4">
+                                    <span class="db-badge badge-postgres">PostgreSQL</span>
+                                    <span class="text-[10px] text-slate-500 uppercase font-mono italic">SQL & Config</span>
+                                </div>
+                                <div class="text-xs font-mono space-y-2">
+                                    <div class="text-slate-500">-- 암호 암호화 방식 설정 (scram-sha-256 권장)</div>
+                                    <div class="text-slate-200 italic"># postgresql.conf 설정</div>
+                                    <div class="text-slate-200 text-pink-400 font-bold">password_encryption = scram-sha-256</div>
+                                    <div class="text-slate-200">ALTER ROLE postgres WITH PASSWORD 'Secure_DB_Admin!';</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Module 2: 네트워크 접속 제어 -->
+        <section id="module-2" class="space-y-24 page-break">
+            <div class="flex items-center gap-4 mb-12">
+                <div class="h-px flex-1 bg-slate-800"></div>
+                <h2 class="text-3xl font-black text-purple-400 uppercase tracking-tighter">Module 02: Network Hardening</h2>
+                <div class="h-px flex-1 bg-slate-800"></div>
+            </div>
+
+            <div class="space-y-8">
+                <h3 class="text-2xl font-black text-slate-100 flex items-center gap-3">
+                    <span class="text-purple-500">2.1</span> 수신 주소 제한 및 포트 변경 (Binding Address & Port)
+                </h3>
+                <div class="section-card rounded-3xl p-10 shadow-2xl space-y-8">
+                    <p class="text-slate-300 text-lg leading-relaxed">
+                        데이터베이스가 모든 인터페이스(`0.0.0.0`)에서 대기할 경우 외부 노출 위험이 매우 큽니다. **포트 바인딩(Port Binding, 특정 주소 연결)** 및 **SSL/TLS 암호화(Transport Layer Security, 전송 계층 보안)** 강제가 필수입니다.
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- MySQL Network -->
+                        <div class="space-y-4">
+                            <h4 class="text-indigo-400 font-bold text-xs uppercase italic">MySQL / MariaDB</h4>
+                            <div class="terminal-bg p-4 rounded-xl font-mono text-[10px] text-slate-400">
+                                <span class="text-slate-500"># my.cnf 설정</span><br>
+                                [mysqld]<br>
+                                bind-address = 127.0.0.1<br>
+                                port = 3307 <span class="text-slate-500"># 포트 변경</span><br>
+                                require_secure_transport = ON
+                            </div>
+                        </div>
+                        <!-- Oracle Network -->
+                        <div class="space-y-4">
+                            <h4 class="text-red-400 font-bold text-xs uppercase italic">Oracle DB</h4>
+                            <div class="terminal-bg p-4 rounded-xl font-mono text-[10px] text-slate-400">
+                                <span class="text-slate-500"># sqlnet.ora 설정</span><br>
+                                TCP.VALIDNODE_CHECKING = YES<br>
+                                TCP.INVITED_NODES = (192.168.1.10)<br>
+                                <span class="text-slate-500"># 허용된 IP 외 접속 차단</span>
+                            </div>
+                        </div>
+                        <!-- PostgreSQL Network -->
+                        <div class="space-y-4">
+                            <h4 class="text-blue-400 font-bold text-xs uppercase italic">PostgreSQL</h4>
+                            <div class="terminal-bg p-4 rounded-xl font-mono text-[10px] text-slate-400">
+                                <span class="text-slate-500"># pg_hba.conf 설정</span><br>
+                                hostssl all all 10.0.0.0/24 scram-sha-256<br>
+                                <span class="text-slate-500"># SSL 연결 및 특정 대역 강제</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Module 3: 권한 관리 -->
+        <section id="module-3" class="space-y-24 page-break">
+            <div class="flex items-center gap-4 mb-12">
+                <div class="h-px flex-1 bg-slate-800"></div>
+                <h2 class="text-3xl font-black text-pink-400 uppercase tracking-tighter">Module 03: Privilege Control</h2>
+                <div class="h-px flex-1 bg-slate-800"></div>
+            </div>
+
+            <div class="space-y-8">
+                <h3 class="text-2xl font-black text-slate-100 flex items-center gap-3">
+                    <span class="text-pink-500">3.1</span> 최소 권한 할당 원칙 (Principle of Least Privilege, PoLP)
+                </h3>
+                <div class="section-card rounded-3xl p-10 shadow-2xl space-y-8">
+                    <p class="text-slate-300 text-lg leading-relaxed">
+                        사용자에게 업무에 필요한 최소한의 권한(Minimal Permissions)만을 부여합니다. 특히 일반 서비스 계정이 `SUPER`, `DBA`, `Superuser` 권한을 가지는 것은 치명적인 보안 결함입니다.
+                    </p>
+
+                    <div class="terminal-bg p-6 rounded-2xl font-mono text-xs">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            <div>
+                                <div class="text-indigo-400 font-bold mb-2 uppercase">[MySQL]</div>
+                                <div class="text-slate-500">-- 특정 DB에 읽기 권한만 부여</div>
+                                <div class="text-slate-200">GRANT SELECT ON service_db.*<br>TO 'app_user'@'192.168.1.%';</div>
+                            </div>
+                            <div>
+                                <div class="text-red-400 font-bold mb-2 uppercase">[Oracle]</div>
+                                <div class="text-slate-500">-- 권한 회수 및 롤 할당</div>
+                                <div class="text-slate-200">REVOKE DBA FROM HR_USER;<br>GRANT CONNECT, RESOURCE TO HR_USER;</div>
+                            </div>
+                            <div>
+                                <div class="text-blue-400 font-bold mb-2 uppercase">[PostgreSQL]</div>
+                                <div class="text-slate-500">-- 스키마 접근 제한</div>
+                                <div class="text-slate-200">REVOKE ALL ON SCHEMA public FROM PUBLIC;<br>GRANT USAGE ON SCHEMA public TO user;</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Module 4: 데이터 암호화 및 감사 -->
+        <section id="module-4" class="space-y-24 page-break">
+            <div class="flex items-center gap-4 mb-12">
+                <div class="h-px flex-1 bg-slate-800"></div>
+                <h2 class="text-3xl font-black text-cyan-400 uppercase tracking-tighter">Module 04: Encryption & Audit</h2>
+                <div class="h-px flex-1 bg-slate-800"></div>
+            </div>
+
+            <div class="space-y-8">
+                <h3 class="text-2xl font-black text-slate-100 flex items-center gap-3">
+                    <span class="text-cyan-500">4.1</span> 데이터 저장 암호화 (Data-at-Rest Encryption)
+                </h3>
+                <div class="section-card rounded-3xl p-10 shadow-2xl space-y-8">
+                    <p class="text-slate-300 text-lg leading-relaxed">
+                        **TDE(Transparent Data Encryption, 투명한 데이터 암호화)**를 적용하여 데이터 파일이나 백업본이 유출되더라도 내용을 보호합니다. 또한 **감사(Auditing, 행위 기록)**를 통해 모든 쿼리 실행 내역을 추적합니다.
+                    </p>
+
+                    <div class="bg-slate-900/40 border border-slate-700 p-6 rounded-2xl space-y-6">
+                        <div class="flex items-start gap-4">
+                            <div class="bg-cyan-500/20 p-2 rounded-lg text-cyan-400"><i data-lucide="database"></i></div>
+                            <div>
+                                <h4 class="text-slate-100 font-bold mb-1">Oracle TDE (Enterprise Feature)</h4>
+                                <p class="text-[10px] text-slate-400">테이블스페이스 단위로 강력한 AES 암호화를 지원하여 스토리지 레벨의 유출에 대응합니다.</p>
+                                <div class="terminal-bg p-3 mt-2 font-mono text-[10px] text-slate-200 italic">CREATE TABLESPACE crypt_ts DATAFILE '...' ENCRYPTION USING 'AES256' DEFAULT STORAGE(ENCRYPT);</div>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4 border-t border-slate-800 pt-6">
+                            <div class="bg-blue-500/20 p-2 rounded-lg text-blue-400"><i data-lucide="history"></i></div>
+                            <div>
+                                <h4 class="text-slate-100 font-bold mb-1">PostgreSQL pgaudit (Extension)</h4>
+                                <p class="text-[10px] text-slate-400">데이터 조작 및 정의 언어(DML/DDL) 실행 내역을 세부적으로 기록하여 규제 준수(Compliance)를 달성합니다.</p>
+                                <div class="terminal-bg p-3 mt-2 font-mono text-[10px] text-slate-200 italic">shared_preload_libraries = 'pgaudit'; pgaudit.log = 'read, write, ddl';</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Final Expert Insight -->
+        <section class="page-break">
+            <h2 class="text-2xl font-black border-l-4 border-indigo-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
+                Architect Insight (보안 아키텍트 조언)
+            </h2>
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-10">
+                <div class="flex flex-col md:flex-row gap-8">
+                    <div class="flex-1 bg-slate-800/30 p-8 rounded-2xl border border-slate-700 relative overflow-hidden group">
+                        <div class="absolute -right-4 -top-4 text-indigo-500/10 group-hover:text-indigo-500/20 transition-colors">
+                            <i data-lucide="cloud" class="w-32 h-32"></i>
+                        </div>
+                        <div class="text-indigo-400 mb-4"><i data-lucide="lightbulb" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2 italic">Managed DB 서비스 과금 유의 (AWS RDS)</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">AWS RDS 환경에서 보안을 위해 <strong>Enhanced Monitoring</strong>이나 <strong>CloudWatch Logs</strong>로 쿼리 로그를 전송할 경우, 데이터 보관 용량 및 요청 횟수에 따라 <span class="text-pink-400 font-bold">예상치 못한 과금</span>이 발생할 수 있습니다. 보존 기간(Retention Period) 설정을 최적화하십시오.</p>
+                    </div>
+                    <div class="flex-1 bg-slate-800/30 p-8 rounded-2xl border border-slate-700 relative overflow-hidden group">
+                        <div class="absolute -right-4 -top-4 text-emerald-500/10 group-hover:text-emerald-500/20 transition-colors">
+                            <i data-lucide="lock" class="w-32 h-32"></i>
+                        </div>
+                        <div class="text-emerald-400 mb-4"><i data-lucide="shield-check" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2 italic">SQL Injection (SQL 주입 공격)</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">아무리 서버 보안이 강력해도 애플리케이션 레벨의 **SQL 인젝션** 취약점이 있다면 무용지물입니다. **Prepared Statements(준비된 문장)** 사용을 강제하고, DB 계정에 <span class="text-emerald-400 font-bold">DML 권한만 제한적으로 부여</span>하여 피해 범위를 최소화하십시오.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+            © 2026 CYBER SECURITY LABORATORY. ALL RIGHTS RESERVED.
+        </div>
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic">
+            본 가이드라인은 데이터베이스 보안 실무를 위한 참조 자료이며, DBMS 버전 및 운영 정책에 따라 설정 방식이 상이할 수 있습니다. 설정 적용 전 반드시 전체 백업(Full Backup)을 수행하십시오.
+        </p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
