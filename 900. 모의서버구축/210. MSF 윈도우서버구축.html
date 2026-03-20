@@ -1,1 +1,267 @@
-sdf
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metasploitable 3: Windows Edition 실습 구축 가이드</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+        }
+        .terminal-bg { background-color: #020617; border: 1px solid #1e293b; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-filter: blur(12px); }
+        .code-block { font-family: 'Fira Code', monospace; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <!-- Header: 기술 사양 및 타이틀 -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Cyber Security Lab</span>
+                    <span class="text-slate-500 font-mono text-[10px]">MS3-WIN-2024 | Vulnerability Analysis</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
+                    Metasploitable 3 Windows Edition<br><span class="text-slate-100 text-2xl">취약점 분석 실습 환경 구축 가이드</span>
+                </h1>
+            </div>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    LAB DIFFICULTY: HARD
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">Senior Security Architect</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-24">
+
+        <!-- Section 1: 아키텍처 개요 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                1. 아키텍처 개요 (Architecture Overview)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-10 leading-relaxed">
+                    메타스플로잇 3(Metasploitable 3)는 보안 전문가와 학습자가 실제 환경과 유사한 취약점 공격(Exploit) 및 모의 해킹(Penetration Testing)을 실습할 수 있도록 설계되었습니다. 윈도우 버전은 <span class="text-cyan-400 font-bold">Windows Server 2008 R2</span> 기반으로 구축되며, 단순한 단일 취약점을 넘어 웹 서비스, 데이터베이스, 시스템 설정 오류 등 다계층 취약점을 제공합니다. 특히 자동화 도구인 베이그런트(Vagrant, 가상 머신 생성 및 설정 자동화 도구)를 통해 환경을 구축함으로써 인프라 구성의 일관성을 유지합니다.
+                </p>
+
+                <!-- 도식화 인포그래픽 영역 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner">
+                    <h4 class="text-center font-bold text-slate-400 mb-8 text-xs tracking-widest uppercase">
+                        [도식: 가상화 실습 랩 구성도 (Virtualization Lab Diagram)]
+                    </h4>
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                        <!-- Component A: Attacker -->
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-cyan-900/50 shadow-lg">
+                            <i data-lucide="monitor" class="w-12 h-12 text-cyan-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">공격자 시스템 (Attacker Node)<br><span class="text-[10px] text-slate-400 font-mono">Kali Linux / OS X / Win</span></div>
+                        </div>
+                        <!-- Arrow -->
+                        <div class="flex flex-col items-center">
+                            <div class="text-[10px] text-slate-600 font-black mb-1 uppercase">Exploit Traffic</div>
+                            <i data-lucide="arrow-right" class="w-8 h-8 text-slate-600 rotate-90 md:rotate-0"></i>
+                            <div class="text-[10px] text-slate-500 mt-1 italic">Internal Network</div>
+                        </div>
+                        <!-- Component B: Target -->
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-blue-900/50 shadow-lg">
+                            <i data-lucide="database" class="w-12 h-12 text-blue-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">타겟 시스템 (Target Node)<br><span class="text-[10px] text-slate-400 font-mono">Metasploitable 3 (Win2k8)</span></div>
+                        </div>
+                    </div>
+                    <div class="mt-6 text-center text-[11px] text-slate-500">
+                        * 모든 통신은 외부와 격리된 Host-Only Network(호스트 전용 네트워크, 외부 접근이 차단된 폐쇄망) 환경에서 수행됩니다.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: 실습 구성 요소 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                2. 실습 구성 요소 및 요구사항 (Prerequisites)
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Node 01: Host Tools -->
+                <div class="section-card rounded-3xl p-8 border-cyan-900/30 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-cyan-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">BUILDER</div>
+                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                        <i data-lucide="terminal" class="w-6 h-6 text-cyan-400"></i> 필수 소프트웨어 (Host Side)
+                    </h3>
+                    <ul class="space-y-4 text-sm text-slate-300">
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check" class="w-4 h-4 text-cyan-500 mt-1"></i>
+                            <div>
+                                <span class="text-white font-bold">VirtualBox (버추얼박스):</span> 오픈 소스 하이퍼바이저.
+                                <a href="https://www.virtualbox.org/" class="text-cyan-400 hover:underline ml-1" target="_blank">[Download]</a>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check" class="w-4 h-4 text-cyan-500 mt-1"></i>
+                            <div>
+                                <span class="text-white font-bold">Vagrant (베이그런트):</span> 가상 머신 배포 관리 도구.
+                                <a href="https://www.vagrantup.com/" class="text-cyan-400 hover:underline ml-1" target="_blank">[Download]</a>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check" class="w-4 h-4 text-cyan-500 mt-1"></i>
+                            <div>
+                                <span class="text-white font-bold">Packer (패커):</span> 이미지 빌드 자동화 도구(직접 빌드 시 필요).
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <!-- Node 02: VM Specs -->
+                <div class="section-card rounded-3xl p-8 border-indigo-900/30 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">VM SPEC</div>
+                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                        <i data-lucide="server" class="w-6 h-6 text-indigo-400"></i> 가상 머신 권장 사양 (Target Spec)
+                    </h3>
+                    <ul class="space-y-4 text-sm text-slate-300">
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-indigo-500"></i> CPU: 2 Cores 이상 (동시 서비스 처리용)</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-indigo-500"></i> Memory: 2048MB (2GB) 이상 권장</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-indigo-500"></i> Disk: 최소 60GB 여유 공간 (가변 할당)</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-indigo-500"></i> Network: Host-only + NAT (이중 구성)</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: 명령어 및 절차 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                3. 실증 및 구현 (Implementation)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-12">
+                
+                <!-- Step 01 -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black italic">STEP 01</span>
+                        <h3 class="text-xl font-bold text-slate-100">프로젝트 디렉토리 초기화 및 Vagrant 설정</h3>
+                    </div>
+                    <div class="pl-12">
+                        <p class="text-sm text-slate-400 mb-4">작업을 위한 폴더를 생성하고, Vagrant Cloud(베이그런트 클라우드, 이미 빌드된 이미지를 공유하는 저장소)에서 Rapid7 공식 이미지를 불러옵니다.</p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">PowerShell / Terminal</div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">mkdir metasploitable3-workspace; cd metasploitable3-workspace</span></div>
+                            <div class="text-slate-200 mt-1">$ <span class="text-cyan-400">vagrant init rapid7/metasploitable3-win2k8</span></div>
+                            <div class="text-slate-500 mt-2"># Vagrantfile has been placed in this directory...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 02 -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black italic">STEP 02</span>
+                        <h3 class="text-xl font-bold text-slate-100">가상 머신 프로비저닝 (Provisioning)</h3>
+                    </div>
+                    <div class="pl-12">
+                        <p class="text-sm text-slate-400 mb-4">명령어를 실행하면 자동으로 ISO 이미지를 다운로드(약 2~4GB)하고 VirtualBox에 VM을 생성 및 구성합니다.</p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">Console</div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">vagrant up</span></div>
+                            <div class="text-slate-500 mt-2">Bringing machine 'default' up with 'virtualbox' provider...</div>
+                            <div class="text-slate-500">==> default: Importing base box 'rapid7/metasploitable3-win2k8'...</div>
+                            <div class="text-slate-500 italic">... (This may take 10-30 minutes depending on your internet speed)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 03 -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black italic">STEP 03</span>
+                        <h3 class="text-xl font-bold text-slate-100">VirtualBox 세부 설정 검토</h3>
+                    </div>
+                    <div class="pl-12">
+                        <p class="text-sm text-slate-400 mb-4">Vagrant가 자동으로 설정하지만, 안정적인 실습을 위해 다음 항목을 수동으로 확인하십시오.</p>
+                        <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700">
+                            <ul class="space-y-3 text-xs text-slate-300">
+                                <li class="flex justify-between border-b border-slate-700/50 pb-2">
+                                    <span class="font-bold text-slate-100">네트워크(Network)</span>
+                                    <span>어댑터 1: NAT / 어댑터 2: Host-only</span>
+                                </li>
+                                <li class="flex justify-between border-b border-slate-700/50 pb-2">
+                                    <span class="font-bold text-slate-100">가속(Acceleration)</span>
+                                    <span>VT-x/AMD-V 활성화 (BIOS 필수 체크)</span>
+                                </li>
+                                <li class="flex justify-between">
+                                    <span class="font-bold text-slate-100">사용자 계정(Credentials)</span>
+                                    <span class="text-cyan-400">ID: vagrant / PW: vagrant</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: 전문가 분석 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                4. 아키텍트 인사이트 (Expert Insight)
+            </h2>
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-10">
+                <div class="flex flex-col md:flex-row gap-8">
+                    <!-- Critical Tip -->
+                    <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                        <div class="text-cyan-400 mb-4"><i data-lucide="lightbulb" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2">효율적인 빌드를 위한 팁</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            만약 빌드 과정에서 네트워크 오류가 자주 발생한다면, <span class="text-white">vagrant-vbguest</span> 플러그인을 설치하여 게스트 확장 도구의 호환성을 높이십시오. 또한, 직접 빌드를 원할 경우 <a href="https://github.com/rapid7/metasploitable3" class="text-blue-400 hover:underline">공식 GitHub</a>의 빌드 스크립트를 사용하여 최신 패치를 포함할 수 있습니다.
+                        </p>
+                    </div>
+                    <!-- Critical Warning -->
+                    <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                        <div class="text-red-400 mb-4"><i data-lucide="shield-alert" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2">보안 주의 사항 (Critical Warning)</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            메타스플로잇 3는 <span class="text-red-400 font-bold uppercase tracking-tighter">의도적으로 취약하게 설계되었습니다.</span> 절대로 이 VM을 공인 IP에 노출시키거나, 브리지 모드(Bridged Mode)를 통해 실제 사무실/가정 네트워크에 연결하지 마십시오. 악의적인 외부 공격자에게 시스템 제어권을 탈취당할 수 있는 위험이 매우 큽니다.
+                        </p>
+                    </div>
+                </div>
+                <!-- Hyper-V Conflict Info -->
+                <div class="p-6 bg-amber-900/10 border border-amber-900/30 rounded-2xl">
+                    <h5 class="text-amber-500 font-black text-xs uppercase mb-2 flex items-center gap-2">
+                        <i data-lucide="zap" class="w-4 h-4"></i> Hyper-V 충돌 이슈
+                    </h5>
+                    <p class="text-[11px] text-slate-400 italic">
+                        윈도우 호스트 시스템에서 Hyper-V가 활성화되어 있으면 VirtualBox가 64비트 가상 머신을 실행하지 못할 수 있습니다. `bcdedit /set hypervisorlaunchtype off` 명령을 통해 비활성화 후 재부팅이 필요할 수 있습니다.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+            © 2026 Security Lab Architect. All rights reserved.
+        </div>
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic">
+            본 가이드는 교육용 목적으로만 제작되었습니다. 허가받지 않은 시스템에 대한 공격 시도는 법적 처벌을 받을 수 있습니다. 실습은 반드시 격리된 가상 환경에서만 진행하십시오.
+        </p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
