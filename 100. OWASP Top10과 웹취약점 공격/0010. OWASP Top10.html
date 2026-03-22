@@ -1,1 +1,300 @@
 sdf
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OWASP Top 10: 2021 전문가 심화 과정</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+        }
+        .terminal-bg { background-color: #020617; border: 1px solid #1e293b; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-filter: blur(12px); }
+        .code-block { font-family: 'Fira Code', monospace; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+        .breach-box { border-left: 4px solid #ef4444; background: rgba(239, 68, 68, 0.05); }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <!-- Header -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Cyber Security Lab</span>
+                    <span class="text-slate-500 font-mono text-[10px]">SEC-OWASP-01 | Web Application Security</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
+                    OWASP Top 10: 2021 Analysis<br><span class="text-slate-100 text-2xl text-glow">애플리케이션 보안 위협 분석 및 대응 체계</span>
+                </h1>
+            </div>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    EXPERT LEVEL: 10.0
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">Certified Security Architect</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-40">
+
+        <!-- Section 0: Introduction -->
+        <section id="intro">
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                0. 보안 프레임워크로서의 OWASP (Security Framework Overview)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-10 leading-relaxed">
+                    <strong>OWASP(The Open Worldwide Application Security Project, 오픈 소스 웹 애플리케이션 보안 프로젝트)</strong>는 특정 솔루션이 아닌 소프트웨어의 전 생명 주기에 걸쳐 보안을 내재화하기 위한 <strong>보안 거버넌스 프레임워크(Security Governance Framework)</strong> 역할을 수행합니다. 단순한 '순위' 나열을 넘어, 기업이 보안 정책을 수립하고 준수해야 할 글로벌 표준(Global Standard)으로 인정받고 있습니다.
+                </p>
+
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner">
+                    <h4 class="text-center font-bold text-slate-400 mb-8 text-xs tracking-widest uppercase">
+                        [도식: 취약점 평가 및 프레임워크 매핑]
+                    </h4>
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-8 text-center">
+                        <div class="flex-1 p-6 bg-slate-800 rounded-xl border border-cyan-900/50">
+                            <i data-lucide="shield" class="w-10 h-10 text-cyan-400 mx-auto mb-4"></i>
+                            <div class="font-bold text-slate-100">Standardization</div>
+                            <p class="text-[10px] text-slate-500 mt-2">보안 규정의 표준화</p>
+                        </div>
+                        <i data-lucide="plus" class="text-slate-700"></i>
+                        <div class="flex-1 p-6 bg-slate-800 rounded-xl border border-blue-900/50">
+                            <i data-lucide="activity" class="w-10 h-10 text-blue-400 mx-auto mb-4"></i>
+                            <div class="font-bold text-slate-100">Visibility</div>
+                            <p class="text-[10px] text-slate-500 mt-2">위협의 가시성 확보</p>
+                        </div>
+                        <i data-lucide="arrow-right" class="text-slate-700"></i>
+                        <div class="flex-1 p-6 bg-indigo-900/40 rounded-xl border border-indigo-500">
+                            <i data-lucide="check-square" class="w-10 h-10 text-indigo-400 mx-auto mb-4"></i>
+                            <div class="font-bold text-slate-100">Compliance</div>
+                            <p class="text-[10px] text-slate-200 mt-2">보안 컴플라이언스 달성</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- A01: Broken Access Control -->
+        <section id="a01">
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
+                A01:2021-Broken Access Control (취약한 접근 제어)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-12">
+                <div class="breach-box p-6 rounded-r-xl">
+                    <h4 class="text-red-400 font-black text-sm mb-2 flex items-center gap-2">
+                        <i data-lucide="alert-circle" class="w-4 h-4"></i> 대표적 침해 사례 (Case Study)
+                    </h4>
+                    <p class="text-slate-300 text-sm italic">
+                        <strong>Facebook(페이스북) "View As" 기능 악용 (2018):</strong> 공격자가 'View As(내 프로필 보기)' 기능의 취약한 접근 제어를 악용하여 약 5천만 명의 액세스 토큰(Access Token)을 탈취한 사건입니다. 사용자 권한 검증 로직의 미비로 타인의 토큰에 직접 접근이 가능했습니다.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                        <h4 class="font-bold text-slate-100 mb-4 flex items-center gap-2">
+                            <i data-lucide="zap" class="w-4 h-4 text-yellow-400"></i> 공격 기법 (Techniques)
+                        </h4>
+                        <ul class="text-sm text-slate-400 space-y-2">
+                            <li>• <strong>IDOR(Insecure Direct Object Reference, 직접 객체 참조):</strong> 파라미터 변조를 통한 타인 데이터 열람</li>
+                            <li>• <strong>CORS(Cross-Origin Resource Sharing) Misconfiguration:</strong> 잘못된 원격 자원 공유 설정으로 데이터 유출</li>
+                        </ul>
+                    </div>
+                    <div class="bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                        <h4 class="font-bold text-slate-100 mb-4 flex items-center gap-2">
+                            <i data-lucide="code-2" class="w-4 h-4 text-blue-400"></i> 취약한 코드 예시 (Vulnerable Code)
+                        </h4>
+                        <div class="terminal-bg p-4 rounded-lg font-mono text-xs text-slate-300">
+                            // 접근 권한 검사가 누락된 삭제 로직<br>
+                            @PostMapping("/deleteAccount")<br>
+                            public String delete(@RequestParam("userId") String id) {<br>
+                            &nbsp;&nbsp;userSvc.remove(id); <span class="text-red-500">// 세션 사용자와 파라미터 ID 일치 검증 없음</span><br>
+                            &nbsp;&nbsp;return "success";<br>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <h3 class="text-xl font-bold text-green-400 flex items-center gap-2">
+                        <i data-lucide="shield" class="w-6 h-6"></i> 방어 대응 대책 (Defense Strategy)
+                    </h3>
+                    <div class="pl-8 border-l border-green-500/30">
+                        <p class="text-sm text-slate-400 mb-6">모든 요청에 대해 <strong>RBAC(Role-Based Access Control, 역할 기반 접근 제어)</strong> 및 <strong>ABAC(Attribute-Based Access Control, 속성 기반 접근 제어)</strong> 모델을 적용하십시오.</p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">Apache Configuration</div>
+                            <div class="text-slate-300">
+                                # 특정 리소스에 대한 접근 제한 설정<br>
+                                &lt;Location "/api/admin"&gt;<br>
+                                &nbsp;&nbsp;Require group administrators<br>
+                                &nbsp;&nbsp;Require valid-user<br>
+                                &lt;/Location&gt;
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- A02: Cryptographic Failures -->
+        <section id="a02">
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
+                A02:2021-Cryptographic Failures (암호화 실패)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-12">
+                <div class="breach-box p-6 rounded-r-xl">
+                    <h4 class="text-red-400 font-black text-sm mb-2 flex items-center gap-2">
+                        <i data-lucide="alert-circle" class="w-4 h-4"></i> 대표적 침해 사례 (Case Study)
+                    </h4>
+                    <p class="text-slate-300 text-sm italic">
+                        <strong>Ashley Madison(애슐리 매디슨) 유출 사건 (2015):</strong> 데이터베이스가 유출되었을 때 비밀번호가 취약한 <strong>MD5(Message-Digest Algorithm 5)</strong> 해시로 저장되어 있어, 순식간에 수백만 명의 비밀번호가 복구되었습니다. 이는 현대적인 암호화 알고리즘 부재로 인한 전형적인 사례입니다.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                        <h4 class="font-bold text-slate-100 mb-4 flex items-center gap-2">
+                            <i data-lucide="key" class="w-4 h-4 text-yellow-400"></i> 기술 분석 (Technical Analysis)
+                        </h4>
+                        <ul class="text-sm text-slate-400 space-y-2">
+                            <li>• <strong>Lack of Salt:</strong> 레인보우 테이블 공격에 취약한 솔트(Salt) 없는 해시</li>
+                            <li>• <strong>Weak Protocol:</strong> TLS 1.0/1.1 등 지원 종료된 암호화 통신 프로토콜 사용</li>
+                        </ul>
+                    </div>
+                    <div class="bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                        <h4 class="font-bold text-slate-100 mb-4 flex items-center gap-2">
+                            <i data-lucide="shield-check" class="w-4 h-4 text-green-400"></i> 보안 권고 (Best Practice)
+                        </h4>
+                        <div class="terminal-bg p-4 rounded-lg font-mono text-xs text-slate-300">
+                            # 권장 해시 알고리즘 (Argon2 또는 BCrypt)<br>
+                            String hashedPw = BCrypt.hashpw(plainText, BCrypt.gensalt(12));
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <h3 class="text-xl font-bold text-green-400 flex items-center gap-2">
+                        <i data-lucide="settings-2" class="w-6 h-6"></i> 인프라 보안 설정 (Infrastructure)
+                    </h3>
+                    <div class="pl-8 border-l border-green-500/30">
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner">
+                            <span class="text-cyan-400"># Nginx SSL/TLS 최적화 설정</span><br>
+                            ssl_protocols TLSv1.3;<br>
+                            ssl_ciphers 'TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256';<br>
+                            add_header Strict-Transport-Security "max-age=31536000" always;
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- A03: Injection -->
+        <section id="a03">
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
+                A03:2021-Injection (인젝션)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-12">
+                <div class="breach-box p-6 rounded-r-xl">
+                    <h4 class="text-red-400 font-black text-sm mb-2 flex items-center gap-2">
+                        <i data-lucide="alert-circle" class="w-4 h-4"></i> 대표적 침해 사례 (Case Study)
+                    </h4>
+                    <p class="text-slate-300 text-sm italic">
+                        <strong>Heartland Payment Systems(하트랜드 페이먼트 시스템즈) 사건 (2008):</strong> 약 1억 3천만 개의 신용카드 정보가 <strong>SQL 인젝션(SQL Injection)</strong>을 통해 탈취되었습니다. 이는 단일 인젝션 공격으로 인한 최대 규모의 피해 사례 중 하나로 기록되어 있습니다.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                        <h4 class="font-bold text-slate-100 mb-4 flex items-center gap-2">
+                            <i data-lucide="terminal" class="w-4 h-4 text-blue-400"></i> 실무 분석 명령어
+                        </h4>
+                        <div class="terminal-bg p-4 rounded-lg font-mono text-xs text-slate-300">
+                            # 취약점 자동 진단 도구 (sqlmap) 사용 예시<br>
+                            $ sqlmap -u "http://target.com/view?id=1" --dbms=mysql --dbs
+                        </div>
+                    </div>
+                    <div class="bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                        <h4 class="font-bold text-slate-100 mb-4 flex items-center gap-2">
+                            <i data-lucide="check-circle" class="w-4 h-4 text-green-400"></i> 대응 기술
+                        </h4>
+                        <ul class="text-sm text-slate-400 space-y-2">
+                            <li>• <strong>Parameterized Query:</strong> 데이터와 쿼리 로직의 완전한 분리</li>
+                            <li>• <strong>WAF(Web Application Firewall):</strong> 인젝션 패턴 기반 실시간 차단</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- A10: SSRF -->
+        <section id="a10">
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
+                A10:2021-Server-Side Request Forgery (SSRF)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-12">
+                <div class="breach-box p-6 rounded-r-xl">
+                    <h4 class="text-red-400 font-black text-sm mb-2 flex items-center gap-2">
+                        <i data-lucide="alert-circle" class="w-4 h-4"></i> 대표적 침해 사례 (Case Study)
+                    </h4>
+                    <p class="text-slate-300 text-sm italic">
+                        <strong>Capital One(캐피털 원) 유출 사고 (2019):</strong> 공격자가 WAF 설정 오류와 <strong>SSRF(서버 측 요청 변조)</strong>를 악용하여 AWS(아마존 웹 서비스)의 <strong>Metadata Service(IMDS, 인스턴스 메타데이터 서비스)</strong>에 접근, 약 1억 명의 고객 정보를 포함한 S3 버킷 권한을 획득했습니다.
+                    </p>
+                </div>
+
+                <div class="space-y-6">
+                    <h3 class="text-xl font-bold text-cyan-400 flex items-center gap-2">
+                        <i data-lucide="server" class="w-6 h-6"></i> 클라우드 환경의 SSRF 대응 전략
+                    </h3>
+                    <div class="bg-slate-900/80 p-8 rounded-2xl border border-slate-800 shadow-inner">
+                        <div class="flex flex-col md:flex-row gap-8 items-center">
+                            <div class="flex-1 space-y-4">
+                                <div class="p-4 bg-slate-800 rounded-lg border border-slate-700">
+                                    <div class="text-xs font-black text-slate-500 mb-2 uppercase">AWS IMDSv2 도입</div>
+                                    <p class="text-xs text-slate-300">기존의 단순 GET 요청 대신 세션 토큰이 필요한 <strong>IMDSv2(Instance Metadata Service Version 2)</strong>를 활성화하여 SSRF 공격을 무력화합니다.</p>
+                                </div>
+                            </div>
+                            <div class="flex-1">
+                                <div class="terminal-bg p-4 rounded-lg font-mono text-xs text-slate-300">
+                                    # AWS CLI를 통한 IMDSv2 강제 설정<br>
+                                    $ aws ec2 modify-instance-metadata-options \<br>
+                                    &nbsp;&nbsp;--instance-id i-1234567890abcdef0 \<br>
+                                    &nbsp;&nbsp;--http-tokens required
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+            © 2026 Gemini Security Solutions. All rights reserved.
+        </div>
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic">
+            본 가이드는 실제 사고 분석 데이터를 기반으로 작성되었으며, 지속적인 보안 업데이트 및 거버넌스 수립의 근거로 활용될 수 있습니다.
+        </p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
