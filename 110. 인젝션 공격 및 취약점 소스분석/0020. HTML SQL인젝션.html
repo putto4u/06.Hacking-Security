@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kali Linux MSF SQLi 실무 및 모듈 심층 분석</title>
+    <title>Metasploit Database & Module Search Guide</title>
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -14,336 +14,170 @@
             background-color: #020617; 
             color: #f8fafc; 
             margin: 0; padding: 0;
-            line-height: 1.9;
+            line-height: 1.8;
         }
         .terminal-bg { background-color: #020617; border: 1px solid #1e293b; }
         .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
         .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-filter: blur(16px); }
         .code-block { font-family: 'Fira Code', monospace; }
-        ::-webkit-scrollbar { width: 10px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 5px; border: 2px solid #020617; }
-        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
-        .glossary-box { background: rgba(15, 23, 42, 0.98); border-top: 2px solid #0ea5e9; }
-        .infographic-node { background: #0f172a; border: 1px solid #1e293b; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-        .infographic-node:hover { border-color: #22d3ee; transform: scale(1.02); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); }
-        .highlight-line { border-left: 4px solid #0ea5e9; padding-left: 1.5rem; margin-bottom: 2rem; }
+        .glossary-box { background: rgba(15, 23, 42, 0.98); border-top: 2px solid #3b82f6; }
+        .infographic-node { background: #0f172a; border: 1px solid #1e293b; transition: all 0.3s ease; }
+        .infographic-node:hover { border-color: #3b82f6; transform: translateY(-5px); }
+        .highlight-line { border-left: 4px solid #3b82f6; padding-left: 1.5rem; margin-bottom: 2rem; }
     </style>
 </head>
 <body class="antialiased pb-32">
 
     <!-- Header -->
     <header class="border-b border-slate-800 bg-slate-900/80 sticky top-0 z-50 backdrop-blur-xl">
-        <div class="max-w-7xl mx-auto px-8 py-12 flex justify-between items-end">
+        <div class="max-w-7xl mx-auto px-8 py-10 flex justify-between items-end">
             <div>
                 <div class="flex items-center gap-3 mb-4">
-                    <span class="bg-blue-600 text-white px-3 py-1 text-[10px] font-black uppercase tracking-[0.3em] rounded-md shadow-lg shadow-blue-500/20">Metasploit Expert Track</span>
-                    <span class="text-slate-500 font-mono text-[10px]">MSF-SQLI-ADVANCED | Professional Pentesting</span>
+                    <span class="bg-blue-600 text-white px-3 py-1 text-[10px] font-black uppercase tracking-[0.3em] rounded-md">Professional Pentesting</span>
+                    <span class="text-slate-500 font-mono text-[10px]">MSF-DB-CONFIG | Infrastructure Security</span>
                 </div>
-                <h1 class="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white via-slate-200 to-slate-500 tracking-tighter leading-none">
-                    Metasploit SQLi Exploitation<br><span class="text-blue-400 text-3xl text-glow mt-4 block">MSF 콘솔 기반 침투 프로세스 및 모듈 로직 분석</span>
+                <h1 class="text-5xl font-black text-white tracking-tighter leading-none">
+                    Metasploit Database Integration<br>
+                    <span class="text-blue-400 text-2xl text-glow mt-4 block">인프라 구성 및 모듈 정밀 탐색 프로세스</span>
                 </h1>
             </div>
             <div class="text-right hidden xl:block border-l-2 border-slate-800 pl-10">
-                <div class="bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 px-8 py-4 rounded-3xl text-xl font-black font-mono shadow-2xl">
-                    SECURITY LEVEL: BLACK-BELT
+                <div class="bg-blue-500/10 text-blue-400 border border-blue-500/30 px-6 py-3 rounded-2xl text-lg font-black font-mono">
+                    LEVEL: ARCHITECT
                 </div>
-                <p class="text-[11px] text-slate-500 mt-4 tracking-[0.4em] uppercase font-bold">Chief Infrastructure Security Architect</p>
             </div>
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-8 py-24 space-y-64">
+    <main class="max-w-7xl mx-auto px-8 py-20 space-y-32">
 
-        <!-- Section 1: MSF Architecture & Prep -->
-        <section id="msf-prep">
-            <h2 class="text-4xl font-black border-l-[12px] border-blue-500 pl-8 text-white mb-16 tracking-tighter">
-                1. 메타스플로잇 기반 침투 환경 구성 (MSF Environment Setup)
+        <!-- Section 1: DB Startup & Persistence -->
+        <section>
+            <h2 class="text-3xl font-black border-l-[10px] border-blue-600 pl-6 text-white mb-12 tracking-tighter uppercase">
+                1. PostgreSQL 엔진 가동 및 자동화 설정 (DB Persistence)
             </h2>
-            <div class="section-card rounded-[3rem] overflow-hidden shadow-2xl">
-                <div class="p-16 space-y-12">
-                    <p class="text-slate-300 text-2xl font-light leading-relaxed">
-                        실전 모의 해킹에서 <strong>메타스플로잇(Metasploit Framework, MSF)</strong>은 단순한 도구가 아닌 데이터베이스 기반의 통합 침투 거점입니다. 공격자는 먼저 로컬 데이터베이스를 활성화하여 수집된 자산을 체계적으로 관리해야 합니다.
+            <div class="section-card rounded-[2.5rem] overflow-hidden shadow-2xl">
+                <div class="p-12 space-y-10">
+                    <p class="text-slate-300 text-xl font-light">
+                        메타스플로잇의 성능을 극대화하려면 <strong>PostgreSQL(포스트그레스큐엘, 오픈 소스 객체-관계형 데이터베이스 시스템)</strong> 서비스가 먼저 활성화되어야 합니다. 특히 시스템 재시작 시에도 자동으로 가동되도록 설정하는 것이 실무의 핵심입니다.
                     </p>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-                        <div class="terminal-bg p-10 rounded-3xl border border-slate-800 shadow-inner">
-                            <h4 class="text-blue-400 font-black text-sm mb-6 uppercase tracking-widest italic flex items-center gap-2">
-                                <i data-lucide="database" class="w-4 h-4"></i> [Step 1: 데이터베이스 초기화 및 실행]
-                            </h4>
-                            <div class="text-sm font-mono text-slate-200 space-y-3">
-                                <div>$ sudo msfdb init <span class="text-slate-600"># PostgreSQL 기반 DB 초기화</span></div>
-                                <div>$ msfconsole -q <span class="text-slate-600"># 배너 없이 조용히 실행</span></div>
-                                <div class="mt-4 text-green-500">msf6 > db_status</div>
-                                <div class="text-slate-400">[*] Connected to msf. Connection type: postgresql.</div>
+                    <!-- Infographic: DB Setup Flow -->
+                    <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-10">
+                        <h4 class="text-center font-bold text-slate-500 mb-10 text-[10px] tracking-[0.3em] uppercase">[도식: 데이터베이스 초기화 및 자동화 워크플로우]</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+                            <div class="infographic-node p-6 rounded-2xl text-center">
+                                <i data-lucide="play-circle" class="w-8 h-8 text-blue-400 mx-auto mb-4"></i>
+                                <div class="text-xs font-black text-blue-400 mb-2">START</div>
+                                <div class="text-[11px] text-slate-300 font-mono">systemctl start</div>
+                                <p class="text-[10px] text-slate-500 mt-2">엔진 즉시 구동</p>
+                            </div>
+                            <div class="infographic-node p-6 rounded-2xl text-center">
+                                <i data-lucide="refresh-cw" class="w-8 h-8 text-cyan-400 mx-auto mb-4"></i>
+                                <div class="text-xs font-black text-cyan-400 mb-2">ENABLE</div>
+                                <div class="text-[11px] text-slate-300 font-mono">systemctl enable</div>
+                                <p class="text-[10px] text-slate-500 mt-2">부팅 시 자동 가동</p>
+                            </div>
+                            <div class="infographic-node p-6 rounded-2xl text-center border-green-500/30">
+                                <i data-lucide="database" class="w-8 h-8 text-green-400 mx-auto mb-4"></i>
+                                <div class="text-xs font-black text-green-400 mb-2">INITIALIZE</div>
+                                <div class="text-[11px] text-slate-300 font-mono">msfdb init</div>
+                                <p class="text-[10px] text-slate-500 mt-2">스키마 및 계정 생성</p>
                             </div>
                         </div>
-                        <div class="terminal-bg p-10 rounded-3xl border border-slate-800 shadow-inner">
-                            <h4 class="text-cyan-400 font-black text-sm mb-6 uppercase tracking-widest italic flex items-center gap-2">
-                                <i data-lucide="search" class="w-4 h-4"></i> [Step 2: 정보 수집 및 자산 등록]
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="terminal-bg p-8 rounded-2xl border border-slate-800">
+                            <h4 class="text-blue-400 font-black text-xs mb-4 uppercase tracking-widest italic flex items-center gap-2">
+                                <i data-lucide="terminal" class="w-4 h-4"></i> [Database Service Commands]
                             </h4>
-                            <div class="text-sm font-mono text-slate-200 space-y-3">
-                                <div>msf6 > db_nmap -sV -p 80,443,3306 192.168.1.0/24</div>
-                                <div>msf6 > hosts <span class="text-slate-600"># 스캔된 자산 확인</span></div>
-                                <div>msf6 > services <span class="text-slate-600"># 활성화된 서비스 식별</span></div>
+                            <div class="text-sm font-mono text-slate-300 space-y-4">
+                                <div><span class="text-slate-500"># 서비스 시작</span><br>sudo systemctl start postgresql</div>
+                                <div><span class="text-slate-500"># 부팅 시 자동 시작 등록</span><br>sudo systemctl enable postgresql</div>
+                                <div><span class="text-slate-500"># MSF 데이터베이스 초기화</span><br>sudo msfdb init</div>
                             </div>
-                            <p class="text-[10px] text-slate-500 mt-6 leading-relaxed">
-                                <span class="text-cyan-600 font-bold">PRO TIP:</span> `db_nmap`을 사용하면 스캔 결과가 MSF 데이터베이스에 자동 저장되어, 추후 공격 대상(Target)을 지정할 때 매우 효율적입니다.
-                            </p>
+                        </div>
+                        <div class="terminal-bg p-8 rounded-2xl border border-slate-800">
+                            <h4 class="text-green-400 font-black text-xs mb-4 uppercase tracking-widest italic flex items-center gap-2">
+                                <i data-lucide="check-circle" class="w-4 h-4"></i> [Verification in msfconsole]
+                            </h4>
+                            <div class="text-sm font-mono text-slate-300 space-y-4">
+                                <div>msf6 > <span class="text-cyan-400">db_status</span></div>
+                                <div class="text-slate-400 text-xs">[*] Connected to msf. Connection type: postgresql.</div>
+                                <div class="mt-4 p-3 bg-blue-500/5 rounded border border-blue-500/20 text-[11px]">
+                                    <span class="text-blue-400 font-bold">INFO:</span> DB 연결 시 `hosts`, `services` 명령어로 정보를 관리할 수 있습니다.
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-
-                <div class="glossary-box p-12 grid grid-cols-1 lg:grid-cols-2 gap-12">
-                    <div class="text-xs text-slate-400 leading-loose">
-                        <span class="text-blue-400 font-black block mb-6 uppercase tracking-[0.3em] border-b border-blue-900/50 pb-3">Technical Terminology</span>
-                        <ul class="space-y-4">
-                            <li>• <strong>Metasploit Framework (메타스플로잇 프레임워크, MSF):</strong> 전 세계에서 가장 많이 사용되는 오픈 소스 침투 테스트 프레임워크입니다.</li>
-                            <li>• <strong>msfconsole (MSF 콘솔):</strong> MSF의 기능을 텍스트 기반 인터페이스로 제어하는 통합 관리 도구입니다.</li>
-                            <li>• <strong>PostgreSQL (포스트그레스큐엘):</strong> MSF의 스캔 결과와 세션 정보를 저장하기 위해 내부적으로 사용하는 객체-관계형 데이터베이스(ORDBMS)입니다.</li>
-                        </ul>
+                <div class="glossary-box p-10 grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div class="text-[11px] text-slate-400 leading-loose">
+                        <strong class="text-blue-400 block mb-2 uppercase tracking-widest">PostgreSQL (포스트그레스큐엘)</strong>
+                        메타스플로잇의 방대한 공격 모듈 정보와 수집된 타겟 데이터를 저장하는 고성능 객체-관계형 데이터베이스입니다.
                     </div>
-                    <div class="text-xs text-slate-400 leading-loose border-l border-slate-800 pl-12">
-                        <span class="text-cyan-400 font-black block mb-6 uppercase tracking-[0.3em] border-b border-cyan-900/50 pb-3">Operational Initial</span>
-                        <ul class="space-y-4">
-                            <li>• <strong>db_nmap (데이터베이스 엔맵):</strong> Nmap의 강력한 포트 스캔 기능을 MSF 환경 내에서 직접 실행하고 결과를 DB에 연동하는 명령어입니다.</li>
-                            <li>• <strong>-sV (Service Version):</strong> 타겟 포트에서 실행 중인 서비스의 정확한 명칭과 버전 정보를 확인하는 옵션입니다.</li>
-                        </ul>
+                    <div class="text-[11px] text-slate-400 leading-loose border-l border-slate-800 pl-10">
+                        <strong class="text-cyan-400 block mb-2 uppercase tracking-widest">Persistence (지속성)</strong>
+                        시스템이 재시작(Reboot)되어도 서비스 상태가 유지되도록 설정하는 것으로, `systemctl enable`이 이 역할을 수행합니다.
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Section 2: Vulnerability Analysis & Module Selection -->
-        <section id="vulnerability-analysis">
-            <h2 class="text-4xl font-black border-l-[12px] border-blue-500 pl-8 text-white mb-16 tracking-tighter">
-                2. 취약점 정밀 분석 및 모듈 체계 (Vulnerability Analysis)
+        <!-- Section 2: Advanced Search Strategy -->
+        <section>
+            <h2 class="text-3xl font-black border-l-[10px] border-blue-600 pl-6 text-white mb-12 tracking-tighter uppercase">
+                2. 모듈 정밀 탐색 전략 (Search & Filtering)
             </h2>
-            <div class="section-card rounded-[3rem] overflow-hidden shadow-2xl">
-                <div class="p-16 space-y-16">
+            <div class="section-card rounded-[2.5rem] overflow-hidden shadow-2xl">
+                <div class="p-12 space-y-10">
                     <p class="text-slate-300 text-xl font-light leading-relaxed">
-                        자산이 식별되면 타겟의 파라미터에 주입 가능한 SQL 취약점이 존재하는지 확인합니다. MSF는 이를 위해 **보조 모듈(Auxiliary Modules)**을 제공하여 공격 전 단계의 스캐닝을 지원합니다.
+                        실전 침투 시 수천 개의 모듈 중 목적에 맞는 모듈을 찾는 것은 매우 중요합니다. 단순히 키워드만 검색하는 것이 아니라, <strong>필터(Filter)</strong>를 활용하여 공격 대상(Platform)과 유형(Type)을 좁혀 나갑니다.
                     </p>
 
-                    <div class="bg-slate-900/80 border border-slate-800 rounded-[2.5rem] p-12 shadow-inner">
-                        <h4 class="text-center font-bold text-slate-500 mb-16 text-xs tracking-[0.4em] uppercase">
-                            [도식: MSF SQLi 침투 단계 및 명령어 체계 (MSF SQLi Exploitation Pipeline)]
-                        </h4>
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 items-start">
-                            <!-- Module 1 -->
-                            <div class="infographic-node p-8 rounded-3xl text-center space-y-4">
-                                <i data-lucide="search-code" class="w-10 h-10 text-blue-400 mx-auto"></i>
-                                <div class="text-[11px] text-blue-400 font-black uppercase">Search</div>
-                                <div class="text-[12px] text-slate-200 font-mono">search type:auxiliary sql</div>
-                                <p class="text-[10px] text-slate-500">관련 스캐너 탐색</p>
-                            </div>
-                            <!-- Module 2 -->
-                            <div class="infographic-node p-8 rounded-3xl text-center space-y-4 border-cyan-500/30">
-                                <i data-lucide="mouse-pointer-2" class="w-10 h-10 text-cyan-400 mx-auto"></i>
-                                <div class="text-[11px] text-cyan-400 font-black uppercase">Select</div>
-                                <div class="text-[12px] text-slate-200 font-mono">use auxiliary/scanner/...</div>
-                                <p class="text-[10px] text-slate-500">모듈 활성화</p>
-                            </div>
-                            <!-- Module 3 -->
-                            <div class="infographic-node p-8 rounded-3xl text-center space-y-4 border-indigo-500/30">
-                                <i data-lucide="sliders" class="w-10 h-10 text-indigo-400 mx-auto"></i>
-                                <div class="text-[11px] text-indigo-400 font-black uppercase">Options</div>
-                                <div class="text-[12px] text-slate-200 font-mono">show options<br>set RHOSTS [IP]</div>
-                                <p class="text-[10px] text-slate-500">공격 파라미터 설정</p>
-                            </div>
-                            <!-- Module 4 -->
-                            <div class="infographic-node p-8 rounded-3xl text-center space-y-4 border-red-500/30">
-                                <i data-lucide="zap" class="w-10 h-10 text-red-500 mx-auto"></i>
-                                <div class="text-[11px] text-red-500 font-black uppercase">Execute</div>
-                                <div class="text-[12px] text-slate-200 font-mono">run 또는 exploit</div>
-                                <p class="text-[10px] text-slate-500">취약점 검증 시작</p>
-                            </div>
-                        </div>
-                    </div>
-
                     <div class="highlight-line">
-                        <h3 class="text-2xl font-bold text-slate-100 mb-6 italic uppercase">MSF SQLi 스캐닝 실무 명령어 (Practice Command Line)</h3>
-                        <div class="terminal-bg p-10 rounded-3xl font-mono text-sm leading-loose border border-blue-900/20 shadow-2xl">
-                            <span class="text-slate-500"># HTTP 기반 SQL 인젝션 스캐너 선택</span><br>
-                            msf6 > <span class="text-cyan-400">use auxiliary/scanner/http/sql_injection</span><br><br>
-                            <span class="text-slate-500"># 타겟 및 경로 설정</span><br>
-                            msf6 auxiliary(http/sql_injection) > <span class="text-cyan-400">set RHOSTS 192.168.1.10</span><br>
-                            msf6 auxiliary(http/sql_injection) > <span class="text-cyan-400">set URI /dvwa/vulnerabilities/sqli/</span><br>
-                            msf6 auxiliary(http/sql_injection) > <span class="text-cyan-400">set GET_PARAMS id</span><br><br>
-                            <span class="text-slate-500"># 공격 실행 및 결과 확인</span><br>
-                            msf6 auxiliary(http/sql_injection) > <span class="text-cyan-400">run</span><br>
-                            <span class="text-green-500">[+] 192.168.1.10:80 - Vulnerable to SQL injection at /dvwa/vulnerabilities/sqli/ (param: id)</span>
+                        <h3 class="text-2xl font-bold text-slate-100 mb-6 italic">Strategic Module Search</h3>
+                        <div class="terminal-bg p-8 rounded-3xl font-mono text-sm leading-relaxed border border-slate-800">
+                            <span class="text-slate-500"># SQL 인젝션 스캐너를 찾기 위한 최적의 쿼리</span><br>
+                            msf6 > <span class="text-yellow-400">search type:auxiliary name:sql_injection</span><br><br>
+                            
+                            <span class="text-slate-500"># 결과 분석 (Output Analysis)</span><br>
+                            Matching Modules<br>
+                            ================<br>
+                            &nbsp;&nbsp;&nbsp;#&nbsp;&nbsp;Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Rank&nbsp;&nbsp;&nbsp;&nbsp;Check&nbsp;&nbsp;Description<br>
+                            &nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;----&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;----&nbsp;&nbsp;&nbsp;&nbsp;-----&nbsp;&nbsp;-----------<br>
+                            &nbsp;&nbsp;&nbsp;0&nbsp;&nbsp;<span class="text-cyan-400">auxiliary/scanner/http/sql_injection</span>&nbsp;&nbsp;normal&nbsp;&nbsp;No&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;HTTP SQL Injection Scanner
+                        </div>
+                    </div>
+
+                    <!-- Search Filter Table -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-slate-800/40 p-6 rounded-2xl border border-slate-700">
+                            <div class="text-blue-400 font-black text-xs mb-2 uppercase">Type Filter</div>
+                            <p class="text-[11px] text-slate-400">exploit(공격), auxiliary(보조), post(후속) 등 모듈 유형별 필터링</p>
+                            <div class="text-[10px] font-mono text-blue-300 mt-3">type:auxiliary</div>
+                        </div>
+                        <div class="bg-slate-800/40 p-6 rounded-2xl border border-slate-700">
+                            <div class="text-cyan-400 font-black text-xs mb-2 uppercase">Platform Filter</div>
+                            <p class="text-[11px] text-slate-400">linux, windows, android 등 대상 운영체제별 필터링</p>
+                            <div class="text-[10px] font-mono text-cyan-300 mt-3">platform:linux</div>
+                        </div>
+                        <div class="bg-slate-800/40 p-6 rounded-2xl border border-slate-700">
+                            <div class="text-indigo-400 font-black text-xs mb-2 uppercase">Rank Filter</div>
+                            <p class="text-[11px] text-slate-400">excellent, great 등 공격 신뢰도가 높은 순서로 정렬</p>
+                            <div class="text-[10px] font-mono text-indigo-300 mt-3">rank:excellent</div>
                         </div>
                     </div>
                 </div>
-
-                <div class="glossary-box p-12 grid grid-cols-1 lg:grid-cols-2 gap-12">
-                    <div class="text-xs text-slate-400 leading-loose">
-                        <span class="text-blue-400 font-black block mb-6 uppercase tracking-[0.3em] border-b border-blue-900/50 pb-3">Module Categories</span>
-                        <ul class="space-y-4">
-                            <li>• <strong>Auxiliary Modules (보조 모듈):</strong> 실제 공격(Exploit) 전에 수행되는 스캐닝, 퍼징, 정보 수집을 담당하는 모듈군입니다.</li>
-                            <li>• <strong>Exploit Modules (공격 모듈):</strong> 발견된 취약점을 실제로 이용하여 시스템에 침투하고 페이로드를 전달하는 모듈입니다.</li>
-                        </ul>
+                <div class="glossary-box p-10 grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div class="text-[11px] text-slate-400 leading-loose">
+                        <strong class="text-blue-400 block mb-2 uppercase tracking-widest">Auxiliary Module (보조 모듈)</strong>
+                        실제 공격(Exploit)을 수행하기 전 단계에서 스캐닝, 정보 수집, 취약점 탐지 등을 수행하는 도구 모음입니다.
                     </div>
-                    <div class="text-xs text-slate-400 leading-loose border-l border-slate-800 pl-12">
-                        <span class="text-indigo-400 font-black block mb-6 uppercase tracking-[0.3em] border-b border-indigo-900/50 pb-3">Operational Options</span>
-                        <ul class="space-y-4">
-                            <li>• <strong>RHOSTS (Remote Hosts):</strong> 공격 대상이 되는 원격지의 IP 주소 또는 호스트명을 설정하는 옵션입니다.</li>
-                            <li>• <strong>URI (Uniform Resource Identifier):</strong> 타겟 서버 내에서 취약점이 존재하는 구체적인 페이지 경로입니다.</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 3: Deep Dive - Metasploit Ruby Exploit Code Analysis -->
-        <section id="code-deep-dive">
-            <h2 class="text-4xl font-black border-l-[12px] border-blue-500 pl-8 text-white mb-16 tracking-tighter">
-                3. MSF 공격 모듈 심층 분석 (Deep Code Analysis)
-            </h2>
-            <div class="section-card rounded-[3rem] overflow-hidden shadow-2xl">
-                <div class="p-16 space-y-16">
-                    <div class="highlight-line">
-                        <h3 class="text-2xl font-bold text-slate-100 mb-6 italic uppercase">Ruby-based Metasploit Exploit Module Logic</h3>
-                        <p class="text-slate-400 leading-relaxed text-lg">
-                            메타스플로잇의 모든 모듈은 **루비(Ruby)** 언어로 작성됩니다. 아래 코드는 HTTP 기반의 블라인드 SQL 인젝션을 탐지하기 위한 모듈의 핵심 구조와 논리 로직을 객체 지향 관점에서 분석한 것입니다.
-                        </p>
-                    </div>
-
-                    <!-- Ruby Code & Line-by-Line Annotation -->
-                    <div class="terminal-bg rounded-[2.5rem] p-12 font-mono text-sm shadow-2xl relative border border-slate-800 leading-[2.4]">
-                        <div class="absolute top-6 right-10 text-slate-700 text-[11px] uppercase font-black">msf_sql_scanner.rb</div>
-                        <pre class="text-slate-300">
-<span class="text-blue-400">class</span> <span class="text-yellow-400">MetasploitModule</span> < <span class="text-yellow-400">Msf::Auxiliary</span> <span class="text-slate-500"># 1. MSF 보조 모듈 클래스 상속(Inheritance)</span>
-  <span class="text-blue-400">include</span> <span class="text-yellow-400">Msf::Exploit::Remote::HttpClient</span> <span class="text-slate-500"># 2. HTTP 통신을 위한 믹스인(Mixin) 포함</span>
-
-  <span class="text-blue-400">def</span> <span class="text-yellow-400">initialize</span>(info = {}) <span class="text-slate-500"># 3. 객체 생성 시 모듈의 메타데이터 정의</span>
-    <span class="text-blue-400">super</span>(update_info(info,
-      <span class="text-cyan-400">'Name'</span>           => <span class="text-green-500">'Custom Blind SQL Injection Scanner'</span>,
-      <span class="text-cyan-400">'Description'</span>    => <span class="text-green-500">'SQL injection detection logic using Ruby'</span>,
-      <span class="text-cyan-400">'Author'</span>         => [ <span class="text-green-500">'Architect'</span> ],
-      <span class="text-cyan-400">'License'</span>        => <span class="text-yellow-400">MSF_LICENSE</span>
-    ))
-    <span class="text-blue-400">register_options</span>([ <span class="text-slate-500"># 4. 사용자로부터 입력받을 변수(Options) 등록</span>
-      <span class="text-yellow-400">OptString</span>.<span class="text-blue-400">new</span>(<span class="text-cyan-400">'URI'</span>, [<span class="text-blue-400">true</span>, <span class="text-green-500">'The path to test'</span>, <span class="text-green-500">'/'</span>])
-    ])
-  <span class="text-blue-400">end</span>
-
-  <span class="text-blue-400">def</span> <span class="text-yellow-400">run</span> <span class="text-slate-500"># 5. 실행 시 호출되는 메인 메소드(Entry Point)</span>
-    target_uri = <span class="text-blue-400">datastore</span>[<span class="text-cyan-400">'URI'</span>]
-    
-    <span class="text-slate-500"># 6. 블라인드 인젝션 검증용 참(True) 페이로드 전송</span>
-    <span class="text-blue-400">print_status</span>(<span class="text-green-500">"Testing for Boolean-based Blind SQLi..."</span>)
-    res_true = <span class="text-blue-400">send_request_cgi</span>({
-      <span class="text-cyan-400">'method'</span> => <span class="text-cyan-400">'GET'</span>,
-      <span class="text-cyan-400">'uri'</span>    => target_uri,
-      <span class="text-cyan-400">'vars_get'</span> => { <span class="text-cyan-400">'id'</span> => <span class="text-green-500">"1' AND 1=1 -- "</span> } <span class="text-slate-500"># [각주] 1=1은 항상 참임</span>
-    })
-
-    <span class="text-slate-500"># 7. 블라인드 인젝션 검증용 거짓(False) 페이로드 전송</span>
-    res_false = <span class="text-blue-400">send_request_cgi</span>({
-      <span class="text-cyan-400">'method'</span> => <span class="text-cyan-400">'GET'</span>,
-      <span class="text-cyan-400">'uri'</span>    => target_uri,
-      <span class="text-cyan-400">'vars_get'</span> => { <span class="text-cyan-400">'id'</span> => <span class="text-green-500">"1' AND 1=2 -- "</span> } <span class="text-slate-500"># [각주] 1=2는 항상 거짓임</span>
-    })
-
-    <span class="text-slate-500"># 8. 두 응답의 차이를 비교하여 취약점 판별</span>
-    <span class="text-blue-400">if</span> res_true && res_false && (res_true.body != res_false.body)
-      <span class="text-blue-400">print_good</span>(<span class="text-green-500">"Vulnerability Detected: Response bodies differ on injection!"</span>)
-    <span class="text-blue-400">else</span>
-      <span class="text-blue-400">print_error</span>(<span class="text-green-500">"No vulnerability found."</span>)
-    <span class="text-blue-400">end</span>
-  <span class="text-blue-400">end</span>
-<span class="text-blue-400">end</span>
-</pre>
-                    </div>
-
-                    <!-- 언어 및 로직 심층 분석 -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-                        <div class="bg-slate-800/60 p-10 rounded-[2rem] border border-slate-700 shadow-xl">
-                            <h4 class="text-xl font-black text-white mb-6 uppercase flex items-center gap-3">
-                                <i data-lucide="terminal" class="w-6 h-6 text-blue-400"></i> Ruby & MSF API Analysis
-                            </h4>
-                            <ul class="text-sm text-slate-400 space-y-6 leading-relaxed">
-                                <li class="highlight-line">
-                                    <strong class="text-slate-100">Msf::Exploit::Remote::HttpClient:</strong> 루비의 믹스인(Mixin) 기능을 통해 HTTP 요청 라이브러리를 모듈에 주입합니다. 이를 통해 `send_request_cgi`와 같은 고수준 API를 사용할 수 있습니다.
-                                </li>
-                                <li class="highlight-line">
-                                    <strong class="text-slate-100">datastore['URI']:</strong> MSF 콘솔에서 `set URI` 명령어로 입력한 값이 저장되는 해시(Hash) 객체입니다. 런타임에 사용자 설정을 가져오는 통로입니다.
-                                </li>
-                            </ul>
-                        </div>
-                        <div class="bg-slate-800/60 p-10 rounded-[2rem] border border-slate-700 shadow-xl">
-                            <h4 class="text-xl font-black text-white mb-6 uppercase flex items-center gap-3">
-                                <i data-lucide="binary" class="w-6 h-6 text-cyan-400"></i> Logical Comparison Algorithm
-                            </h4>
-                            <p class="text-xs text-slate-400 leading-loose mb-6">
-                                블라인드 인젝션의 핵심 로직은 <strong>응답 차분 분석(Differential Analysis)</strong>입니다.
-                            </p>
-                            <ul class="text-[11px] text-slate-500 space-y-4">
-                                <li>• <span class="text-blue-400 font-bold">참(True) 조건:</span> 서버가 정상적인 데이터를 반환할 때의 응답 본문(Body) 크기를 캡처합니다.</li>
-                                <li>• <span class="text-red-400 font-bold">거짓(False) 조건:</span> 쿼리 결과가 없을 때의 응답 본문을 캡처합니다.</li>
-                                <li>• <span class="text-green-400 font-bold">판별:</span> 두 본문 데이터가 다를 경우, 서버가 주입된 논리 구문을 해석하여 실행하고 있음을 의미합니다.</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="glossary-box p-12 grid grid-cols-1 lg:grid-cols-2 gap-12">
-                    <div class="text-xs text-slate-400 leading-loose">
-                        <span class="text-blue-400 font-black block mb-6 uppercase tracking-[0.3em] border-b border-blue-900/50 pb-3">Ruby Language Features</span>
-                        <ul class="space-y-4">
-                            <li>• <strong>Mixin (믹스인):</strong> 클래스 상속과는 별개로 다른 모듈의 기능을 포함(Include)시켜 기능을 확장하는 루비의 고유 특성입니다.</li>
-                            <li>• <strong>CGI (Common Gateway Interface):</strong> 웹 서버와 프로그램 간의 데이터 교환 표준으로, MSF에서는 HTTP 파라미터를 다루는 API 명칭에 사용됩니다.</li>
-                        </ul>
-                    </div>
-                    <div class="text-xs text-slate-400 leading-loose border-l border-slate-800 pl-12">
-                        <span class="text-yellow-400 font-black block mb-6 uppercase tracking-[0.3em] border-b border-yellow-900/50 pb-3">Logic Annotation</span>
-                        <ul class="space-y-4">
-                            <li>• <strong>-- (Double Dash):</strong> SQL 구문 뒤의 나머지 부분을 주석 처리하여 문법적 에러를 방지하는 매우 중요한 기호입니다.</li>
-                            <li>• <strong>datastore:</strong> MSF 모듈 내에서 사용자가 설정한 모든 변수값(RHOSTS, URI 등)을 담고 있는 전역 데이터 저장소입니다.</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 4: Architect's Comprehensive Defense Strategy -->
-        <section id="defense">
-            <h2 class="text-4xl font-black border-l-[12px] border-blue-500 pl-8 text-white mb-16 tracking-tighter">
-                4. 아키텍트 관점의 통합 방어 체계 (Defense Architecture)
-            </h2>
-            <div class="bg-slate-900/40 border border-slate-800 rounded-[3rem] p-16 shadow-2xl space-y-12">
-                <div class="flex flex-col xl:flex-row gap-16">
-                    <div class="flex-1 space-y-8">
-                        <div class="text-blue-400"><i data-lucide="shield-check" class="w-16 h-16"></i></div>
-                        <h4 class="font-black text-white text-2xl uppercase italic tracking-tighter">Strategic Hardening</h4>
-                        <p class="text-sm text-slate-400 leading-relaxed">
-                            메타스플로잇과 같은 강력한 프레임워크를 방어하기 위해서는 개별 취약점 패치를 넘어선 **아키텍처 수준의 강화(Hardening)**가 필요합니다.
-                        </p>
-                        <div class="space-y-4">
-                            <div class="p-6 bg-slate-800/80 rounded-2xl border border-slate-700">
-                                <strong class="text-blue-400 block mb-2 text-xs uppercase tracking-widest">1. Prepared Statements (의무화)</strong>
-                                <p class="text-[11px] text-slate-500 leading-relaxed">애플리케이션 소스 레벨에서 쿼리 구조와 데이터를 분리하여 인젝션 공격의 원천을 제거하십시오.</p>
-                            </div>
-                            <div class="p-6 bg-slate-800/80 rounded-2xl border border-slate-700">
-                                <strong class="text-blue-400 block mb-2 text-xs uppercase tracking-widest">2. WAF Behavior Analysis</strong>
-                                <p class="text-[11px] text-slate-500 leading-relaxed">MSF 모듈이 생성하는 `send_request_cgi` 패턴을 분석하여 비정상적인 논리 연산자 주입 시 실시간 차단하십시오.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex-1 space-y-8 border-l border-slate-800 pl-16">
-                        <div class="text-cyan-400"><i data-lucide="server" class="w-16 h-16"></i></div>
-                        <h4 class="font-black text-white text-2xl uppercase italic tracking-tighter">Database Layer Isolation</h4>
-                        <p class="text-sm text-slate-400 leading-relaxed">
-                            공격자가 인젝션에 성공하더라도 피해를 최소화하기 위해 데이터베이스 계정에 **최소 권한 원칙(Least Privilege)**을 적용해야 합니다.
-                        </p>
-                        <div class="terminal-bg p-8 rounded-3xl font-mono text-xs leading-loose border border-slate-800">
-                            <span class="text-slate-500"># 보안 권고: DB 계정 권한 제한</span><br>
-                            <span class="text-cyan-400">REVOKE ALL PRIVILEGES ON</span> *.* <span class="text-cyan-400">FROM</span> 'web_user'@'%';<br>
-                            <span class="text-cyan-400">GRANT SELECT, INSERT</span> <span class="text-cyan-400">ON</span> service_db.logs <span class="text-cyan-400">TO</span> 'web_user'@'%';<br>
-                            <span class="text-slate-500">-- DROP, TRUNCATE, FILE 등의 시스템 권한은 절대 배제</span>
-                        </div>
+                    <div class="text-[11px] text-slate-400 leading-loose border-l border-slate-800 pl-10">
+                        <strong class="text-indigo-400 block mb-2 uppercase tracking-widest">Rank (랭크)</strong>
+                        해당 모듈이 타겟 시스템에 미치는 영향과 성공 가능성을 나타내며, `excellent`는 시스템 충돌 위험이 거의 없음을 의미합니다.
                     </div>
                 </div>
             </div>
@@ -352,11 +186,12 @@
     </main>
 
     <footer class="max-w-7xl mx-auto px-8 py-20 border-t border-slate-800 text-center">
-        <div class="text-slate-500 font-mono text-[11px] tracking-[0.5em] uppercase mb-8">
-            © 2026 IP Security Architecture Publishing. All rights reserved.
+        <div class="text-slate-500 font-mono text-[10px] tracking-[0.5em] uppercase mb-6">
+            © 2026 IP SECURITY INFRASTRUCTURE ARCHITECT PUBLISHING
         </div>
-        <p class="text-slate-600 text-[11px] leading-relaxed max-w-3xl mx-auto italic font-light">
-            본 문서는 공식적인 침투 테스트 가이드라인과 루비 언어 보안 명세를 참조하여 작성되었습니다. 허가받지 않은 시스템에 대한 테스트는 엄격히 금지되며, 오직 교육 목적으로만 활용하십시오.
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic">
+            본 가이드는 교육적 목적으로만 제작되었으며, 허가받지 않은 대상에 대한 침투 테스트는 법적 책임을 질 수 있습니다. 
+            항상 윤리적 해킹 원칙을 준수하십시오.
         </p>
     </footer>
 
