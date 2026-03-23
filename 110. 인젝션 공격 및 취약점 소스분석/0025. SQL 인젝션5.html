@@ -25,7 +25,6 @@
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
         
-        /* 다이어그램 선 애니메이션 */
         .flow-line {
             stroke-dasharray: 10;
             animation: dash 5s linear infinite;
@@ -70,44 +69,34 @@
                     SQL Injection (SQL 인젝션, 구조화 질의어 삽입)은 웹 애플리케이션의 입력값 검증 미흡을 악용하여 데이터베이스(Database)에 임의의 쿼리를 주입하는 공격입니다. 이는 <strong>STRIDE (Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, Elevation of Privilege)</strong> 모델 중 <strong>Information Disclosure (정보 유출)</strong>와 <strong>Tampering (데이터 변조)</strong>에 해당하며, 최종적으로 관리자 권한을 획득하는 결과로 이어집니다.
                 </p>
 
-                <!-- 도식화 인포그래픽 영역 -->
                 <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner overflow-hidden">
                     <h4 class="text-center font-bold text-slate-400 mb-8 text-xs tracking-widest uppercase">
                         [도식: SQL 인젝션 공격 흐름도]
                     </h4>
                     <div class="relative flex flex-col md:flex-row items-center justify-between gap-8">
-                        <!-- Attacker -->
                         <div class="flex-1 w-full text-center p-6 bg-slate-800 rounded-xl border border-red-900/30 shadow-lg group">
                             <i data-lucide="skull" class="w-12 h-12 text-red-500 mx-auto mb-4 group-hover:scale-110 transition-transform"></i>
                             <div class="font-black text-slate-100 text-sm">Attacker (공격자)</div>
                             <p class="text-[10px] text-red-400 mt-1 uppercase">Kali Linux / Metasploit</p>
                         </div>
-                        
-                        <!-- Attack Line -->
                         <div class="hidden md:block flex-shrink-0">
                             <svg width="60" height="20" viewBox="0 0 60 20">
                                 <path d="M0 10 L60 10" stroke="#ef4444" stroke-width="2" fill="none" class="flow-line" />
                                 <polygon points="55,5 60,10 55,15" fill="#ef4444" />
                             </svg>
                         </div>
-
-                        <!-- Web Server -->
                         <div class="flex-1 w-full text-center p-6 bg-slate-800 rounded-xl border border-cyan-900/50 shadow-lg relative">
                             <i data-lucide="globe" class="w-12 h-12 text-cyan-400 mx-auto mb-4"></i>
                             <div class="font-black text-slate-100 text-sm">Web Application (웹 앱)</div>
                             <p class="text-[10px] text-cyan-400 mt-1 uppercase">Mutillidae / OWASP BWA</p>
                             <div class="absolute -top-2 -right-2 bg-red-600 text-white text-[8px] px-2 py-0.5 rounded font-bold">VULNERABLE</div>
                         </div>
-
-                         <!-- Query Line -->
                         <div class="hidden md:block flex-shrink-0">
                             <svg width="60" height="20" viewBox="0 0 60 20">
                                 <path d="M0 10 L60 10" stroke="#f59e0b" stroke-width="2" fill="none" class="flow-line" />
                                 <polygon points="55,5 60,10 55,15" fill="#f59e0b" />
                             </svg>
                         </div>
-
-                        <!-- Database -->
                         <div class="flex-1 w-full text-center p-6 bg-slate-800 rounded-xl border border-blue-900/50 shadow-lg">
                             <i data-lucide="database" class="w-12 h-12 text-blue-400 mx-auto mb-4"></i>
                             <div class="font-black text-slate-100 text-sm">Target Database (대상 DB)</div>
@@ -124,7 +113,6 @@
                 2. 실습 구성 요소 (Lab Components)
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Attacker Node -->
                 <div class="section-card rounded-3xl p-8 border-red-900/30 shadow-xl relative overflow-hidden">
                     <div class="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">ATTACKER</div>
                     <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
@@ -141,8 +129,6 @@
                         </li>
                     </ul>
                 </div>
-
-                <!-- Target Node -->
                 <div class="section-card rounded-3xl p-8 border-indigo-900/30 shadow-xl relative overflow-hidden">
                     <div class="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">TARGET</div>
                     <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
@@ -168,8 +154,6 @@
                 3. 실증 및 구현 절차 (Exploitation Steps)
             </h2>
             <div class="section-card rounded-3xl p-10 shadow-2xl space-y-16">
-                
-                <!-- Step 01 -->
                 <div class="relative">
                     <div class="flex items-center gap-3 mb-6">
                         <span class="bg-cyan-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-sm font-black italic shadow-[0_0_15px_rgba(34,211,238,0.6)]">01</span>
@@ -188,8 +172,6 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Step 02 -->
                 <div class="relative">
                     <div class="flex items-center gap-3 mb-6">
                         <span class="bg-cyan-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-sm font-black italic shadow-[0_0_15px_rgba(34,211,238,0.6)]">02</span>
@@ -210,8 +192,6 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Step 03 -->
                 <div class="relative">
                     <div class="flex items-center gap-3 mb-6">
                         <span class="bg-cyan-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-sm font-black italic shadow-[0_0_15px_rgba(34,211,238,0.6)]">03</span>
@@ -235,7 +215,6 @@
                         </div>
                     </div>
                 </div>
-
             </div>
         </section>
 
@@ -246,7 +225,6 @@
             </h2>
             <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-10">
                 <div class="flex flex-col md:flex-row gap-8">
-                    <!-- Tip -->
                     <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700 hover:border-cyan-500/50 transition-colors">
                         <div class="text-cyan-400 mb-4"><i data-lucide="shield-check" class="w-8 h-8"></i></div>
                         <h4 class="font-bold text-slate-100 mb-2">방어 전략: Prepared Statements</h4>
@@ -254,7 +232,6 @@
                             SQL Injection을 방어하는 가장 근본적인 방법은 <strong>Prepared Statements (매개변수화된 쿼리)</strong>를 사용하는 것입니다. 이는 사용자 입력값을 쿼리 구조와 분리하여 처리함으로써 악의적인 코드가 실행되는 것을 원천 차단합니다.
                         </p>
                     </div>
-                    <!-- Warning -->
                     <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700 hover:border-red-500/50 transition-colors">
                         <div class="text-red-400 mb-4"><i data-lucide="gavel" class="w-8 h-8"></i></div>
                         <h4 class="font-bold text-slate-100 mb-2">법적 고지 및 윤리 (Ethics)</h4>
@@ -262,6 +239,76 @@
                             본 실습 내용은 승인된 환경 내에서의 보안 진단 능력을 배양하기 위함입니다. 허가받지 않은 시스템에 대한 공격 시도는 '정보통신망 이용촉진 및 정보보호 등에 관한 법률'에 의해 엄격히 처벌받을 수 있습니다.
                         </p>
                     </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: 정찰 및 취약점 발견 (Reconnaissance & Vulnerability Discovery) -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                5. 정찰 및 취약점 탐색 (Reconnaissance & Vulnerability Discovery)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-10">
+                <p class="text-slate-300 text-lg leading-relaxed">
+                    공격자가 <code class="text-cyan-400">TARGETURI</code>를 임의로 생성하는 것이 아니라, 대상 서버를 <strong>Reconnaissance (정찰)</strong>하여 존재하는 경로와 취약한 파라미터를 찾아내는 과정입니다. 주로 자동화된 <strong>Directory Enumeration (디렉토리 열거)</strong> 도구를 활용합니다.
+                </p>
+
+                <!-- 정찰 아키텍처 도식 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner">
+                    <h4 class="text-center font-bold text-slate-400 mb-6 text-xs tracking-widest uppercase">
+                        [도식: 정보 수집 및 취약점 스캐닝 프로세스]
+                    </h4>
+                    <div class="flex flex-col md:flex-row items-center justify-around gap-6">
+                        <div class="text-center p-4 bg-slate-800 rounded-lg border border-cyan-900/30 w-full md:w-1/4">
+                            <i data-lucide="search" class="w-8 h-8 text-cyan-400 mx-auto mb-2"></i>
+                            <div class="text-[12px] font-bold text-slate-100">Dir / File Scanning</div>
+                            <div class="text-[10px] text-slate-500 italic">DIRB / Gobuster</div>
+                        </div>
+                        <i data-lucide="chevrons-right" class="hidden md:block w-6 h-6 text-slate-700"></i>
+                        <div class="text-center p-4 bg-slate-800 rounded-lg border border-blue-900/30 w-full md:w-1/4">
+                            <i data-lucide="file-search-2" class="w-8 h-8 text-blue-400 mx-auto mb-2"></i>
+                            <div class="text-[12px] font-bold text-slate-100">Vuln Discovery</div>
+                            <div class="text-[10px] text-slate-500 italic">Nikto / Burp Suite</div>
+                        </div>
+                        <i data-lucide="chevrons-right" class="hidden md:block w-6 h-6 text-slate-700"></i>
+                        <div class="text-center p-4 bg-slate-800 rounded-lg border border-red-900/30 w-full md:w-1/4">
+                            <i data-lucide="target" class="w-8 h-8 text-red-500 mx-auto mb-2"></i>
+                            <div class="text-[12px] font-bold text-slate-100">Target URI Identified</div>
+                            <div class="text-[10px] text-slate-500 italic">Exploitable Endpoint</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- 도구 1: DIRB -->
+                    <div class="space-y-4">
+                        <h4 class="text-sm font-black text-cyan-400 uppercase tracking-tighter">1) 디렉토리 열거 (Dirb)</h4>
+                        <p class="text-xs text-slate-400">웹 서버의 숨겨진 디렉토리와 파일을 사전(Wordlist) 기반으로 찾아냅니다.</p>
+                        <div class="terminal-bg rounded-xl p-4 font-mono text-xs shadow-inner">
+                            <div class="text-slate-200">$ <span class="text-cyan-400">dirb http://192.168.1.100</span></div>
+                            <div class="text-slate-500 mt-2">==> DIRECTORY: http://192.168.1.100/mutillidae/</div>
+                            <div class="text-slate-500">+ http://192.168.1.100/mutillidae/index.php (CODE:200)</div>
+                        </div>
+                    </div>
+                    <!-- 도구 2: Nikto -->
+                    <div class="space-y-4">
+                        <h4 class="text-sm font-black text-blue-400 uppercase tracking-tighter">2) 취약점 스캐닝 (Nikto)</h4>
+                        <p class="text-xs text-slate-400">서버의 설정 오류 및 알려진 보안 취약점을 종합적으로 진단합니다.</p>
+                        <div class="terminal-bg rounded-xl p-4 font-mono text-xs shadow-inner">
+                            <div class="text-slate-200">$ <span class="text-blue-400">nikto -h http://192.168.1.100</span></div>
+                            <div class="text-slate-500 mt-2">+ OSVDB-3092: /login.php: SQL Injection vulnerable.</div>
+                            <div class="text-slate-500">+ Target URI: /mutillidae/index.php?page=user-info.php</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-indigo-900/20 border border-indigo-500/30 rounded-2xl p-6">
+                    <h4 class="font-bold text-indigo-400 mb-2 text-sm">💡 공격자가 경로를 단정 짓는 이유 (How they know)</h4>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        공격자는 <code class="text-cyan-400">Reconnaissance (정찰)</code> 도구를 실행하여 웹 루트 하위의 모든 파일과 파라미터를 전수 조사합니다. 
+                        조사 과정 중 <code class="text-white">'</code> (싱글 쿼테이션) 등을 입력했을 때 데이터베이스 에러 메시지가 반환되거나 응답 시간이 지연되는 페이지를 발견하면, 
+                        해당 페이지를 <strong>SQL Injection (SQL 인젝션)</strong>의 <code class="text-red-400">Entry Point (진입점)</code>로 확정하게 됩니다.
+                    </p>
                 </div>
             </div>
         </section>
@@ -278,7 +325,6 @@
     </footer>
 
     <script>
-        // 아이콘 로드
         lucide.createIcons();
     </script>
 </body>
