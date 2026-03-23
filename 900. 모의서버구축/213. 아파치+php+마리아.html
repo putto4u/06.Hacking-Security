@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>웹 보안 실무: 타겟 서버 구축 및 취약점 실증 실습</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+        }
+        .terminal-bg { background-color: #020617; border: 1px solid #1e293b; }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-filter: blur(12px); }
+        .code-block { font-family: 'Fira Code', monospace; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+        
+        .flow-line {
+            stroke-dasharray: 10;
+            animation: dash 5s linear infinite;
+        }
+        @keyframes dash {
+            to { stroke-dashoffset: -100; }
+        }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <!-- Header: 기술 사양 및 타이틀 -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-indigo-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(99,102,241,0.5)]">Cyber Security Lab</span>
+                    <span class="text-slate-500 font-mono text-[10px]">LAB-ID: VULN-SRV-SET | Target: 192.168.100.80</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 tracking-tight leading-tight">
+                    Vulnerable Server Environment<br><span class="text-slate-100 text-2xl">LAMP 스택 구축 및 4대 주요 웹 취약점 실습</span>
+                </h1>
+            </div>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    TARGET: VICTIM
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">Infrastructure Architect</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-24">
+
+        <!-- Section 1: 아키텍처 개요 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-indigo-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                1. 인프라스트럭처 설계 (Infrastructure Design)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-10 leading-relaxed">
+                    본 실습 환경은 <strong>LAMP Stack (Linux, Apache, MySQL/MariaDB, PHP; 리눅스 기반 웹 서비스 묶음)</strong> 아키텍처를 기반으로 구성됩니다. 공격자는 외부 네트워크에서 접근하여 서비스의 설정 오류 및 코드 취약점을 분석합니다.
+                </p>
+
+                <!-- 아키텍처 도식 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner overflow-hidden">
+                    <h4 class="text-center font-bold text-slate-400 mb-8 text-xs tracking-widest uppercase">
+                        [도식: 타겟 서버 서비스 구조 및 네트워크 흐름]
+                    </h4>
+                    <div class="relative flex flex-col md:flex-row items-center justify-between gap-8">
+                        <!-- Attacker -->
+                        <div class="flex-1 w-full text-center p-6 bg-slate-800 rounded-xl border border-red-900/30 shadow-lg">
+                            <i data-lucide="skull" class="w-12 h-12 text-red-500 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">Attacker (공격자)</div>
+                            <p class="text-[10px] text-slate-500 mt-1 uppercase">Kali Linux</p>
+                        </div>
+                        
+                        <div class="hidden md:block flex-shrink-0">
+                            <svg width="60" height="20" viewBox="0 0 60 20">
+                                <path d="M0 10 L60 10" stroke="#6366f1" stroke-width="2" fill="none" class="flow-line" />
+                            </svg>
+                        </div>
+
+                        <!-- Victim -->
+                        <div class="flex-1 w-full text-center p-6 bg-slate-800 rounded-xl border border-indigo-900/50 shadow-lg relative">
+                            <i data-lucide="server" class="w-12 h-12 text-indigo-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">Victim (타겟 서버)</div>
+                            <p class="text-[10px] text-indigo-400 mt-1 uppercase">192.168.100.80</p>
+                            
+                            <!-- Internal Components -->
+                            <div class="mt-4 flex justify-center gap-2">
+                                <span class="bg-slate-900 px-2 py-1 rounded text-[8px] text-slate-400 border border-slate-700">Apache2</span>
+                                <span class="bg-slate-900 px-2 py-1 rounded text-[8px] text-slate-400 border border-slate-700">MariaDB</span>
+                                <span class="bg-slate-900 px-2 py-1 rounded text-[8px] text-slate-400 border border-slate-700">PHP</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: 환경 구축 절차 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-indigo-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                2. 타겟 서버 환경 구성 (Server Environment Setup)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-12">
+                
+                <!-- Step 01: LAMP Install -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-indigo-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black italic">STEP 01</span>
+                        <h3 class="text-xl font-bold text-slate-100 text-glow">기본 서비스 설치 및 방화벽 설정</h3>
+                    </div>
+                    <div class="pl-12">
+                        <p class="text-sm text-slate-400 mb-4">운영체제를 최신화하고 웹 서비스 운영에 필요한 핵심 패키지들을 설치합니다. 또한 <strong>UFW (Uncomplicated Firewall; 복잡하지 않은 방화벽)</strong>를 통해 80번 포트를 개방합니다.</p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">Ubuntu Terminal</div>
+                            <div class="text-slate-200">$ <span class="text-indigo-400">sudo su -</span></div>
+                            <div class="text-slate-200">$ <span class="text-indigo-400">apt update && apt install -y apache2 mariadb-server php php-mysql</span></div>
+                            <div class="text-slate-500 mt-4"># 서비스 가동 및 방화벽 허용</div>
+                            <div class="text-slate-200">$ <span class="text-indigo-400">systemctl start apache2 && systemctl start mariadb</span></div>
+                            <div class="text-slate-200">$ <span class="text-indigo-400">ufw allow 80/tcp && ufw reload</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 02: Vuln App Setup -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-indigo-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black italic">STEP 02</span>
+                        <h3 class="text-xl font-bold text-slate-100 text-glow">취약 웹 애플리케이션 배포</h3>
+                    </div>
+                    <div class="pl-12">
+                        <p class="text-sm text-slate-400 mb-4">실습용 취약 사이트 소스를 다운로드하여 배포하고, <strong>MariaDB (마리아 데이터베이스)</strong>에 기초 데이터를 주입합니다.</p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">App Setup</div>
+                            <div class="text-slate-200">$ <span class="text-indigo-400">cd /var/www/html</span></div>
+                            <div class="text-slate-200">$ <span class="text-indigo-400">wget -O webhack.zip https://bit.ly/43Dxh9g && unzip webhack.zip</span></div>
+                            <div class="text-slate-500 mt-4"># DB 데이터 주입 및 관리자 권한 설정</div>
+                            <div class="text-slate-200">$ <span class="text-indigo-400">mysql -u root < board/webhack.sql</span></div>
+                            <div class="text-slate-200">$ <span class="text-indigo-400">mysql -u root -p</span></div>
+                            <div class="text-emerald-500 mt-2">MariaDB > <span class="text-slate-200">ALTER USER 'root'@'localhost' IDENTIFIED BY 'admin'; FLUSH PRIVILEGES;</span></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Section 3: 취약점 실증 실습 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-red-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                3. 주요 웹 취약점 실증 (Vulnerability Exploitation)
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                
+                <!-- Vulnerability 1: Info Disclosure -->
+                <div class="section-card rounded-3xl p-8 border-slate-800 hover:border-indigo-500 transition-all group">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 bg-indigo-500/20 rounded-lg flex items-center justify-center group-hover:bg-indigo-500 transition-colors">
+                            <i data-lucide="info" class="text-indigo-400 group-hover:text-slate-900"></i>
+                        </div>
+                        <h3 class="text-xl font-black text-slate-100">1. 정보 유출 (Information Disclosure)</h3>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-4 leading-relaxed">
+                        존재하지 않는 파일 호출 시 발생하는 <strong>404 Error (파일을 찾을 수 없음)</strong> 페이지 하단에서 서버의 엔진 정보를 확인합니다.
+                    </p>
+                    <div class="bg-slate-900/60 p-4 rounded-xl font-mono text-[10px] border border-slate-700">
+                        <div class="text-indigo-400">GET /pds/abcd.html HTTP/1.1</div>
+                        <div class="text-red-400 mt-2">Server: Apache/2.4.41 (Ubuntu) ...</div>
+                    </div>
+                </div>
+
+                <!-- Vulnerability 2: SQL Injection -->
+                <div class="section-card rounded-3xl p-8 border-slate-800 hover:border-red-500 transition-all group">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center group-hover:bg-red-500 transition-colors">
+                            <i data-lucide="database-zap" class="text-red-400 group-hover:text-slate-900"></i>
+                        </div>
+                        <h3 class="text-xl font-black text-slate-100">2. SQL Injection (인증 우회)</h3>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-4 leading-relaxed">
+                        논리적 참을 유도하는 쿼리를 삽입하여 <strong>Authentication (인증)</strong> 절차를 우회합니다.
+                    </p>
+                    <div class="bg-slate-900/60 p-4 rounded-xl font-mono text-[10px] border border-slate-700">
+                        <div class="text-slate-500 italic"># PW 입력값에 쿼리 삽입</div>
+                        <div class="text-red-400 mt-1">' OR ''='</div>
+                        <div class="text-slate-600 mt-2">WHERE id='admin' AND pw='' OR ''=''</div>
+                        <div class="text-emerald-500 mt-1">=> 항상 참(True)으로 판명되어 로그인 성공</div>
+                    </div>
+                </div>
+
+                <!-- Vulnerability 3: XSS -->
+                <div class="section-card rounded-3xl p-8 border-slate-800 hover:border-pink-500 transition-all group">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 bg-pink-500/20 rounded-lg flex items-center justify-center group-hover:bg-pink-500 transition-colors">
+                            <i data-lucide="code-2" class="text-pink-400 group-hover:text-slate-900"></i>
+                        </div>
+                        <h3 class="text-xl font-black text-slate-100">3. XSS (Cross-Site Scripting)</h3>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-4 leading-relaxed">
+                        게시판 제목이나 본문에 <strong>JavaScript (자바스크립트)</strong> 코드를 삽입하여 사용자의 브라우저에서 실행되게 합니다.
+                    </p>
+                    <div class="bg-slate-900/60 p-4 rounded-xl font-mono text-[10px] border border-slate-700">
+                        <div class="text-pink-400">&lt;SCRIPT&gt;alert("XSS hack!");&lt;/SCRIPT&gt;</div>
+                        <div class="text-slate-500 mt-2 italic">// 게시물 클릭 시 공격자가 의도한 스크립트 팝업 발생</div>
+                    </div>
+                </div>
+
+                <!-- Vulnerability 4: Webshell Upload -->
+                <div class="section-card rounded-3xl p-8 border-slate-800 hover:border-orange-500 transition-all group">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 bg-orange-500/20 rounded-lg flex items-center justify-center group-hover:bg-orange-500 transition-colors">
+                            <i data-lucide="upload-cloud" class="text-orange-400 group-hover:text-slate-900"></i>
+                        </div>
+                        <h3 class="text-xl font-black text-slate-100">4. Webshell Upload (서버 장악)</h3>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-4 leading-relaxed">
+                        첨부파일 업로드 기능을 악용하여 서버의 명령어를 실행할 수 있는 <strong>Webshell (웹쉘)</strong> 파일을 전송하고 실행합니다.
+                    </p>
+                    <div class="bg-slate-900/60 p-4 rounded-xl font-mono text-[10px] border border-slate-700">
+                        <div class="text-orange-400">File: webshell.php</div>
+                        <div class="text-slate-500 mt-2">http://192.168.100.80/board/pds/webshell.php</div>
+                        <div class="text-emerald-500 mt-1">=> 서버의 모든 자원 제어권 획득</div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Section 4: 전문가 분석 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-indigo-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                4. 아키텍트 인사이트 (Expert Insight)
+            </h2>
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-10">
+                <div class="flex flex-col md:flex-row gap-8">
+                    <!-- Tip -->
+                    <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                        <div class="text-indigo-400 mb-4"><i data-lucide="shield-check" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2">권한 관리의 중요성</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            웹 서버의 소유권을 <strong>www-data (아파치 기본 사용자 계정)</strong>로 설정하는 이유는 웹 서비스가 필요 이상의 시스템 권한을 갖지 못하게 하기 위함입니다. 하지만 웹쉘이 업로드되면 이 권한조차 탈취될 수 있으므로 파일 업로드 경로의 실행 권한을 제한하는 설정이 필수적입니다.
+                        </p>
+                    </div>
+                    <!-- Warning -->
+                    <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                        <div class="text-red-400 mb-4"><i data-lucide="alert-octagon" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2">실습 시 유의 사항</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            현재 구축된 서버는 보안이 매우 취약하게 설정되어 있습니다. 외부망에서 접근 가능한 공인 IP 환경에서 가동할 경우 순식간에 실제 해킹에 노출될 수 있으므로 반드시 <strong>NAT (Network Address Translation; 네트워크 주소 변환)</strong> 기반의 폐쇄된 가상 네트워크 환경에서만 실습하십시오.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+            © 2026 Security Infrastructure Lab. All rights reserved.
+        </div>
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic">
+            본 교재는 기업 내 보안 담당자의 침투 테스트 역량 강화를 위해 제작되었습니다. 승인되지 않은 자산에 대한 모든 공격 행위는 법적 처벌의 대상이 됩니다.
+        </p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
