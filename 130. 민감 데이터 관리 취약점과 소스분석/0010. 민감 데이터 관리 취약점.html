@@ -1,1 +1,291 @@
-sdf
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>민감한 데이터 관리: 소스코드 보안 실습</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+        }
+        .terminal-bg { background-color: #0c1120; border: 1px solid #1e293b; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-filter: blur(12px); }
+        .code-block { font-family: 'Fira Code', monospace; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+        .step-number { background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%); }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <!-- Header: 기술 사양 및 타이틀 -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Cyber Security Lab</span>
+                    <span class="text-slate-500 font-mono text-[10px]">SEC-01 | Data Protection</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
+                    민감한 데이터 노출의 이해와 관리<br><span class="text-slate-100 text-2xl font-bold">1강: 하드코딩된 자격 증명 방어 전략</span>
+                </h1>
+            </div>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    RISK LEVEL: CRITICAL
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase font-bold">System Architect Pro</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-24">
+
+        <!-- Section 1: 아키텍처 개요 -->
+        <section>
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20">
+                    <i data-lucide="shield-check" class="w-6 h-6 text-cyan-400"></i>
+                </div>
+                <h2 class="text-2xl font-black text-slate-100 tracking-tight">
+                    1. 아키텍처 개요 (Architecture Overview)
+                </h2>
+            </div>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-10 leading-relaxed">
+                    현대적인 클라우드 기반 애플리케이션 아키텍처에서 <strong>민감한 데이터(Sensitive Data)</strong>는 시스템의 생존과 직결됩니다. 소스코드 내에 직접 기입되는 <strong>하드코딩(Hard-coding, 데이터를 코드에 직접 입력하는 방식)</strong>된 자격 증명은 보안 체인의 가장 약한 고리입니다. 본 장에서는 코드 레벨에서의 데이터 노출이 인프라 전체의 침해로 이어지는 메커니즘을 분석합니다.
+                </p>
+
+                <!-- 도식화 인포그래픽 영역 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner">
+                    <h4 class="text-center font-bold text-slate-400 mb-12 text-xs tracking-widest uppercase">
+                        [도식: 민감 데이터 유출 및 침해 확산 경로 (Exploitation Flow)]
+                    </h4>
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-6 relative">
+                        <!-- Component A: Source Code -->
+                        <div class="flex-1 text-center p-8 bg-slate-800 rounded-2xl border border-red-900/50 shadow-lg group hover:border-red-500 transition-colors">
+                            <i data-lucide="code-2" class="w-12 h-12 text-red-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm mb-2">코드 취약점</div>
+                            <p class="text-[10px] text-slate-500 font-medium italic">Hard-coded API Keys & PW</p>
+                        </div>
+                        
+                        <div class="flex flex-col items-center">
+                            <i data-lucide="chevrons-right" class="w-8 h-8 text-slate-600 rotate-90 md:rotate-0"></i>
+                        </div>
+
+                        <!-- Component B: Git Repository -->
+                        <div class="flex-1 text-center p-8 bg-slate-800 rounded-2xl border border-amber-900/50 shadow-lg group hover:border-amber-500 transition-colors">
+                            <i data-lucide="github" class="w-12 h-12 text-amber-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm mb-2">저장소 유출</div>
+                            <p class="text-[10px] text-slate-500 font-medium italic">Public Repo / Insider Threat</p>
+                        </div>
+
+                        <div class="flex flex-col items-center">
+                            <i data-lucide="chevrons-right" class="w-8 h-8 text-slate-600 rotate-90 md:rotate-0"></i>
+                        </div>
+
+                        <!-- Component C: Cloud Infrastructure -->
+                        <div class="flex-1 text-center p-8 bg-slate-800 rounded-2xl border border-cyan-900/50 shadow-lg group hover:border-cyan-500 transition-colors">
+                            <i data-lucide="cloud" class="w-12 h-12 text-cyan-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm mb-2">인프라 장악</div>
+                            <p class="text-[10px] text-slate-500 font-medium italic">Full Resource Access</p>
+                        </div>
+                    </div>
+                </div>
+                <p class="mt-6 text-xs text-slate-500 italic text-center">※ 주석: 공격자는 자동화된 스캔 도구를 통해 전 세계의 GitHub 커밋 히스토리를 24시간 감시하며, 키 노출 시 평균 1분 이내에 무단 접근을 시도합니다.</p>
+            </div>
+        </section>
+
+        <!-- Section 2: 실습 구성 요소 -->
+        <section>
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
+                    <i data-lucide="layers" class="w-6 h-6 text-indigo-400"></i>
+                </div>
+                <h2 class="text-2xl font-black text-slate-100 tracking-tight">
+                    2. 실습 구성 요소 (Components)
+                </h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="section-card rounded-3xl p-8 border-red-900/30 shadow-xl relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">VULNERABLE NODE</div>
+                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                        <i data-lucide="file-warning" class="w-6 h-6 text-red-500"></i> 하드코딩된 소스코드
+                    </h3>
+                    <ul class="space-y-4 text-sm text-slate-300">
+                        <li class="flex items-start gap-2 italic">
+                            <i data-lucide="alert-circle" class="w-4 h-4 text-red-500 mt-1 flex-shrink-0"></i> 
+                            <span>관리자 패스워드 및 데이터베이스(DB) 접속 주소가 평문(Plaintext)으로 노출됨</span>
+                        </li>
+                        <li class="flex items-start gap-2 italic">
+                            <i data-lucide="alert-circle" class="w-4 h-4 text-red-500 mt-1 flex-shrink-0"></i> 
+                            <span>클라우드 서비스(AWS)의 비밀 접근 키가 코드 내 변수로 정의되어 있음</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="section-card rounded-3xl p-8 border-cyan-900/30 shadow-xl relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 bg-cyan-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">SECURE NODE</div>
+                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                        <i data-lucide="lock" class="w-6 h-6 text-cyan-400"></i> 시큐어 코딩 환경
+                    </h3>
+                    <ul class="space-y-4 text-sm text-slate-300">
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-cyan-500 mt-1 flex-shrink-0"></i> 
+                            <span><strong>환경 변수(Environment Variables, 실행 시점에 설정되는 동적 변수)</strong>를 통한 데이터 로드</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-cyan-500 mt-1 flex-shrink-0"></i> 
+                            <span><strong>비밀 관리 솔루션(Secrets Management, 중앙 집중식 키 보관 시스템)</strong> 연동</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: 명령어 및 절차 -->
+        <section>
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+                    <i data-lucide="terminal" class="w-6 h-6 text-blue-400"></i>
+                </div>
+                <h2 class="text-2xl font-black text-slate-100 tracking-tight">
+                    3. 실증 및 구현 (Implementation)
+                </h2>
+            </div>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-16">
+                
+                <!-- Step 01 -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-4">
+                        <span class="step-number text-slate-900 w-10 h-10 rounded-full flex items-center justify-center text-sm font-black italic shadow-lg shadow-cyan-500/20">01</span>
+                        <h3 class="text-xl font-bold text-slate-100 uppercase tracking-tight">하드코딩 취약점 식별 (Detecting Vulnerabilities)</h3>
+                    </div>
+                    <div class="pl-14">
+                        <p class="text-sm text-slate-400 mb-6 leading-relaxed">
+                            정규 표현식(Regular Expression, 패턴 매칭 방식)을 사용하여 소스코드 내에 숨겨진 민감 정보를 자동으로 탐색합니다. 보안 점검 시 가장 기초적이면서도 강력한 수단입니다.
+                        </p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative group">
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black tracking-widest">Local Scanner</div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">grep -rEi "password|api_key|secret|token" .</span></div>
+                            <div class="text-slate-500 mt-2">
+                                [MATCH FOUND] ./config/db.py: password = "Admin_DB_Pass_2024!"<br>
+                                [MATCH FOUND] ./main.py: AWS_SECRET_KEY = "AKIA...EXAMPL"<br>
+                                [WARNING] 2 high-risk findings detected in current directory.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 02 -->
+                <div class="space-y-4 border-t border-slate-800 pt-12">
+                    <div class="flex items-center gap-4">
+                        <span class="step-number text-slate-900 w-10 h-10 rounded-full flex items-center justify-center text-sm font-black italic shadow-lg shadow-blue-500/20">02</span>
+                        <h3 class="text-xl font-bold text-slate-100 uppercase tracking-tight">환경 변수 분리 및 적용 (Secret Isolation)</h3>
+                    </div>
+                    <div class="pl-14">
+                        <p class="text-sm text-slate-400 mb-6 leading-relaxed">
+                            민감한 정보를 <code class="text-blue-400">.env</code> 파일로 추출하고, Python의 <code class="text-cyan-400">os.environ</code> 기능을 통해 런타임에 안전하게 데이터를 로드하도록 코드를 수정합니다.
+                        </p>
+                        <div class="bg-slate-950 rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                            <div class="absolute top-4 right-4 text-green-600 text-[10px] uppercase font-black">secure_app.py</div>
+                            <div class="text-slate-400 italic mb-2"># Load environment variables from secured .env file</div>
+                            <div class="text-slate-200">
+                                <span class="text-pink-500">import</span> os<br>
+                                <span class="text-pink-500">from</span> dotenv <span class="text-pink-500">import</span> load_dotenv<br><br>
+                                load_dotenv()<br><br>
+                                <span class="text-slate-500"># Fetch sensitive data dynamically</span><br>
+                                db_password = os.getenv(<span class="text-amber-400">"DB_PASSWORD"</span>)<br>
+                                aws_key = os.getenv(<span class="text-amber-400">"AWS_ACCESS_KEY"</span>)
+                            </div>
+                        </div>
+                        <div class="mt-4 flex items-start gap-2 bg-blue-500/10 p-4 rounded-xl border border-blue-500/20">
+                            <i data-lucide="info" class="w-5 h-5 text-blue-400 mt-0.5"></i>
+                            <p class="text-xs text-blue-300 italic font-medium"><strong>핵심:</strong> .env 파일은 반드시 <code class="bg-slate-800 px-1 rounded">.gitignore</code>에 추가하여 버전 관리 시스템(Git)에 업로드되지 않도록 강제해야 합니다.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 03 -->
+                <div class="space-y-4 border-t border-slate-800 pt-12">
+                    <div class="flex items-center gap-4">
+                        <span class="step-number text-slate-900 w-10 h-10 rounded-full flex items-center justify-center text-sm font-black italic shadow-lg shadow-indigo-500/20">03</span>
+                        <h3 class="text-xl font-bold text-slate-100 uppercase tracking-tight">클라우드 비밀 관리 시스템 연동 (Enterprise Level)</h3>
+                    </div>
+                    <div class="pl-14">
+                        <p class="text-sm text-slate-400 mb-6 leading-relaxed">
+                            대규모 환경에서는 <strong>AWS 비밀 관리자(AWS Secrets Manager, 자격 증명을 암호화하여 저장하고 자동 교체를 지원하는 서비스)</strong>를 연동합니다.
+                        </p>
+                        <div class="bg-indigo-950/20 border border-indigo-500/30 rounded-xl p-6 mb-4">
+                            <h4 class="text-indigo-400 font-bold mb-3 flex items-center gap-2">
+                                <i data-lucide="credit-card" class="w-4 h-4"></i> 유료 과금 정보 (Billing Notice)
+                            </h4>
+                            <p class="text-xs text-slate-400 leading-relaxed">
+                                AWS Secrets Manager 이용 시 **비밀 1개당 매월 $0.40**의 기본 보관 비용이 발생하며, **API 호출 10,000건당 $0.05**가 추가 과금됩니다. 따라서 운영 규모에 따라 캐싱(Caching) 전략을 수립해야 합니다.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: 전문가 분석 -->
+        <section>
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
+                    <i data-lucide="zap" class="w-6 h-6 text-amber-400"></i>
+                </div>
+                <h2 class="text-2xl font-black text-slate-100 tracking-tight">
+                    4. 아키텍트 인사이트 (Expert Insight)
+                </h2>
+            </div>
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-10">
+                <div class="flex flex-col md:flex-row gap-8">
+                    <!-- Tip Card -->
+                    <div class="flex-1 bg-slate-800/50 p-8 rounded-2xl border border-slate-700 hover:border-cyan-500/50 transition-all group">
+                        <div class="text-cyan-400 mb-6"><i data-lucide="lightbulb" class="w-10 h-10"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-4 text-lg">키 폐기 전략 (Revoke Strategy)</h4>
+                        <p class="text-sm text-slate-400 leading-relaxed mb-4">
+                            코드가 이미 유출되었다면, <strong>해당 자격 증명은 더 이상 비밀이 아닙니다.</strong> 공격자가 이미 복사본을 소유하고 있을 가능성이 99%이므로, 코드 수정을 넘어 해당 키 자체를 무효화(Invalidate)하고 즉시 재생성해야 합니다.
+                        </p>
+                        <div class="text-[10px] text-cyan-500 font-bold uppercase tracking-widest font-mono">Immediate Action Required</div>
+                    </div>
+                    <!-- Warning Card -->
+                    <div class="flex-1 bg-slate-800/50 p-8 rounded-2xl border border-slate-700 hover:border-red-500/50 transition-all group">
+                        <div class="text-red-400 mb-6"><i data-lucide="alert-triangle" class="w-10 h-10"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-4 text-lg">Git 히스토리의 함정</h4>
+                        <p class="text-sm text-slate-400 leading-relaxed mb-4">
+                            Git은 모든 변경 사항을 추적하는 시스템입니다. 현재 시점의 코드에서 키를 삭제했더라도, <code class="bg-slate-900 px-1 rounded text-red-400">git checkout</code>을 통해 과거 커밋으로 돌아가면 키는 여전히 존재합니다. 히스토리 자체를 덮어쓰거나(Force Push) 아예 저장소를 새로 구성해야 합니다.
+                        </p>
+                        <div class="text-[10px] text-red-500 font-bold uppercase tracking-widest font-mono">Critical History Threat</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+            © 2026 Security Architect Pro. ALL RIGHTS RESERVED.
+        </div>
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic">
+            본 교육 자료는 기술 보안 분석을 목적으로 제작되었습니다. 승인되지 않은 시스템에 대한 점검 및 공격 시도는 법적 처벌의 대상이 될 수 있습니다.
+        </p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
