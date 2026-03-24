@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>토큰 기반 인증 보안 실무 - JWT 심층 분석</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+        }
+        .terminal-bg { background-color: #0c1120; border: 1px solid #1e293b; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-filter: blur(12px); }
+        .code-block { font-family: 'Fira Code', monospace; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+        .step-number { background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%); }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <!-- Header: 기술 사양 및 타이틀 -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Cyber Security Lab</span>
+                    <span class="text-slate-500 font-mono text-[10px]">SEC-02 | Token Authentication Architecture</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
+                    JWT(JSON Web Token) 보안 실무<br><span class="text-slate-100 text-2xl font-bold">무결성 검증 취약점 및 서명 아키텍처 보안 강화</span>
+                </h1>
+            </div>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    SCORE: 9.2 (CRITICAL)
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase font-bold">Security Architect Professional</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-24">
+
+        <!-- Section 1: JWT 아키텍처 개요 -->
+        <section>
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20">
+                    <i data-lucide="component" class="w-6 h-6 text-cyan-400"></i>
+                </div>
+                <h2 class="text-2xl font-black text-slate-100 tracking-tight">
+                    1. JWT 아키텍처 개요 (JWT Architecture Overview)
+                </h2>
+            </div>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-10 leading-relaxed">
+                    <strong>JWT(JSON Web Token, 자바스크립트 객체 표기법 기반 토큰)</strong>는 당사자 간에 정보를 JSON 객체로 안전하게 전송하기 위한 개방형 표준(RFC 7519)입니다. 서버에 상태를 저장하지 않는 <strong>Stateless(비상태성, 서버가 클라이언트의 상태를 보존하지 않는 성질)</strong> 특성 덕분에 분산 환경 및 MSA(Microservices Architecture, 마이크로서비스 아키텍처)에서 필수적인 인증 수단으로 자리 잡았습니다.
+                </p>
+
+                <!-- 도식: JWT 구조 인포그래픽 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner">
+                    <h4 class="text-center font-bold text-slate-400 mb-8 text-xs tracking-widest uppercase">
+                        [도식: JWT의 3단계 논리 구조 (Logical Structure of JWT)]
+                    </h4>
+                    <div class="flex flex-col md:flex-row items-stretch justify-center gap-4">
+                        <!-- Header -->
+                        <div class="flex-1 p-6 bg-red-900/10 border border-red-500/30 rounded-xl text-center">
+                            <i data-lucide="settings" class="w-10 h-10 text-red-400 mx-auto mb-4"></i>
+                            <div class="font-black text-red-100 text-sm mb-2">헤더 (Header)</div>
+                            <p class="text-[10px] text-slate-400">알고리즘 및 토큰 유형<br>{"alg": "HS256", "typ": "JWT"}</p>
+                        </div>
+                        <div class="flex items-center justify-center font-black text-slate-700">.</div>
+                        <!-- Payload -->
+                        <div class="flex-1 p-6 bg-blue-900/10 border border-blue-500/30 rounded-xl text-center">
+                            <i data-lucide="database" class="w-10 h-10 text-blue-400 mx-auto mb-4"></i>
+                            <div class="font-black text-blue-100 text-sm mb-2">페이로드 (Payload)</div>
+                            <p class="text-[10px] text-slate-400">사용자 권한 및 정보(Claims)<br>{"sub": "123", "admin": true}</p>
+                        </div>
+                        <div class="flex items-center justify-center font-black text-slate-700">.</div>
+                        <!-- Signature -->
+                        <div class="flex-1 p-6 bg-cyan-900/10 border border-cyan-500/30 rounded-xl text-center">
+                            <i data-lucide="shield-check" class="w-10 h-10 text-cyan-400 mx-auto mb-4"></i>
+                            <div class="font-black text-cyan-100 text-sm mb-2">서명 (Signature)</div>
+                            <p class="text-[10px] text-slate-400">무결성 검증용 해시값<br>HMACSHA256(H+P, secret)</p>
+                        </div>
+                    </div>
+                </div>
+                <p class="mt-6 text-xs text-slate-500 italic text-center italic">※ 주의: Base64Url로 인코딩된 헤더와 페이로드는 암호화된 것이 아니므로, 누구나 복호화하여 내용을 볼 수 있습니다. <strong>민감한 개인정보를 페이로드에 포함해서는 안 됩니다.</strong></p>
+            </div>
+        </section>
+
+        <!-- Section 2: 취약점 분석 -->
+        <section>
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-12 h-12 rounded-2xl bg-red-500/10 flex items-center justify-center border border-red-500/20">
+                    <i data-lucide="skull" class="w-6 h-6 text-red-400"></i>
+                </div>
+                <h2 class="text-2xl font-black text-slate-100 tracking-tight">
+                    2. 주요 보안 취약점 분석 (Security Vulnerabilities)
+                </h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Vulnerability A -->
+                <div class="section-card rounded-3xl p-8 border-red-900/30 shadow-xl relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">HIGH RISK</div>
+                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                        <i data-lucide="alert-octagon" class="w-6 h-6 text-red-500"></i> None 알고리즘 공격
+                    </h3>
+                    <p class="text-sm text-slate-400 mb-6 leading-relaxed">
+                        일부 취약한 라이브러리는 헤더의 <code>alg</code> 값을 <code>none</code>으로 변경할 경우 서명 검증 과정을 생략합니다. 공격자는 서명부를 제거하고 페이로드의 권한을 <code>admin: true</code>로 조작하여 인증을 우회할 수 있습니다.
+                    </p>
+                    <div class="terminal-bg rounded-xl p-4 font-mono text-[10px] shadow-inner">
+                        <div class="text-red-400">{"alg": "none", "typ": "JWT"}</div>
+                        <div class="text-slate-500 mt-2">서명 없이 전송 시 서버가 유효한 토큰으로 오판</div>
+                    </div>
+                </div>
+                <!-- Vulnerability B -->
+                <div class="section-card rounded-3xl p-8 border-amber-900/30 shadow-xl relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 bg-amber-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">MEDIUM RISK</div>
+                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                        <i data-lucide="key" class="w-6 h-6 text-amber-500"></i> 취약한 비밀키 대입 공격
+                    </h3>
+                    <p class="text-sm text-slate-400 mb-6 leading-relaxed">
+                        HS256과 같은 대칭키 알고리즘을 사용할 때, <strong>Secret Key(비밀키, 서명에 사용되는 공통 키)</strong>가 너무 짧거나 예측 가능하다면 공격자가 오프라인 상태에서 무차별 대입(Brute-force) 공격으로 키를 탈취할 수 있습니다.
+                    </p>
+                    <div class="terminal-bg rounded-xl p-4 font-mono text-[10px] shadow-inner">
+                        <div class="text-amber-400">$ hashcat -m 16500 jwt.txt rockyou.txt</div>
+                        <div class="text-slate-500 mt-2">단축키(예: 1234, password) 사용 시 수초 내 탈취 가능</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: 실증 및 구현 -->
+        <section>
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+                    <i data-lucide="shield-check" class="w-6 h-6 text-blue-400"></i>
+                </div>
+                <h2 class="text-2xl font-black text-slate-100 tracking-tight">
+                    3. 실증 및 시큐어 구현 (Implementation & Secure Coding)
+                </h2>
+            </div>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-12">
+                <!-- Step Block -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="step-number text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black italic shadow-lg shadow-cyan-500/20">01</span>
+                        <h3 class="text-xl font-bold text-slate-100">알고리즘 명시적 제한 (Explicit Algorithm Restriction)</h3>
+                    </div>
+                    <div class="pl-12">
+                        <p class="text-sm text-slate-400 mb-4">토큰을 검증할 때 라이브러리에 맡기지 말고, 허용된 알고리즘을 코드로 명시하여 <strong>Algorithm Confusion(알고리즘 혼동 공격, 다른 알고리즘으로 위장하여 서명을 우회하는 기법)</strong>을 방지합니다.</p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner relative">
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">Python PyJWT</div>
+                            <div class="text-slate-200">
+                                <span class="text-pink-500">import</span> jwt<br><br>
+                                <span class="text-slate-500 italic"># BAD: 알고리즘을 제한하지 않음</span><br>
+                                <span class="text-slate-400">decoded = jwt.decode(token, key)</span><br><br>
+                                <span class="text-slate-500 italic"># GOOD: 알고리즘을 HS256으로 고정하여 검증</span><br>
+                                <span class="text-slate-400">decoded = jwt.decode(token, key, <span class="text-cyan-400">algorithms=["HS256"]</span>)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step Block 02 -->
+                <div class="space-y-4 border-t border-slate-800 pt-10">
+                    <div class="flex items-center gap-3">
+                        <span class="step-number text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black italic shadow-lg shadow-indigo-500/20">02</span>
+                        <h3 class="text-xl font-bold text-slate-100">비대칭 암호화 권장 (RS256 vs HS256)</h3>
+                    </div>
+                    <div class="pl-12">
+                        <p class="text-sm text-slate-400 mb-6 leading-relaxed">
+                            대칭키(HS256)는 모든 서버가 동일한 비밀키를 가져야 하므로 키 노출 시 치명적입니다. <strong>RS256(비대칭 암호화, 공개키로 검증하고 비밀키로만 서명하는 방식)</strong>을 사용하면 인증 서버만 비밀키를 소유하므로 보안성이 대폭 강화됩니다.
+                        </p>
+                        <div class="flex flex-col md:flex-row gap-4 items-center justify-center bg-slate-900/50 p-6 rounded-2xl border border-slate-800">
+                            <div class="text-center p-4 bg-slate-800 rounded-lg border border-indigo-900/50">
+                                <i data-lucide="key-round" class="w-8 h-8 text-indigo-400 mx-auto mb-2"></i>
+                                <div class="text-[10px] font-bold text-slate-100">인증 서버 (Auth Server)</div>
+                                <div class="text-[8px] text-slate-500">Private Key로 서명</div>
+                            </div>
+                            <i data-lucide="arrow-right-left" class="w-6 h-6 text-slate-700"></i>
+                            <div class="text-center p-4 bg-slate-800 rounded-lg border border-cyan-900/50">
+                                <i data-lucide="unlock" class="w-8 h-8 text-cyan-400 mx-auto mb-2"></i>
+                                <div class="text-[10px] font-bold text-slate-100">API 서버 (Resource Server)</div>
+                                <div class="text-[8px] text-slate-500">Public Key로 검증만 수행</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: 아키텍트 인사이트 -->
+        <section>
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
+                    <i data-lucide="brain-circuit" class="w-6 h-6 text-amber-400"></i>
+                </div>
+                <h2 class="text-2xl font-black text-slate-100 tracking-tight">
+                    4. 아키텍트 인사이트 (Expert Insight)
+                </h2>
+            </div>
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-10">
+                <div class="flex flex-col md:flex-row gap-8">
+                    <div class="flex-1 bg-slate-800/50 p-8 rounded-2xl border border-slate-700 hover:border-cyan-500/50 transition-all group">
+                        <div class="text-cyan-400 mb-6"><i data-lucide="refresh-cw" class="w-10 h-10"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-4 text-lg">토큰 무효화 메커니즘 (Revocation Strategy)</h4>
+                        <p class="text-sm text-slate-400 leading-relaxed mb-4">
+                            JWT는 기본적으로 서버에서 상태를 관리하지 않으므로, 토큰이 탈취되었을 때 서버 측에서 강제로 로그아웃(무효화)시키기가 매우 어렵습니다. 이를 해결하기 위해 <strong>Access Token(접근 토큰, 수명이 짧은 토큰)</strong>과 <strong>Refresh Token(갱신 토큰, 접근 토큰을 재발급받기 위한 장기 토큰)</strong>을 분리하고, Redis와 같은 인메모리 저장소에 블랙리스트를 관리하는 전략이 필수적입니다.
+                        </p>
+                    </div>
+                    <div class="flex-1 bg-slate-800/50 p-8 rounded-2xl border border-slate-700 hover:border-indigo-500/50 transition-all group">
+                        <div class="text-indigo-400 mb-6"><i data-lucide="lock" class="w-10 h-10"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-4 text-lg">클라우드 키 관리 서비스 활용 (KMS Integration)</h4>
+                        <p class="text-sm text-slate-400 leading-relaxed mb-4">
+                            JWT 서명용 키를 소스코드나 환경 변수에 저장하는 행위는 지양해야 합니다. <strong>AWS KMS(AWS Key Management Service, 아마존 웹 서비스에서 제공하는 관리형 암호화 키 서비스)</strong>를 연동하여 하드웨어 보안 모듈(HSM)에서 키를 안전하게 관리하고, 서명 프로세스를 KMS API 호출로 대체함으로써 키 유출 위험을 원천 차단할 수 있습니다.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- AWS Billing Info -->
+                <div class="p-6 bg-slate-800/30 border border-slate-700 rounded-2xl flex flex-col md:flex-row items-center gap-6">
+                    <div class="flex-shrink-0 w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center">
+                        <i data-lucide="dollar-sign" class="w-8 h-8 text-red-400"></i>
+                    </div>
+                    <div>
+                        <h5 class="font-bold text-slate-100 mb-2 italic">보안 서비스 비용 분석 (Cost Notice)</h5>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            <strong>AWS KMS</strong>를 사용할 경우 <strong>고객 관리형 키(KMS Key)당 월 $1.00</strong>의 유지비가 발생하며, 서명 및 검증 시 발생하는 <strong>API 호출 10,000건당 $0.03</strong>이 과금됩니다. 토큰 검증 횟수가 매우 많은 대규모 서비스에서는 성능과 비용 최적화를 위해 공개키를 로컬 캐싱하는 전략을 병행해야 합니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+            © 2026 Cyber Security Lab | System Architect Pro
+        </div>
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic italic">
+            본 교재는 실무 보안 아키텍처 설계를 위한 실습 가이드를 제공합니다. 실습 과정에서 습득한 기술을 비인가 시스템에 적용하는 것은 엄격히 금지되며, 모든 보안 정책은 조직의 가이드라인을 준수해야 합니다.
+        </p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
