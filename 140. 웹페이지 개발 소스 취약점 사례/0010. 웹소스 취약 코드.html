@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{주제}: {부제} 실습</title>
+    <title>Syllabus: Case Study of Vulnerable Source Code</title>
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -18,8 +18,9 @@
         }
         .terminal-bg { background-color: #020617; border: 1px solid #1e293b; }
         .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
-        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-blur: xl; }
-        .code-block { font-family: 'Fira Code', monospace; }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-filter: blur(12px); }
+        .toc-number { font-family: 'Fira Code', monospace; background: linear-gradient(135deg, #22d3ee, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .page-break { page-break-after: always; }
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
@@ -33,112 +34,181 @@
         <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
             <div>
                 <div class="flex items-center gap-2 mb-2">
-                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Cyber Security Lab</span>
-                    <span class="text-slate-500 font-mono text-[10px]">{ID} | {Category}</span>
+                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Secure Coding Lab</span>
+                    <span class="text-slate-500 font-mono text-[10px]">SRC-ANLYS-2026 | Application Security</span>
                 </div>
                 <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
-                    {Main Title}<br><span class="text-slate-100 text-2xl">{Sub Title}</span>
+                    취약한 소스 코드 사례 연구<br><span class="text-slate-100 text-2xl uppercase tracking-tighter">Case Study of Vulnerable Source Code Analysis</span>
                 </h1>
             </div>
             <div class="text-right hidden md:block border-l border-slate-800 pl-6">
                 <div class="bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
-                    SCORE: {0.0}
+                    SCORE: 100.0
                 </div>
-                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">System Architect Pro</p>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">Lead Security Architect</p>
             </div>
         </div>
     </header>
 
     <main class="max-w-6xl mx-auto px-6 py-16 space-y-24">
 
-        <!-- Section 1: 이론 및 아키텍처 도식 -->
+        <!-- Section 1: 분석 로직 아키텍처 -->
         <section>
             <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
-                1. 아키텍처 개요 (Architecture Overview)
+                1. 코드 분석 아키텍처 (Code Analysis Architecture)
             </h2>
             <div class="section-card rounded-3xl p-10 shadow-2xl">
                 <p class="text-slate-300 text-lg mb-10 leading-relaxed">
-                    {여기에 주요 개념 설명을 입력하세요. 전문 용어는 한글명(English Term) 형식을 유지합니다.}
+                    본 연구는 <span class="text-cyan-400 font-bold">Source Code(소스 코드)</span> 내에서 외부 입력값이 처리되는 전 과정을 추적합니다. <span class="text-cyan-400 font-bold">Untrusted Data(신뢰할 수 없는 데이터)</span>가 검증 없이 <span class="text-red-400 font-bold">Sink(취약한 함수 호출 지점)</span>에 도달할 때 발생하는 논리적 결함을 중점적으로 다룹니다.
                 </p>
 
-                <!-- 도식화 인포그래픽 영역 -->
+                <!-- 도식화 인포그래픽 -->
                 <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner">
                     <h4 class="text-center font-bold text-slate-400 mb-8 text-xs tracking-widest uppercase">
-                        [도식: {시스템 아키텍처 명칭}]
+                        [도식: 소스 코드 데이터 흐름 분석 (Taint Analysis Flow)]
                     </h4>
                     <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-                        <!-- Component A -->
-                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-cyan-900/50 shadow-lg">
-                            <i data-lucide="monitor" class="w-12 h-12 text-cyan-400 mx-auto mb-4"></i>
-                            <div class="font-black text-slate-100 text-sm">{컴포넌트 A}</div>
+                        <!-- Source -->
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-cyan-900/50 shadow-lg relative">
+                            <i data-lucide="log-in" class="w-12 h-12 text-cyan-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">Source</div>
+                            <div class="text-[10px] text-slate-500 mt-1 uppercase">External Input (GET/POST)</div>
                         </div>
-                        <!-- Arrow -->
-                        <div class="flex flex-col items-center">
-                            <i data-lucide="arrow-right" class="w-8 h-8 text-slate-600 rotate-90 md:rotate-0"></i>
+                        <i data-lucide="arrow-right" class="w-8 h-8 text-slate-600 rotate-90 md:rotate-0"></i>
+                        <!-- Sanitizer (Failure Point) -->
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-red-900/50 shadow-lg relative">
+                            <i data-lucide="filter-x" class="w-12 h-12 text-red-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">Validation Failure</div>
+                            <div class="text-[10px] text-slate-500 mt-1 uppercase">Missing Sanitization</div>
+                            <div class="absolute -top-2 -right-2 bg-red-600 w-4 h-4 rounded-full animate-pulse"></div>
                         </div>
-                        <!-- Component B -->
-                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-blue-900/50 shadow-lg">
-                            <i data-lucide="database" class="w-12 h-12 text-blue-400 mx-auto mb-4"></i>
-                            <div class="font-black text-slate-100 text-sm">{컴포넌트 B}</div>
+                        <i data-lucide="arrow-right" class="w-8 h-8 text-slate-600 rotate-90 md:rotate-0"></i>
+                        <!-- Sink -->
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-indigo-900/50 shadow-lg">
+                            <i data-lucide="zap" class="w-12 h-12 text-indigo-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">Sink</div>
+                            <div class="text-[10px] text-slate-500 mt-1 uppercase">Dangerous API Execution</div>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Section 2: 실습 환경 -->
+        <!-- Section 2: 연구 모듈 구성 -->
         <section>
             <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
-                2. 실습 구성 요소 (Components)
+                2. 모듈별 코드 사례 (Case Modules)
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Module 1 -->
                 <div class="section-card rounded-3xl p-8 border-cyan-900/30 shadow-xl relative overflow-hidden">
-                    <div class="absolute top-0 right-0 bg-cyan-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">NODE 01</div>
+                    <div class="absolute top-0 right-0 bg-cyan-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">MODULE 01</div>
                     <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
-                        <i data-lucide="terminal" class="w-6 h-6 text-cyan-400"></i> {대상 A}
+                        <i data-lucide="database" class="w-6 h-6 text-cyan-400"></i> DB 상호작용 결함
                     </h3>
                     <ul class="space-y-4 text-sm text-slate-300">
-                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-cyan-500"></i> {세부사항 1}</li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="code" class="w-4 h-4 text-cyan-500 mt-1 flex-shrink-0"></i> 
+                            <div>동적 쿼리 생성(Dynamic Query Generation) 및 문자열 결합 오류</div>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="code" class="w-4 h-4 text-cyan-500 mt-1 flex-shrink-0"></i> 
+                            <div>ORM(Object-Relational Mapping)의 부적절한 원시 쿼리 사용 사례</div>
+                        </li>
                     </ul>
                 </div>
+                <!-- Module 2 -->
                 <div class="section-card rounded-3xl p-8 border-indigo-900/30 shadow-xl relative overflow-hidden">
-                    <div class="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">NODE 02</div>
+                    <div class="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">MODULE 02</div>
                     <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
-                        <i data-lucide="server" class="w-6 h-6 text-indigo-400"></i> {대상 B}
+                        <i data-lucide="layout" class="w-6 h-6 text-indigo-400"></i> 출력 및 브라우저 해석 결함
                     </h3>
                     <ul class="space-y-4 text-sm text-slate-300">
-                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-indigo-500"></i> {세부사항 1}</li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="code" class="w-4 h-4 text-indigo-500 mt-1 flex-shrink-0"></i> 
+                            <div>신뢰할 수 없는 데이터의 HTML 직접 렌더링(Direct Rendering)</div>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="code" class="w-4 h-4 text-indigo-500 mt-1 flex-shrink-0"></i> 
+                            <div>Context-unaware Encoding(맥락을 고려하지 않은 인코딩) 적용 오류</div>
+                        </li>
                     </ul>
                 </div>
             </div>
         </section>
 
-        <!-- Section 3: 명령어 및 절차 -->
+        <!-- Section 3: 상세 연구 목차 -->
         <section>
             <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
-                3. 실증 및 구현 (Implementation)
+                3. 소스 코드 분석 상세 목차 (Detailed Syllabus)
             </h2>
             <div class="section-card rounded-3xl p-10 shadow-2xl space-y-12">
-                <!-- Step Block -->
+                
+                <!-- Ch 1 -->
                 <div class="space-y-4">
                     <div class="flex items-center gap-3">
-                        <span class="bg-cyan-500 text-slate-900 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black italic">STEP 01</span>
-                        <h3 class="text-xl font-bold text-slate-100">{단계 제목}</h3>
+                        <span class="toc-number text-3xl font-black">01</span>
+                        <h3 class="text-xl font-bold text-slate-100">입력 데이터 처리 로직 결함</h3>
                     </div>
-                    <div class="pl-12">
-                        <p class="text-sm text-slate-400 mb-4">{수행할 작업에 대한 설명}</p>
-                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
-                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">Console</div>
-                            <div class="text-slate-200">$ <span class="text-cyan-400">{command}</span></div>
-                            <div class="text-slate-500 mt-2">{output line 1}</div>
+                    <div class="pl-12 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="terminal-bg p-4 rounded-xl border-l-2 border-cyan-500">
+                            <div class="text-[10px] text-slate-500 uppercase font-bold mb-2">Case Study 1.1</div>
+                            <div class="text-sm font-bold text-slate-200">SQL Injection: String Concatenation Pattern</div>
+                            <p class="text-[11px] text-slate-500 mt-2">사용자 입력값이 쿼리 문자열에 직접 병합되는 패턴 분석</p>
+                        </div>
+                        <div class="terminal-bg p-4 rounded-xl border-l-2 border-cyan-500">
+                            <div class="text-[10px] text-slate-500 uppercase font-bold mb-2">Case Study 1.2</div>
+                            <div class="text-sm font-bold text-slate-200">XSS: Unsafe Echo & InnerHTML Usage</div>
+                            <p class="text-[11px] text-slate-500 mt-2">스크립트가 필터링 없이 클라이언트에 출력되는 코드 구조</p>
                         </div>
                     </div>
                 </div>
+
+                <!-- Ch 2 -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="toc-number text-3xl font-black">02</span>
+                        <h3 class="text-xl font-bold text-slate-100">시스템 자원 및 API 호출 결함</h3>
+                    </div>
+                    <div class="pl-12 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="terminal-bg p-4 rounded-xl border-l-2 border-blue-500">
+                            <div class="text-[10px] text-slate-500 uppercase font-bold mb-2">Case Study 2.1</div>
+                            <div class="text-sm font-bold text-slate-200">OS Command Injection: Unsafe System Call</div>
+                            <p class="text-[11px] text-slate-500 mt-2">외부 입력이 system(), exec() 등 쉘 실행 함수의 인자로 전달되는 사례</p>
+                        </div>
+                        <div class="terminal-bg p-4 rounded-xl border-l-2 border-blue-500">
+                            <div class="text-[10px] text-slate-500 uppercase font-bold mb-2">Case Study 2.2</div>
+                            <div class="text-sm font-bold text-slate-200">Path Traversal: File I/O Logic Flaw</div>
+                            <p class="text-[11px] text-slate-500 mt-2">파일 경로에 대한 유효성 검증 미흡으로 발생하는 임의 파일 접근 코드</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ch 3 -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="toc-number text-3xl font-black">03</span>
+                        <h3 class="text-xl font-bold text-slate-100">비즈니스 로직 및 권한 검증 결함</h3>
+                    </div>
+                    <div class="pl-12 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="terminal-bg p-4 rounded-xl border-l-2 border-indigo-500">
+                            <div class="text-[10px] text-slate-500 uppercase font-bold mb-2">Case Study 3.1</div>
+                            <div class="text-sm font-bold text-slate-200">IDOR: Hardcoded Session Reference</div>
+                            <p class="text-[11px] text-slate-500 mt-2">소유권 확인 로직 없이 요청 파라미터의 ID 값만 신뢰하는 코드 분석</p>
+                        </div>
+                        <div class="terminal-bg p-4 rounded-xl border-l-2 border-indigo-500">
+                            <div class="text-[10px] text-slate-500 uppercase font-bold mb-2">Case Study 3.2</div>
+                            <div class="text-sm font-bold text-slate-200">Insecure Deserialization: Logic Error</div>
+                            <p class="text-[11px] text-slate-500 mt-2">객체 역직렬화 과정에서 실행되는 위험한 매직 메서드 활용 패턴</p>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </section>
 
-        <!-- Section 4: 전문가 분석 -->
-        <section>
+        <!-- Section 4: 전문가 분석 인사이트 -->
+        <section class="page-break">
             <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
                 4. 아키텍트 인사이트 (Expert Insight)
             </h2>
@@ -146,13 +216,17 @@
                 <div class="flex flex-col md:flex-row gap-8">
                     <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
                         <div class="text-cyan-400 mb-4"><i data-lucide="lightbulb" class="w-8 h-8"></i></div>
-                        <h4 class="font-bold text-slate-100 mb-2">{핵심 팁 제목}</h4>
-                        <p class="text-xs text-slate-400 leading-relaxed">{상세 설명}</p>
+                        <h4 class="font-bold text-slate-100 mb-2">SAST (Static Application Security Testing)</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            <span class="text-slate-100 font-bold">정적 애플리케이션 보안 테스트(SAST)</span> 도구는 코드 실행 없이 구조를 분석하여 잠재적 위험 패턴을 찾아냅니다. 하지만 로직 결함을 완벽히 탐지하기 위해서는 수동 코드 리뷰(Manual Code Review)가 병행되어야 합니다.
+                        </p>
                     </div>
                     <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
                         <div class="text-red-400 mb-4"><i data-lucide="shield-alert" class="w-8 h-8"></i></div>
-                        <h4 class="font-bold text-slate-100 mb-2">{주의 사항 제목}</h4>
-                        <p class="text-xs text-slate-400 leading-relaxed">{상세 설명}</p>
+                        <h4 class="font-bold text-slate-100 mb-2">Principle of Least Privilege</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            소스 코드 레벨에서의 방어뿐만 아니라, 애플리케이션 실행 계정이 시스템 리소스에 접근할 때 <span class="text-slate-100 font-bold">최소 권한 원칙(Principle of Least Privilege)</span>을 준수하도록 환경을 구성하는 것이 2차 피해를 막는 핵심입니다.
+                        </p>
                     </div>
                 </div>
             </div>
@@ -162,10 +236,10 @@
 
     <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
         <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
-            © 2026 {Author Name}. All rights reserved.
+            © 2026 CYBER SECURITY ARCHITECT LAB. All rights reserved.
         </div>
         <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic">
-            {법적 고지 또는 추가 설명 문구}
+            본 교재는 웹 애플리케이션 개발 시 발생할 수 있는 소스 코드 레벨의 실제 취약점 사례를 분석하여 개발자의 보안 인식 고취 및 안전한 코딩 기법 전파를 목적으로 합니다.
         </p>
     </footer>
 
