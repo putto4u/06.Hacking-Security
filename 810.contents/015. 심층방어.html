@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>심층 방어 및 인증 아키텍처 실무 - 제로 트러스트 보안 모델</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+        }
+        .terminal-bg { background-color: #0c1120; border: 1px solid #1e293b; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-filter: blur(12px); }
+        .code-block { font-family: 'Fira Code', monospace; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+        .step-number { background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%); }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <!-- Header: 기술 사양 및 타이틀 -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Cyber Security Lab</span>
+                    <span class="text-slate-500 font-mono text-[10px]">SEC-03 | Advanced Security Architecture</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
+                    심층 방어 및 인증 아키텍처 실무<br><span class="text-slate-100 text-2xl font-bold">제로 트러스트(Zero Trust) 보안 모델 및 다요소 인증(MFA) 구현</span>
+                </h1>
+            </div>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    DEFENSE LEVEL: MAXIMUM
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase font-bold">System Architect Professional</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-24">
+
+        <!-- Section 1: 아키텍처 개요 -->
+        <section>
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20">
+                    <i data-lucide="shield" class="w-6 h-6 text-cyan-400"></i>
+                </div>
+                <h2 class="text-2xl font-black text-slate-100 tracking-tight">
+                    1. 심층 방어와 제로 트러스트 (Defense in Depth & Zero Trust)
+                </h2>
+            </div>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-10 leading-relaxed">
+                    <strong>심층 방어(Defense in Depth, 계층화된 보안 체계)</strong>는 보안의 단일 실패 지점(Single Point of Failure)을 없애기 위해 물리적, 기술적, 관리적 통제 요소를 다중 계층으로 배치하는 전략입니다. 여기에 현대적인 <strong>제로 트러스트(Zero Trust, 아무도 신뢰하지 않는 보안 원칙)</strong> 모델을 결합하여, 네트워크 내부라 할지라도 "절대 신뢰하지 말고 항상 검증(Never Trust, Always Verify)"하는 철학을 실현합니다.
+                </p>
+
+                <!-- 도식: 계층형 심층 방어 모델 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-12 shadow-inner">
+                    <h4 class="text-center font-bold text-slate-400 mb-12 text-xs tracking-widest uppercase">
+                        [도식: 제로 트러스트 기반 심층 방어 계층 (Zero Trust Onion Model)]
+                    </h4>
+                    <div class="relative flex items-center justify-center">
+                        <!-- Outer Layer: Network -->
+                        <div class="w-[500px] h-[500px] rounded-full border-4 border-slate-800 flex items-center justify-center relative bg-slate-900/20">
+                            <span class="absolute top-4 font-black text-[10px] text-slate-600 uppercase italic">Network Layer (WAF/Firewall)</span>
+                            <!-- Middle Layer: Identity -->
+                            <div class="w-[350px] h-[350px] rounded-full border-4 border-indigo-900/50 flex items-center justify-center relative bg-indigo-950/10">
+                                <span class="absolute top-4 font-black text-[10px] text-indigo-600 uppercase italic">Identity Layer (IAM/MFA)</span>
+                                <!-- Inner Layer: Data -->
+                                <div class="w-[200px] h-[200px] rounded-full border-4 border-cyan-900/50 flex items-center justify-center relative bg-cyan-950/20 shadow-[0_0_30px_rgba(34,211,238,0.1)]">
+                                    <span class="absolute top-4 font-black text-[10px] text-cyan-600 uppercase italic">Data Layer (Encryption)</span>
+                                    <i data-lucide="lock" class="w-12 h-12 text-cyan-400 animate-pulse"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <p class="mt-6 text-xs text-slate-500 italic text-center italic">※ 설명: 공격자가 외곽 네트워크 방어선을 뚫더라도, 아이덴티티(Identity, 신원) 검증과 데이터 암호화라는 추가 장벽을 마주하게 됩니다.</p>
+            </div>
+        </section>
+
+        <!-- Section 2: 실습 구성 요소 -->
+        <section>
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+                    <i data-lucide="fingerprint" class="w-6 h-6 text-blue-400"></i>
+                </div>
+                <h2 class="text-2xl font-black text-slate-100 tracking-tight">
+                    2. 다요소 인증 및 접근 제어 기술 (MFA & Access Control)
+                </h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- MFA Component -->
+                <div class="section-card rounded-3xl p-8 border-cyan-900/30 shadow-xl relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 bg-cyan-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono italic">Primary Defense</div>
+                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                        <i data-lucide="key-round" class="w-6 h-6 text-cyan-400"></i> MFA (Multi-Factor Authentication)
+                    </h3>
+                    <p class="text-sm text-slate-400 mb-6 leading-relaxed">
+                        사용자의 신원을 확인하기 위해 지식(Knowledge), 소지(Possession), 존재(Inherence) 중 2가지 이상의 요소를 결합하는 방식입니다. 단순 패스워드 유출로 인한 <strong>계정 탈취(Account Takeover)</strong>를 99.9% 방어할 수 있습니다.
+                    </p>
+                    <ul class="space-y-2 text-[10px] text-slate-500 font-bold uppercase italic">
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-3 h-3 text-cyan-500"></i> Knowledge: Passwords, PINs</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-3 h-3 text-cyan-500"></i> Possession: OTP, Security Keys</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-3 h-3 text-cyan-500"></i> Inherence: Biometrics (FaceID)</li>
+                    </ul>
+                </div>
+
+                <!-- Control Component -->
+                <div class="section-card rounded-3xl p-8 border-indigo-900/30 shadow-xl relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono italic">Granular Control</div>
+                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                        <i data-lucide="users" class="w-6 h-6 text-indigo-400"></i> RBAC vs ABAC
+                    </h3>
+                    <p class="text-sm text-slate-400 mb-6 leading-relaxed">
+                        권한 관리는 단순한 역할 부여를 넘어 상황적 맥락을 고려해야 합니다. <strong>RBAC(Role-Based Access Control, 역할 기반 접근 제어)</strong>의 정적 한계를 극복하기 위해 속성(시간, 위치, 기기 보안 상태)을 고려하는 <strong>ABAC(Attribute-Based Access Control, 속성 기반 접근 제어)</strong> 도입이 가속화되고 있습니다.
+                    </p>
+                    <div class="bg-indigo-950/20 border border-indigo-500/20 p-3 rounded-xl text-[10px] font-mono text-indigo-300">
+                        IF (User.Role == "Admin" AND Device.Status == "Secure" AND Time.IsWorkingHour) THEN Allow;
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: 구현 가이드 -->
+        <section>
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
+                    <i data-lucide="code" class="w-6 h-6 text-indigo-400"></i>
+                </div>
+                <h2 class="text-2xl font-black text-slate-100 tracking-tight">
+                    3. 실증 및 시큐어 구현 (Implementation Strategy)
+                </h2>
+            </div>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-12">
+                <!-- Step Block -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="step-number text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black italic shadow-lg shadow-cyan-500/20">01</span>
+                        <h3 class="text-xl font-bold text-slate-100 uppercase tracking-tight">조건부 접근 제어 구현 (Conditional Access Logic)</h3>
+                    </div>
+                    <div class="pl-12">
+                        <p class="text-sm text-slate-400 mb-6 leading-relaxed">
+                            애플리케이션 레벨에서 단순히 로그인 여부만 체크하는 것이 아니라, 사용자의 접속 환경(IP, Device, MFA 인증 여부)을 종합적으로 검증하는 로직을 구현합니다.
+                        </p>
+                        <div class="bg-slate-950 rounded-2xl p-8 font-mono text-xs border border-indigo-900/30 shadow-inner">
+                            <div class="text-slate-500 mb-4 italic italic"># ABAC 기반의 보안 미들웨어 구현 예시</div>
+                            <div class="text-slate-300">
+                                <span class="text-pink-500">def</span> <span class="text-cyan-400">validate_zero_trust_access</span>(request):<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;user_context = request.auth_context<br><br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-slate-500"># 1. MFA 인증 여부 필수 확인</span><br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-pink-500">if not</span> user_context.is_mfa_authenticated:<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-pink-500">return</span> Forbidden(<span class="text-amber-400">"MFA_REQUIRED"</span>)<br><br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-slate-500"># 2. 기기 보안 상태(Compliance) 확인</span><br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-pink-500">if not</span> request.device.is_compliant:<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-pink-500">return</span> Forbidden(<span class="text-amber-400">"NON_COMPLIANT_DEVICE"</span>)<br><br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-slate-500"># 3. 비정상적인 위치(Impossible Travel) 탐지</span><br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-pink-500">if</span> detect_anomaly(user_context.ip_address):<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-pink-500">return</span> Forbidden(<span class="text-amber-400">"ANOMALOUS_ACCESS"</span>)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step Block 02 -->
+                <div class="space-y-4 border-t border-slate-800 pt-10">
+                    <div class="flex items-center gap-3">
+                        <span class="step-number text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black italic shadow-lg shadow-blue-500/20">02</span>
+                        <h3 class="text-xl font-bold text-slate-100 uppercase tracking-tight">API 게이트웨이 심층 방어 적용</h3>
+                    </div>
+                    <div class="pl-12">
+                        <p class="text-sm text-slate-400 mb-6 leading-relaxed">
+                            애플리케이션에 도달하기 전, 인프라 레벨에서 <strong>WAF(Web Application Firewall, 웹 애플리케이션 방화벽)</strong>와 <strong>API Gateway(에이피아이 게이트웨이, 서비스 창구 관리 시스템)</strong>를 통해 비정상적인 트래픽을 차단합니다.
+                        </p>
+                        <div class="flex flex-col md:flex-row gap-6 items-center bg-slate-900/40 p-6 rounded-2xl border border-slate-800">
+                            <div class="text-center p-4 bg-slate-800 rounded-xl border border-red-900/30">
+                                <i data-lucide="shield-x" class="w-8 h-8 text-red-500 mx-auto mb-2"></i>
+                                <div class="text-[10px] font-bold">Bot Attack</div>
+                            </div>
+                            <i data-lucide="arrow-right" class="w-6 h-6 text-slate-700"></i>
+                            <div class="text-center p-6 bg-slate-700 rounded-xl border border-cyan-400/50 shadow-lg shadow-cyan-500/20">
+                                <i data-lucide="layers" class="w-10 h-10 text-cyan-400 mx-auto mb-2"></i>
+                                <div class="text-xs font-black">WAF / API GW</div>
+                                <div class="text-[8px] text-cyan-500 uppercase mt-1">Inspection & Filtering</div>
+                            </div>
+                            <i data-lucide="arrow-right" class="w-6 h-6 text-slate-700"></i>
+                            <div class="text-center p-4 bg-slate-800 rounded-xl border border-green-900/30 opacity-50">
+                                <i data-lucide="server" class="w-8 h-8 text-green-500 mx-auto mb-2"></i>
+                                <div class="text-[10px] font-bold">App Server</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: 전문가 분석 -->
+        <section>
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
+                    <i data-lucide="brain-circuit" class="w-6 h-6 text-amber-400"></i>
+                </div>
+                <h2 class="text-2xl font-black text-slate-100 tracking-tight">
+                    4. 아키텍트 인사이트 (Expert Insight)
+                </h2>
+            </div>
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-10">
+                <div class="flex flex-col md:flex-row gap-8">
+                    <!-- Insight A -->
+                    <div class="flex-1 bg-slate-800/50 p-8 rounded-2xl border border-slate-700 hover:border-cyan-500/50 transition-all group">
+                        <div class="text-cyan-400 mb-6"><i data-lucide="zap" class="w-10 h-10"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-4 text-lg italic">최소 권한의 원칙 (Principle of Least Privilege)</h4>
+                        <p class="text-sm text-slate-400 leading-relaxed mb-4">
+                            제로 트러스트 아키텍처의 핵심은 <strong>최소 권한의 원칙(Principle of Least Privilege)</strong>입니다. 사용자에게 필요한 최소한의 권한만, 필요한 시간 동안(JIT, Just-In-Time) 부여해야 합니다. 이는 관리자 계정이 탈취되더라도 공격자가 이동(Lateral Movement)할 수 있는 범위를 극도로 제한합니다.
+                        </p>
+                        <div class="text-[10px] text-cyan-500 font-bold uppercase tracking-widest font-mono">Blast Radius Reduction</div>
+                    </div>
+                    <!-- Insight B -->
+                    <div class="flex-1 bg-slate-800/50 p-8 rounded-2xl border border-slate-700 hover:border-indigo-500/50 transition-all group">
+                        <div class="text-indigo-400 mb-6"><i data-lucide="activity" class="w-10 h-10"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-4 text-lg italic">지속적인 모니터링 및 감사 (Logging & Audit)</h4>
+                        <p class="text-sm text-slate-400 leading-relaxed mb-4">
+                            완벽한 방어는 존재하지 않습니다. 모든 접근 요청과 권한 변경 사항을 <strong>SIEM(Security Information and Event Management, 보안 정보 및 이벤트 관리 시스템)</strong>에 실시간으로 수집하고 분석해야 합니다. 특히 특권 계정(Privileged Accounts)의 활동은 초 단위로 감시되어야 합니다.
+                        </p>
+                        <div class="text-[10px] text-indigo-500 font-bold uppercase tracking-widest font-mono">Continuous Risk Assessment</div>
+                    </div>
+                </div>
+
+                <!-- AWS Billing Info -->
+                <div class="p-6 bg-slate-800/30 border border-slate-800 rounded-2xl flex flex-col md:flex-row items-center gap-6">
+                    <div class="flex-shrink-0 w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center">
+                        <i data-lucide="dollar-sign" class="w-8 h-8 text-red-400"></i>
+                    </div>
+                    <div>
+                        <h5 class="font-bold text-slate-100 mb-2 italic">보안 서비스 비용 및 유료 전환 안내 (AWS Security Pricing)</h5>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            제로 트러스트 구현을 위해 <strong>AWS Verified Access(AWS 베리파이드 액세스, VPN 없는 보안 접속 서비스)</strong>를 사용할 경우, <strong>애플리케이션당 시간당 $0.27</strong> 및 처리된 데이터 GB당 $0.02가 과금됩니다. 또한 <strong>AWS IAM Identity Center(AWS 아이덴티티 센터)</strong> 자체는 무료이나, MFA를 위해 하드웨어 보안 키나 서드파티 인증 앱을 연동할 경우 해당 솔루션의 추가 비용이 발생할 수 있습니다. <strong>AWS CloudTrail(클라우드 트레일, 모든 API 호출 기록 서비스)</strong>의 경우 첫 번째 추적(Trail) 사본은 무료이나, 추가 사본 및 이벤트 처리량에 따라 유료로 전환되니 주의하십시오.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+            © 2026 Cyber Security Lab | Advanced Architect Course
+        </div>
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic italic">
+            본 교재는 현대적인 보안 아키텍처의 설계와 구현을 위한 지침을 제공합니다. 제로 트러스트는 제품이 아니라 여정(Journey)입니다. 조직의 문화와 기술적 성숙도에 맞춘 단계적 도입이 성공의 핵심입니다.
+        </p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
