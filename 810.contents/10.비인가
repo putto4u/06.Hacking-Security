@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>비인가 접근 및 세션 취약점 분석 실무</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+        }
+        .terminal-bg { background-color: #0c1120; border: 1px solid #1e293b; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-filter: blur(12px); }
+        .code-block { font-family: 'Fira Code', monospace; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+        .step-number { background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%); }
+        table { width: 100%; border-collapse: separate; border-spacing: 0; margin: 2rem 0; border: 1px solid #1e293b; border-radius: 12px; overflow: hidden; }
+        th { background-color: #0f172a; color: #94a3b8; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; padding: 1rem; text-align: left; }
+        td { padding: 1.25rem; border-top: 1px solid #1e293b; font-size: 0.9rem; }
+        .active-row { background-color: rgba(34, 211, 238, 0.05); }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <!-- Header: 기술 사양 및 타이틀 -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Cyber Security Lab</span>
+                    <span class="text-slate-500 font-mono text-[10px]">SEC-02 | Auth & Session Security</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
+                    비인가 접근 및 세션 취약점 분석 실무<br><span class="text-slate-100 text-2xl font-bold">1강: 취약한 접근 제어(Broken Access Control)와 IDOR 분석</span>
+                </h1>
+            </div>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    THREAT SCORE: 9.8
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase font-bold">Security Architect Pro</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-24">
+
+        <!-- Section 0: 전체 강의 목차 (Curriculum) -->
+        <section>
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+                    <i data-lucide="list-checks" class="w-6 h-6 text-blue-400"></i>
+                </div>
+                <h2 class="text-2xl font-black text-slate-100 tracking-tight">
+                    📅 교육 과정 로드맵 (Course Roadmap)
+                </h2>
+            </div>
+            <div class="section-card rounded-3xl p-6 shadow-2xl overflow-hidden">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="w-20">회차</th>
+                            <th class="w-1/3 text-center">주제 (Topic)</th>
+                            <th class="text-center">핵심 분석 내용 (Key Modules)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="active-row">
+                            <td class="font-black text-cyan-400">1강</td>
+                            <td class="font-bold text-slate-100 italic">취약한 접근 제어 분석</td>
+                            <td class="text-slate-300">IDOR(Insecure Direct Object Reference, 부적절한 직접 객체 참조), 수평적/수직적 권한 상승, 기능 레벨 접근 제어 누락 분석</td>
+                        </tr>
+                        <tr>
+                            <td class="font-black text-slate-500">2강</td>
+                            <td class="font-bold text-slate-200 italic">세션 관리 메커니즘 취약점</td>
+                            <td class="text-slate-400">Session Hijacking(세션 하이재킹, 타인의 세션 탈취), Session Fixation(세션 고정), 쿠키 보안 속성(Secure, HttpOnly, SameSite) 심층 분석</td>
+                        </tr>
+                        <tr>
+                            <td class="font-black text-slate-500">3강</td>
+                            <td class="font-bold text-slate-200 italic">토큰 기반 인증 보안 (JWT)</td>
+                            <td class="text-slate-400">JWT(JSON Web Token, 자바스크립트 객체 표기법 기반 토큰) 구조 분석, 서명 위변조 공격, 알고리즘 취약점(None Alg) 및 보안 검증 로직 구현</td>
+                        </tr>
+                        <tr>
+                            <td class="font-black text-slate-500">4강</td>
+                            <td class="font-bold text-slate-200 italic">OAuth 2.0 및 OIDC 취약점</td>
+                            <td class="text-slate-400">OAuth 2.0(Open Authorization, 개방형 인증 프로토콜) 흐름 분석, Redirect URI 검증 미흡, SSRF(Server-Side Request Forgery) 연계 공격 실습</td>
+                        </tr>
+                        <tr>
+                            <td class="font-black text-slate-500">5강</td>
+                            <td class="font-bold text-slate-200 italic">심층 방어 및 인증 아키텍처</td>
+                            <td class="text-slate-400">MFA(Multi-Factor Authentication, 다요소 인증) 도입 전략, RBAC(Role-Based Access Control, 역할 기반 접근 제어) 설계, Zero Trust(제로 트러스트) 보안 모델 적용</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="mt-4 flex items-center gap-2 bg-indigo-500/10 p-4 rounded-xl border border-indigo-500/20">
+                    <i data-lucide="info" class="w-5 h-5 text-indigo-400"></i>
+                    <p class="text-xs text-indigo-300"><strong>운영 안내:</strong> AWS Cognito(클라우드 인증 서비스) 실습 시, 월 50,000명의 활성 사용자까지는 무료이나 <strong>고급 보안 기능 적용 시 추가 과금이 발생</strong>할 수 있습니다.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 1: 아키텍처 개요 -->
+        <section>
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20">
+                    <i data-lucide="shield-alert" class="w-6 h-6 text-cyan-400"></i>
+                </div>
+                <h2 class="text-2xl font-black text-slate-100 tracking-tight">
+                    1. 아키텍처 개요 (Broken Access Control Overview)
+                </h2>
+            </div>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-10 leading-relaxed">
+                    <strong>취약한 접근 제어(Broken Access Control)</strong>는 OWASP Top 10에서 1위를 차지할 만큼 빈번하고 치명적인 취약점입니다. 이는 인증된 사용자가 자신의 권한을 벗어나 타인의 데이터에 접근하거나 비인가 기능을 수행할 수 있는 상태를 의미합니다. 특히 <strong>IDOR(Insecure Direct Object Reference, 부적절한 직접 객체 참조)</strong>는 데이터베이스의 기본 키(Primary Key)가 URL이나 파라미터에 노출될 때 발생합니다.
+                </p>
+
+                <!-- 도식화 인포그래픽 영역 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner">
+                    <h4 class="text-center font-bold text-slate-400 mb-12 text-xs tracking-widest uppercase">
+                        [도식: IDOR 기반 데이터 탈취 메커니즘 (IDOR Exploitation Logic)]
+                    </h4>
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-6 relative">
+                        <!-- Attacker -->
+                        <div class="flex-1 text-center p-8 bg-slate-800 rounded-2xl border border-red-900/50 shadow-lg group hover:border-red-500 transition-colors">
+                            <i data-lucide="user-x" class="w-12 h-12 text-red-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm mb-2">공격자 (Attacker)</div>
+                            <p class="text-[10px] text-slate-500 font-medium italic italic">Parameter Manipulation</p>
+                        </div>
+                        
+                        <div class="flex flex-col items-center">
+                            <span class="text-[10px] text-red-400 font-bold mb-2">URL: /api/user/1001 → 1002</span>
+                            <i data-lucide="arrow-big-right-dash" class="w-8 h-8 text-slate-600 rotate-90 md:rotate-0"></i>
+                        </div>
+
+                        <!-- Server -->
+                        <div class="flex-1 text-center p-8 bg-slate-800 rounded-2xl border border-amber-900/50 shadow-lg group hover:border-amber-500 transition-colors">
+                            <i data-lucide="server" class="w-12 h-12 text-amber-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm mb-2">서버 (Auth Check 누락)</div>
+                            <p class="text-[10px] text-slate-500 font-medium italic italic">No Ownership Validation</p>
+                        </div>
+
+                        <div class="flex flex-col items-center">
+                            <span class="text-[10px] text-cyan-400 font-bold mb-2">Unauthorized Access</span>
+                            <i data-lucide="arrow-big-right-dash" class="w-8 h-8 text-slate-600 rotate-90 md:rotate-0"></i>
+                        </div>
+
+                        <!-- Victim Data -->
+                        <div class="flex-1 text-center p-8 bg-slate-800 rounded-2xl border border-cyan-900/50 shadow-lg group hover:border-cyan-500 transition-colors">
+                            <i data-lucide="database" class="w-12 h-12 text-cyan-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm mb-2">타인 데이터 (Victim Data)</div>
+                            <p class="text-[10px] text-slate-500 font-medium italic italic">Data Breach Occurred</p>
+                        </div>
+                    </div>
+                </div>
+                <p class="mt-6 text-xs text-slate-500 italic text-center italic">※ 설명: 서버가 사용자의 식별자(ID)만 확인하고, 해당 객체(Object)에 대한 실제 소유권(Ownership)을 검증하지 않을 때 발생합니다.</p>
+            </div>
+        </section>
+
+        <!-- Section 2: 실습 구성 요소 -->
+        <section>
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
+                    <i data-lucide="layers-2" class="w-6 h-6 text-indigo-400"></i>
+                </div>
+                <h2 class="text-2xl font-black text-slate-100 tracking-tight">
+                    2. 실습 구성 요소 (Components)
+                </h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="section-card rounded-3xl p-8 border-red-900/30 shadow-xl relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">ATTACK VECTOR</div>
+                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                        <i data-lucide="unplug" class="w-6 h-6 text-red-500"></i> 취약한 객체 참조 (IDOR)
+                    </h3>
+                    <ul class="space-y-4 text-sm text-slate-300">
+                        <li class="flex items-start gap-2 italic italic">
+                            <i data-lucide="alert-circle" class="w-4 h-4 text-red-500 mt-1 flex-shrink-0"></i> 
+                            <span>연속된 숫자형 ID 사용: <code>/order/10001</code>과 같이 예측 가능한 식별자 구조</span>
+                        </li>
+                        <li class="flex items-start gap-2 italic italic">
+                            <i data-lucide="alert-circle" class="w-4 h-4 text-red-500 mt-1 flex-shrink-0"></i> 
+                            <span>권한 검증 로직 누락: <code>user_id</code> 체크 없이 <code>order_id</code>만으로 조회</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="section-card rounded-3xl p-8 border-cyan-900/30 shadow-xl relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 bg-cyan-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">DEFENSE NODE</div>
+                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                        <i data-lucide="shield-check" class="w-6 h-6 text-cyan-400"></i> 접근 제어 고도화
+                    </h3>
+                    <ul class="space-y-4 text-sm text-slate-300">
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-cyan-500 mt-1 flex-shrink-0"></i> 
+                            <span><strong>UUID(Universally Unique Identifier, 범용 고유 식별자)</strong> 도입으로 ID 예측 차단</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-cyan-500 mt-1 flex-shrink-0"></i> 
+                            <span><strong>ABAC(Attribute-Based Access Control, 속성 기반 접근 제어)</strong>를 통한 소유권 검증 로직 강제</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: 실증 및 구현 -->
+        <section>
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+                    <i data-lucide="code" class="w-6 h-6 text-blue-400"></i>
+                </div>
+                <h2 class="text-2xl font-black text-slate-100 tracking-tight">
+                    3. 실증 및 구현 (Implementation)
+                </h2>
+            </div>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-16">
+                
+                <!-- Step 01 -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-4">
+                        <span class="step-number text-slate-900 w-10 h-10 rounded-full flex items-center justify-center text-sm font-black italic shadow-lg shadow-cyan-500/20">01</span>
+                        <h3 class="text-xl font-bold text-slate-100 uppercase tracking-tight">취약한 API 분석 (Vulnerable Endpoint Analysis)</h3>
+                    </div>
+                    <div class="pl-14">
+                        <p class="text-sm text-slate-400 mb-6 leading-relaxed">
+                            사용자의 요청 파라미터를 조작(Fuzzing)하여 다른 사용자의 정보를 반환하는지 확인합니다.
+                        </p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative group">
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black tracking-widest italic">Request Interception</div>
+                            <div class="text-slate-200">GET <span class="text-cyan-400">/api/v1/profile?id=2048</span> HTTP/1.1</div>
+                            <div class="text-slate-500 mt-2">
+                                Host: secure-lab.com<br>
+                                Authorization: Bearer eyJhbGciOiJIUzI1... (Attacker Token)<br><br>
+                                <span class="text-red-400 text-glow font-bold">[RESPONSE 200 OK]</span><br>
+                                { "username": "victim_user", "email": "victim@privacy.com", "balance": "$1,200,000" }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 02 -->
+                <div class="space-y-4 border-t border-slate-800 pt-12">
+                    <div class="flex items-center gap-4">
+                        <span class="step-number text-slate-900 w-10 h-10 rounded-full flex items-center justify-center text-sm font-black italic shadow-lg shadow-blue-500/20">02</span>
+                        <h3 class="text-xl font-bold text-slate-100 uppercase tracking-tight">시큐어 코딩: 소유권 검증 로직 (Ownership Validation)</h3>
+                    </div>
+                    <div class="pl-14">
+                        <p class="text-sm text-slate-400 mb-6 leading-relaxed">
+                            데이터베이스 조회 시 반드시 현재 세션의 사용자 ID를 조건절(WHERE clause)에 포함시켜 권한을 강제합니다.
+                        </p>
+                        <div class="bg-slate-950 rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                            <div class="absolute top-4 right-4 text-green-600 text-[10px] uppercase font-black italic">backend_logic.py</div>
+                            <div class="text-slate-200">
+                                <span class="text-pink-500">def</span> <span class="text-cyan-400">get_user_profile</span>(request, profile_id):<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;current_user_id = request.user.id<br><br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-slate-500 italic"># BAD: profile = Profile.objects.get(id=profile_id)</span><br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-slate-500 italic"># GOOD: 요청된 ID와 현재 로그인한 사용자의 ID를 함께 검증</span><br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;profile = Profile.objects.filter(id=profile_id, user_id=current_user_id).first()<br><br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-pink-500">if not</span> profile:<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-pink-500">return</span> Response({"error": "Unauthorized Access"}, status=403)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: 전문가 분석 -->
+        <section>
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
+                    <i data-lucide="brain-circuit" class="w-6 h-6 text-amber-400"></i>
+                </div>
+                <h2 class="text-2xl font-black text-slate-100 tracking-tight">
+                    4. 아키텍트 인사이트 (Expert Insight)
+                </h2>
+            </div>
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-10">
+                <div class="flex flex-col md:flex-row gap-8">
+                    <!-- Tip Card -->
+                    <div class="flex-1 bg-slate-800/50 p-8 rounded-2xl border border-slate-700 hover:border-cyan-500/50 transition-all group">
+                        <div class="text-cyan-400 mb-6"><i data-lucide="key" class="w-10 h-10"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-4 text-lg">UUID와 보안의 상관관계</h4>
+                        <p class="text-sm text-slate-400 leading-relaxed mb-4">
+                            IDOR를 방지하기 위해 <code>1, 2, 3</code>과 같은 순차적 정수 대신 <strong>UUID v4</strong>를 사용하는 것이 권장됩니다. UUID는 추측이 불가능하여 공격자가 파라미터를 조작하는 행위 자체를 원천 봉쇄합니다. 단, 인덱싱 성능 저하를 고려하여 설계해야 합니다.
+                        </p>
+                        <div class="text-[10px] text-cyan-500 font-bold uppercase tracking-widest font-mono italic">Security by Obscurity</div>
+                    </div>
+                    <!-- Warning Card -->
+                    <div class="flex-1 bg-slate-800/50 p-8 rounded-2xl border border-slate-700 hover:border-red-500/50 transition-all group">
+                        <div class="text-red-400 mb-6"><i data-lucide="eye-off" class="w-10 h-10"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-4 text-lg">기능 레벨 접근 제어 (FLAC)</h4>
+                        <p class="text-sm text-slate-400 leading-relaxed mb-4">
+                            데이터뿐만 아니라 기능(Function)에 대해서도 검증이 필요합니다. 관리자 전용 URL인 <code>/admin/delete_user</code>가 일반 사용자 세션에서 작동하는지 확인하는 <strong>FLAC(Function Level Access Control)</strong> 점검은 필수입니다.
+                        </p>
+                        <div class="text-[10px] text-red-500 font-bold uppercase tracking-widest font-mono italic">Vertical Privilege Escalation</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+            © 2026 Security Architect Pro. ALL RIGHTS RESERVED.
+        </div>
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic italic">
+            본 교육 자료는 고도화된 웹 애플리케이션 보안 설계를 위한 실무 가이드를 제공합니다. 실습은 반드시 격리된 연구용 샌드박스 환경에서 수행하시기 바랍니다.
+        </p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
