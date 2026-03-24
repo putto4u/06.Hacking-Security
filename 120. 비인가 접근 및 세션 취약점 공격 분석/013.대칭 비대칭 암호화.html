@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2강: 암호화 알고리즘의 올바른 적용 및 실무 보안 전략</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+        }
+        .terminal-bg { background-color: #0c1120; border: 1px solid #1e293b; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-filter: blur(12px); }
+        .code-block { font-family: 'Fira Code', monospace; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+        .step-number { background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%); }
+        .highlight-box { border-left: 4px solid #06b6d4; background: rgba(6, 182, 212, 0.05); padding: 1.5rem; border-radius: 0 0.75rem 0.75rem 0; }
+        .warning-box { border-left: 4px solid #ef4444; background: rgba(239, 68, 68, 0.05); padding: 1.5rem; border-radius: 0 0.75rem 0.75rem 0; }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <!-- Header: 기술 사양 및 타이틀 -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Cyber Security Lab</span>
+                    <span class="text-slate-500 font-mono text-[10px]">SEC-01 | Module 2: Applied Cryptography</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
+                    암호화 알고리즘의 올바른 적용<br><span class="text-slate-100 text-2xl font-bold italic">대칭/비대칭 암호화 및 안전한 해싱 아키텍처</span>
+                </h1>
+            </div>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    LECTURE 02
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase font-bold">Security Architect Professional</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-24">
+
+        <!-- Section 1: 암호화 아키텍처 개요 -->
+        <section>
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20">
+                    <i data-lucide="shield" class="w-6 h-6 text-cyan-400"></i>
+                </div>
+                <h2 class="text-2xl font-black text-slate-100 tracking-tight italic">
+                    1. 암호화 아키텍처 프레임워크 (Cryptography Architecture Framework)
+                </h2>
+            </div>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-10 leading-relaxed">
+                    데이터 보안에서 <strong>암호화(Cryptography, 정보를 해독 불가능한 형태로 변환하는 기술)</strong>는 데이터가 유출되더라도 그 내용을 보호할 수 있는 최후의 보루입니다. 암호화 아키텍처는 크게 **기밀성(Confidentiality, 인가된 사용자만 정보 접근)**을 위한 암호화와 **무결성(Integrity, 정보의 변조 여부 확인)**을 위한 해싱으로 구분됩니다.
+                </p>
+
+                <!-- 도식: 암호화의 주요 분류 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner">
+                    <h4 class="text-center font-bold text-slate-500 mb-10 text-[10px] tracking-widest uppercase">
+                        [도식: 암호화 기술의 주요 분류 체계 (Cryptography Classification)]
+                    </h4>
+                    <div class="flex flex-col md:flex-row items-center justify-center gap-6">
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-blue-900/30">
+                            <i data-lucide="key-round" class="w-10 h-10 text-blue-400 mx-auto mb-4"></i>
+                            <div class="font-bold text-slate-100 mb-2">Symmetric Encryption</div>
+                            <p class="text-[9px] text-slate-500 italic">대칭키 암호화<br>(AES: 동일한 키로 암/복호화)</p>
+                        </div>
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-indigo-900/30">
+                            <i data-lucide="keys" class="w-10 h-10 text-indigo-400 mx-auto mb-4"></i>
+                            <div class="font-bold text-slate-100 mb-2">Asymmetric Encryption</div>
+                            <p class="text-[9px] text-slate-500 italic">비대칭키 암호화<br>(RSA/ECC: 공개키/개인키 쌍 활용)</p>
+                        </div>
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-cyan-900/30">
+                            <i data-lucide="hash" class="w-10 h-10 text-cyan-400 mx-auto mb-4"></i>
+                            <div class="font-bold text-slate-100 mb-2">One-way Hashing</div>
+                            <p class="text-[9px] text-slate-500 italic">단방향 해시 함수<br>(SHA-256: 복호화 불가, 무결성 검증)</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6 p-4 bg-slate-800/50 rounded-xl border border-slate-700 text-xs text-slate-400 italic">
+                    ※ 설명: 현대 보안 아키텍처는 성능을 위해 대칭키로 데이터를 암호화하고, 그 대칭키를 비대칭키로 보호하는 <strong>하이브리드 암호 시스템(Hybrid Crypto System)</strong>을 주로 사용합니다.
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: 대칭키 및 비대칭키 암호화 -->
+        <section>
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
+                    <i data-lucide="lock" class="w-6 h-6 text-indigo-400"></i>
+                </div>
+                <h2 class="text-2xl font-black text-slate-100 tracking-tight italic">
+                    2. 양방향 암호화 메커니즘 분석 (Two-way Encryption Analysis)
+                </h2>
+            </div>
+
+            <div class="space-y-12">
+                <!-- Symmetric Encryption -->
+                <div class="highlight-box">
+                    <h3 class="text-xl font-black text-blue-400 mb-4 uppercase tracking-widest">2.1 대칭키 암호화: AES (Advanced Encryption Standard)</h3>
+                    <p class="text-slate-300 leading-relaxed mb-6">
+                        <strong>AES (Advanced Encryption Standard, 고급 암호화 표준)</strong>는 전 세계에서 가장 널리 사용되는 대칭키 알고리즘입니다. 암호화와 복호화에 동일한 비밀키를 사용하므로 속도가 빠르지만, 키를 안전하게 공유하고 관리하는 것이 핵심 과제입니다.
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner">
+                            <div class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2">[AES-256 적용 원칙]</div>
+                            <ul class="text-slate-400 space-y-2">
+                                <li>• 키 길이: 256비트 권장</li>
+                                <li>• 운영 모드: GCM (Galois/Counter Mode) 권장</li>
+                                <li>• IV (Initialization Vector, 초기화 벡터): 매번 무작위 생성</li>
+                            </ul>
+                        </div>
+                        <div class="bg-slate-900/50 rounded-xl p-6 border border-slate-800">
+                            <h4 class="font-bold text-slate-100 mb-2 italic">GCM 모드의 장점</h4>
+                            <p class="text-[10px] text-slate-400">
+                                데이터의 기밀성뿐만 아니라 <strong>인증(Authentication, 데이터 위변조 탐지)</strong> 기능을 동시에 제공하여 재전송 공격(Replay Attack)을 효과적으로 방어할 수 있습니다.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Asymmetric Encryption -->
+                <div class="highlight-box border-indigo-500">
+                    <h3 class="text-xl font-black text-indigo-400 mb-4 uppercase tracking-widest">2.2 비대칭키 암호화: RSA 및 ECC</h3>
+                    <p class="text-slate-300 leading-relaxed mb-6">
+                        <strong>공개키 암호 방식(Public Key Cryptography)</strong>으로도 불리는 이 기술은 공개키(Public Key)로 암호화하고 개인키(Private Key)로 복호화합니다. 키 전달 문제가 해결되지만 연산 속도가 대칭키에 비해 느리다는 단점이 있습니다.
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="p-4 bg-slate-900/50 rounded-xl border border-slate-800">
+                            <h4 class="font-bold text-slate-100 mb-2 italic">RSA (Rivest-Shamir-Adleman)</h4>
+                            <p class="text-[10px] text-slate-400">
+                                소인수 분해의 어려움을 이용한 알고리즘입니다. 현대 보안 표준에서는 <strong>2048비트 이상</strong>의 키 길이를 필수로 요구합니다.
+                            </p>
+                        </div>
+                        <div class="p-4 bg-slate-900/50 rounded-xl border border-slate-800">
+                            <h4 class="font-bold text-slate-100 mb-2 italic">ECC (Elliptic Curve Cryptography, 타원 곡선 암호)</h4>
+                            <p class="text-[10px] text-slate-400">
+                                복잡한 수학적 구조인 타원 곡선을 이용합니다. RSA보다 훨씬 <strong>짧은 키 길이로도 동일한 보안 수준</strong>을 제공하여 모바일 기기 및 IoT(Internet of Things, 사물 인터넷) 환경에 최적화되어 있습니다.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: 안전한 패스워드 해싱 및 솔팅 -->
+        <section>
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20">
+                    <i data-lucide="fingerprint" class="w-6 h-6 text-cyan-400"></i>
+                </div>
+                <h2 class="text-2xl font-black text-slate-100 tracking-tight italic">
+                    3. 단방향 해싱 및 솔팅 전략 (One-way Hashing & Salting)
+                </h2>
+            </div>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-12">
+                <div class="highlight-box border-cyan-500">
+                    <h3 class="text-xl font-bold text-cyan-400 mb-4">패스워드 보호의 핵심: 솔팅(Salting)</h3>
+                    <p class="text-sm text-slate-400 leading-relaxed mb-6">
+                        단순 해시 값은 **레인보우 테이블(Rainbow Table, 미리 계산된 해시 값 목록)** 공격에 취약합니다. 이를 방어하기 위해 각 사용자마다 고유한 무작위 값인 <strong>솔트(Salt)</strong>를 원본 데이터에 추가하여 해싱해야 합니다.
+                    </p>
+                    
+                    <!-- 도식: 솔팅 메커니즘 -->
+                    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner">
+                        <h4 class="text-center font-bold text-slate-500 mb-8 text-[10px] tracking-widest uppercase">
+                            [도식: 안전한 패스워드 저장 아키텍처 (Secure Password Storage)]
+                        </h4>
+                        <div class="flex flex-col md:flex-row items-center justify-center gap-4">
+                            <div class="text-center p-3 bg-slate-800 rounded-lg border border-slate-700 w-32">
+                                <span class="text-[10px] text-slate-100">Password</span>
+                            </div>
+                            <span class="text-cyan-400 font-black">+</span>
+                            <div class="text-center p-3 bg-cyan-900/30 rounded-lg border border-cyan-500/30 w-32">
+                                <span class="text-[10px] text-cyan-400">Random Salt</span>
+                            </div>
+                            <i data-lucide="arrow-right" class="w-6 h-6 text-slate-700"></i>
+                            <div class="text-center p-3 bg-indigo-900/30 rounded-lg border border-indigo-500/30 w-48">
+                                <span class="text-[10px] text-indigo-400 font-bold italic">Slow Hash Algorithm<br>(Argon2 / PBKDF2)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="warning-box">
+                    <h4 class="text-lg font-bold text-red-400 mb-4">취약한 알고리즘 퇴출 (Deprecated Algorithms)</h4>
+                    <p class="text-sm text-slate-400 leading-relaxed italic">
+                        연산 속도가 너무 빠른 <strong>MD5, SHA-1</strong> 알고리즘은 현대의 컴퓨팅 성능(GPU 등) 앞에서 무력합니다. 패스워드 저장 시에는 의도적으로 연산 속도를 늦추는 **키 스트레칭(Key Stretching)** 기능이 포함된 알고리즘을 사용해야 합니다.
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        <div class="bg-slate-900/50 p-4 rounded-xl border border-red-500/20 text-center">
+                            <span class="text-red-500 font-black text-[10px]">USELESS</span>
+                            <p class="text-[10px] text-slate-500">MD5, SHA-1</p>
+                        </div>
+                        <div class="bg-slate-900/50 p-4 rounded-xl border border-green-500/20 text-center">
+                            <span class="text-green-500 font-black text-[10px]">RECOMMENDED</span>
+                            <p class="text-[10px] text-slate-500">Argon2, bcrypt, PBKDF2</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: 전문가 인사이트 및 클라우드 키 관리 -->
+        <section>
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
+                    <i data-lucide="brain-circuit" class="w-6 h-6 text-amber-400"></i>
+                </div>
+                <h2 class="text-2xl font-black text-slate-100 tracking-tight italic">
+                    4. 아키텍트 인사이트 (Expert Insight & Cloud Key Management)
+                </h2>
+            </div>
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-10">
+                <div class="flex flex-col md:flex-row gap-8">
+                    <div class="flex-1 bg-slate-800/50 p-8 rounded-2xl border border-slate-700 hover:border-cyan-500/50 transition-all group">
+                        <div class="text-cyan-400 mb-6"><i data-lucide="lock-keyhole" class="w-10 h-10"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-4 text-lg italic">암호 알고리즘은 직접 만들지 마라</h4>
+                        <p class="text-sm text-slate-400 leading-relaxed mb-4">
+                            "Don't Roll Your Own Crypto"는 보안 업계의 철칙입니다. 검증되지 않은 독자 암호 알고리즘은 반드시 취약점을 동반합니다. <strong>표준화된 라이브러리(OpenSSL, PyCryptodome 등)</strong>를 사용하여 검증된 최신 알고리즘을 적용하는 것이 가장 안전합니다.
+                        </p>
+                    </div>
+                    <div class="flex-1 bg-slate-800/50 p-8 rounded-2xl border border-slate-700 hover:border-indigo-500/50 transition-all group">
+                        <div class="text-indigo-400 mb-6"><i data-lucide="rotate-ccw" class="w-10 h-10"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-4 text-lg italic">키 순환(Key Rotation)의 중요성</h4>
+                        <p class="text-sm text-slate-400 leading-relaxed mb-4">
+                            동일한 암호화 키를 너무 오래 사용하면 공격자에게 분석 기회를 제공하게 됩니다. 주기적으로 키를 변경하는 <strong>키 순환(Key Rotation)</strong> 정책을 수립해야 합니다. 클라우드 환경에서는 이를 자동화하는 서비스를 활용하는 것이 효율적입니다.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- AWS Billing Info -->
+                <div class="p-6 bg-slate-800/30 border border-slate-700 rounded-2xl flex flex-col md:flex-row items-center gap-6">
+                    <div class="flex-shrink-0 w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center">
+                        <i data-lucide="dollar-sign" class="w-8 h-8 text-red-400"></i>
+                    </div>
+                    <div>
+                        <h5 class="font-bold text-slate-100 mb-2 italic">보안 서비스 비용 분석 (AWS KMS Pricing)</h5>
+                        <p class="text-xs text-slate-400 leading-relaxed italic">
+                            <strong>AWS KMS (Key Management Service, 아마존 웹 서비스 키 관리 서비스)</strong>를 활용하여 암호화 키를 안전하게 보관할 경우, <strong>고객 관리형 키(KMS Key)당 월 $1.00</strong>의 유지비가 발생합니다. 또한, 암/복호화를 위해 키를 사용할 때 <strong>10,000건의 API 요청당 $0.03</strong>가 과금됩니다. 대량의 데이터를 실시간으로 처리할 때는 <strong>엔벨로프 암호화(Envelope Encryption, 데이터를 대칭키로 암호화하고 그 키만 KMS로 보호하는 방식)</strong>를 통해 비용과 성능을 최적화해야 합니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+            © 2026 Cyber Security Lab | Senior Architect Course
+        </div>
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic italic italic">
+            본 교재는 데이터 보안의 핵심인 암호화 기술을 실무 관점에서 다룹니다. 올바른 알고리즘 선택과 안전한 키 관리는 견고한 보안 아키텍처의 필수 조건입니다.
+        </p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
