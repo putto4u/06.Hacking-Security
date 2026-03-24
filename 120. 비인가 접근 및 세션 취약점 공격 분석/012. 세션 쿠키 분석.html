@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>비인가 접근 및 세션 취약점 분석 실무 - 2강</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+        }
+        .terminal-bg { background-color: #0c1120; border: 1px solid #1e293b; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-filter: blur(12px); }
+        .code-block { font-family: 'Fira Code', monospace; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+        .step-number { background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%); }
+        table { width: 100%; border-collapse: separate; border-spacing: 0; margin: 2rem 0; border: 1px solid #1e293b; border-radius: 12px; overflow: hidden; }
+        th { background-color: #0f172a; color: #94a3b8; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; padding: 1rem; text-align: left; }
+        td { padding: 1.25rem; border-top: 1px solid #1e293b; font-size: 0.9rem; }
+        .active-row { background-color: rgba(34, 211, 238, 0.05); }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <!-- Header -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Cyber Security Lab</span>
+                    <span class="text-slate-500 font-mono text-[10px]">SEC-02 | Session Management</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
+                    비인가 접근 및 세션 취약점 분석 실무<br><span class="text-slate-100 text-2xl font-bold">2강: 세션 관리 메커니즘 취약점 및 쿠키 보안 전략</span>
+                </h1>
+            </div>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    CRITICALITY: HIGH (A07:2021)
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase font-bold italic">Identification & Authentication Failures</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-24">
+
+        <!-- Section 1: 세션 관리의 아키텍처 이해 -->
+        <section>
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20">
+                    <i data-lucide="network" class="w-6 h-6 text-cyan-400"></i>
+                </div>
+                <h2 class="text-3xl font-black text-slate-100 tracking-tight">
+                    1. 세션 관리 아키텍처 (Session Management Architecture)
+                </h2>
+            </div>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-8">
+                <p class="text-slate-300 text-lg leading-relaxed">
+                    HTTP(Hypertext Transfer Protocol, 하이퍼텍스트 전송 프로토콜)는 본래 **비상태성(Stateless, 상태를 유지하지 않는 성질)**을 가집니다. 이를 보완하여 사용자의 로그인 상태를 유지하기 위해 도입된 개념이 **세션(Session, 서버와 클라이언트 간의 연결 상태)**입니다. 서버는 사용자를 식별하기 위한 고유한 **SID(Session Identifier, 세션 식별자)**를 생성하여 쿠키를 통해 클라이언트에 전달합니다.
+                </p>
+
+                <!-- 도식: 세션 수명 주기 및 흐름 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner">
+                    <h4 class="text-center font-bold text-slate-400 mb-10 text-xs tracking-widest uppercase">
+                        [도식: 정상적인 세션 수명 주기 (Session Life-cycle Flow)]
+                    </h4>
+                    <div class="flex flex-col md:flex-row items-center justify-around gap-4 relative">
+                        <!-- Step 1 -->
+                        <div class="flex-1 p-6 bg-slate-800 rounded-xl border border-blue-900/50 text-center">
+                            <i data-lucide="user-plus" class="w-10 h-10 text-blue-400 mx-auto mb-3"></i>
+                            <h5 class="font-bold text-slate-100 text-sm mb-1">1. 인증 시도</h5>
+                            <p class="text-[10px] text-slate-500">ID/PW 제출 및 검증</p>
+                        </div>
+                        <i data-lucide="arrow-right" class="w-6 h-6 text-slate-700 hidden md:block"></i>
+                        <!-- Step 2 -->
+                        <div class="flex-1 p-6 bg-slate-800 rounded-xl border border-cyan-900/50 text-center">
+                            <i data-lucide="key" class="w-10 h-10 text-cyan-400 mx-auto mb-3"></i>
+                            <h5 class="font-bold text-slate-100 text-sm mb-1">2. SID 생성/발급</h5>
+                            <p class="text-[10px] text-slate-500">Set-Cookie: SID=xyz...</p>
+                        </div>
+                        <i data-lucide="arrow-right" class="w-6 h-6 text-slate-700 hidden md:block"></i>
+                        <!-- Step 3 -->
+                        <div class="flex-1 p-6 bg-slate-800 rounded-xl border border-indigo-900/50 text-center">
+                            <i data-lucide="activity" class="w-10 h-10 text-indigo-400 mx-auto mb-3"></i>
+                            <h5 class="font-bold text-slate-100 text-sm mb-1">3. 상태 유지</h5>
+                            <p class="text-[10px] text-slate-500">Cookie 헤더로 SID 전송</p>
+                        </div>
+                        <i data-lucide="arrow-right" class="w-6 h-6 text-slate-700 hidden md:block"></i>
+                        <!-- Step 4 -->
+                        <div class="flex-1 p-6 bg-slate-800 rounded-xl border border-red-900/50 text-center">
+                            <i data-lucide="log-out" class="w-10 h-10 text-red-400 mx-auto mb-3"></i>
+                            <h5 class="font-bold text-slate-100 text-sm mb-1">4. 세션 만료</h5>
+                            <p class="text-[10px] text-slate-500">로그아웃/타임아웃 처리</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 p-4 bg-slate-800/50 rounded-xl border border-slate-700 text-sm text-slate-400">
+                    <p>※ 설명: 서버는 메모리나 DB(Database, 데이터베이스), 또는 Redis(레디스, 인메모리 데이터 구조 저장소)와 같은 세션 저장소에 SID를 키로 하여 사용자 정보를 매핑합니다. 만약 SID가 유출되거나 추측 가능하다면, 공격자는 패스워드 없이 사용자로 위장할 수 있습니다.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: 세션 하이재킹 분석 -->
+        <section>
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-12 h-12 rounded-2xl bg-red-500/10 flex items-center justify-center border border-red-500/20">
+                    <i data-lucide="spy" class="w-6 h-6 text-red-400"></i>
+                </div>
+                <h2 class="text-3xl font-black text-slate-100 tracking-tight">
+                    2. 세션 하이재킹 (Session Hijacking, 세션 가로채기)
+                </h2>
+            </div>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-10">
+                <p class="text-slate-300 text-lg leading-relaxed">
+                    <strong>세션 하이재킹(Session Hijacking, 세션 가로채기)</strong>은 공격자가 활성화된 사용자의 세션을 가로채어 해당 사용자의 권한으로 시스템에 접근하는 공격 기법입니다. 이는 주로 네트워크 스니핑, 교차 사이트 스크립팅, 또는 취약한 세션 식별자 생성 로직을 통해 발생합니다.
+                </p>
+
+                <!-- 도식: 세션 하이재킹 공격 메커니즘 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-10 shadow-inner">
+                    <h4 class="text-center font-bold text-slate-400 mb-12 text-xs tracking-widest uppercase">
+                        [도식: XSS를 이용한 세션 하이재킹 흐름 (XSS-based Hijacking)]
+                    </h4>
+                    <div class="relative flex flex-col md:flex-row items-center justify-between gap-10">
+                        <!-- Victim -->
+                        <div class="text-center">
+                            <div class="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center border-2 border-blue-500/50 mx-auto mb-4">
+                                <i data-lucide="user" class="w-10 h-10 text-blue-400"></i>
+                            </div>
+                            <div class="font-bold text-xs">사용자 (Victim)</div>
+                        </div>
+
+                        <!-- Script Execution -->
+                        <div class="flex-1 border-y border-dashed border-slate-700 py-4 px-6 text-center">
+                            <p class="text-[10px] text-red-400 font-mono mb-2">스크립트 실행: document.cookie</p>
+                            <i data-lucide="zap" class="w-6 h-6 text-amber-500 mx-auto"></i>
+                        </div>
+
+                        <!-- Attacker Server -->
+                        <div class="text-center">
+                            <div class="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center border-2 border-red-500/50 mx-auto mb-4 shadow-[0_0_20px_rgba(239,68,68,0.2)]">
+                                <i data-lucide="skull" class="w-10 h-10 text-red-400"></i>
+                            </div>
+                            <div class="font-bold text-xs text-red-400 font-black">공격자 (Attacker)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="bg-red-900/10 p-6 rounded-2xl border border-red-500/20">
+                        <h5 class="font-black text-red-300 mb-3 flex items-center gap-2">
+                            <i data-lucide="alert-triangle" class="w-5 h-5"></i> 주요 공격 벡터 (Attack Vectors)
+                        </h5>
+                        <ul class="text-sm text-slate-400 space-y-3">
+                            <li class="flex items-start gap-2 italic">
+                                <span class="text-red-500">•</span>
+                                <span><strong>Sniffing(스니핑, 가로채기):</strong> 암호화되지 않은 HTTP 통신에서 패킷을 캡처하여 SID 탈취</span>
+                            </li>
+                            <li class="flex items-start gap-2 italic">
+                                <span class="text-red-500">•</span>
+                                <span><strong>XSS(Cross-Site Scripting, 교차 사이트 스크립팅):</strong> 악성 스크립트를 삽입하여 <code>document.cookie</code>를 통해 SID를 공격자 서버로 전송</span>
+                            </li>
+                            <li class="flex items-start gap-2 italic">
+                                <span class="text-red-500">•</span>
+                                <span><strong>Side-jacking(사이드재킹):</strong> HTTP 세션 쿠키를 가로채어 HTTPS로 보호되는 영역 외에서 세션을 탈취</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="bg-blue-900/10 p-6 rounded-2xl border border-blue-500/20">
+                        <h5 class="font-black text-blue-300 mb-3 flex items-center gap-2">
+                            <i data-lucide="shield" class="w-5 h-5"></i> 대응 방안 (Countermeasures)
+                        </h5>
+                        <ul class="text-sm text-slate-400 space-y-3">
+                            <li class="flex items-start gap-2">
+                                <span class="text-blue-400">•</span>
+                                <span>전체 통신 구간 <strong>HTTPS(보안 하이퍼텍스트 전송 프로토콜)</strong> 의무화</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-blue-400">•</span>
+                                <span>쿠키 보안 속성(HttpOnly, Secure) 강제 적용</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-blue-400">•</span>
+                                <span>사용자의 IP 주소나 User-Agent(사용자 에이전트, 브라우저 식별 정보) 변화 감지 시 세션 종료</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: 세션 고정 분석 -->
+        <section>
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
+                    <i data-lucide="anchor" class="w-6 h-6 text-amber-400"></i>
+                </div>
+                <h2 class="text-3xl font-black text-slate-100 tracking-tight">
+                    3. 세션 고정 (Session Fixation, 세션 식별자 고정 공격)
+                </h2>
+            </div>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-10">
+                <p class="text-slate-300 text-lg leading-relaxed">
+                    <strong>세션 고정(Session Fixation, 세션 식별자 고정 공격)</strong>은 공격자가 미리 생성한 유효한 SID를 사용자에게 강제로 심어놓고, 사용자가 해당 SID로 로그인하도록 유도하여 세션을 공유하는 공격입니다. 하이재킹이 '탈취'라면, 고정은 '미리 설계된 함정'에 가깝습니다.
+                </p>
+
+                <!-- 도식: 세션 고정 공격 단계별 절차 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-10 shadow-inner">
+                    <h4 class="text-center font-bold text-slate-400 mb-12 text-xs tracking-widest uppercase">
+                        [도식: 세션 고정 공격 3단계 (Session Fixation Steps)]
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="p-4 bg-slate-800 rounded-xl border border-slate-700 relative">
+                            <span class="absolute -top-3 -left-3 w-8 h-8 rounded-lg bg-amber-600 flex items-center justify-center text-xs font-black italic">01</span>
+                            <div class="text-xs font-bold text-amber-400 mb-2 italic">SID 발급 (Attacker)</div>
+                            <p class="text-[10px] text-slate-400">공격자가 서버에 접속하여 유효한 SID(예: ID=666)를 발급받음</p>
+                        </div>
+                        <div class="p-4 bg-slate-800 rounded-xl border border-slate-700 relative">
+                            <span class="absolute -top-3 -left-3 w-8 h-8 rounded-lg bg-amber-600 flex items-center justify-center text-xs font-black italic">02</span>
+                            <div class="text-xs font-bold text-amber-400 mb-2 italic">SID 주입 (Fixation)</div>
+                            <p class="text-[10px] text-slate-400">피싱 메일 등을 통해 사용자에게 해당 SID가 포함된 링크 클릭 유도</p>
+                        </div>
+                        <div class="p-4 bg-red-900/20 rounded-xl border border-red-500/30 relative">
+                            <span class="absolute -top-3 -left-3 w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center text-xs font-black italic">03</span>
+                            <div class="text-xs font-bold text-red-400 mb-2 italic">로그인 및 탈취</div>
+                            <p class="text-[10px] text-slate-400">사용자가 해당 SID 상태에서 로그인 성공 시, 공격자도 동일 권한 획득</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-6 bg-slate-800/50 border border-slate-700 rounded-2xl">
+                    <h5 class="font-bold text-slate-100 mb-4 italic">최선의 방어: 로그인 시 세션 재생성 (Session Re-generation)</h5>
+                    <p class="text-sm text-slate-400 mb-4">가장 근본적인 해결책은 사용자가 성공적으로 인증을 마칠 때마다, 기존에 사용하던 SID를 폐기하고 새로운 SID를 발급하는 것입니다.</p>
+                    <div class="bg-slate-950 rounded-xl p-6 font-mono text-xs border border-cyan-900/30">
+<pre class="text-slate-200"><code><span class="text-slate-500 italic"># Python Flask 기반의 안전한 세션 갱신 예시</span>
+<span class="text-pink-500">from</span> flask <span class="text-pink-500">import</span> session
+
+<span class="text-pink-500">def</span> <span class="text-cyan-400">login</span>():
+    <span class="text-pink-500">if</span> authenticate_user(username, password):
+        <span class="text-slate-500"># 기존 세션 데이터를 유지하면서 SID만 교체</span>
+        session.regenerate() 
+        <span class="text-slate-500"># 또는 세션을 완전히 비우고 다시 설정</span>
+        session.clear()
+        session[<span class="text-amber-400">'user_id'</span>] = user.id
+        <span class="text-pink-500">return</span> <span class="text-amber-400">"Success"</span></code></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: 쿠키 보안 속성 -->
+        <section>
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
+                    <i data-lucide="lock" class="w-6 h-6 text-indigo-400"></i>
+                </div>
+                <h2 class="text-3xl font-black text-slate-100 tracking-tight">
+                    4. 쿠키 보안 속성 마스터 (Cookie Security Attributes)
+                </h2>
+            </div>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-12">
+                <p class="text-slate-300 text-lg leading-relaxed">
+                    브라우저가 쿠키를 다루는 방식을 제어하는 보안 속성들을 올바르게 설정하는 것은 세션 보안의 마지막 방어선입니다.
+                </p>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- HttpOnly -->
+                    <div class="p-8 bg-slate-800 rounded-2xl border border-indigo-900/50 relative group">
+                        <i data-lucide="file-json-2" class="w-8 h-8 text-indigo-400 mb-4"></i>
+                        <h5 class="font-bold text-slate-100 mb-2 text-lg">HttpOnly</h5>
+                        <p class="text-xs text-slate-400 leading-relaxed mb-4">
+                            JavaScript(자바스크립트)의 <code>document.cookie</code>를 통한 쿠키 접근을 원천 차단합니다. <strong>XSS 공격을 통한 세션 탈취를 방지</strong>하는 가장 핵심적인 속성입니다.
+                        </p>
+                        <div class="text-[10px] text-indigo-500 font-bold uppercase italic">Essential for Session Cookies</div>
+                    </div>
+                    <!-- Secure -->
+                    <div class="p-8 bg-slate-800 rounded-2xl border border-cyan-900/50 relative group">
+                        <i data-lucide="shield-check" class="w-8 h-8 text-cyan-400 mb-4"></i>
+                        <h5 class="font-bold text-slate-100 mb-2 text-lg">Secure</h5>
+                        <p class="text-xs text-slate-400 leading-relaxed mb-4">
+                            쿠키가 오직 <strong>HTTPS 암호화 통신</strong> 채널을 통해서만 전송되도록 제한합니다. 네트워크 스니핑을 통한 평문 SID 노출을 방지합니다.
+                        </p>
+                        <div class="text-[10px] text-cyan-500 font-bold uppercase italic">HTTPS Mandatory</div>
+                    </div>
+                    <!-- SameSite -->
+                    <div class="p-8 bg-slate-800 rounded-2xl border border-amber-900/50 relative group">
+                        <i data-lucide="external-link" class="w-8 h-8 text-amber-400 mb-4"></i>
+                        <h5 class="font-bold text-slate-100 mb-2 text-lg">SameSite</h5>
+                        <p class="text-xs text-slate-400 leading-relaxed mb-4">
+                            타사 사이트(Third-party)에서 전송되는 요청에 쿠키를 포함할지 여부를 결정합니다. <strong>CSRF(Cross-Site Request Forgery, 교차 사이트 요청 위조)</strong> 공격을 효과적으로 방어합니다.
+                        </p>
+                        <div class="text-[10px] text-amber-500 font-bold uppercase italic">Strict / Lax / None</div>
+                    </div>
+                </div>
+
+                <div class="terminal-bg rounded-xl p-8 border border-slate-800">
+                    <h5 class="text-sm font-bold text-slate-500 mb-4 uppercase tracking-widest">[HTTP Header Example]</h5>
+                    <div class="text-cyan-400 font-mono text-sm">
+                        Set-Cookie: SID=abc123xyz789; <span class="text-white font-bold">HttpOnly; Secure; SameSite=Lax</span>
+                    </div>
+                </div>
+                <div class="p-4 bg-slate-800/50 rounded-xl border border-slate-700 text-xs text-slate-400">
+                    <p>※ 주석: <strong>SameSite=Lax</strong>는 현대 브라우저의 기본값이지만, 민감한 서비스(뱅킹 등)에서는 <strong>Strict</strong> 모드를 권장합니다. <strong>SameSite=None</strong> 사용 시에는 반드시 <strong>Secure</strong> 속성이 동반되어야 합니다.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: 전문가 인사이트 -->
+        <section>
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
+                    <i data-lucide="brain-circuit" class="w-6 h-6 text-amber-400"></i>
+                </div>
+                <h2 class="text-3xl font-black text-slate-100 tracking-tight">
+                    5. 아키텍트 인사이트 (Architectural Insights)
+                </h2>
+            </div>
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-12">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <!-- Insight 1 -->
+                    <div class="space-y-4 group">
+                        <div class="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center group-hover:bg-cyan-500/40 transition-colors">
+                            <i data-lucide="timer" class="w-5 h-5 text-cyan-400"></i>
+                        </div>
+                        <h4 class="text-lg font-bold text-slate-100 italic">세션 타임아웃 및 동시성 제어</h4>
+                        <p class="text-sm text-slate-400 leading-relaxed">
+                            세션은 절대 영구적이지 않아야 합니다. **Idle Timeout(유휴 타임아웃, 일정 시간 활동 없을 시 종료)**과 **Absolute Timeout(절대 타임아웃, 활동 여부와 관계없이 특정 시간 후 종료)**을 이중으로 설정하십시오. 또한, 동일 계정의 **중복 로그인 제한** 정책을 통해 공격자가 탈취한 세션을 장기간 유지하는 것을 방지해야 합니다.
+                        </p>
+                    </div>
+                    <!-- Insight 2 -->
+                    <div class="space-y-4 group">
+                        <div class="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center group-hover:bg-indigo-500/40 transition-colors">
+                            <i data-lucide="git-merge" class="w-5 h-5 text-indigo-400"></i>
+                        </div>
+                        <h4 class="text-lg font-bold text-slate-100 italic">클라우드 인프라에서의 세션 보호</h4>
+                        <p class="text-sm text-slate-400 leading-relaxed">
+                            AWS(Amazon Web Services, 아마존 웹 서비스) 환경에서는 **ALB(Application Load Balancer, 애플리케이션 부하 분산 장치)**의 **Sticky Sessions(스티키 세션, 세션 유지 기능)** 설정을 통해 부하 분산 환경에서도 세션 일관성을 유지할 수 있습니다.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- AWS Billing Info -->
+                <div class="p-6 bg-slate-800/30 border border-slate-700 rounded-2xl flex flex-col md:flex-row items-center gap-6">
+                    <div class="flex-shrink-0 w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center">
+                        <i data-lucide="dollar-sign" class="w-8 h-8 text-red-400"></i>
+                    </div>
+                    <div>
+                        <h5 class="font-bold text-slate-100 mb-2 italic">보안 서비스 비용 분석 (Cost Awareness)</h5>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            세션 공격(예: 대규모 Brute-force 또는 세션 퍼징)을 차단하기 위해 **AWS WAF(Web Application Firewall, 웹 애플리케이션 방화벽)**를 도입할 경우, **Web ACL(액세스 제어 목록)당 월 $5.00**, **규칙당 월 $1.00**, 그리고 **100만 건의 요청당 $0.60**의 비용이 발생합니다. 대규모 디도스 보호를 위한 **AWS Shield Advanced(쉴드 어드밴스드)**는 **월 $3,000.00**의 고정 비용이 발생하므로 예산 수립 시 반드시 고려해야 합니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+            © 2026 Cyber Security Lab | Architect Professional Course
+        </div>
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic">
+            본 강의 교재는 정보보안 전문가 양성을 위한 실무 가이드를 제공합니다. 실습 과정에서 습득한 기술을 비인가 시스템에 적용하는 것은 법적 처벌을 받을 수 있는 행위임을 명심하시기 바랍니다.
+        </p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
