@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>비인가 접근 및 세션 취약점 분석 실무 - 1강</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+        }
+        .terminal-bg { background-color: #0c1120; border: 1px solid #1e293b; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-filter: blur(12px); }
+        .code-block { font-family: 'Fira Code', monospace; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+        .step-number { background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%); }
+        table { width: 100%; border-collapse: separate; border-spacing: 0; margin: 2rem 0; border: 1px solid #1e293b; border-radius: 12px; overflow: hidden; }
+        th { background-color: #0f172a; color: #94a3b8; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; padding: 1rem; text-align: left; }
+        td { padding: 1.25rem; border-top: 1px solid #1e293b; font-size: 0.9rem; }
+        .active-row { background-color: rgba(34, 211, 238, 0.05); }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <!-- Header -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Cyber Security Lab</span>
+                    <span class="text-slate-500 font-mono text-[10px]">SEC-02 | Auth & Session Security</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
+                    비인가 접근 및 세션 취약점 분석 실무<br><span class="text-slate-100 text-2xl font-bold">1강: 취약한 접근 제어 분석 및 IDOR 대응 전략</span>
+                </h1>
+            </div>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    CRITICALITY: HIGH (A01:2021)
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase font-bold italic">Top Priority Vulnerability Analysis</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-24">
+
+        <!-- Section 1: 이론적 배경 -->
+        <section>
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20">
+                    <i data-lucide="shield-alert" class="w-6 h-6 text-cyan-400"></i>
+                </div>
+                <h2 class="text-3xl font-black text-slate-100 tracking-tight">
+                    1. 취약한 접근 제어(Broken Access Control)의 심층 이해
+                </h2>
+            </div>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-8">
+                <p class="text-slate-300 text-lg leading-relaxed">
+                    <strong>취약한 접근 제어(Broken Access Control, 비인가 접근 제어 결함)</strong>는 사용자가 자신의 부여된 권한 범위를 벗어나 타인의 데이터에 접근하거나, 관리자 전용 기능을 실행할 수 있을 때 발생합니다. OWASP(Open Web Application Security Project, 오픈 웹 애플리케이션 보안 프로젝트) Top 10의 2021년 기준 1위(A01)로 선정될 만큼 가장 빈번하게 발생하는 중대 결함입니다.
+                </p>
+
+                <!-- 도식: 권한 상승의 유형 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner">
+                    <h4 class="text-center font-bold text-slate-400 mb-10 text-xs tracking-widest uppercase">
+                        [도식: 권한 상승(Privilege Escalation)의 두 가지 핵심 유형]
+                    </h4>
+                    <div class="flex flex-col md:flex-row items-stretch justify-around gap-8">
+                        <!-- Horizontal -->
+                        <div class="flex-1 p-6 bg-slate-800 rounded-xl border border-blue-900/50 text-center flex flex-col items-center">
+                            <i data-lucide="arrow-right-left" class="w-12 h-12 text-blue-400 mb-4"></i>
+                            <h5 class="font-black text-blue-300 mb-2">수평적 권한 상승<br>(Horizontal Privilege Escalation)</h5>
+                            <p class="text-xs text-slate-400 leading-relaxed">동일한 권한 레벨을 가진 다른 사용자의 데이터(예: 이웃의 장바구니, 비밀글)에 접근하는 행위</p>
+                        </div>
+                        <!-- Vertical -->
+                        <div class="flex-1 p-6 bg-slate-800 rounded-xl border border-red-900/50 text-center flex flex-col items-center">
+                            <i data-lucide="arrow-up-circle" class="w-12 h-12 text-red-400 mb-4"></i>
+                            <h5 class="font-black text-red-300 mb-2">수직적 권한 상승<br>(Vertical Privilege Escalation)</h5>
+                            <p class="text-xs text-slate-400 leading-relaxed">하위 권한자가 상위 권한자(예: 관리자 페이지, 시스템 설정)의 기능에 접근하는 행위</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: IDOR 심층 분석 -->
+        <section>
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
+                    <i data-lucide="fingerprint" class="w-6 h-6 text-indigo-400"></i>
+                </div>
+                <h2 class="text-3xl font-black text-slate-100 tracking-tight">
+                    2. IDOR(Insecure Direct Object Reference) 분석
+                </h2>
+            </div>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-10">
+                <p class="text-slate-300 text-lg leading-relaxed">
+                    <strong>IDOR(Insecure Direct Object Reference, 부적절한 직접 객체 참조)</strong>는 애플리케이션이 내부 데이터베이스의 레코드를 식별하는 값을 URL이나 파라미터에 직접 노출하고, 이를 처리하는 서버 측 로직에서 적절한 소유권 검증을 수행하지 않을 때 발생합니다.
+                </p>
+
+                <!-- 도식: IDOR 공격 시나리오 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-10 shadow-inner">
+                    <h4 class="text-center font-bold text-slate-400 mb-12 text-xs tracking-widest uppercase">
+                        [도식: IDOR 기반 데이터 탈취 시나리오 (Data Breach Scenario)]
+                    </h4>
+                    <div class="relative flex flex-col md:flex-row items-center justify-center gap-12">
+                        <!-- Step 1: Normal Request -->
+                        <div class="w-full md:w-64 p-6 bg-slate-800/50 border border-slate-700 rounded-xl text-center">
+                            <div class="text-[10px] text-cyan-400 font-bold mb-2">STEP 1: NORMAL</div>
+                            <i data-lucide="user-check" class="w-8 h-8 text-cyan-400 mx-auto mb-3"></i>
+                            <p class="text-xs font-mono text-slate-300">/view?id=101</p>
+                            <p class="text-[10px] text-slate-500 mt-2">정상적인 본인 데이터 조회</p>
+                        </div>
+                        
+                        <div class="hidden md:block"><i data-lucide="arrow-right" class="w-6 h-6 text-slate-600"></i></div>
+
+                        <!-- Step 2: Tampering -->
+                        <div class="w-full md:w-64 p-6 bg-red-900/20 border border-red-500/30 rounded-xl text-center shadow-[0_0_15px_rgba(239,68,68,0.2)]">
+                            <div class="text-[10px] text-red-400 font-bold mb-2">STEP 2: TAMPERING</div>
+                            <i data-lucide="edit-3" class="w-8 h-8 text-red-400 mx-auto mb-3"></i>
+                            <p class="text-xs font-mono text-white">/view?id=<span class="text-red-500 font-black">102</span></p>
+                            <p class="text-[10px] text-slate-400 mt-2 italic">숫자값을 1 증가시켜 전송</p>
+                        </div>
+
+                        <div class="hidden md:block"><i data-lucide="arrow-right" class="w-6 h-6 text-slate-600"></i></div>
+
+                        <!-- Step 3: Vulnerable Logic -->
+                        <div class="w-full md:w-64 p-6 bg-amber-900/20 border border-amber-500/30 rounded-xl text-center">
+                            <div class="text-[10px] text-amber-400 font-bold mb-2">STEP 3: EXPLOIT</div>
+                            <i data-lucide="database-zap" class="w-8 h-8 text-amber-400 mx-auto mb-3"></i>
+                            <p class="text-xs font-mono text-slate-300 italic">SELECT * FROM board WHERE id=102</p>
+                            <p class="text-[10px] text-red-400 mt-2 font-bold">타인의 정보 반환됨</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="bg-slate-800/40 p-6 rounded-2xl border border-slate-700">
+                        <h5 class="font-bold text-slate-100 mb-3 flex items-center gap-2">
+                            <i data-lucide="alert-circle" class="w-5 h-5 text-red-400"></i> 발생 원인 (Root Cause)
+                        </h5>
+                        <ul class="text-sm text-slate-400 space-y-3">
+                            <li class="flex items-start gap-2 italic italic italic italic">
+                                <span class="text-red-400 font-bold">•</span>
+                                <span><strong>직접적 참조:</strong> 내부 식별자(PK, Primary Key)가 외부에 그대로 노출</span>
+                            </li>
+                            <li class="flex items-start gap-2 italic italic italic italic">
+                                <span class="text-red-400 font-bold">•</span>
+                                <span><strong>검증 누락:</strong> 서버에서 세션의 사용자 ID와 요청된 객체의 소유주를 비교하지 않음</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="bg-slate-800/40 p-6 rounded-2xl border border-slate-700">
+                        <h5 class="font-bold text-slate-100 mb-3 flex items-center gap-2">
+                            <i data-lucide="search" class="w-5 h-5 text-cyan-400"></i> 주요 탐지 대상
+                        </h5>
+                        <ul class="text-sm text-slate-400 space-y-3">
+                            <li class="flex items-start gap-2 italic italic italic italic">
+                                <span class="text-cyan-400 font-bold">•</span>
+                                <span>URL 파라미터 (e.g., ?id=, ?user=)</span>
+                            </li>
+                            <li class="flex items-start gap-2 italic italic italic italic">
+                                <span class="text-cyan-400 font-bold">•</span>
+                                <span>HTTP Body 데이터 (JSON/XML 내의 식별자 값)</span>
+                            </li>
+                            <li class="flex items-start gap-2 italic italic italic italic">
+                                <span class="text-cyan-400 font-bold">•</span>
+                                <span>쿠키 내에 저장된 유저 고유 번호</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: 실무 구현 및 대응 전략 -->
+        <section>
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+                    <i data-lucide="terminal" class="w-6 h-6 text-blue-400"></i>
+                </div>
+                <h2 class="text-3xl font-black text-slate-100 tracking-tight">
+                    3. 실증 및 구현 (Implementation & Defense)
+                </h2>
+            </div>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-16">
+
+                <!-- Case Analysis: Vulnerable vs Secure -->
+                <div class="space-y-6">
+                    <div class="flex items-center gap-3">
+                        <span class="step-number text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black italic shadow-lg shadow-cyan-500/20">01</span>
+                        <h3 class="text-xl font-bold text-slate-100">코드 레벨에서의 보안 강화 (Secure Coding)</h3>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                        <!-- Bad Code -->
+                        <div class="space-y-3">
+                            <div class="text-[10px] font-black text-red-500 uppercase tracking-widest flex items-center gap-2 italic italic">
+                                <i data-lucide="x-circle" class="w-3 h-3"></i> Vulnerable Implementation
+                            </div>
+                            <div class="bg-slate-950 rounded-2xl p-6 font-mono text-xs border border-red-900/30">
+<pre class="text-slate-300"><code><span class="text-slate-500"># 요청된 ID로 즉시 조회 (소유권 검증 없음)</span>
+<span class="text-pink-500">def</span> <span class="text-cyan-400">get_order_detail</span>(request, order_id):
+    order = Order.objects.get(id=order_id)
+    <span class="text-pink-500">return</span> JsonResponse(order.data)
+
+<span class="text-slate-500 italic italic"># 공격자가 /order/1001 주소를 알고 있을 때
+# /order/1002를 입력하면 타인의 주문 내역이 노출됨</span></code></pre>
+                            </div>
+                        </div>
+
+                        <!-- Good Code -->
+                        <div class="space-y-3">
+                            <div class="text-[10px] font-black text-cyan-500 uppercase tracking-widest flex items-center gap-2 italic italic">
+                                <i data-lucide="check-circle" class="w-3 h-3"></i> Secure Implementation
+                            </div>
+                            <div class="bg-slate-950 rounded-2xl p-6 font-mono text-xs border border-cyan-900/30 shadow-[0_0_20px_rgba(34,211,238,0.1)]">
+<pre class="text-slate-200"><code><span class="text-slate-500"># 세션 사용자 ID를 조회 조건에 강제 포함</span>
+<span class="text-pink-500">def</span> <span class="text-cyan-400">get_order_detail</span>(request, order_id):
+    current_user = request.user
+    <span class="text-slate-500 italic italic"># 요청 ID와 소유주 ID를 AND 조건으로 결합</span>
+    order = Order.objects.filter(
+        id=order_id, 
+        owner=current_user
+    ).first()
+    
+    <span class="text-pink-500">if not</span> order:
+        <span class="text-pink-500">return</span> HttpResponseForbidden()
+    <span class="text-pink-500">return</span> JsonResponse(order.data)</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Advanced Strategy: UUID -->
+                <div class="space-y-6 border-t border-slate-800 pt-12">
+                    <div class="flex items-center gap-3">
+                        <span class="step-number text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black italic shadow-lg shadow-indigo-500/20">02</span>
+                        <h3 class="text-xl font-bold text-slate-100 italic italic">식별자 예측 불가능성 확보 (Non-predictable Identifiers)</h3>
+                    </div>
+                    <div class="pl-12 space-y-4">
+                        <p class="text-sm text-slate-400 leading-relaxed">
+                            연속된 숫자형 ID(1, 2, 3...)는 공격자가 다음 값을 추측하여 전수 조사(Fuzzing, 퍼징)하기에 매우 용이합니다. 이를 방지하기 위해 <strong>UUID(Universally Unique Identifier, 범용 고유 식별자)</strong>를 도입합니다.
+                        </p>
+                        <div class="terminal-bg rounded-xl p-8 shadow-inner border border-slate-800">
+                            <div class="flex flex-col md:flex-row gap-6 items-center">
+                                <div class="flex-1 space-y-2">
+                                    <div class="text-[10px] text-slate-500 font-bold uppercase italic italic">Sequential ID (Bad)</div>
+                                    <div class="p-3 bg-red-900/20 border border-red-500/20 rounded-lg text-red-300 font-mono text-center">10492</div>
+                                </div>
+                                <i data-lucide="arrow-right" class="w-6 h-6 text-slate-700 hidden md:block"></i>
+                                <div class="flex-[2] space-y-2">
+                                    <div class="text-[10px] text-cyan-500 font-bold uppercase italic italic">UUID v4 (Good)</div>
+                                    <div class="p-3 bg-cyan-900/20 border border-cyan-500/20 rounded-lg text-cyan-300 font-mono text-center text-xs">
+                                        550e8400-e29b-41d4-a716-446655440000
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="mt-6 text-[11px] text-slate-500 leading-relaxed">
+                                ※ 참고: UUID는 추측을 불가능하게 할 뿐, 소유권 검증 로직이 빠져있다면 '우연히' 주소를 알게 된 타인에게 여전히 노출될 수 있습니다. <strong>추측 방지는 소유권 검증의 보완책이지 대체제가 아닙니다.</strong>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: 아키텍트 인사이트 -->
+        <section>
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
+                    <i data-lucide="brain-circuit" class="w-6 h-6 text-amber-400"></i>
+                </div>
+                <h2 class="text-3xl font-black text-slate-100 tracking-tight">
+                    4. 아키텍트 인사이트 (Architectural Insights)
+                </h2>
+            </div>
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-12">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <!-- Tip 1 -->
+                    <div class="space-y-4 group">
+                        <div class="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center group-hover:bg-cyan-500/40 transition-colors">
+                            <i data-lucide="shield-check" class="w-5 h-5 text-cyan-400"></i>
+                        </div>
+                        <h4 class="text-lg font-bold text-slate-100 italic">심층 방어 전략 (Defense in Depth)</h4>
+                        <p class="text-sm text-slate-400 leading-relaxed">
+                            접근 제어는 단순히 코드 한 줄로 해결되지 않습니다. API 게이트웨이 레벨에서의 정책 검증, 애플리케이션 레벨의 **RBAC(Role-Based Access Control, 역할 기반 접근 제어)**, 그리고 개별 데이터 레벨의 **ABAC(Attribute-Based Access Control, 속성 기반 접근 제어)**를 결합하여 다중 방어막을 구축해야 합니다.
+                        </p>
+                    </div>
+                    <!-- Tip 2 -->
+                    <div class="space-y-4 group">
+                        <div class="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center group-hover:bg-red-500/40 transition-colors">
+                            <i data-lucide="eye-off" class="w-5 h-5 text-red-400"></i>
+                        </div>
+                        <h4 class="text-lg font-bold text-slate-100 italic italic">기능 레벨 접근 제어 누락 (FLAC)</h4>
+                        <p class="text-sm text-slate-400 leading-relaxed">
+                            데이터뿐만 아니라 기능도 보호 대상입니다. <code>/api/delete_user</code>와 같은 민감한 API 엔드포인트가 일반 사용자의 세션 토큰으로 호출 가능한지 확인하십시오. 관리자 여부를 확인하는 **미들웨어(Middleware, 요청 처리 중간 단계의 소프트웨어 로직)**가 모든 관리 경로에 적용되어 있는지 전수 조사가 필요합니다.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="p-6 bg-slate-800/30 border border-slate-700 rounded-2xl flex flex-col md:flex-row items-center gap-6">
+                    <div class="flex-shrink-0 w-16 h-16 rounded-full bg-indigo-500/20 flex items-center justify-center">
+                        <i data-lucide="info" class="w-8 h-8 text-indigo-400"></i>
+                    </div>
+                    <div>
+                        <h5 class="font-bold text-slate-100 mb-2">클라우드 네이티브 보안 참고 (AWS)</h5>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            AWS를 사용하여 인증을 구현하는 경우, **AWS Cognito(코그니토, 클라우드 사용자 인증 서비스)**의 '고급 보안 기능'을 활성화하여 비정상적인 접근 패턴을 탐지할 수 있습니다. 
+                            <span class="text-amber-500 font-bold font-mono uppercase tracking-tighter">※ 유료 과금 주의:</span> 'Advanced Security Features' 활성화 시 **활성 사용자(MAU)당 약 $0.05의 추가 비용**이 발생하며, **AWS WAF(웹 애플리케이션 방화벽)** 연동 시 규칙 개수 및 요청 수에 따른 누적 과금이 발생하므로 아키텍처 설계 시 예산 검토가 필수적입니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+            © 2026 Cyber Security Lab | Architect Professional Course
+        </div>
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic italic italic">
+            본 강의 교재는 정보보안 전문가 양성을 위한 실습 목적으로 작성되었습니다. 승인되지 않은 타인의 시스템에 대해 본 기술을 사용하는 것은 정보통신망법 등에 의해 처벌받을 수 있습니다.
+        </p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
