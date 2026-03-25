@@ -18,10 +18,9 @@
         }
         .terminal-bg { background-color: #020617; border: 1px solid #1e293b; }
         .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-blur: xl; }
-        .code-block { font-family: 'Fira Code', monospace; }
-        .menu-path-line { color: #22d3ee; font-family: 'Fira Code', monospace; font-size: 0.85rem; margin-bottom: 0.2rem; }
         .highlight-cyan { color: #22d3ee; font-weight: 700; }
         .step-label { background: #0ea5e9; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 900; margin-right: 8px; }
+        .menu-path-line { color: #22d3ee; font-family: 'Fira Code', monospace; font-size: 0.8rem; margin-bottom: 0.4rem; }
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
     </style>
@@ -54,46 +53,55 @@
         <!-- Section 1: 이론 및 아키텍처 -->
         <section>
             <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
-                1. 사회 공학적 공격 아키텍처 (Attack Vector Architecture)
+                1. 사회 공학적 침투 개요 (Overview of Social Engineering)
             </h2>
             <div class="section-card rounded-3xl p-10 shadow-2xl">
-                <p class="text-slate-300 text-lg mb-10 leading-relaxed">
-                    <span class="highlight-cyan">Social-Engineer Toolkit (SET, 사회 공학 도구 세트)</span>은 기술적 방화벽이 아닌 '사람'이라는 시스템의 가장 약한 고리를 공략합니다. 공격자는 타겟이 신뢰하는 환경을 <span class="highlight-cyan">Spoofing (스푸핑, 위장)</span>하여 자발적인 권한 부여나 정보 입력을 유도합니다.
-                </p>
-
-                
-
-                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner mt-10">
-                    <h4 class="text-center font-bold text-slate-400 mb-10 text-xs tracking-widest uppercase italic">
-                        [도식: 사회 공학적 침투 및 권한 상승 흐름]
-                    </h4>
-                    <div class="flex flex-col md:flex-row items-center justify-around gap-8">
-                        <div class="text-center space-y-4">
-                            <div class="w-20 h-20 bg-cyan-900/30 border border-cyan-500 rounded-full flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(34,211,238,0.3)]">
-                                <i data-lucide="mail-warning" class="w-10 h-10 text-cyan-400"></i>
-                            </div>
-                            <div class="text-xs font-bold text-slate-200">Deception (기만)<br><span class="text-slate-500">Phishing/Cloning</span></div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                    <div class="space-y-6">
+                        <p class="text-slate-300 text-lg leading-relaxed">
+                            <span class="highlight-cyan">Social Engineering (사회 공학)</span> 공격은 기술적 보안 통제를 우회하기 위해 인간의 심리적 결함과 행동 패턴을 이용하는 기법입니다. 공격자는 신뢰(Trust), 권위(Authority), 호기심(Curiosity), 혹은 공포(Fear)를 자극하여 대상이 스스로 보안 경계를 허물게 만듭니다.
+                        </p>
+                        <div class="bg-slate-900/50 p-6 rounded-2xl border border-slate-800">
+                            <h4 class="text-cyan-400 font-bold mb-3 flex items-center gap-2"><i data-lucide="brain-circuit" class="w-5 h-5"></i> 침투 메커니즘 분석</h4>
+                            <p class="text-sm text-slate-400 leading-relaxed">
+                                사회 공학적 침투는 <span class="highlight-cyan">Reconnaissance (정찰)</span>을 통해 수집한 정보를 바탕으로 맞춤형 기만 시나리오를 설계합니다. <br><br>
+                                주로 <span class="highlight-cyan">Spoofing (스푸핑, 위장)</span> 기술을 결합하여 가짜 웹사이트나 문서를 배포하며, 사용자의 <span class="highlight-cyan">User Interaction (사용자 상호작용)</span>을 유도함으로써 최종적으로 시스템 권한을 획득하는 <span class="highlight-cyan">Reverse Shell (리버스 쉘)</span>을 형성합니다.
+                            </p>
                         </div>
-                        <i data-lucide="arrow-right" class="w-6 h-6 text-slate-700 hidden md:block"></i>
-                        <div class="text-center space-y-4">
-                            <div class="w-20 h-20 bg-blue-900/30 border border-blue-500 rounded-full flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(59,130,246,0.3)]">
-                                <i data-lucide="mouse-pointer-click" class="w-10 h-10 text-blue-400"></i>
+                    </div>
+                    
+                    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner flex flex-col justify-center">
+                        <h4 class="text-center font-bold text-slate-400 mb-10 text-xs tracking-widest uppercase italic">
+                            [도식: 사회 공학적 침투 및 권한 상승 흐름]
+                        </h4>
+                        <div class="flex flex-col md:flex-row items-center justify-around gap-8">
+                            <div class="text-center space-y-4">
+                                <div class="w-16 h-16 bg-cyan-900/30 border border-cyan-500 rounded-full flex items-center justify-center mx-auto">
+                                    <i data-lucide="mail-warning" class="w-8 h-8 text-cyan-400"></i>
+                                </div>
+                                <div class="text-[10px] font-bold text-slate-200 uppercase">Step 1: 기만</div>
                             </div>
-                            <div class="text-xs font-bold text-slate-200">Execution (실행)<br><span class="text-slate-500">User Interaction</span></div>
-                        </div>
-                        <i data-lucide="arrow-right" class="w-6 h-6 text-slate-700 hidden md:block"></i>
-                        <div class="text-center space-y-4">
-                            <div class="w-20 h-20 bg-indigo-900/30 border border-indigo-500 rounded-full flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(99,102,241,0.3)]">
-                                <i data-lucide="terminal" class="w-10 h-10 text-indigo-400"></i>
+                            <i data-lucide="chevrons-right" class="w-6 h-6 text-slate-700 hidden md:block"></i>
+                            <div class="text-center space-y-4">
+                                <div class="w-16 h-16 bg-blue-900/30 border border-blue-500 rounded-full flex items-center justify-center mx-auto">
+                                    <i data-lucide="mouse-pointer-click" class="w-8 h-8 text-blue-400"></i>
+                                </div>
+                                <div class="text-[10px] font-bold text-slate-200 uppercase">Step 2: 실행</div>
                             </div>
-                            <div class="text-xs font-bold text-slate-200">Access (접근)<br><span class="text-slate-500">Reverse Shell</span></div>
+                            <i data-lucide="chevrons-right" class="w-6 h-6 text-slate-700 hidden md:block"></i>
+                            <div class="text-center space-y-4">
+                                <div class="w-16 h-16 bg-indigo-900/30 border border-indigo-500 rounded-full flex items-center justify-center mx-auto">
+                                    <i data-lucide="terminal" class="w-8 h-8 text-indigo-400"></i>
+                                </div>
+                                <div class="text-[10px] font-bold text-slate-200 uppercase">Step 3: 권한</div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Section 3: 10대 실습 예제 상세 분석 -->
+        <!-- Section 2: 실전 공격 벡터 상세 가이드 -->
         <section>
             <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
                 2. 실전 공격 벡터 상세 가이드 (10 Attack Scenarios)
@@ -104,32 +112,28 @@
                 <div class="section-card rounded-3xl p-10 shadow-2xl relative">
                     <div class="flex items-center gap-4 mb-6">
                         <span class="bg-red-500 text-white w-10 h-10 rounded-xl flex items-center justify-center font-black shadow-lg">01</span>
-                        <h3 class="text-2xl font-black text-slate-100">자격 증명 수집 (Credential Harvester Attack Method)</h3>
+                        <h3 class="text-2xl font-black text-slate-100 italic">Credential Harvester Attack (자격 증명 수집 공격)</h3>
                     </div>
-                    
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
                         <div class="space-y-6">
-                            <div class="terminal-bg rounded-xl p-6 font-mono text-sm border-l-4 border-cyan-500 overflow-x-auto">
-                                <p class="text-slate-500 mb-2 uppercase text-[10px] font-black italic">Detailed Menu Selection (상세 선택 경로)</p>
-                                <div class="menu-path-line"><span class="step-label">1</span> 1) Social-Engineering Attacks (사회 공학 공격)</div>
-                                <div class="menu-path-line"><span class="step-label">2</span> 2) Website Attack Vectors (웹사이트 공격 벡터)</div>
-                                <div class="menu-path-line"><span class="step-label">3</span> 3) Credential Harvester Attack Method (자격 증명 수집 방식)</div>
-                                <div class="menu-path-line"><span class="step-label">4</span> 2) Site Cloner (사이트 복제 도구)</div>
-                                <div class="menu-path-line"><span class="step-label">5</span> IP Address for POST: (공격자 Kali IP 입력)</div>
-                                <div class="menu-path-line"><span class="step-label">6</span> URL to Clone: (Metasploitable 2의 DVWA 주소 입력)</div>
-                            </div>
                             <div class="p-6 bg-slate-800/50 rounded-2xl border border-slate-700">
-                                <h4 class="text-cyan-400 font-bold mb-2 flex items-center gap-2"><i data-lucide="info" class="w-4 h-4"></i> 공격 해설 (Description)</h4>
+                                <h4 class="text-cyan-400 font-bold mb-3 flex items-center gap-2 underline decoration-cyan-900 underline-offset-4 tracking-tighter italic">공격 해설 및 사회공학적 배경</h4>
                                 <p class="text-sm text-slate-300 leading-relaxed mb-4">
-                                    사용자가 평소 신뢰하는 로그인 폼의 시각적 요소를 복제하여 경계심을 해제하는 심리적 기법을 사용합니다. 대상 서버의 로그인 페이지를 그대로 복제하여 공격자의 서버에 띄운 뒤, 사용자의 입력을 유도합니다.
+                                    사용자가 매일 접속하는 <span class="highlight-cyan">Web Interface (웹 인터페이스)</span>의 신뢰성을 악용합니다. 평소와 다름없는 로그인 창을 보여줌으로써 사용자의 의심을 제거하고 자발적으로 비밀번호를 입력하게 만듭니다.
                                 </p>
-                                <p class="text-sm text-slate-300 leading-relaxed">
-                                    기술적으로는 HTML의 <span class="highlight-cyan">&lt;form&gt;</span> 태그 내 <span class="highlight-cyan">action</span> 속성을 공격자 서버의 수집 스크립트인 <span class="highlight-cyan">post.php</span>로 리다이렉션하여 평문 데이터를 가로채는 원리를 가집니다.
+                                <p class="text-sm text-slate-400 leading-relaxed">
+                                    <strong class="text-slate-200">취약점 분석:</strong> 사용자가 URL을 면밀히 확인하지 않는 습관(Visual Spoofing)과 웹 서버의 <span class="highlight-cyan">POST 리다이렉션</span> 기능을 결합하여 전송되는 평문 데이터를 공격자 DB에 실시간 기록합니다.
                                 </p>
                             </div>
                         </div>
-                        <div class="p-6 bg-blue-900/10 rounded-2xl border border-blue-800/30">
-                            
+                        <div class="terminal-bg rounded-xl p-6 font-mono border-l-4 border-cyan-500 flex flex-col justify-center">
+                            <p class="text-slate-500 mb-4 uppercase text-[10px] font-black italic">Menu Path & Interaction (상세 선택 및 입력)</p>
+                            <div class="menu-path-line"><span class="step-label">S1</span> 1) Social-Engineering Attacks (사회 공학 공격)</div>
+                            <div class="menu-path-line"><span class="step-label">S2</span> 2) Website Attack Vectors (웹사이트 공격 벡터)</div>
+                            <div class="menu-path-line"><span class="step-label">S3</span> 3) Credential Harvester (자격 증명 수집 방식)</div>
+                            <div class="menu-path-line"><span class="step-label">S4</span> 2) Site Cloner (사이트 복제 도구 선택)</div>
+                            <div class="menu-path-line mt-2 text-indigo-400"><span class="step-label bg-indigo-500">I1</span> IP Address for POST: [공격자 Kali IP 입력]</div>
+                            <div class="menu-path-line text-indigo-400"><span class="step-label bg-indigo-500">I2</span> URL to Clone: http://[Metasploitable2 IP]/dvwa</div>
                         </div>
                     </div>
                 </div>
@@ -138,31 +142,28 @@
                 <div class="section-card rounded-3xl p-10 shadow-2xl relative">
                     <div class="flex items-center gap-4 mb-6">
                         <span class="bg-red-500 text-white w-10 h-10 rounded-xl flex items-center justify-center font-black shadow-lg">02</span>
-                        <h3 class="text-2xl font-black text-slate-100">자바 애플릿 공격 (Java Applet Attack Method)</h3>
+                        <h3 class="text-2xl font-black text-slate-100 italic">Java Applet Attack Vector (자바 애플릿 공격 벡터)</h3>
                     </div>
-                    
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
                         <div class="space-y-6">
-                            <div class="terminal-bg rounded-xl p-6 font-mono text-sm border-l-4 border-cyan-500">
-                                <p class="text-slate-500 mb-2 uppercase text-[10px] font-black italic">Detailed Menu Selection (상세 선택 경로)</p>
-                                <div class="menu-path-line"><span class="step-label">1</span> 1) Social-Engineering Attacks (사회 공학 공격)</div>
-                                <div class="menu-path-line"><span class="step-label">2</span> 2) Website Attack Vectors (웹사이트 공격 벡터)</div>
-                                <div class="menu-path-line"><span class="step-label">3</span> 1) Java Applet Attack Method (자바 애플릿 공격 방식)</div>
-                                <div class="menu-path-line"><span class="step-label">4</span> 2) Site Cloner (사이트 복제 도구)</div>
-                                <div class="menu-path-line"><span class="step-label">5</span> Select Payload: 2) Meterpreter Reverse TCP (리버스 TCP 페이로드)</div>
-                            </div>
                             <div class="p-6 bg-slate-800/50 rounded-2xl border border-slate-700">
-                                <h4 class="text-cyan-400 font-bold mb-2 flex items-center gap-2"><i data-lucide="info" class="w-4 h-4"></i> 공격 해설 (Description)</h4>
+                                <h4 class="text-cyan-400 font-bold mb-3 flex items-center gap-2 underline decoration-cyan-900 underline-offset-4 tracking-tighter italic">공격 해설 및 사회공학적 배경</h4>
                                 <p class="text-sm text-slate-300 leading-relaxed mb-4">
-                                    시스템 업데이트나 보안 패치가 필요하다는 메시지를 통해 사용자의 '보안 준수 의지'를 자극하는 사회 공학적 유도를 수행합니다. 타겟이 'Run' 버튼을 누르는 순간 공격이 시작됩니다.
+                                    "필수 구성 요소가 설치되지 않았습니다"와 같은 경고창을 통해 사용자의 <span class="highlight-cyan">Compliance (보안 준수)</span> 의지를 역이용합니다. 사용자는 보안 패치를 하고 있다는 착각 속에 권한 승인 버튼을 누르게 됩니다.
                                 </p>
-                                <p class="text-sm text-slate-300 leading-relaxed">
-                                    기술적으로는 <span class="highlight-cyan">Sandbox (샌드박스, 격리 영역)</span> 외부로 실행 권한을 요청하는 서명된 자바 애플릿을 통해 운영체제의 명령줄 인터페이스에 접근하며, 최종적으로 리버스 TCP 연결을 형성합니다.
+                                <p class="text-sm text-slate-400 leading-relaxed">
+                                    <strong class="text-slate-200">취약점 분석:</strong> 자바 런타임 환경(JRE)의 <span class="highlight-cyan">Sandbox Escape (샌드박스 탈출)</span> 기법을 사용하며, 사용자가 실행을 승인하는 순간 서명된 애플릿이 운영체제 쉘에 직접 명령을 전달합니다.
                                 </p>
                             </div>
                         </div>
-                        <div class="p-6 bg-blue-900/10 rounded-2xl border border-blue-800/30">
-                            
+                        <div class="terminal-bg rounded-xl p-6 font-mono border-l-4 border-cyan-500 flex flex-col justify-center">
+                            <p class="text-slate-500 mb-4 uppercase text-[10px] font-black italic">Menu Path & Interaction (상세 선택 및 입력)</p>
+                            <div class="menu-path-line"><span class="step-label">S1</span> 1) Social-Engineering Attacks (사회 공학 공격)</div>
+                            <div class="menu-path-line"><span class="step-label">S2</span> 2) Website Attack Vectors (웹사이트 공격 벡터)</div>
+                            <div class="menu-path-line"><span class="step-label">S3</span> 1) Java Applet Attack Method (자바 애플릿 공격 방식)</div>
+                            <div class="menu-path-line"><span class="step-label">S4</span> 2) Site Cloner (사이트 복제 방식 선택)</div>
+                            <div class="menu-path-line mt-2 text-indigo-400"><span class="step-label bg-indigo-500">I1</span> Select Payload: 2) Meterpreter Reverse TCP</div>
+                            <div class="menu-path-line text-indigo-400"><span class="step-label bg-indigo-500">I2</span> LPORT: 4444 (공격 대기 포트 설정)</div>
                         </div>
                     </div>
                 </div>
@@ -171,29 +172,27 @@
                 <div class="section-card rounded-3xl p-10 shadow-2xl relative">
                     <div class="flex items-center gap-4 mb-6">
                         <span class="bg-red-500 text-white w-10 h-10 rounded-xl flex items-center justify-center font-black shadow-lg">03</span>
-                        <h3 class="text-2xl font-black text-slate-100">웹 자킹 (Web Jacking Attack Method)</h3>
+                        <h3 class="text-2xl font-black text-slate-100 italic">Web Jacking Attack Method (웹 자킹 공격 방식)</h3>
                     </div>
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
                         <div class="space-y-6">
-                            <div class="terminal-bg rounded-xl p-6 font-mono text-sm border-l-4 border-cyan-500">
-                                <p class="text-slate-500 mb-2 uppercase text-[10px] font-black italic">Detailed Menu Selection (상세 선택 경로)</p>
-                                <div class="menu-path-line"><span class="step-label">1</span> 1) Social-Engineering Attacks (사회 공학 공격)</div>
-                                <div class="menu-path-line"><span class="step-label">2</span> 2) Website Attack Vectors (웹사이트 공격 벡터)</div>
-                                <div class="menu-path-line"><span class="step-label">3</span> 5) Web Jacking Attack Method (웹 자킹 공격 방식)</div>
-                                <div class="menu-path-line"><span class="step-label">4</span> 2) Site Cloner (사이트 복제 도구)</div>
-                            </div>
                             <div class="p-6 bg-slate-800/50 rounded-2xl border border-slate-700">
-                                <h4 class="text-cyan-400 font-bold mb-2 flex items-center gap-2"><i data-lucide="info" class="w-4 h-4"></i> 공격 해설 (Description)</h4>
+                                <h4 class="text-cyan-400 font-bold mb-3 flex items-center gap-2 underline decoration-cyan-900 underline-offset-4 tracking-tighter italic">공격 해설 및 사회공학적 배경</h4>
                                 <p class="text-sm text-slate-300 leading-relaxed mb-4">
-                                    하이퍼링크의 시각적 정보와 실제 목적지가 다를 수 있다는 점을 이용합니다. "여기를 클릭하십시오"와 같은 안내 문구 뒤에 전혀 다른 악성 주소를 숨깁니다.
+                                    "새로운 창에서 페이지를 열려면 클릭하세요"라는 안내로 사용자를 속입니다. 클릭하는 찰나에 브라우저의 <span class="highlight-cyan">IFrame</span>이나 새 창의 소유권을 가로채어 악성 코드를 주입합니다.
                                 </p>
-                                <p class="text-sm text-slate-300 leading-relaxed">
-                                    기술적으로는 앵커 태그(<span class="highlight-cyan">&lt;a&gt;</span>)의 상태바 텍스트를 고정하거나 <span class="highlight-cyan">onmousedown</span> 이벤트를 조작하여 사용자가 클릭하는 순간 실제 이동 경로를 공격자의 사이트로 변경합니다.
+                                <p class="text-sm text-slate-400 leading-relaxed">
+                                    <strong class="text-slate-200">취약점 분석:</strong> 브라우저 주소창의 지연 발생 시간(Latency) 동안 사용자는 이전 주소를 신뢰한다는 점을 이용합니다. JavaScript의 <span class="highlight-cyan">window.replace</span> 기능을 통해 주소를 순식간에 교체합니다.
                                 </p>
                             </div>
                         </div>
-                        <div class="p-6 bg-blue-900/10 rounded-2xl border border-blue-800/30">
-                            
+                        <div class="terminal-bg rounded-xl p-6 font-mono border-l-4 border-cyan-500 flex flex-col justify-center">
+                            <p class="text-slate-500 mb-4 uppercase text-[10px] font-black italic">Menu Path & Interaction (상세 선택 및 입력)</p>
+                            <div class="menu-path-line"><span class="step-label">S1</span> 1) Social-Engineering Attacks (사회 공학 공격)</div>
+                            <div class="menu-path-line"><span class="step-label">S2</span> 2) Website Attack Vectors (웹사이트 공격 벡터)</div>
+                            <div class="menu-path-line"><span class="step-label">S3</span> 5) Web Jacking Attack Method (웹 자킹 방식)</div>
+                            <div class="menu-path-line"><span class="step-label">S4</span> 2) Site Cloner (사이트 복제)</div>
+                            <div class="menu-path-line mt-2 text-indigo-400"><span class="step-label bg-indigo-500">I1</span> Target URL: http://[Metasploitable2 IP]/phpMyAdmin</div>
                         </div>
                     </div>
                 </div>
@@ -202,28 +201,27 @@
                 <div class="section-card rounded-3xl p-10 shadow-2xl relative">
                     <div class="flex items-center gap-4 mb-6">
                         <span class="bg-red-500 text-white w-10 h-10 rounded-xl flex items-center justify-center font-black shadow-lg">04</span>
-                        <h3 class="text-2xl font-black text-slate-100">탭내빙 (Tabnabbing Attack Method)</h3>
+                        <h3 class="text-2xl font-black text-slate-100 italic">Tabnabbing Attack Method (탭내빙 공격 방식)</h3>
                     </div>
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
                         <div class="space-y-6">
-                            <div class="terminal-bg rounded-xl p-6 font-mono text-sm border-l-4 border-cyan-500">
-                                <div class="menu-path-line"><span class="step-label">1</span> 1) Social-Engineering Attacks (사회 공학 공격)</div>
-                                <div class="menu-path-line"><span class="step-label">2</span> 2) Website Attack Vectors (웹사이트 공격 벡터)</div>
-                                <div class="menu-path-line"><span class="step-label">3</span> 4) Tabnabbing Attack Method (탭내빙 공격 방식)</div>
-                                <div class="menu-path-line"><span class="step-label">4</span> 2) Site Cloner (사이트 복제 도구)</div>
-                            </div>
                             <div class="p-6 bg-slate-800/50 rounded-2xl border border-slate-700">
-                                <h4 class="text-cyan-400 font-bold mb-2 flex items-center gap-2"><i data-lucide="info" class="w-4 h-4"></i> 공격 해설 (Description)</h4>
+                                <h4 class="text-cyan-400 font-bold mb-3 flex items-center gap-2 underline decoration-cyan-900 underline-offset-4 tracking-tighter italic">공격 해설 및 사회공학적 배경</h4>
                                 <p class="text-sm text-slate-300 leading-relaxed mb-4">
-                                    사용자가 브라우저 탭을 여러 개 띄워놓았을 때 발생하는 주의력 분산을 이용합니다. 사용자가 다른 탭에 집중하는 사이 원래 열려있던 탭의 내용을 몰래 바꿉니다.
+                                    사용자의 멀티태스킹 습관과 <span class="highlight-cyan">Inattentional Blindness (무관심에 의한 맹시)</span>를 활용합니다. 탭을 여러 개 열어둔 사용자가 잠시 다른 페이지를 볼 때 활성화되지 않은 탭의 내용을 몰래 바꿉니다.
                                 </p>
-                                <p class="text-sm text-slate-300 leading-relaxed">
-                                    기술적으로는 자바스크립트의 <span class="highlight-cyan">onblur</span> 이벤트를 감지하여 탭이 비활성화될 때 <span class="highlight-cyan">location.href</span>를 조작, 가짜 세션 만료 페이지로 전환하여 재로그인을 유도합니다.
+                                <p class="text-sm text-slate-400 leading-relaxed">
+                                    <strong class="text-slate-200">취약점 분석:</strong> 브라우저의 <span class="highlight-cyan">onblur</span> 이벤트(포커스 해제)를 감지하여 실행됩니다. 세션이 만료된 것처럼 위장하여 재로그인을 유도하고 비밀번호를 가로챕니다.
                                 </p>
                             </div>
                         </div>
-                        <div class="p-6 bg-blue-900/10 rounded-2xl border border-blue-800/30">
-                            
+                        <div class="terminal-bg rounded-xl p-6 font-mono border-l-4 border-cyan-500 flex flex-col justify-center">
+                            <p class="text-slate-500 mb-4 uppercase text-[10px] font-black italic">Menu Path & Interaction (상세 선택 및 입력)</p>
+                            <div class="menu-path-line"><span class="step-label">S1</span> 1) Social-Engineering Attacks (사회 공학 공격)</div>
+                            <div class="menu-path-line"><span class="step-label">S2</span> 2) Website Attack Vectors (웹사이트 공격 벡터)</div>
+                            <div class="menu-path-line"><span class="step-label">S3</span> 4) Tabnabbing Attack Method (탭내빙 공격 방식)</div>
+                            <div class="menu-path-line"><span class="step-label">S4</span> 1) Java Applet / 2) Cloner 선택 가능</div>
+                            <div class="menu-path-line mt-2 text-indigo-400"><span class="step-label bg-indigo-500">I1</span> URL to Clone: [공공 기관 혹은 회사 로그인 주소]</div>
                         </div>
                     </div>
                 </div>
@@ -232,29 +230,27 @@
                 <div class="section-card rounded-3xl p-10 shadow-2xl relative">
                     <div class="flex items-center gap-4 mb-6">
                         <span class="bg-red-500 text-white w-10 h-10 rounded-xl flex items-center justify-center font-black shadow-lg">05</span>
-                        <h3 class="text-2xl font-black text-slate-100">HTA 공격 (HTA Attack Vector)</h3>
+                        <h3 class="text-2xl font-black text-slate-100 italic">HTA Attack Vector (HTML 애플리케이션 공격)</h3>
                     </div>
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
                         <div class="space-y-6">
-                            <div class="terminal-bg rounded-xl p-6 font-mono text-sm border-l-4 border-cyan-500">
-                                <div class="menu-path-line"><span class="step-label">1</span> 1) Social-Engineering Attacks (사회 공학 공격)</div>
-                                <div class="menu-path-line"><span class="step-label">2</span> 2) Website Attack Vectors (웹사이트 공격 벡터)</div>
-                                <div class="menu-path-line"><span class="step-label">3</span> 8) HTA Attack Method (HTA 공격 방식)</div>
-                                <div class="menu-path-line"><span class="step-label">4</span> 2) Site Cloner (사이트 복제 도구)</div>
-                                <div class="menu-path-line"><span class="step-label">5</span> Select Payload: 2) Meterpreter Reverse TCP</div>
-                            </div>
                             <div class="p-6 bg-slate-800/50 rounded-2xl border border-slate-700">
-                                <h4 class="text-cyan-400 font-bold mb-2 flex items-center gap-2"><i data-lucide="info" class="w-4 h-4"></i> 공격 해설 (Description)</h4>
+                                <h4 class="text-cyan-400 font-bold mb-3 flex items-center gap-2 underline decoration-cyan-900 underline-offset-4 tracking-tighter italic">공격 해설 및 사회공학적 배경</h4>
                                 <p class="text-sm text-slate-300 leading-relaxed mb-4">
-                                    업무용 문서나 필수 유틸리티 파일로 위장하여 실행을 유도합니다. 브라우저에서 파일을 '열기' 하도록 유도하는 심리전이 동반됩니다.
+                                    문서 파일이나 필수 드라이버 설치 파일로 위장하여 전송됩니다. 사용자는 웹페이지에서 뜨는 "파일을 여시겠습니까?"라는 질문에 무의식적으로 긍정적인 응답을 합니다.
                                 </p>
-                                <p class="text-sm text-slate-300 leading-relaxed">
-                                    기술적으로는 <span class="highlight-cyan">mshta.exe</span>라는 윈도우 기본 신뢰 실행 파일을 이용해 브라우저의 보안 제약을 우회하고 파워쉘(<span class="highlight-cyan">PowerShell</span>)을 호출하여 메모리 상에서 악성 코드를 직접 실행합니다.
+                                <p class="text-sm text-slate-400 leading-relaxed">
+                                    <strong class="text-slate-200">취약점 분석:</strong> <span class="highlight-cyan">mshta.exe</span>라는 운영체제 기본 도구의 신뢰성을 오용합니다. 브라우저의 보호 영역을 벗어나 운영체제 권한으로 <span class="highlight-cyan">PowerShell</span>을 실행하여 메모리 단에서 침투합니다.
                                 </p>
                             </div>
                         </div>
-                        <div class="p-6 bg-blue-900/10 rounded-2xl border border-blue-800/30">
-                            
+                        <div class="terminal-bg rounded-xl p-6 font-mono border-l-4 border-cyan-500 flex flex-col justify-center">
+                            <p class="text-slate-500 mb-4 uppercase text-[10px] font-black italic">Menu Path & Interaction (상세 선택 및 입력)</p>
+                            <div class="menu-path-line"><span class="step-label">S1</span> 1) Social-Engineering Attacks (사회 공학 공격)</div>
+                            <div class="menu-path-line"><span class="step-label">S2</span> 2) Website Attack Vectors (웹사이트 공격 벡터)</div>
+                            <div class="menu-path-line"><span class="step-label">S3</span> 8) HTA Attack Method (HTA 공격 방식)</div>
+                            <div class="menu-path-line"><span class="step-label">S4</span> 2) Site Cloner (가짜 배포 사이트 생성)</div>
+                            <div class="menu-path-line mt-2 text-indigo-400"><span class="step-label bg-indigo-500">I1</span> Select Payload: 2) Meterpreter Reverse TCP</div>
                         </div>
                     </div>
                 </div>
@@ -263,28 +259,27 @@
                 <div class="section-card rounded-3xl p-10 shadow-2xl relative">
                     <div class="flex items-center gap-4 mb-6">
                         <span class="bg-red-500 text-white w-10 h-10 rounded-xl flex items-center justify-center font-black shadow-lg">06</span>
-                        <h3 class="text-2xl font-black text-slate-100">브라우저 익스플로잇 (Metasploit Browser Exploit)</h3>
+                        <h3 class="text-2xl font-black text-slate-100 italic">Metasploit Browser Exploit (브라우저 취약점 공격)</h3>
                     </div>
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
                         <div class="space-y-6">
-                            <div class="terminal-bg rounded-xl p-6 font-mono text-sm border-l-4 border-cyan-500">
-                                <div class="menu-path-line"><span class="step-label">1</span> 1) Social-Engineering Attacks (사회 공학 공격)</div>
-                                <div class="menu-path-line"><span class="step-label">2</span> 2) Website Attack Vectors (웹사이트 공격 벡터)</div>
-                                <div class="menu-path-line"><span class="step-label">3</span> 2) Metasploit Browser Exploit Method (브라우저 취약점 공격)</div>
-                                <div class="menu-path-line"><span class="step-label">4</span> 1) I'll pick which exploit to use (수동 취약점 선택)</div>
-                            </div>
                             <div class="p-6 bg-slate-800/50 rounded-2xl border border-slate-700">
-                                <h4 class="text-cyan-400 font-bold mb-2 flex items-center gap-2"><i data-lucide="info" class="w-4 h-4"></i> 공격 해설 (Description)</h4>
+                                <h4 class="text-cyan-400 font-bold mb-3 flex items-center gap-2 underline decoration-cyan-900 underline-offset-4 tracking-tighter italic">공격 해설 및 사회공학적 배경</h4>
                                 <p class="text-sm text-slate-300 leading-relaxed mb-4">
-                                    사용자가 페이지를 방문하기만 해도 공격이 이루어지는 <span class="highlight-cyan">Drive-by Download (드라이브 바이 다운로드)</span> 기법을 사용합니다. 별도의 클릭 유도 없이 접속만으로 충분합니다.
+                                    사용자에게 흥미로운 콘텐츠(최신 뉴스, 무료 자료 등)를 제공하며 특정 웹사이트 방문을 유도합니다. "보기만 해도 감염된다"는 <span class="highlight-cyan">Drive-by Download</span>의 전형입니다.
                                 </p>
-                                <p class="text-sm text-slate-300 leading-relaxed">
-                                    기술적으로는 타겟 브라우저의 버전 정보(<span class="highlight-cyan">User-Agent</span>)를 식별한 후 해당 버전에 존재하는 메모리 변조 취약점을 자동으로 매칭하여 익스플로잇 코드를 주입합니다.
+                                <p class="text-sm text-slate-400 leading-relaxed">
+                                    <strong class="text-slate-200">취약점 분석:</strong> 브라우저 엔진의 <span class="highlight-cyan">Memory Corruption (메모리 오염)</span> 취약점을 타겟팅합니다. 타겟 브라우저의 <span class="highlight-cyan">User-Agent</span>를 분석하여 가장 적합한 공격 코드를 자동으로 서버에서 송출합니다.
                                 </p>
                             </div>
                         </div>
-                        <div class="p-6 bg-blue-900/10 rounded-2xl border border-blue-800/30">
-                            
+                        <div class="terminal-bg rounded-xl p-6 font-mono border-l-4 border-cyan-500 flex flex-col justify-center">
+                            <p class="text-slate-500 mb-4 uppercase text-[10px] font-black italic">Menu Path & Interaction (상세 선택 및 입력)</p>
+                            <div class="menu-path-line"><span class="step-label">S1</span> 1) Social-Engineering Attacks (사회 공학 공격)</div>
+                            <div class="menu-path-line"><span class="step-label">S2</span> 2) Website Attack Vectors (웹사이트 공격 벡터)</div>
+                            <div class="menu-path-line"><span class="step-label">S3</span> 2) Metasploit Browser Exploit Method</div>
+                            <div class="menu-path-line"><span class="step-label">S4</span> 1) I'll pick which exploit to use (수동 선택)</div>
+                            <div class="menu-path-line mt-2 text-indigo-400"><span class="step-label bg-indigo-500">I1</span> Choose Exploit: [타겟 브라우저에 맞는 CVE 선택]</div>
                         </div>
                     </div>
                 </div>
@@ -293,58 +288,56 @@
                 <div class="section-card rounded-3xl p-10 shadow-2xl relative">
                     <div class="flex items-center gap-4 mb-6">
                         <span class="bg-red-500 text-white w-10 h-10 rounded-xl flex items-center justify-center font-black shadow-lg">07</span>
-                        <h3 class="text-2xl font-black text-slate-100">정보 수집 도구 (Information Gathering Tool)</h3>
+                        <h3 class="text-2xl font-black text-slate-100 italic">Information Gathering Tool (정보 수집 도구)</h3>
                     </div>
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
                         <div class="space-y-6">
-                            <div class="terminal-bg rounded-xl p-6 font-mono text-sm border-l-4 border-cyan-500">
-                                <div class="menu-path-line"><span class="step-label">1</span> 1) Social-Engineering Attacks (사회 공학 공격)</div>
-                                <div class="menu-path-line"><span class="step-label">2</span> 2) Website Attack Vectors (웹사이트 공격 벡터)</div>
-                                <div class="menu-path-line"><span class="step-label">3</span> 10) Multi-Attack Web Vector (복합 공격 모드)</div>
-                                <div class="menu-path-line"><span class="step-label">4</span> 1) Information Gathering Tool (정보 수집 도구)</div>
-                            </div>
                             <div class="p-6 bg-slate-800/50 rounded-2xl border border-slate-700">
-                                <h4 class="text-cyan-400 font-bold mb-2 flex items-center gap-2"><i data-lucide="info" class="w-4 h-4"></i> 공격 해설 (Description)</h4>
+                                <h4 class="text-cyan-400 font-bold mb-3 flex items-center gap-2 underline decoration-cyan-900 underline-offset-4 tracking-tighter italic">공격 해설 및 사회공학적 배경</h4>
                                 <p class="text-sm text-slate-300 leading-relaxed mb-4">
-                                    본격적인 침투 전, 타겟의 기술 사양을 미리 파악하여 공격 성공률을 높이는 사전 정찰 단계입니다. "방문자 통계"나 "설문 조사" 등으로 위장합니다.
+                                    설문조사나 통계 분석 페이지로 위장하여 사용자의 접속을 유도합니다. 사용자는 단순히 웹사이트를 구경한다고 생각하지만, 공격자는 타겟의 인프라 지도를 그립니다.
                                 </p>
-                                <p class="text-sm text-slate-300 leading-relaxed">
-                                    기술적으로는 <span class="highlight-cyan">Browser Fingerprinting (브라우저 핑거프린팅)</span> 기술을 사용하여 타겟의 IP, 운영체제, 설치된 플러그인 목록을 자바스크립트로 수집하여 공격자에게 전송합니다.
+                                <p class="text-sm text-slate-400 leading-relaxed">
+                                    <strong class="text-slate-200">취약점 분석:</strong> 브라우저가 기본적으로 제공하는 <span class="highlight-cyan">Navigator API</span>와 <span class="highlight-cyan">Fingerprinting</span> 기술을 악용합니다. 타겟의 내부 IP 대역과 설치된 소프트웨어 명세(BOM)를 몰래 탈취합니다.
                                 </p>
                             </div>
                         </div>
-                        <div class="p-6 bg-blue-900/10 rounded-2xl border border-blue-800/30">
-                            
+                        <div class="terminal-bg rounded-xl p-6 font-mono border-l-4 border-cyan-500 flex flex-col justify-center">
+                            <p class="text-slate-500 mb-4 uppercase text-[10px] font-black italic">Menu Path & Interaction (상세 선택 및 입력)</p>
+                            <div class="menu-path-line"><span class="step-label">S1</span> 1) Social-Engineering Attacks (사회 공학 공격)</div>
+                            <div class="menu-path-line"><span class="step-label">S2</span> 2) Website Attack Vectors (웹사이트 공격 벡터)</div>
+                            <div class="menu-path-line"><span class="step-label">S3</span> 10) Multi-Attack Web Vector</div>
+                            <div class="menu-path-line"><span class="step-label">S4</span> 1) Information Gathering Tool (정보 수집 선택)</div>
+                            <div class="menu-path-line mt-2 text-indigo-400"><span class="step-label bg-indigo-500">I1</span> Local IP: [공격자의 수집 서버 IP 입력]</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- 8. Spear-Phishing -->
+                <!-- 8. Spear-Phishing Attack -->
                 <div class="section-card rounded-3xl p-10 shadow-2xl relative">
                     <div class="flex items-center gap-4 mb-6">
                         <span class="bg-red-500 text-white w-10 h-10 rounded-xl flex items-center justify-center font-black shadow-lg">08</span>
-                        <h3 class="text-2xl font-black text-slate-100">스피어 피싱 공격 (Spear-Phishing Attack Vector)</h3>
+                        <h3 class="text-2xl font-black text-slate-100 italic">Spear-Phishing Attack (스피어 피싱 공격)</h3>
                     </div>
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
                         <div class="space-y-6">
-                            <div class="terminal-bg rounded-xl p-6 font-mono text-sm border-l-4 border-cyan-500">
-                                <div class="menu-path-line"><span class="step-label">1</span> 1) Social-Engineering Attacks (사회 공학 공격)</div>
-                                <div class="menu-path-line"><span class="step-label">2</span> 1) Spear-Phishing Attack Vectors (스피어 피싱 벡터)</div>
-                                <div class="menu-path-line"><span class="step-label">3</span> 1) Perform a Mass Email Attack (대량 메일 공격)</div>
-                                <div class="menu-path-line"><span class="step-label">4</span> 1) Use a default template (기본 템플릿 사용)</div>
-                            </div>
                             <div class="p-6 bg-slate-800/50 rounded-2xl border border-slate-700">
-                                <h4 class="text-cyan-400 font-bold mb-2 flex items-center gap-2"><i data-lucide="info" class="w-4 h-4"></i> 공격 해설 (Description)</h4>
+                                <h4 class="text-cyan-400 font-bold mb-3 flex items-center gap-2 underline decoration-cyan-900 underline-offset-4 tracking-tighter italic">공격 해설 및 사회공학적 배경</h4>
                                 <p class="text-sm text-slate-300 leading-relaxed mb-4">
-                                    특정 개인이나 조직의 내부 정보를 인용하여 신뢰도를 극대화하는 맞춤형 속임수입니다. 지인이나 상급자를 사칭하여 의심을 최소화합니다.
+                                    직장 동료나 상급자를 사칭하여 맞춤형 메일을 발송합니다. <span class="highlight-cyan">Reciprocity (상호성)</span>나 <span class="highlight-cyan">Authority (권위)</span>를 이용하여 사용자가 첨부파일을 거부감 없이 열게 만듭니다.
                                 </p>
-                                <p class="text-sm text-slate-300 leading-relaxed">
-                                    기술적으로는 <span class="highlight-cyan">SMTP (Simple Mail Transfer Protocol, 간이 우편 전송 프로토콜)</span>의 발신자 변조 취약점을 사용하여 도메인을 스푸핑하고, 악성 링크나 파일을 첨부합니다.
+                                <p class="text-sm text-slate-400 leading-relaxed">
+                                    <strong class="text-slate-200">취약점 분석:</strong> 이메일 헤더의 <span class="highlight-cyan">From 필드</span>를 스푸핑하여 발신자를 조작합니다. <span class="highlight-cyan">SMTP 릴레이</span>의 미흡한 인증 설정을 틈타 대량의 위조 메일을 유포합니다.
                                 </p>
                             </div>
                         </div>
-                        <div class="p-6 bg-blue-900/10 rounded-2xl border border-blue-800/30">
-                            
+                        <div class="terminal-bg rounded-xl p-6 font-mono border-l-4 border-cyan-500 flex flex-col justify-center">
+                            <p class="text-slate-500 mb-4 uppercase text-[10px] font-black italic">Menu Path & Interaction (상세 선택 및 입력)</p>
+                            <div class="menu-path-line"><span class="step-label">S1</span> 1) Social-Engineering Attacks (사회 공학 공격)</div>
+                            <div class="menu-path-line"><span class="step-label">S2</span> 1) Spear-Phishing Attack Vectors (피싱 벡터)</div>
+                            <div class="menu-path-line"><span class="step-label">S3</span> 1) Perform a Mass Email Attack (대량 발송)</div>
+                            <div class="menu-path-line"><span class="step-label">S4</span> 1) Use a default template (사전 정의 템플릿)</div>
+                            <div class="menu-path-line mt-2 text-indigo-400"><span class="step-label bg-indigo-500">I1</span> Target Email: victim@metasploit.lab</div>
                         </div>
                     </div>
                 </div>
@@ -353,28 +346,27 @@
                 <div class="section-card rounded-3xl p-10 shadow-2xl relative">
                     <div class="flex items-center gap-4 mb-6">
                         <span class="bg-red-500 text-white w-10 h-10 rounded-xl flex items-center justify-center font-black shadow-lg">09</span>
-                        <h3 class="text-2xl font-black text-slate-100">감염 매체 생성 (Infectious Media Generator)</h3>
+                        <h3 class="text-2xl font-black text-slate-100 italic">Infectious Media Generator (감염 매체 생성기)</h3>
                     </div>
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
                         <div class="space-y-6">
-                            <div class="terminal-bg rounded-xl p-6 font-mono text-sm border-l-4 border-cyan-500">
-                                <div class="menu-path-line"><span class="step-label">1</span> 1) Social-Engineering Attacks (사회 공학 공격)</div>
-                                <div class="menu-path-line"><span class="step-label">2</span> 3) Infectious Media Generator (감염 매체 생성기)</div>
-                                <div class="menu-path-line"><span class="step-label">3</span> 1) File-Format Exploits (파일 포맷 취약점 공격)</div>
-                                <div class="menu-path-line"><span class="step-label">4</span> 13) Adobe PDF Embedded Exe (PDF 내장 실행파일)</div>
-                            </div>
                             <div class="p-6 bg-slate-800/50 rounded-2xl border border-slate-700">
-                                <h4 class="text-cyan-400 font-bold mb-2 flex items-center gap-2"><i data-lucide="info" class="w-4 h-4"></i> 공격 해설 (Description)</h4>
+                                <h4 class="text-cyan-400 font-bold mb-3 flex items-center gap-2 underline decoration-cyan-900 underline-offset-4 tracking-tighter italic">공격 해설 및 사회공학적 배경</h4>
                                 <p class="text-sm text-slate-300 leading-relaxed mb-4">
-                                    '누군가 잃어버린 물건'에 대한 호기심이나 업무상 필요한 미디어로 위장하여 물리적 접촉을 유도합니다. 사무실 복도 등에 의도적으로 USB를 흘려두는 기법이 대표적입니다.
+                                    인간의 <span class="highlight-cyan">Curiosity (호기심)</span>를 가장 원초적으로 자극합니다. 사무실 복도나 주차장에 떨어진 USB를 주운 사람은 그 안의 내용을 확인하고 싶어 하는 심리를 이용합니다.
                                 </p>
-                                <p class="text-sm text-slate-300 leading-relaxed">
-                                    기술적으로는 윈도우의 <span class="highlight-cyan">Autorun.inf</span> 기능이나 문서 파일의 특정 매크로 취약점을 이용하여 미디어 삽입 시 백그라운드에서 악성 바이너리가 실행되도록 설계합니다.
+                                <p class="text-sm text-slate-400 leading-relaxed">
+                                    <strong class="text-slate-200">취약점 분석:</strong> 운영체제의 <span class="highlight-cyan">Autorun (자동 실행)</span> 기능이나 <span class="highlight-cyan">LNK (바로가기)</span> 파일의 아이콘 위조 취약점을 이용합니다. 미디어를 꽂는 순간 악성 스크립트가 로드됩니다.
                                 </p>
                             </div>
                         </div>
-                        <div class="p-6 bg-blue-900/10 rounded-2xl border border-blue-800/30">
-                            
+                        <div class="terminal-bg rounded-xl p-6 font-mono border-l-4 border-cyan-500 flex flex-col justify-center">
+                            <p class="text-slate-500 mb-4 uppercase text-[10px] font-black italic">Menu Path & Interaction (상세 선택 및 입력)</p>
+                            <div class="menu-path-line"><span class="step-label">S1</span> 1) Social-Engineering Attacks (사회 공학 공격)</div>
+                            <div class="menu-path-line"><span class="step-label">S2</span> 3) Infectious Media Generator (매체 생성)</div>
+                            <div class="menu-path-line"><span class="step-label">S3</span> 1) File-Format Exploits (파일 포맷 취약점)</div>
+                            <div class="menu-path-line"><span class="step-label">S4</span> 13) Adobe PDF Embedded Exe (PDF 위장 실행)</div>
+                            <div class="menu-path-line mt-2 text-indigo-400"><span class="step-label bg-indigo-500">I1</span> Name of PDF: Salaries_2026.pdf</div>
                         </div>
                     </div>
                 </div>
@@ -383,28 +375,27 @@
                 <div class="section-card rounded-3xl p-10 shadow-2xl relative">
                     <div class="flex items-center gap-4 mb-6">
                         <span class="bg-red-500 text-white w-10 h-10 rounded-xl flex items-center justify-center font-black shadow-lg">10</span>
-                        <h3 class="text-2xl font-black text-slate-100">QR 코드 공격 (QR Code Generator Attack Vector)</h3>
+                        <h3 class="text-2xl font-black text-slate-100 italic">QR Code Generator Attack (QR 코드 공격 벡터)</h3>
                     </div>
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
                         <div class="space-y-6">
-                            <div class="terminal-bg rounded-xl p-6 font-mono text-sm border-l-4 border-cyan-500">
-                                <div class="menu-path-line"><span class="step-label">1</span> 1) Social-Engineering Attacks (사회 공학 공격)</div>
-                                <div class="menu-path-line"><span class="step-label">2</span> 4) Create a QR Code Generator Attack Vector (QR 코드 생성)</div>
-                                <div class="menu-path-line"><span class="step-label">3</span> Enter the URL you want the QR code to point to:</div>
-                                <div class="menu-path-line"><span class="step-label">4</span> (공격자의 피싱 페이지 URL 입력)</div>
-                            </div>
                             <div class="p-6 bg-slate-800/50 rounded-2xl border border-slate-700">
-                                <h4 class="text-cyan-400 font-bold mb-2 flex items-center gap-2"><i data-lucide="info" class="w-4 h-4"></i> 공격 해설 (Description)</h4>
+                                <h4 class="text-cyan-400 font-bold mb-3 flex items-center gap-2 underline decoration-cyan-900 underline-offset-4 tracking-tighter italic">공격 해설 및 사회공학적 배경</h4>
                                 <p class="text-sm text-slate-300 leading-relaxed mb-4">
-                                    물리적 공간에 부착된 QR 코드는 그 목적지를 육안으로 확인할 수 없다는 '불투명성'을 이용합니다. 식당 메뉴판이나 이벤트 전단지에 악성 코드를 덧붙입니다.
+                                    QR 코드가 가진 <span class="highlight-cyan">Hidden Destination (숨겨진 목적지)</span>의 특성을 이용합니다. "이벤트 할인" 등으로 위장한 코드를 공공장소에 부착하여 모바일 기기의 접속을 유도합니다.
                                 </p>
-                                <p class="text-sm text-slate-300 leading-relaxed">
-                                    기술적으로는 짧은 URL(<span class="highlight-cyan">Shortened URL</span>) 뒤에 피싱 사이트나 취약점 공격 코드가 담긴 주소를 숨겨 모바일 기기의 브라우저 취약점을 공략합니다.
+                                <p class="text-sm text-slate-400 leading-relaxed">
+                                    <strong class="text-slate-200">취약점 분석:</strong> 모바일 브라우저의 <span class="highlight-cyan">URL Obfuscation (URL 난독화)</span> 취약점을 공략합니다. 짧은 단축 URL 뒤에 악성 APK 다운로드 주소나 세션 탈취 코드를 심어둡니다.
                                 </p>
                             </div>
                         </div>
-                        <div class="p-6 bg-blue-900/10 rounded-2xl border border-blue-800/30">
-                            
+                        <div class="terminal-bg rounded-xl p-6 font-mono border-l-4 border-cyan-500 flex flex-col justify-center">
+                            <p class="text-slate-500 mb-4 uppercase text-[10px] font-black italic">Menu Path & Interaction (상세 선택 및 입력)</p>
+                            <div class="menu-path-line"><span class="step-label">S1</span> 1) Social-Engineering Attacks (사회 공학 공격)</div>
+                            <div class="menu-path-line"><span class="step-label">S2</span> 4) Create a QR Code Generator Attack (코드 생성)</div>
+                            <div class="menu-path-line"><span class="step-label">S3</span> Enter the URL you want to point to: </div>
+                            <div class="menu-path-line"><span class="step-label">S4</span> http://[공격자의 피싱 서버 IP]/attack</div>
+                            <div class="menu-path-line mt-2 text-indigo-400"><span class="step-label bg-indigo-500">I1</span> Result: /root/.set/reports/qrcode_attack.png 생성</div>
                         </div>
                     </div>
                 </div>
@@ -412,7 +403,7 @@
             </div>
         </section>
 
-        <!-- Section 4: 아키텍트 인사이트 -->
+        <!-- Section 3: 아키텍트 인사이트 -->
         <section>
             <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
                 3. 전문가적 대응 방안 (Offensive Insight)
@@ -423,14 +414,14 @@
                         <div class="text-cyan-400 mb-4"><i data-lucide="zap" class="w-10 h-10"></i></div>
                         <h4 class="font-bold text-slate-100 mb-4 text-lg">지능형 위협 탐지 (Advanced Threat Detection)</h4>
                         <p class="text-xs text-slate-400 leading-relaxed">
-                            사회 공학 공격은 기술적 패턴보다 '사용자 행위'에 집중합니다. <span class="highlight-cyan">UEBA (User and Entity Behavior Analytics, 사용자 및 엔터티 행동 분석)</span> 솔루션을 도입하여 비정상적인 사이트에 로그인하거나 대량의 데이터를 외부로 전송하는 행위를 실시간으로 모니터링해야 합니다.
+                            사회 공학 공격은 기술적 패턴보다 '사용자 행위'에 집중합니다. <span class="highlight-cyan">UEBA (User and Entity Behavior Analytics)</span> 솔루션을 도입하여 비정상적인 시간대의 로그인이나 대량의 데이터 전송을 감시해야 합니다.
                         </p>
                     </div>
                     <div class="flex-1 bg-slate-800/50 p-8 rounded-2xl border border-slate-700">
                         <div class="text-red-400 mb-4"><i data-lucide="shield-check" class="w-10 h-10"></i></div>
                         <h4 class="font-bold text-slate-100 mb-4 text-lg">제로 트러스트 원칙 (Zero Trust Principles)</h4>
                         <p class="text-xs text-slate-400 leading-relaxed">
-                            "절대 믿지 말고 항상 검증하라"는 원칙을 적용해야 합니다. <span class="highlight-cyan">MFA (Multi-Factor Authentication, 다요소 인증)</span>는 자격 증명 탈취 공격을 무력화하는 가장 강력한 수단이며, 링크 클릭 전 도메인의 인증서와 평판을 검사하는 프로세스가 필요합니다.
+                            "절대 믿지 말고 항상 검증하라"는 원칙을 적용해야 합니다. <span class="highlight-cyan">MFA (Multi-Factor Authentication)</span>는 자격 증명 탈취 공격을 무력화하며, 링크 클릭 전 도메인의 인증서와 평판을 검사하는 프로세스가 필수입니다.
                         </p>
                     </div>
                 </div>
