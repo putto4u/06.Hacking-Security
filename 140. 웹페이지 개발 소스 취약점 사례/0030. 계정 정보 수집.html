@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>계정 정보 수집 시스템: 기술 분석 실습</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+        }
+        .terminal-bg { background-color: #020617; border: 1px solid #1e293b; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-filter: blur(12px); }
+        .code-block { font-family: 'Fira Code', monospace; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <!-- Header: 기술 사양 및 타이틀 -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Cyber Security Lab</span>
+                    <span class="text-slate-500 font-mono text-[10px]">CS-01 | Web Pentesting</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
+                    계정 정보 수집 시스템<br><span class="text-slate-100 text-2xl">Credential Harvester 기술 분석 실습</span>
+                </h1>
+            </div>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    CRITICAL: 98.5
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">Senior Security Architect</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-24">
+
+        <!-- Section 1: 아키텍처 개요 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                1. 아키텍처 개요 (Architecture Overview)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-10 leading-relaxed">
+                    **계정 정보 수집기(Credential Harvester)**는 사회 공학(Social Engineering) 기법을 사용하여 사용자의 신뢰를 얻은 후, 정교하게 위장된 UI(User Interface)를 통해 개인정보를 탈취하는 도구입니다. 이 시스템은 시각적 신뢰성을 위한 **프론트엔드 복제**, 은밀한 전송을 위한 **비동기 통신**, 그리고 데이터 축적을 위한 **백엔드 로깅**의 3단계 구조로 작동합니다.
+                </p>
+
+                <!-- 도식화 인포그래픽 영역 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner">
+                    <h4 class="text-center font-bold text-slate-400 mb-8 text-xs tracking-widest uppercase">
+                        [도식: 데이터 탈취 메커니즘 흐름도]
+                    </h4>
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                        <!-- Component A: Victim -->
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-cyan-900/50 shadow-lg group hover:border-cyan-400 transition-colors">
+                            <i data-lucide="monitor" class="w-12 h-12 text-cyan-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">피해자 브라우저 (Victim)</div>
+                            <div class="text-[10px] text-slate-500 mt-2">위장된 UI 렌더링 및 입력</div>
+                        </div>
+                        <!-- Arrow -->
+                        <div class="flex flex-col items-center">
+                            <span class="text-[10px] text-cyan-500 font-mono mb-2">Fetch API(AJAX)</span>
+                            <i data-lucide="arrow-right" class="w-8 h-8 text-cyan-600 rotate-90 md:rotate-0 animate-pulse"></i>
+                        </div>
+                        <!-- Component B: Attacker -->
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-red-900/50 shadow-lg group hover:border-red-400 transition-colors">
+                            <i data-lucide="database" class="w-12 h-12 text-red-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">공격자 서버 (Attacker)</div>
+                            <div class="text-[10px] text-slate-500 mt-2">Credential 하베스팅 및 로깅</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: 실습 구성 요소 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                2. 실습 구성 요소 (Components)
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Node 01 -->
+                <div class="section-card rounded-3xl p-8 border-cyan-900/30 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-cyan-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">NODE 01</div>
+                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                        <i data-lucide="terminal" class="w-6 h-6 text-cyan-400"></i> 프론트엔드 (Frontend Architecture)
+                    </h3>
+                    <ul class="space-y-4 text-sm text-slate-300">
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-cyan-500 mt-1 shrink-0"></i>
+                            <span>**글래스모피즘(Glassmorphism)**: 반투명 디자인을 통한 신뢰감 형성</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-cyan-500 mt-1 shrink-0"></i>
+                            <span>**교차 관찰자 API(Intersection Observer API)**: 동적 로딩을 통한 정교한 위장</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-cyan-500 mt-1 shrink-0"></i>
+                            <span>**루사이드 아이콘(Lucide Icons)**: 벡터 기반 고해상도 그래픽 활용</span>
+                        </li>
+                    </ul>
+                </div>
+                <!-- Node 02 -->
+                <div class="section-card rounded-3xl p-8 border-indigo-900/30 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">NODE 02</div>
+                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                        <i data-lucide="server" class="w-6 h-6 text-indigo-400"></i> 백엔드 (Backend & Log)
+                    </h3>
+                    <ul class="space-y-4 text-sm text-slate-300">
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-indigo-500 mt-1 shrink-0"></i>
+                            <span>**CORS(Cross-Origin Resource Sharing)**: 도메인 간 데이터 전송 허용 설정</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-indigo-500 mt-1 shrink-0"></i>
+                            <span>**감사 로그(Audit Log)**: 시간 및 IP 기반의 체계적인 데이터 축적</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-indigo-500 mt-1 shrink-0"></i>
+                            <span>**허니팟 에러(Honey Pot Error)**: 가짜 실패 메시지로 탈취 사실 은폐</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: 구현 절차 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                3. 실증 및 구현 (Implementation)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-12">
+                
+                <!-- Step 01 -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black italic">STEP 01</span>
+                        <h3 class="text-xl font-bold text-slate-100">비동기 데이터 유출 (Fetch API Exfiltration)</h3>
+                    </div>
+                    <div class="pl-12">
+                        <p class="text-sm text-slate-400 mb-4">페이지 전환 없이 공격자 서버로 계정 정보를 은밀하게 전송하기 위해 비동기 통신을 사용합니다.</p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner relative">
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">JavaScript</div>
+                            <div class="text-slate-200">
+                                <span class="text-indigo-400">fetch</span>(<span class="text-amber-400">'login.php'</span>, {<br>
+                                &nbsp;&nbsp;method: <span class="text-amber-400">'POST'</span>,<br>
+                                &nbsp;&nbsp;body: <span class="text-cyan-400">new FormData(form)</span><br>
+                                }).<span class="text-indigo-400">then</span>(() => <span class="text-cyan-400">showFakeError()</span>);
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 02 -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black italic">STEP 02</span>
+                        <h3 class="text-xl font-bold text-slate-100">백엔드 자격 증명 수집 (Server-side Capture)</h3>
+                    </div>
+                    <div class="pl-12">
+                        <p class="text-sm text-slate-400 mb-4">PHP의 `file_put_contents` 함수를 활용하여 전송된 데이터를 텍스트 파일에 기록합니다.</p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner relative">
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">PHP</div>
+                            <div class="text-slate-200">
+                                <span class="text-indigo-400">$log_entry</span> = <span class="text-amber-400">"ID: {$_POST['username']} | PW: {$_POST['password']}"</span>;<br>
+                                <span class="text-cyan-400">file_put_contents</span>(<span class="text-amber-400">'captured.txt'</span>, <span class="text-indigo-400">$log_entry</span>, <span class="text-indigo-400">FILE_APPEND</span>);
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Section 4: 전문가 분석 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                4. 아키텍트 인사이트 (Expert Insight)
+            </h2>
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-10">
+                <div class="flex flex-col md:flex-row gap-8">
+                    <!-- Tip -->
+                    <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700 hover:border-cyan-500/50 transition-all">
+                        <div class="text-cyan-400 mb-4"><i data-lucide="lightbulb" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2">보안 강화 전략: CSP & MFA</h4>
+                        <p class="text-[11px] text-slate-400 leading-relaxed">
+                            **콘텐츠 보안 정책(CSP, Content Security Policy)**를 설정하여 승인되지 않은 도메인으로의 Fetch 요청을 원천 차단해야 합니다. 또한 **다요소 인증(MFA, Multi-Factor Authentication)**을 도입하면 비밀번호가 탈취되더라도 실제 계정 접근을 방어할 수 있습니다.
+                        </p>
+                    </div>
+                    <!-- Warning -->
+                    <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700 hover:border-red-500/50 transition-all">
+                        <div class="text-red-400 mb-4"><i data-lucide="shield-alert" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2">공격자의 교묘한 심리 전술</h4>
+                        <p class="text-[11px] text-slate-400 leading-relaxed">
+                            공격자는 정상적인 에러 메시지 UI까지 완벽하게 복제합니다. 사용자가 '비밀번호가 틀렸나?'라고 생각하게 만들어 여러 번 입력을 시도하게 유도(Brute-forcing 효과 방지)하고, 수집된 데이터의 정확도를 높이는 전술을 사용합니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+            © 2026 Security Lab Expert. All rights reserved.
+        </div>
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic">
+            본 교재는 화이트햇 해킹 실습 및 보안 교육용으로 제작되었습니다. 승인되지 않은 시스템에 대한 공격 시도는 법적 처벌을 받을 수 있습니다.
+        </p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
