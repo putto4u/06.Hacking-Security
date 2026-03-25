@@ -3,351 +3,259 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OS Hardening: 권한 관리 및 프로세스 격리 실습</title>
+    <title>Security & Cloud Hacking Lab</title>
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+        
+        /* 기본 글꼴 및 다크 모드 배경색 설정 */
         body { 
             font-family: 'Noto Sans KR', sans-serif; 
             background-color: #020617; 
             color: #f8fafc; 
-            margin: 0; padding: 0;
-            line-height: 1.8;
-            background-image: radial-gradient(circle at 50% 0%, #0f172a 0%, #020617 100%);
+            /* 전체 화면 배경 이미지 적용 및 투명도(Overlay) 설정: 텍스트 가시성을 위해 어두운 오버레이 강화 */
+            background-image: linear-gradient(to bottom, rgba(2, 6, 23, 0.75), rgba(2, 6, 23, 0.95)), 
+                              url('image_1a3201.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center center;
         }
-        .terminal-bg { background-color: #010409; border: 1px solid #1e293b; }
-        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
-        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-filter: blur(12px); }
-        .code-block { font-family: 'Fira Code', monospace; }
-        .neon-border { border: 1px solid rgba(34, 211, 238, 0.3); box-shadow: 0 0 20px rgba(34, 211, 238, 0.05); }
-        .glossary-note { background: rgba(30, 41, 59, 0.5); border-left: 2px solid #0ea5e9; }
+
+        /* 텍스트 리스트 호버 효과: 터미널 스타일 */
+        .list-hover {
+            transition: all 0.2s ease;
+        }
+        .list-hover:hover {
+            color: #22d3ee; 
+            padding-left: 0.75rem; 
+            background-color: rgba(15, 23, 42, 0.8); 
+            border-left-color: #0ea5e9;
+        }
+
+        /* 텍스트 가시성을 높이는 그림자 효과 클래스 */
+        .text-glow {
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+        }
+        .neon-glow {
+            text-shadow: 0 0 8px rgba(34, 211, 238, 0.6);
+        }
         
+        /* 커스텀 스크롤바 (선택적 시각 강화) */
         ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
     </style>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
 </head>
-<body class="antialiased pb-20">
+<body class="min-h-screen flex flex-col">
+    <header class="py-24 px-6 relative overflow-hidden">
+        
+        <a href="https://putto4u.github.io/06.Hacking-Security" class="absolute top-6 left-6 md:left-10 z-20 group cursor-pointer block" target="_blank" rel="noopener noreferrer">
+            <div class="flex items-center space-x-2 bg-slate-900/80 py-2 px-4 rounded-xl border border-cyan-900/50 backdrop-blur-md shadow-[0_0_15px_rgba(8,145,178,0.2)] transition-all duration-300 group-hover:border-cyan-400/60 group-hover:shadow-[0_0_20px_rgba(34,211,238,0.4)]">
+                <div class="relative flex h-3 w-3 mr-1">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
+                </div>
+                <span class="font-mono text-[10px] md:text-xs text-slate-400 tracking-wider">CHIEF SYSTEM ARCHITECT <span class="text-cyan-500 ml-1">❯</span></span>
+                <span class="font-black text-cyan-300 tracking-widest font-mono text-sm md:text-base neon-glow ml-1">PUTTO</span>
+                <span class="font-bold text-slate-200 tracking-widest font-mono text-sm md:text-base">'S LECTURES</span>
+            </div>
+        </a>
 
-    <!-- Header: 기술 사양 및 타이틀 -->
-    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
-        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
-            <div>
-                <div class="flex items-center gap-2 mb-2">
-                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Cyber Security Lab</span>
-                    <span class="text-slate-500 font-mono text-[10px]">INFRA-SEC-04 | Privilege Isolation</span>
-                </div>
-                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
-                    Permission Management<br><span class="text-slate-100 text-2xl">권한 관리 및 프로세스 격리 (Permission Management and Process Isolation)</span>
-                </h1>
+        <div class="max-w-4xl mx-auto relative z-10 text-center mt-8">
+            <div class="inline-flex items-center justify-center space-x-3 mb-8 bg-slate-950/60 p-4 rounded-2xl backdrop-blur-md border border-slate-700/80 shadow-2xl">
+                <i class="fas fa-user-secret text-4xl text-cyan-400 drop-shadow-lg"></i>
+                <span class="text-slate-500">|</span>
+                <i class="fas fa-shield-halved text-4xl text-blue-500 drop-shadow-lg"></i>
             </div>
-            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
-                <div class="bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
-                    VER: 2026.04
-                </div>
-                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">Chief System Architect Pro</p>
-            </div>
+            
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-2 pb-2 bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 via-blue-400 to-indigo-400 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">
+                Cloud Security & Hacking Lab
+            </h1>
+            
+            <p class="mt-8 text-slate-100 font-medium text-lg md:text-xl max-w-2xl mx-auto leading-relaxed text-glow">
+                실전 클라우드 인프라 보안 및 모의 해킹 시나리오 연구 자료 저장소
+            </p>
         </div>
     </header>
 
-    <main class="max-w-6xl mx-auto px-6 py-16 space-y-24">
+    <main class="flex-grow max-w-4xl mx-auto px-6 py-8 w-full">
 
-        <!-- Section 1: 루트 권한 실행의 위험성 -->
-        <section>
-            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
-                1. 루트 권한 실행의 위험성과 최소 권한 원칙
-            </h2>
-            <div class="space-y-4">
-                <div class="section-card rounded-3xl p-10 shadow-2xl space-y-8">
-                    <p class="text-slate-300 text-lg leading-relaxed">
-                        웹 서버 프로세스가 <strong>Root (루트, 시스템 최고 관리자)</strong> 권한으로 실행될 경우, 애플리케이션의 취약점을 통해 서버가 해킹당하면 공격자는 즉시 시스템 전체에 대한 통제권을 갖게 됩니다. 이를 방지하기 위해 <strong>Principle of Least Privilege (최소 권한 원칙, 업무 수행에 필요한 최소한의 권한만 부여하는 보안 원칙)</strong>를 적용해야 합니다.
-                    </p>
+                <div class="bg-slate-950/90 p-8 md:p-12 rounded-2xl shadow-2xl border border-slate-700/50 backdrop-blur-xl prose prose-invert prose-slate max-w-none prose-img:rounded-xl prose-a:text-cyan-400 hover:prose-a:text-cyan-300 prose-headings:text-slate-100 prose-strong:text-cyan-100">
+                    <h2>2.2 권한 관리 및 프로세스 격리 (Permission Management and Process Isolation)</h2>
+<hr />
+<h3><strong>1. 루트 권한 실행의 위험성과 최소 권한 원칙</strong></h3>
+<p>웹 서버 프로세스가 <strong>Root (루트, 시스템 최고 관리자)</strong> 권한으로 실행될 경우, 애플리케이션의 취약점을 통해 서버가 해킹당하면 공격자는 즉시 시스템 전체에 대한 통제권을 갖게 됩니다. 이를 방지하기 위해 <strong>Principle of Least Privilege (최소 권한 원칙, 업무 수행에 필요한 최소한의 권한만 부여하는 보안 원칙)</strong>를 적용해야 합니다.</p>
+<ul>
+<li><strong>위험 요소</strong>: 파일 시스템 전체 읽기/쓰기, 시스템 설정 변경, 다른 사용자 프로세스 간섭.</li>
+<li><strong>해결 방안</strong>: 웹 서버 전용의 비관리자 계정을 생성하고, 해당 계정 범위 내에서만 프로세스가 동작하도록 제한합니다.</li>
+</ul>
+<blockquote>
+<p><strong>설명</strong>: 웹 서버는 포트 점유를 위해 초기 구동 시에만 루트 권한을 사용하고, 이후 실제 요청을 처리하는 <strong>Worker Process (워커 프로세스, 실제 작업을 수행하는 프로세스)</strong>는 반드시 일반 사용자 권한으로 전환되어야 합니다.</p>
+</blockquote>
+<hr />
+<h3><strong>2. 전용 서비스 계정 생성 및 설정</strong></h3>
+<p>Nginx나 Apache와 같은 웹 서버는 시스템 로그인 권한이 없는 별도의 전용 계정을 사용하여 구동하는 것이 안전합니다.</p>
+<ul>
+<li><strong>보안 계정 생성 예시</strong>
+    로그인이 불가능한 셸(<code>/usr/sbin/nologin</code>)을 지정하여 계정 탈취 시에도 2차 피해를 막습니다.</li>
+</ul>
+<pre><code class="language-bash"># 웹 서비스 전용 그룹 및 사용자 생성 (로그인 불가 설정)
+sudo groupadd www-data
+sudo useradd -g www-data -s /usr/sbin/nologin -d /var/www www-data
+</code></pre>
+<ul>
+<li><strong>Nginx 설정 반영</strong>
+    <code>/etc/nginx/nginx.conf</code> 파일 최상단에 실행 사용자를 명시합니다.</li>
+</ul>
+<pre><code class="language-bash"># 실행 사용자 설정 확인
+user www-data;
+worker_processes auto;
+</code></pre>
+<hr />
+<h3><strong>3. 디렉터리 권한 및 ACL (Access Control List, 접근 제어 목록) 강화</strong></h3>
+<p>웹 콘텐츠가 저장된 디렉터리는 웹 서버 계정만 읽을 수 있어야 하며, 쓰기 권한은 엄격히 제한해야 합니다.</p>
+<ul>
+<li><strong>소유권 및 권한 최적화</strong>
+    웹 루트 디렉터리의 소유자를 관리자로 설정하고, 웹 서버 계정은 읽기 권한만 갖도록 설정하는 것이 표준입니다.</li>
+</ul>
+<pre><code class="language-bash"># 웹 루트 디렉터리 소유권 변경 (관리자 소유)
+sudo chown -R root:root /var/www/html
 
-                    <!-- 도식: 권한 분리 모델 -->
-                    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner">
-                        <h4 class="text-center font-bold text-slate-400 mb-10 text-xs tracking-widest uppercase">
-                            [도식: Principle of Least Privilege Isolation Model]
-                        </h4>
-                        <div class="flex flex-col md:flex-row items-center justify-around gap-8">
-                            <div class="text-center p-6 bg-red-900/10 border border-red-500/30 rounded-2xl w-full md:w-64">
-                                <i data-lucide="shield-alert" class="w-12 h-12 text-red-500 mx-auto mb-4"></i>
-                                <div class="text-sm font-black text-red-400 mb-2 uppercase">Full Privilege (Root)</div>
-                                <p class="text-[10px] text-slate-500 leading-tight">해킹 시 전체 시스템 장악<br>(FS 쓰기, 계정 변경, 프로세스 Kill)</p>
-                            </div>
-                            <div class="flex flex-col items-center">
-                                <i data-lucide="arrow-right-left" class="w-8 h-8 text-slate-700 hidden md:block"></i>
-                                <span class="text-[10px] font-bold text-cyan-500 mt-2 uppercase tracking-widest">Privilege Dropping</span>
-                            </div>
-                            <div class="text-center p-6 bg-cyan-900/10 border border-cyan-500/30 rounded-2xl w-full md:w-64">
-                                <i data-lucide="shield-check" class="w-12 h-12 text-cyan-400 mx-auto mb-4"></i>
-                                <div class="text-sm font-black text-cyan-300 mb-2 uppercase">Least Privilege (Service)</div>
-                                <p class="text-[10px] text-slate-500 leading-tight">해킹 시 특정 디렉토리만 노출<br>(시스템 영역 접근 불가)</p>
-                            </div>
-                        </div>
-                    </div>
+# 디렉터리는 755(drwxr-xr-x), 파일은 644(-rw-r--r--) 권한 부여
+sudo find /var/www/html -type d -exec chmod 755 {} \;
+sudo find /var/www/html -type f -exec chmod 644 {} \;
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="bg-slate-800/40 p-6 rounded-2xl border border-slate-700/50">
-                            <h4 class="font-bold text-slate-100 mb-2 text-sm">위험 요소 (Risk Factors)</h4>
-                            <ul class="text-[11px] text-slate-400 space-y-1">
-                                <li>• 파일 시스템 전체 읽기/쓰기</li>
-                                <li>• 시스템 설정 변경 (커널/네트워크)</li>
-                                <li>• 타 사용자 프로세스 간섭</li>
-                            </ul>
-                        </div>
-                        <div class="bg-slate-800/40 p-6 rounded-2xl border border-slate-700/50">
-                            <h4 class="font-bold text-slate-100 mb-2 text-sm">해결 방안 (Solutions)</h4>
-                            <p class="text-[11px] text-slate-400">웹 서버 전용의 비관리자 계정을 생성하고, 해당 계정 범위 내에서만 프로세스가 동작하도록 제한합니다.</p>
-                        </div>
-                        <div class="bg-slate-800/40 p-6 rounded-2xl border border-slate-700/50">
-                            <h4 class="font-bold text-slate-100 mb-2 text-sm">권한 전환 정책</h4>
-                            <p class="text-[11px] text-slate-400">포트 점유 시에만 루트 권한을 사용하고, 요청 처리 시에는 일반 계정으로 전환합니다.</p>
-                        </div>
-                    </div>
-                    
-                    <p class="bg-blue-500/10 border-l-4 border-blue-500 p-4 text-sm text-blue-300 italic">
-                        <strong>설명</strong>: 웹 서버는 포트 점유를 위해 초기 구동 시에만 루트 권한을 사용하고, 이후 실제 요청을 처리하는 <strong>Worker Process (워커 프로세스, 실제 작업을 수행하는 프로세스)</strong>는 반드시 일반 사용자 권한으로 전환되어야 합니다.
-                    </p>
+# 업로드 폴더 등 쓰기가 필요한 특정 디렉터리만 예외 설정
+sudo chown -R www-data:www-data /var/www/html/uploads
+</code></pre>
+<blockquote>
+<p><strong>설명</strong>: <strong>ACL (Access Control List, 접근 제어 목록)</strong>은 전통적인 유닉스 권한 체계보다 더 세밀하게 사용자나 그룹별로 권한을 부여할 수 있는 메커니즘입니다.</p>
+</blockquote>
+<hr />
+<h3><strong>4. Chroot Jail (Chroot 제일, 루트 변경 격리) 및 컨테이너 격리</strong></h3>
+<p>프로세스가 특정 디렉터리를 루트(<code>/</code>)로 인식하게 하여, 해당 디렉터리 외부의 시스템 파일에 접근하지 못하도록 물리적으로 격리합니다.</p>
+<ul>
+<li><strong>격리 효과</strong>: 공격자가 웹 서버를 장악하더라도 <code>/etc/passwd</code>와 같은 시스템 중요 파일에 접근할 수 없습니다.</li>
+<li><strong>최신 트렌드</strong>: 최근에는 <strong>Docker (도커, 컨테이너 기반 가상화 플랫폼)</strong>를 사용하여 애플리케이션 실행 환경 자체를 완전히 격리하는 방식을 선호합니다.</li>
+</ul>
+<hr />
+<h3><strong>[AWS 환경 보안 및 과금 안내]</strong></h3>
+<p>클라우드 환경에서는 OS 내부 권한뿐만 아니라 인프라 자원에 대한 권한 격리도 중요합니다.</p>
+<ul>
+<li><strong>IAM Role (Identity and Access Management Role, IAM 역할)</strong><ul>
+<li>EC2 인스턴스에 직접 자격 증명(Access Key)을 저장하지 않고, <strong>Instance Profile (인스턴스 프로파일)</strong>을 통해 최소한의 AWS 자원 접근 권한만 부여합니다.</li>
+<li><strong>과금 안내</strong>: IAM 서비스 자체는 <strong>무료</strong>입니다.</li>
+</ul>
+</li>
+<li><strong>Amazon GuardDuty (아마존 가드듀티, 지능형 위협 탐지 서비스)</strong><ul>
+<li>비정상적인 권한 상승 시도나 비인가된 API 호출을 탐지합니다.</li>
+<li><strong>과금 안내</strong>: 분석된 로그 양(VPC Flow Logs, CloudTrail 등)에 따라 비용이 발생합니다. <a href="https://aws.amazon.com/ko/guardduty/pricing/">공식 요금 페이지</a></li>
+</ul>
+</li>
+</ul>
+<hr />
+<p>Next Step: SSL/TLS 적용</p>
+<hr />
+<p><strong>상세 설명 주석</strong>
+1. <strong>Worker Process</strong>: 부모 프로세스(Master)로부터 생성되어 실제 클라이언트의 HTTP 요청을 처리하는 자식 프로세스입니다.
+2. <strong>nologin</strong>: 해당 계정으로 시스템에 직접 로그인하는 것을 기술적으로 차단하는 셸 경로입니다. 보안 계정에 필수적으로 설정합니다.
+3. <strong>chmod (Change Mode)</strong>: 파일이나 디렉터리의 읽기(4), 쓰기(2), 실행(1) 권한을 변경하는 명령어입니다.
+4. <strong>Chroot</strong>: 'Change Root'의 약자로, 프로세스가 실행되는 루트 디렉터리 위치를 변경하여 시스템의 나머지 부분으로부터 격리시키는 보안 기법입니다.
+5. <strong>IAM Role</strong>: 특정 사용자에게 고정된 권한을 주는 것이 아니라, 필요할 때 서비스나 객체가 권한을 '수임'하여 사용할 수 있게 하는 임시 자격 증명 방식입니다.</p>
                 </div>
-                <div class="glossary-note p-6 rounded-2xl shadow-lg space-y-3 ml-4">
-                    <div class="text-[11px]">
-                        <span class="font-black text-cyan-400 uppercase tracking-tighter">Annotate 01. Worker Process</span>: 부모 프로세스(Master)로부터 생성되어 실제 클라이언트의 HTTP 요청을 처리하는 자식 프로세스입니다.
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 2: 전용 서비스 계정 생성 -->
-        <section>
-            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
-                2. 전용 서비스 계정 생성 및 설정 (Service Account Setup)
-            </h2>
-            <div class="space-y-4">
-                <div class="section-card rounded-3xl p-10 shadow-2xl space-y-10">
-                    <p class="text-slate-300">Nginx나 Apache와 같은 웹 서버는 시스템 로그인 권한이 없는 별도의 전용 계정을 사용하여 구동하는 것이 안전합니다.</p>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div class="space-y-4">
-                            <div class="flex items-center gap-3">
-                                <span class="bg-cyan-500 text-slate-900 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black italic">01</span>
-                                <h3 class="text-lg font-bold text-slate-100">보안 계정 생성 예시</h3>
-                            </div>
-                            <p class="text-xs text-slate-400 pl-10">로그인이 불가능한 셸(<code class="text-cyan-400">/usr/sbin/nologin</code>)을 지정하여 계정 탈취 시에도 2차 피해를 막습니다.</p>
-                            <div class="pl-10">
-                                <div class="terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner">
-                                    <div class="text-slate-500"># 그룹 및 로그인 불가 사용자 생성</div>
-                                    <div class="text-slate-200">sudo groupadd www-data</div>
-                                    <div class="text-slate-200">sudo useradd -g www-data -s /usr/sbin/nologin -d /var/www www-data</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="space-y-4">
-                            <div class="flex items-center gap-3">
-                                <span class="bg-cyan-500 text-slate-900 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black italic">02</span>
-                                <h3 class="text-lg font-bold text-slate-100">Nginx 설정 반영</h3>
-                            </div>
-                            <p class="text-xs text-slate-400 pl-10">실행 사용자 설정을 명시하여 프로세스 권한을 제어합니다.</p>
-                            <div class="pl-10">
-                                <div class="terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner">
-                                    <div class="text-slate-500"># /etc/nginx/nginx.conf</div>
-                                    <br>
-                                    <div class="text-cyan-400">user www-data;</div>
-                                    <div class="text-slate-200">worker_processes auto;</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="glossary-note p-6 rounded-2xl shadow-lg space-y-3 ml-4">
-                    <div class="text-[11px]">
-                        <span class="font-black text-cyan-400 uppercase tracking-tighter">Annotate 02. nologin</span>: 해당 계정으로 시스템에 직접 로그인하는 것을 기술적으로 차단하는 셸 경로입니다. 보안 계정에 필수적으로 설정합니다.
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 3: 디렉터리 권한 및 ACL 강화 -->
-        <section>
-            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
-                3. 디렉터리 권한 및 ACL (Access Control List, 접근 제어 목록) 강화
-            </h2>
-            <div class="space-y-4">
-                <div class="section-card rounded-3xl p-10 shadow-2xl space-y-12">
-                    <p class="text-slate-300">웹 콘텐츠가 저장된 디렉터리는 웹 서버 계정만 읽을 수 있어야 하며, 쓰기 권한은 엄격히 제한해야 합니다.</p>
-
-                    <!-- 도식: 디렉터리 권한 구조 (크기 및 가독성 조정) -->
-                    <div class="bg-slate-950/50 rounded-2xl p-10 border border-slate-800">
-                        <h4 class="text-center font-bold text-slate-500 mb-10 text-xs uppercase tracking-widest">[도식: Web Root Permission Hierarchy (웹 루트 권한 계층)]</h4>
-                        <div class="flex flex-col gap-6 max-w-2xl mx-auto">
-                            <!-- Root Node -->
-                            <div class="flex items-center gap-4">
-                                <i data-lucide="folder-lock" class="w-8 h-8 text-red-500"></i>
-                                <div class="flex-1 p-4 bg-slate-800 rounded-xl border border-red-500/30 flex justify-between items-center shadow-lg">
-                                    <span class="font-mono text-sm font-bold text-slate-100">/var/www/html</span>
-                                    <span class="text-[10px] font-black bg-red-500/20 text-red-400 px-3 py-1 rounded-full border border-red-500/30 uppercase tracking-tighter">Owner: root (755)</span>
-                                </div>
-                            </div>
-                            <!-- Static Content -->
-                            <div class="flex items-center gap-4 ml-12">
-                                <i data-lucide="file-code" class="w-6 h-6 text-cyan-400"></i>
-                                <div class="flex-1 p-4 bg-slate-800/60 rounded-xl border border-cyan-500/30 flex justify-between items-center shadow-md">
-                                    <span class="font-mono text-xs text-slate-300">index.html, static/*</span>
-                                    <span class="text-[10px] font-black bg-cyan-500/20 text-cyan-400 px-3 py-1 rounded-full border border-cyan-500/30 uppercase tracking-tighter">File: 644 (Read Only)</span>
-                                </div>
-                            </div>
-                            <!-- Writable Folder -->
-                            <div class="flex items-center gap-4 ml-12">
-                                <i data-lucide="folder-up" class="w-6 h-6 text-amber-500"></i>
-                                <div class="flex-1 p-4 bg-slate-800/80 rounded-xl border border-amber-500/30 flex justify-between items-center shadow-md">
-                                    <span class="font-mono text-xs text-slate-300">/uploads (Data)</span>
-                                    <span class="text-[10px] font-black bg-amber-500/20 text-amber-400 px-3 py-1 rounded-full border border-amber-500/30 uppercase tracking-tighter">Writable: www-data (775)</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="space-y-6">
-                        <h3 class="text-xl font-bold text-slate-100 flex items-center gap-3">
-                            <i data-lucide="terminal" class="w-6 h-6 text-cyan-400"></i> 소유권 및 권한 최적화 (Implementation)
-                        </h3>
-                        <div class="terminal-bg rounded-xl p-8 font-mono text-sm shadow-inner space-y-4">
-                            <div>
-                                <div class="text-slate-500 mb-1"># 웹 루트 디렉터리 소유권 변경 (관리자 소유)</div>
-                                <div class="text-slate-200">$ <span class="text-cyan-400">sudo chown -R root:root /var/www/html</span></div>
-                            </div>
-                            <div class="pt-4 border-t border-slate-800">
-                                <div class="text-slate-500 mb-1"># 디렉터리는 755(drwxr-xr-x), 파일은 644(-rw-r--r--) 일괄 권한 부여</div>
-                                <div class="text-slate-200">$ <span class="text-cyan-400">sudo find /var/www/html -type d -exec chmod 755 {} \;</span></div>
-                                <div class="text-slate-200">$ <span class="text-cyan-400">sudo find /var/www/html -type f -exec chmod 644 {} \;</span></div>
-                            </div>
-                            <div class="pt-4 border-t border-slate-800">
-                                <div class="text-slate-500 mb-1"># 업로드 폴더 등 쓰기가 필요한 특정 디렉터리만 예외 설정</div>
-                                <div class="text-slate-200">$ <span class="text-amber-400">sudo chown -R www-data:www-data /var/www/html/uploads</span></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <p class="bg-indigo-500/10 border-l-4 border-indigo-500 p-4 text-sm text-indigo-300 italic">
-                        <strong>설명</strong>: <strong>ACL (Access Control List, 접근 제어 목록)</strong>은 전통적인 유닉스 권한 체계보다 더 세밀하게 사용자나 그룹별로 권한을 부여할 수 있는 메커니즘입니다.
-                    </p>
-                </div>
-                <!-- 상세 설명 주석 (Glossary Section 3) -->
-                <div class="glossary-note p-6 rounded-2xl shadow-lg space-y-3 ml-4">
-                    <div class="text-[11px] grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div><span class="font-black text-cyan-400 uppercase tracking-tighter">Annotate 03. chmod (Change Mode)</span>: 파일이나 디렉터리의 읽기(4), 쓰기(2), 실행(1) 권한을 변경하는 명령어입니다.</div>
-                        <div><span class="font-black text-cyan-400 uppercase tracking-tighter">Annotate 04. ACL (Access Control List)</span>: 사용자나 그룹별로 파일/디렉토리 접근 권한을 정교하게 제어하기 위한 목록입니다.</div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 4: Chroot Jail 및 컨테이너 격리 -->
-        <section>
-            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
-                4. Chroot Jail (Chroot 제일, 루트 변경 격리) 및 컨테이너 격리
-            </h2>
-            <div class="space-y-4">
-                <div class="section-card rounded-3xl p-10 shadow-2xl space-y-8">
-                    <div class="flex flex-col md:flex-row gap-10 items-start">
-                        <div class="flex-1 space-y-6">
-                            <p class="text-slate-300 leading-relaxed">
-                                프로세스가 특정 디렉터리를 루트(<code>/</code>)로 인식하게 하여, 해당 디렉터리 외부의 시스템 파일에 접근하지 못하도록 물리적으로 격리합니다.
-                            </p>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800">
-                                    <h4 class="font-bold text-slate-100 text-xs mb-2">격리 효과</h4>
-                                    <p class="text-[11px] text-slate-400 italic">공격자가 웹 서버를 장악하더라도 /etc/passwd와 같은 시스템 중요 파일에 접근할 수 없습니다.</p>
-                                </div>
-                                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800">
-                                    <h4 class="font-bold text-slate-100 text-xs mb-2">최신 트렌드</h4>
-                                    <p class="text-[11px] text-slate-400 italic">최근에는 <strong>Docker (도커, 컨테이너 기반 가상화 플랫폼)</strong>를 사용하여 애플리케이션 실행 환경 자체를 완전히 격리합니다.</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="w-full md:w-1/3 bg-slate-900/80 p-8 rounded-2xl border border-slate-800 text-center flex flex-col items-center justify-center">
-                            <div class="relative w-24 h-24 mb-6">
-                                <i data-lucide="box" class="w-24 h-24 text-blue-500 opacity-20"></i>
-                                <i data-lucide="lock" class="absolute inset-0 w-8 h-8 text-blue-400 m-auto"></i>
-                            </div>
-                            <h4 class="font-black text-slate-100 text-xs tracking-widest mb-2 uppercase">Chroot Jail Concept</h4>
-                            <div class="text-[9px] text-slate-500 font-mono">Process believes<br><span class="text-blue-400">/var/www/jail</span> is <span class="text-blue-400">/</span></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="glossary-note p-6 rounded-2xl shadow-lg space-y-3 ml-4">
-                    <div class="text-[11px]">
-                        <span class="font-black text-cyan-400 uppercase tracking-tighter">Annotate 05. Chroot</span>: 'Change Root'의 약자로, 프로세스가 실행되는 루트 디렉터리 위치를 변경하여 시스템의 나머지 부분으로부터 격리시키는 보안 기법입니다.
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 5: 클라우드 연동 (AWS) -->
-        <section>
-            <h2 class="text-2xl font-black border-l-4 border-orange-500 pl-4 text-slate-100 mb-8 tracking-tight">
-                [AWS 환경 보안 및 과금 안내]
-            </h2>
-            <div class="space-y-4">
-                <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-10">
-                    <p class="text-sm text-slate-400 italic">클라우드 환경에서는 OS 내부 권한뿐만 아니라 인프라 자원에 대한 권한 격리도 중요합니다.</p>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <!-- IAM Role -->
-                        <div class="bg-slate-800/50 p-8 rounded-2xl border border-blue-900/30 relative">
-                            <div class="absolute top-4 right-4 text-blue-500"><i data-lucide="key" class="w-6 h-6"></i></div>
-                            <h4 class="font-bold text-slate-100 mb-4 uppercase tracking-tighter">IAM Role (IAM 역할)</h4>
-                            <p class="text-[11px] text-slate-400 mb-6 leading-relaxed">
-                                EC2 인스턴스에 직접 자격 증명(Access Key)을 저장하지 않고, <strong>Instance Profile (인스턴스 프로파일)</strong>을 통해 최소한의 AWS 자원 접근 권한만 부여합니다.
-                            </p>
-                            <div class="bg-blue-500/10 border border-blue-500/20 p-4 rounded-xl mb-4 text-center">
-                                <h5 class="text-[10px] font-black text-blue-400 uppercase">Billing Status: <span class="text-cyan-400">FREE</span></h5>
-                                <p class="text-[9px] text-slate-400 mt-1">IAM 서비스는 추가 비용 없이 제공됩니다.</p>
-                            </div>
-                        </div>
-
-                        <!-- Amazon GuardDuty -->
-                        <div class="bg-slate-800/50 p-8 rounded-2xl border border-red-900/30 relative">
-                            <div class="absolute top-4 right-4 text-red-500"><i data-lucide="eye" class="w-6 h-6"></i></div>
-                            <h4 class="font-bold text-slate-100 mb-4 uppercase tracking-tighter">Amazon GuardDuty (아마존 가드듀티)</h4>
-                            <p class="text-[11px] text-slate-400 mb-6 leading-relaxed">
-                                비정상적인 권한 상승 시도나 비인가된 API 호출을 탐지합니다.
-                            </p>
-                            <div class="bg-red-500/10 border border-red-500/20 p-4 rounded-xl mb-4">
-                                <h5 class="text-[10px] font-black text-red-400 uppercase mb-2">Billing (유료 서비스)</h5>
-                                <ul class="text-[9px] text-slate-300 space-y-1">
-                                    <li>• 분석된 로그 양(VPC Flow Logs, CloudTrail 등)에 따라 비용 발생</li>
-                                    <li>• 리전별 데이터 처리량 기준 과금</li>
-                                </ul>
-                            </div>
-                            <a href="https://aws.amazon.com/ko/guardduty/pricing/" target="_blank" class="text-[10px] text-red-400 hover:underline uppercase font-bold tracking-widest">Official Pricing →</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="glossary-note p-6 rounded-2xl shadow-lg space-y-3 ml-4">
-                    <div class="text-[11px]">
-                        <span class="font-black text-cyan-400 uppercase tracking-tighter">Annotate 06. IAM Role</span>: 특정 사용자에게 고정된 권한을 주는 것이 아니라, 필요할 때 서비스나 객체가 권한을 '수임'하여 사용할 수 있게 하는 임시 자격 증명 방식입니다.
-                    </div>
-                </div>
-            </div>
-        </section>
-
+                
     </main>
-
-    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
-        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
-            © 2026 PUTTO'S LECTURES. ACCESS SECURED.
-        </div>
-        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic">
-            Next Step: SSL/TLS 적용
-        </p>
+    <footer class="border-t border-slate-800/80 py-8 text-center text-slate-400 text-sm bg-slate-950/90 backdrop-blur-md mt-auto">
+        <p class="font-mono">&copy; 2026 Putto's Lectures. All rights reserved. <span class="text-cyan-800 font-bold ml-2">| ACCESS SECURED.</span></p>
     </footer>
 
     <script>
-        lucide.createIcons();
+        // 전역 상태 변수: 디폴트를 'false'로 변경하여 모든 폴더가 처음에는 접혀있도록 설정합니다.
+        let isAllExpanded = false;
+
+        // 개별 폴더를 펼치거나 접는 함수
+        function toggleFolder(element) {
+            // 클릭된 헤더의 부모 섹션(Section) 및 내부 리스트 컨테이너(Container) 탐색
+            const section = element.closest('.folder-section');
+            const listContainer = section.querySelector('.list-container');
+            const folderIcon = element.querySelector('.folder-icon');
+            const chevronIcon = element.querySelector('.chevron-icon');
+            
+            // 데이터 속성(Data Attributes)에 저장된 아이콘 클래스명 불러오기
+            const baseIcon = element.getAttribute('data-base-icon');
+            const closedIcon = element.getAttribute('data-closed-icon');
+
+            // 현재 리스트가 펼쳐진 상태인지 확인 (CSS Grid 속성 기준)
+            const isExpanded = listContainer.classList.contains('grid-rows-[1fr]');
+
+            if (isExpanded) {
+                // 접기(Collapse) 액션 수행
+                listContainer.classList.remove('grid-rows-[1fr]', 'opacity-100');
+                listContainer.classList.add('grid-rows-[0fr]', 'opacity-0');
+                
+                // 우측 화살표 아이콘 회전
+                chevronIcon.classList.add('rotate-180');
+                
+                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 닫힘 상태로 변경
+                if (baseIcon !== 'fa-server') {
+                    folderIcon.classList.remove('fa-folder-open');
+                    folderIcon.classList.add('fa-folder');
+                }
+            } else {
+                // 펼치기(Expand) 액션 수행
+                listContainer.classList.remove('grid-rows-[0fr]', 'opacity-0');
+                listContainer.classList.add('grid-rows-[1fr]', 'opacity-100');
+                
+                // 우측 화살표 아이콘 원상 복구
+                chevronIcon.classList.remove('rotate-180');
+                
+                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 열림 상태로 변경
+                if (baseIcon !== 'fa-server') {
+                    folderIcon.classList.remove('fa-folder');
+                    folderIcon.classList.add('fa-folder-open');
+                }
+            }
+        }
+
+        // 전체 폴더를 일괄적으로 펼치거나 접는 함수
+        function toggleAllFolders() {
+            // 전역 상태 반전
+            isAllExpanded = !isAllExpanded;
+            
+            // DOM(Document Object Model, 문서 객체 모델)에서 모든 폴더 헤더 요소 선택
+            const headers = document.querySelectorAll('.folder-header');
+            const globalBtnIcon = document.getElementById('global-toggle-icon');
+            const globalBtnText = document.getElementById('global-toggle-text');
+
+            headers.forEach(header => {
+                const section = header.closest('.folder-section');
+                const listContainer = section.querySelector('.list-container');
+                const isCurrentlyExpanded = listContainer.classList.contains('grid-rows-[1fr]');
+
+                // 현재 개별 폴더의 상태가 전역 상태 목표와 다를 경우에만 토글 함수 실행
+                if (isAllExpanded !== isCurrentlyExpanded) {
+                    toggleFolder(header);
+                }
+            });
+
+            // 전역 토글 버튼의 UI(User Interface, 사용자 인터페이스) 업데이트
+            if (isAllExpanded) {
+                globalBtnIcon.classList.remove('fa-folder');
+                globalBtnIcon.classList.add('fa-folder-open');
+                globalBtnText.innerText = 'COLLAPSE ALL';
+            } else {
+                globalBtnIcon.classList.remove('fa-folder-open');
+                globalBtnIcon.classList.add('fa-folder');
+                globalBtnText.innerText = 'EXPAND ALL';
+            }
+        }
     </script>
 </body>
 </html>
