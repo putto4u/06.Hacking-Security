@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security & Cloud Hacking Lab</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+        
+        /* 기본 글꼴 및 다크 모드 배경색 설정 */
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            /* 전체 화면 배경 이미지 적용 및 투명도(Overlay) 설정: 텍스트 가시성을 위해 어두운 오버레이 강화 */
+            background-image: linear-gradient(to bottom, rgba(2, 6, 23, 0.75), rgba(2, 6, 23, 0.95)), 
+                              url('image_1a3201.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center center;
+        }
+
+        /* 텍스트 리스트 호버 효과: 터미널 스타일 */
+        .list-hover {
+            transition: all 0.2s ease;
+        }
+        .list-hover:hover {
+            color: #22d3ee; 
+            padding-left: 0.75rem; 
+            background-color: rgba(15, 23, 42, 0.8); 
+            border-left-color: #0ea5e9;
+        }
+
+        /* 텍스트 가시성을 높이는 그림자 효과 클래스 */
+        .text-glow {
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+        }
+        .neon-glow {
+            text-shadow: 0 0 8px rgba(34, 211, 238, 0.6);
+        }
+        
+        /* 커스텀 스크롤바 (선택적 시각 강화) */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+    </style>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+</head>
+<body class="min-h-screen flex flex-col">
+    <header class="py-24 px-6 relative overflow-hidden">
+        
+        <a href="https://putto4u.github.io/06.Hacking-Security" class="absolute top-6 left-6 md:left-10 z-20 group cursor-pointer block" target="_blank" rel="noopener noreferrer">
+            <div class="flex items-center space-x-2 bg-slate-900/80 py-2 px-4 rounded-xl border border-cyan-900/50 backdrop-blur-md shadow-[0_0_15px_rgba(8,145,178,0.2)] transition-all duration-300 group-hover:border-cyan-400/60 group-hover:shadow-[0_0_20px_rgba(34,211,238,0.4)]">
+                <div class="relative flex h-3 w-3 mr-1">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
+                </div>
+                <span class="font-mono text-[10px] md:text-xs text-slate-400 tracking-wider">CHIEF SYSTEM ARCHITECT <span class="text-cyan-500 ml-1">❯</span></span>
+                <span class="font-black text-cyan-300 tracking-widest font-mono text-sm md:text-base neon-glow ml-1">PUTTO</span>
+                <span class="font-bold text-slate-200 tracking-widest font-mono text-sm md:text-base">'S LECTURES</span>
+            </div>
+        </a>
+
+        <div class="max-w-4xl mx-auto relative z-10 text-center mt-8">
+            <div class="inline-flex items-center justify-center space-x-3 mb-8 bg-slate-950/60 p-4 rounded-2xl backdrop-blur-md border border-slate-700/80 shadow-2xl">
+                <i class="fas fa-user-secret text-4xl text-cyan-400 drop-shadow-lg"></i>
+                <span class="text-slate-500">|</span>
+                <i class="fas fa-shield-halved text-4xl text-blue-500 drop-shadow-lg"></i>
+            </div>
+            
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-2 pb-2 bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 via-blue-400 to-indigo-400 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">
+                Cloud Security & Hacking Lab
+            </h1>
+            
+            <p class="mt-8 text-slate-100 font-medium text-lg md:text-xl max-w-2xl mx-auto leading-relaxed text-glow">
+                실전 클라우드 인프라 보안 및 모의 해킹 시나리오 연구 자료 저장소
+            </p>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-4xl mx-auto px-6 py-8 w-full">
+
+                <div class="bg-slate-950/90 p-8 md:p-12 rounded-2xl shadow-2xl border border-slate-700/50 backdrop-blur-xl prose prose-invert prose-slate max-w-none prose-img:rounded-xl prose-a:text-cyan-400 hover:prose-a:text-cyan-300 prose-headings:text-slate-100 prose-strong:text-cyan-100">
+                    <h2>1.1 OS Hardening (Operating System Hardening, 운영체제 요새화)</h2>
+<hr />
+<h3><strong>1. OS Hardening의 정의와 목표</strong></h3>
+<p><strong>OS Hardening</strong>은 운영체제의 보안 취약점을 최소화하여 <strong>Attack Surface (공격 표면, 공격 가능한 지점)</strong>을 줄이는 일련의 보안 강화 과정을 의미합니다. 시스템 설치 시 기본적으로 활성화된 불필요한 기능들을 제거하고, 보안 설정을 최적화하여 외부 침입으로부터 서버를 보호하는 것이 핵심 목적입니다.</p>
+<ul>
+<li><strong>보안 원칙: Least Privilege (최소 권한 원칙)</strong><ul>
+<li>시스템은 업무 수행에 꼭 필요한 최소한의 서비스와 권한만을 유지해야 합니다.</li>
+</ul>
+</li>
+<li><strong>보안 원칙: Default Deny (기본 차단 원칙)</strong><ul>
+<li>명시적으로 허용된 것 외의 모든 통로는 차단하는 것을 원칙으로 합니다.</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p><strong>설명</strong>: 서버의 기반이 되는 OS 레벨에서 보안 구멍(Vulnerability)을 메우는 작업은 상위 애플리케이션 보안의 전제 조건입니다.</p>
+</blockquote>
+<hr />
+<h3><strong>2. 불필요한 서비스 및 데몬(Daemon) 관리</strong></h3>
+<p>사용하지 않는 서비스가 실행 중이면, 해당 서비스의 취약점이 시스템 침투 경로가 될 수 있습니다.</p>
+<ul>
+<li><strong>실행 중인 네트워크 서비스 식별</strong>
+    현재 리스닝(Listening) 상태인 포트와 프로세스를 확인합니다.</li>
+</ul>
+<pre><code class="language-bash"># 리스닝 중인 모든 TCP/UDP 포트와 프로세스 확인
+sudo ss -tulpn
+</code></pre>
+<ul>
+<li><strong>불필요한 서비스 중지 및 비활성화</strong>
+    구형 프로토콜인 <strong>Telnet (Telecommunication Network, 원격 터미널 접속 프로토콜)</strong>이나 <strong>FTP (File Transfer Protocol, 파일 전송 프로토콜)</strong> 등 보안에 취약한 서비스는 즉시 제거하거나 중지합니다.</li>
+</ul>
+<pre><code class="language-bash"># 특정 서비스 중지 (예: telnet)
+sudo systemctl stop telnetd
+
+# 부팅 시 자동 실행 비활성화
+sudo systemctl disable telnetd
+</code></pre>
+<blockquote>
+<p><strong>설명</strong>: <strong>Daemon (데몬, 백그라운드 프로세스)</strong>은 시스템에서 지속적으로 실행되며 특정 요청을 기다리는 프로그램입니다. 불필요한 데몬을 방치하는 것은 잠겨 있지 않은 뒷문을 열어두는 것과 같습니다.</p>
+</blockquote>
+<hr />
+<h3><strong>3. 최신 보안 패치 및 업데이트 관리</strong></h3>
+<p>알려진 취약점(Known Vulnerabilities)을 방어하기 위해 시스템을 최신 상태로 유지하는 것은 가장 기본적이면서도 강력한 보안 대책입니다.</p>
+<ul>
+<li><strong>패키지 시스템 업데이트</strong>
+    보안 패치가 포함된 최신 패키지 정보를 가져오고 업그레이드를 수행합니다.</li>
+</ul>
+<pre><code class="language-bash"># 패키지 목록 업데이트 및 설치된 패키지 전체 업그레이드
+sudo apt update &amp;&amp; sudo apt upgrade -y
+</code></pre>
+<ul>
+<li><strong>보안 자동 업데이트 (Unattended-Upgrades) 설정</strong>
+    치명적인 보안 패치가 관리자 개입 없이 자동으로 적용되도록 구성할 수 있습니다.</li>
+</ul>
+<pre><code class="language-bash"># 자동 업데이트 패키지 설치
+sudo apt install unattended-upgrades
+
+# 자동 업데이트 활성화 상태 확인
+sudo systemctl status unattended-upgrades
+</code></pre>
+<blockquote>
+<p><strong>설명</strong>: <strong>Kernel (커널, 운영체제 핵심 거점)</strong> 업데이트 시에는 시스템 리부팅이 필요할 수 있으므로, 서비스 운영 가용성을 고려한 스케줄링이 필수적입니다.</p>
+</blockquote>
+<hr />
+<h3><strong>4. 시스템 접근 통제 및 계정 보안</strong></h3>
+<ul>
+<li><strong>Root (루트, 최고 관리자) 직접 접속 차단</strong>
+    공격자의 표적이 되기 쉬운 Root 계정의 원격 로그인을 차단하고, 일반 계정 접속 후 관리자 권한을 획득하도록 설정합니다.</li>
+</ul>
+<pre><code class="language-bash"># SSH 설정 파일 수정 (PermitRootLogin no 설정)
+sudo vi /etc/ssh/sshd_config
+
+# 설정 변경 후 SSH 서비스 재시작
+sudo systemctl restart ssh
+</code></pre>
+<ul>
+<li><strong>Password Complexity (비밀번호 복잡성) 강제</strong>
+    강력한 비밀번호 정책을 적용하여 <strong>Brute-force Attack (무차별 대입 공격, 모든 조합을 시도하는 공격)</strong>을 예방합니다.</li>
+</ul>
+<blockquote>
+<p><strong>설명</strong>: 보안 정책에 따라 패스워드 최소 길이, 특수 문자 포함 여부, 유효 기간 등을 설정하여 계정 탈취 위험을 낮춥니다.</p>
+</blockquote>
+<hr />
+<h3><strong>[AWS 환경 참고 사항]</strong></h3>
+<p>AWS 환경에서 <strong>AWS Inspector (아마존 인스펙터, 보안 진단 서비스)</strong>나 <strong>AWS Systems Manager (아마존 시스템즈 매니저, 인프라 관리 서비스)</strong>의 Patch Manager 기능을 사용하여 여러 인스턴스의 하드닝 상태를 중앙에서 관리할 수 있습니다.
+* <strong>과금 안내</strong>: AWS Inspector는 검사된 인스턴스당 과금이 발생하며, Systems Manager의 기본 기능은 무료이나 고급 관리 기능 사용 시 추가 비용이 발생할 수 있습니다.</p>
+<hr />
+<p>Next Step: 리눅스 커널 파라미터 최적화
+http://googleusercontent.com/action_card_content/3</p>
+                </div>
+                
+    </main>
+    <footer class="border-t border-slate-800/80 py-8 text-center text-slate-400 text-sm bg-slate-950/90 backdrop-blur-md mt-auto">
+        <p class="font-mono">&copy; 2026 Putto's Lectures. All rights reserved. <span class="text-cyan-800 font-bold ml-2">| ACCESS SECURED.</span></p>
+    </footer>
+
+    <script>
+        // 전역 상태 변수: 디폴트를 'false'로 변경하여 모든 폴더가 처음에는 접혀있도록 설정합니다.
+        let isAllExpanded = false;
+
+        // 개별 폴더를 펼치거나 접는 함수
+        function toggleFolder(element) {
+            // 클릭된 헤더의 부모 섹션(Section) 및 내부 리스트 컨테이너(Container) 탐색
+            const section = element.closest('.folder-section');
+            const listContainer = section.querySelector('.list-container');
+            const folderIcon = element.querySelector('.folder-icon');
+            const chevronIcon = element.querySelector('.chevron-icon');
+            
+            // 데이터 속성(Data Attributes)에 저장된 아이콘 클래스명 불러오기
+            const baseIcon = element.getAttribute('data-base-icon');
+            const closedIcon = element.getAttribute('data-closed-icon');
+
+            // 현재 리스트가 펼쳐진 상태인지 확인 (CSS Grid 속성 기준)
+            const isExpanded = listContainer.classList.contains('grid-rows-[1fr]');
+
+            if (isExpanded) {
+                // 접기(Collapse) 액션 수행
+                listContainer.classList.remove('grid-rows-[1fr]', 'opacity-100');
+                listContainer.classList.add('grid-rows-[0fr]', 'opacity-0');
+                
+                // 우측 화살표 아이콘 회전
+                chevronIcon.classList.add('rotate-180');
+                
+                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 닫힘 상태로 변경
+                if (baseIcon !== 'fa-server') {
+                    folderIcon.classList.remove('fa-folder-open');
+                    folderIcon.classList.add('fa-folder');
+                }
+            } else {
+                // 펼치기(Expand) 액션 수행
+                listContainer.classList.remove('grid-rows-[0fr]', 'opacity-0');
+                listContainer.classList.add('grid-rows-[1fr]', 'opacity-100');
+                
+                // 우측 화살표 아이콘 원상 복구
+                chevronIcon.classList.remove('rotate-180');
+                
+                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 열림 상태로 변경
+                if (baseIcon !== 'fa-server') {
+                    folderIcon.classList.remove('fa-folder');
+                    folderIcon.classList.add('fa-folder-open');
+                }
+            }
+        }
+
+        // 전체 폴더를 일괄적으로 펼치거나 접는 함수
+        function toggleAllFolders() {
+            // 전역 상태 반전
+            isAllExpanded = !isAllExpanded;
+            
+            // DOM(Document Object Model, 문서 객체 모델)에서 모든 폴더 헤더 요소 선택
+            const headers = document.querySelectorAll('.folder-header');
+            const globalBtnIcon = document.getElementById('global-toggle-icon');
+            const globalBtnText = document.getElementById('global-toggle-text');
+
+            headers.forEach(header => {
+                const section = header.closest('.folder-section');
+                const listContainer = section.querySelector('.list-container');
+                const isCurrentlyExpanded = listContainer.classList.contains('grid-rows-[1fr]');
+
+                // 현재 개별 폴더의 상태가 전역 상태 목표와 다를 경우에만 토글 함수 실행
+                if (isAllExpanded !== isCurrentlyExpanded) {
+                    toggleFolder(header);
+                }
+            });
+
+            // 전역 토글 버튼의 UI(User Interface, 사용자 인터페이스) 업데이트
+            if (isAllExpanded) {
+                globalBtnIcon.classList.remove('fa-folder');
+                globalBtnIcon.classList.add('fa-folder-open');
+                globalBtnText.innerText = 'COLLAPSE ALL';
+            } else {
+                globalBtnIcon.classList.remove('fa-folder-open');
+                globalBtnIcon.classList.add('fa-folder');
+                globalBtnText.innerText = 'EXPAND ALL';
+            }
+        }
+    </script>
+</body>
+</html>
