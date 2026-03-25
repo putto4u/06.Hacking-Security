@@ -1,1 +1,355 @@
-sdf
+import React from 'react';
+import { Search, Settings2, ShieldCheck, Activity, Lock, Layout, FileText, Database, Info, Zap, ShieldAlert, FolderSearch } from 'lucide-react';
+
+const App = () => {
+  return (
+    <div className="min-h-screen bg-[#020617] text-[#f8fafc] font-sans antialiased selection:bg-cyan-500/30">
+      {/* Header Section */}
+      <header className="border-b border-slate-800 bg-slate-900/90 sticky top-0 z-50 backdrop-blur-xl">
+        <div className="max-w-6xl mx-auto px-10 py-10 flex justify-between items-end">
+          <div>
+            <div className="flex items-center gap-3 mb-4">
+              <span className="bg-cyan-500 text-slate-950 px-3 py-1 text-[11px] font-black uppercase tracking-[0.2em] rounded">Expert Course</span>
+              <span className="text-slate-500 font-mono text-[11px]">VER. 2026.03.26 | INFRA-SEC-02</span>
+            </div>
+            <h1 className="text-5xl font-black tracking-tighter leading-tight uppercase">
+              웹서버 보안점검 <span className="text-cyan-400 italic">가이드 제작 실무</span>
+            </h1>
+          </div>
+          <div className="text-right hidden lg:block border-l border-slate-800 pl-10">
+            <p className="text-[11px] text-slate-500 font-mono tracking-widest mb-1 uppercase">Infrastructure Architect</p>
+            <p className="text-lg font-bold text-slate-200">고급 인프라 보안 과정</p>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-6xl mx-auto px-10 py-24 space-y-40">
+
+        {/* Module 01: 개요 및 정보 수집 */}
+        <section className="mb-[150px]">
+          <div className="flex items-center gap-6 mb-12">
+            <div className="w-16 h-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center">
+              <Search className="text-cyan-400 w-8 h-8" />
+            </div>
+            <h2 className="text-3xl font-black text-slate-100 tracking-tight uppercase italic">Module 01. 인프라 정찰 및 정보 수집 (Infrastructure Reconnaissance)</h2>
+          </div>
+
+          <div className="bg-slate-900/70 border border-slate-800 backdrop-blur-md p-12 rounded-[2.5rem] shadow-2xl space-y-12">
+            <div className="space-y-8">
+              <p className="text-xl text-slate-300 font-medium leading-relaxed">
+                보안점검의 첫 단계는 공격자의 시선에서 대상의 정보를 파악하는 <span className="text-cyan-400 font-bold">Reconnaissance (Reconnaissance, 정찰)</span>입니다. 
+                서버가 외부에 노출하는 최소한의 단서를 통해 전체 아키텍처를 유추하는 기법을 학습합니다.
+              </p>
+              
+              <ul className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <li className="bg-slate-900/50 p-6 rounded-2xl border border-slate-800">
+                  <h4 className="font-bold text-slate-200 mb-2">Banner Grabbing (Banner Grabbing, 서버 정보 탈취)</h4>
+                  <p className="text-sm text-slate-500">HTTP Response Header 정보를 분석하여 웹서버의 종류와 상세 버전을 식별합니다.</p>
+                </li>
+                <li className="bg-slate-900/50 p-6 rounded-2xl border border-slate-800">
+                  <h4 className="font-bold text-slate-200 mb-2">OS Fingerprinting (OS Fingerprinting, 운영체제 식별)</h4>
+                  <p className="text-sm text-slate-500">TTL(Time To Live, 패킷 생존 시간) 값을 분석하여 대상 호스트의 OS를 추정합니다.</p>
+                </li>
+              </ul>
+            </div>
+
+            <div className="bg-slate-950 rounded-2xl p-10 flex flex-col items-center border border-slate-800">
+              <svg width="600" height="150" viewBox="0 0 600 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="50" y="40" width="120" height="80" rx="12" fill="#0891b2" fill-opacity="0.1" stroke="#0891b2" stroke-width="2"/>
+                <text x="110" y="80" fill="#f8fafc" font-size="12" font-weight="900" text-anchor="middle">AUDITOR</text>
+                <path d="M180 80 H410" stroke="#334155" stroke-width="2" stroke-dasharray="8 8" />
+                <rect x="430" y="40" width="120" height="80" rx="12" fill="#1e293b" stroke="#1e293b" stroke-width="2"/>
+                <text x="490" y="80" fill="#f8fafc" font-size="12" font-weight="900" text-anchor="middle">WEB SERVER</text>
+              </svg>
+              <p className="mt-8 text-[11px] text-slate-500 font-mono tracking-[0.3em] uppercase italic">[그림 1] 정보 수집 및 정찰 흐름도</p>
+            </div>
+
+            <div className="text-[0.85rem] color-[#64748b] border-top border-slate-800 pt-4 mt-8">
+              <p className="mb-2"><strong>※ TTL (Time To Live, 패킷 생존 시간)</strong>: 데이터 패킷이 네트워크 장비를 거칠 때마다 1씩 감소하는 값입니다. Linux는 보통 64, Windows는 128에서 시작합니다.</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Module 02: 패치 및 취약점 관리 */}
+        <section className="mb-[150px]">
+          <div className="flex items-center gap-6 mb-12">
+            <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center justify-center">
+              <Zap className="text-red-400 w-8 h-8" />
+            </div>
+            <h2 className="text-3xl font-black text-slate-100 tracking-tight uppercase italic">Module 02. 취약점 관리 및 패치 전략 (Vulnerability & Patch Management)</h2>
+          </div>
+
+          <div className="bg-slate-900/70 border border-slate-800 backdrop-blur-md p-12 rounded-[2.5rem] shadow-2xl space-y-12">
+            <div className="space-y-8">
+              <p className="text-xl text-slate-300 font-medium leading-relaxed">
+                알려진 취약점을 이용한 공격을 방어하기 위해 <span className="text-red-400 font-bold">CVE (Common Vulnerabilities and Exposures, 알려진 보안 취약점 목록)</span> 기반의 정기적인 패치 프로세스가 필수적입니다.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <div className="space-y-4">
+                  <h4 className="text-red-400 font-black flex items-center gap-2 underline underline-offset-4">패치 가용성 점검</h4>
+                  <p className="text-sm text-slate-400 leading-loose text-justify">웹 서버 엔진(Apache, Nginx)과 라이브러리의 보안 업데이트 현황을 점검하고, 지원 종료(EOL, End of Life) 여부를 확인합니다.</p>
+                </div>
+                <div className="space-y-4">
+                  <h4 className="text-red-400 font-black flex items-center gap-2 underline underline-offset-4">서비스 영향도 분석</h4>
+                  <p className="text-sm text-slate-400 leading-loose text-justify">보안 패치 적용 시 발생할 수 있는 서비스 중단이나 기능 충돌을 최소화하기 위한 사전 테스트 절차를 수립합니다.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-slate-950 rounded-2xl p-10 flex flex-col items-center border border-slate-800">
+              <svg width="600" height="150" viewBox="0 0 600 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="50" y="45" width="150" height="60" rx="30" fill="#ef4444" fill-opacity="0.1" stroke="#ef4444" stroke-width="2"/>
+                <text x="125" y="80" fill="#f8fafc" font-size="12" font-weight="bold" text-anchor="middle">CVE Analysis</text>
+                <path d="M200 75 H250" stroke="#334155" stroke-width="2" />
+                <rect x="250" y="45" width="150" height="60" rx="10" fill="#1e293b" stroke="#334155" stroke-width="2"/>
+                <text x="325" y="80" fill="#f8fafc" font-size="12" font-weight="bold" text-anchor="middle">Staging Test</text>
+                <path d="M400 75 H450" stroke="#334155" stroke-width="2" />
+                <rect x="450" y="45" width="100" height="60" rx="10" fill="#10b981" fill-opacity="0.1" stroke="#10b981" stroke-width="2"/>
+                <text x="500" y="80" fill="#f8fafc" font-size="12" font-weight="bold" text-anchor="middle">Patch</text>
+              </svg>
+              <p className="mt-8 text-[11px] text-slate-500 font-mono tracking-[0.3em] uppercase italic">[그림 2] 보안 패치 및 취약점 관리 라이프사이클</p>
+            </div>
+
+            <div className="text-[0.85rem] text-[#64748b] border-t border-slate-800 pt-4 mt-8">
+              <p className="mb-2"><strong>※ EOL (End Of Life, 기술 지원 종료)</strong>: 소프트웨어 개발사가 더 이상 보안 업데이트나 기술 지원을 제공하지 않는 상태로, 취약점에 매우 무방비해집니다.</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Module 03: 설정 파일 점검 */}
+        <section className="mb-[150px]">
+          <div className="flex items-center gap-6 mb-12">
+            <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center">
+              <Settings2 className="text-indigo-400 w-8 h-8" />
+            </div>
+            <h2 className="text-3xl font-black text-slate-100 tracking-tight uppercase italic">Module 03. 서버 설정 하드닝 (Server Configuration Hardening)</h2>
+          </div>
+
+          <div className="bg-slate-900/70 border border-slate-800 backdrop-blur-md p-12 rounded-[2.5rem] shadow-2xl space-y-12">
+            <div className="space-y-8 text-justify">
+              <p className="text-xl text-slate-300 font-medium leading-relaxed">
+                웹서버의 성능 최적화만큼 중요한 것이 <span className="text-indigo-400 font-bold italic">Hardening (Hardening, 시스템 요새화)</span> 설정입니다. 
+                부적절한 기본값을 수정하여 잠재적인 공격 경로를 차단하는 실무 기법을 다룹니다.
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <div className="bg-slate-950/50 p-8 rounded-3xl border border-slate-800">
+                  <h4 className="text-indigo-400 font-black mb-4">Directory Listing 비활성화</h4>
+                  <p className="text-sm text-slate-400 leading-relaxed">디렉토리 목록 노출 취약점은 인덱스 파일이 없는 폴더의 파일 목록을 노출시켜 소스코드나 백업 파일 탈취를 유발합니다.</p>
+                </div>
+                <div className="bg-slate-950/50 p-8 rounded-3xl border border-slate-800">
+                  <h4 className="text-indigo-400 font-black mb-4">HTTP Method 제한</h4>
+                  <p className="text-sm text-slate-400 leading-relaxed">GET/POST 외에 PUT, DELETE, TRACE 등 불필요한 HTTP Method를 허용할 경우 정보 유출이 발생할 수 있습니다.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-slate-950 rounded-2xl p-10 flex flex-col items-center border border-slate-800">
+              <svg width="600" height="120" viewBox="0 0 600 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="100" cy="60" r="30" fill="#6366f1" fill-opacity="0.1" stroke="#6366f1" stroke-width="2"/>
+                <line x1="130" y1="60" x2="200" y2="60" stroke="#334155" />
+                <rect x="200" y="30" width="200" height="60" rx="10" fill="#1e293b" stroke="#6366f1" stroke-width="2"/>
+                <text x="300" y="65" fill="#f8fafc" font-size="12" font-weight="900" text-anchor="middle italic">MINIMAL CONFIG</text>
+                <line x1="400" y1="60" x2="470" y2="60" stroke="#334155" />
+                <circle cx="500" cy="60" r="30" fill="#10b981" fill-opacity="0.1" stroke="#10b981" stroke-width="2"/>
+              </svg>
+              <p className="mt-8 text-[11px] text-slate-500 font-mono tracking-[0.3em] uppercase italic">[그림 3] 불필요한 기능 제거를 통한 공격 표면 축소</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Module 04: 암호화 통신 점검 */}
+        <section className="mb-[150px]">
+          <div className="flex items-center gap-6 mb-12">
+            <div className="w-16 h-16 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center">
+              <Lock className="text-blue-400 w-8 h-8" />
+            </div>
+            <h2 className="text-3xl font-black text-slate-100 tracking-tight uppercase italic">Module 04. 암호화 통신 및 인증서 관리 (SSL/TLS Encryption)</h2>
+          </div>
+
+          <div className="bg-slate-900/70 border border-slate-800 backdrop-blur-md p-12 rounded-[2.5rem] shadow-2xl space-y-12">
+            <div className="space-y-8">
+              <p className="text-xl text-slate-300 font-medium leading-relaxed">
+                데이터 전송 구간의 기밀성을 보장하기 위해 <span className="text-blue-400 font-bold">SSL (Secure Sockets Layer, 보안 소켓 계층) / TLS (Transport Layer Security, 전송 계층 보안)</span> 설정의 견고함을 점검합니다.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="p-8 bg-slate-800/30 rounded-3xl border border-slate-700">
+                  <h4 className="font-bold text-slate-200 mb-3 uppercase">Cipher Suite (암호 알고리즘 조합) 최적화</h4>
+                  <p className="text-sm text-slate-400 leading-relaxed">취약한 암호화 알고리즘(RC4, DES 등) 사용을 배제하고 강도가 높은 알고리즘만을 허용하도록 설정합니다.</p>
+                </div>
+                <div className="p-8 bg-slate-800/30 rounded-3xl border border-slate-700">
+                  <h4 className="font-bold text-slate-200 mb-3 uppercase">TLS Version (전송 계층 버전) 관리</h4>
+                  <p className="text-sm text-slate-400 leading-relaxed">보안상 결함이 발견된 TLS 1.0, 1.1 버전을 비활성화하고 TLS 1.2 이상 버전 사용을 강제합니다.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-slate-950 rounded-2xl p-10 flex flex-col items-center border border-slate-800">
+              <svg width="600" height="150" viewBox="0 0 600 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M100 75 Q300 10, 500 75" stroke="#3b82f6" stroke-width="2" stroke-dasharray="4 4"/>
+                <rect x="70" y="55" width="60" height="40" rx="4" fill="#1e293b" stroke="#3b82f6"/>
+                <rect x="470" y="55" width="60" height="40" rx="4" fill="#1e293b" stroke="#3b82f6"/>
+                <circle cx="300" cy="45" r="15" fill="#3b82f6"/>
+                <text x="300" y="110" fill="#94a3b8" font-size="11" text-anchor="middle uppercase italic">Encrypted Tunnel (암호화 터널)</text>
+              </svg>
+              <p className="mt-8 text-[11px] text-slate-500 font-mono tracking-[0.3em] uppercase italic">[그림 4] SSL/TLS 기반 안전한 데이터 전송 아키텍처</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Module 05: HTTP 보안 헤더 */}
+        <section className="mb-[150px]">
+          <div className="flex items-center gap-6 mb-12">
+            <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
+              <Layout className="text-emerald-400 w-8 h-8" />
+            </div>
+            <h2 className="text-3xl font-black text-slate-100 tracking-tight uppercase italic">Module 05. 보안 헤더 및 브라우저 방어 (HTTP Security Headers)</h2>
+          </div>
+
+          <div className="bg-slate-900/70 border border-slate-800 backdrop-blur-md p-12 rounded-[2.5rem] shadow-2xl space-y-12">
+            <div className="space-y-8">
+              <p className="text-xl text-slate-300 font-medium leading-relaxed text-justify">
+                클라이언트 측 공격(Client-side Attack)을 방지하기 위해 웹 응답에 추가적인 <span className="text-emerald-400 font-bold underline underline-offset-4 italic">Security Headers (보안 헤더)</span>를 적용하여 브라우저의 보안 정책을 강화합니다.
+              </p>
+              <ul className="space-y-6">
+                <li className="flex gap-6 items-start">
+                  <span className="font-mono text-emerald-500 bg-emerald-500/10 px-3 py-1 rounded">CSP</span>
+                  <div>
+                    <strong className="text-slate-100">Content Security Policy (Content Security Policy, 콘텐츠 보안 정책)</strong>
+                    <p className="text-sm text-slate-400 mt-1">허용된 출처의 리소스만 실행하도록 제한하여 XSS 공격의 실효성을 제거합니다.</p>
+                  </div>
+                </li>
+                <li className="flex gap-6 items-start">
+                  <span className="font-mono text-emerald-500 bg-emerald-500/10 px-3 py-1 rounded">HSTS</span>
+                  <div>
+                    <strong className="text-slate-100">HTTP Strict Transport Security (HTTP Strict Transport Security, 강력한 전송 보안)</strong>
+                    <p className="text-sm text-slate-400 mt-1">모든 요청을 자동으로 HTTPS로 전환하여 암호화되지 않은 접근을 차단합니다.</p>
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <div className="bg-slate-950 rounded-2xl p-10 border border-slate-800 overflow-hidden relative">
+              <div className="absolute right-[-20px] top-[-20px] opacity-10">
+                <ShieldCheck className="w-64 h-64 text-emerald-500" />
+              </div>
+              <div className="relative z-10 font-mono text-xs space-y-2">
+                <p className="text-slate-500 font-black italic underline underline-offset-2 mb-4 uppercase tracking-widest">[보안 헤더 설정 예시]</p>
+                <p className="text-emerald-500">Strict-Transport-Security: max-age=31536000; includeSubDomains</p>
+                <p className="text-emerald-500">Content-Security-Policy: default-src 'self'</p>
+                <p className="text-emerald-500">X-Frame-Options: DENY</p>
+                <p className="text-emerald-500">X-Content-Type-Options: nosniff</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Module 06: 파일 및 디렉토리 권한 */}
+        <section className="mb-[150px]">
+          <div className="flex items-center gap-6 mb-12">
+            <div className="w-16 h-16 rounded-2xl bg-orange-500/10 border border-orange-500/30 flex items-center justify-center">
+              <FolderSearch className="text-orange-400 w-8 h-8" />
+            </div>
+            <h2 className="text-3xl font-black text-slate-100 tracking-tight uppercase italic">Module 06. 파일 시스템 권한 및 무결성 (File System Permission)</h2>
+          </div>
+
+          <div className="bg-slate-900/70 border border-slate-800 backdrop-blur-md p-12 rounded-[2.5rem] shadow-2xl space-y-12">
+            <div className="space-y-8">
+              <p className="text-xl text-slate-300 font-medium leading-relaxed">
+                웹 서비스 계정이 시스템의 다른 영역에 접근하지 못하도록 <span className="text-orange-400 font-bold italic">Privilege Separation (Privilege Separation, 권한 분리)</span>를 철저히 점검합니다.
+              </p>
+              <div className="bg-black/40 p-10 rounded-3xl border border-slate-800 space-y-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-1.5 h-1.5 bg-orange-400 rounded-full mt-2"></div>
+                  <p className="text-sm text-slate-400"><strong className="text-slate-200">Owner Separation:</strong> 웹 프로세스(www-data)와 소스코드 소유자(예: admin)를 분리하여 서비스 계정이 파일을 수정할 수 없도록 방어합니다.</p>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="w-1.5 h-1.5 bg-orange-400 rounded-full mt-2"></div>
+                  <p className="text-sm text-slate-400"><strong className="text-slate-200">Execution Prevention:</strong> `/tmp`나 업로드 디렉토리처럼 파일이 생성되는 위치에서 실행 권한(x)을 제거하여 악성 스크립트 실행을 방지합니다.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Module 07: 로그 아키텍처 및 SIEM */}
+        <section className="mb-[150px]">
+          <div className="flex items-center gap-6 mb-12">
+            <div className="w-16 h-16 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center">
+              <Database className="text-purple-400 w-8 h-8" />
+            </div>
+            <h2 className="text-3xl font-black text-slate-100 tracking-tight uppercase italic">Module 07. 로그 관리 및 통합 모니터링 (Security Logging & SIEM)</h2>
+          </div>
+
+          <div className="bg-slate-900/70 border border-slate-800 backdrop-blur-md p-12 rounded-[2.5rem] shadow-2xl space-y-12">
+            <div className="space-y-8">
+              <p className="text-xl text-slate-300 font-medium leading-relaxed text-justify">
+                침해 사고 발생 시 원인 규명을 위해 웹 서버의 <span className="text-purple-400 font-bold italic">Log (Log, 활동 기록)</span>를 중앙 집중식으로 보존하고 분석하는 체계를 구축합니다.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="p-8 border border-purple-900/30 bg-purple-900/10 rounded-3xl">
+                  <h4 className="font-black text-purple-400 mb-3 uppercase tracking-tighter italic underline underline-offset-4">통합 로그 저장 (Remote Logging)</h4>
+                  <p className="text-xs text-slate-500 leading-relaxed">웹서버가 탈취되더라도 로그를 삭제할 수 없도록 외부 로그 서버(Syslog, ELK 등)로 실시간 전송합니다.</p>
+                </div>
+                <div className="p-8 border border-purple-900/30 bg-purple-900/10 rounded-3xl">
+                  <h4 className="font-black text-purple-400 mb-3 uppercase tracking-tighter italic underline underline-offset-4">이상 징후 탐지 (Alerting)</h4>
+                  <p className="text-xs text-slate-500 leading-relaxed">특정 시간 내 반복되는 4xx 에러나 이상 트래픽 발생 시 즉시 보안 담당자에게 경고(Alert)를 발송합니다.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Module 08: 보고서 작성 및 컴플라이언스 */}
+        <section className="mb-[150px]">
+          <div className="flex items-center gap-6 mb-12">
+            <div className="w-16 h-16 rounded-2xl bg-slate-500/10 border border-slate-500/30 flex items-center justify-center">
+              <FileText className="text-slate-400 w-8 h-8" />
+            </div>
+            <h2 className="text-3xl font-black text-slate-100 tracking-tight uppercase italic">Module 08. 점검 보고서 작성 및 법적 요건 (Audit Reporting & Compliance)</h2>
+          </div>
+
+          <div className="bg-slate-900/70 border border-slate-800 backdrop-blur-md p-12 rounded-[2.5rem] shadow-2xl space-y-12">
+            <div className="space-y-8">
+              <p className="text-xl text-slate-300 font-medium leading-relaxed">
+                보안점검의 결과물은 <span className="text-slate-100 font-bold underline underline-offset-4 decoration-slate-500">Audit Report (Audit Report, 점검 보고서)</span>로 문서화되어야 하며, 국내외 보안 인증 요건을 충족해야 합니다.
+              </p>
+              <ul className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <li className="p-6 bg-slate-800/30 rounded-2xl border border-slate-700 text-center">
+                  <strong className="text-slate-100 text-sm mb-2 block font-black uppercase tracking-tighter">ISMS-P</strong>
+                  <p className="text-[11px] text-slate-500 font-medium">국내 정보보호 및 개인정보보호 관리체계 인증</p>
+                </li>
+                <li className="p-6 bg-slate-800/30 rounded-2xl border border-slate-700 text-center">
+                  <strong className="text-slate-100 text-sm mb-2 block font-black uppercase tracking-tighter">ISO 27001</strong>
+                  <p className="text-[11px] text-slate-500 font-medium">국제 정보보안 관리 표준</p>
+                </li>
+                <li className="p-6 bg-slate-800/30 rounded-2xl border border-slate-700 text-center">
+                  <strong className="text-slate-100 text-sm mb-2 block font-black uppercase tracking-tighter">PCI-DSS</strong>
+                  <p className="text-[11px] text-slate-500 font-medium">지불카드 데이터 보안 표준</p>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+      </main>
+
+      <footer className="max-w-6xl mx-auto px-10 py-24 border-t border-slate-900 text-center space-y-8">
+        <div className="flex justify-center gap-12 opacity-20 filter grayscale">
+          <i className="fab fa-ubuntu text-5xl"></i>
+          <i className="fas fa-network-wired text-5xl"></i>
+          <i className="fas fa-user-shield text-5xl"></i>
+        </div>
+        <p className="text-[11px] text-slate-500 font-mono tracking-[0.4em] uppercase">
+          © 2026 INFRASTRUCTURE SECURITY ARCHITECT TEAM. ALL RIGHTS RESERVED.
+        </p>
+        <p className="text-[10px] text-slate-700 italic max-w-2xl mx-auto text-center leading-loose">
+          본 교재는 실습 환경의 보안과 안전을 최우선으로 고려하여 설계되었습니다.<br />
+          Next Step: 보안점검 자동화 스크립트 작성 (Security Audit Automation Scripting)
+        </p>
+      </footer>
+    </div>
+  );
+};
+
+export default App;
