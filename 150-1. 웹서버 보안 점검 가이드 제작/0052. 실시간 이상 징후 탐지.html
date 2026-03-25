@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security & Cloud Hacking Lab</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+        
+        /* 기본 글꼴 및 다크 모드 배경색 설정 */
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            /* 전체 화면 배경 이미지 적용 및 투명도(Overlay) 설정: 텍스트 가시성을 위해 어두운 오버레이 강화 */
+            background-image: linear-gradient(to bottom, rgba(2, 6, 23, 0.75), rgba(2, 6, 23, 0.95)), 
+                              url('image_1a3201.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center center;
+        }
+
+        /* 텍스트 리스트 호버 효과: 터미널 스타일 */
+        .list-hover {
+            transition: all 0.2s ease;
+        }
+        .list-hover:hover {
+            color: #22d3ee; 
+            padding-left: 0.75rem; 
+            background-color: rgba(15, 23, 42, 0.8); 
+            border-left-color: #0ea5e9;
+        }
+
+        /* 텍스트 가시성을 높이는 그림자 효과 클래스 */
+        .text-glow {
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+        }
+        .neon-glow {
+            text-shadow: 0 0 8px rgba(34, 211, 238, 0.6);
+        }
+        
+        /* 커스텀 스크롤바 (선택적 시각 강화) */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+    </style>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+</head>
+<body class="min-h-screen flex flex-col">
+    <header class="py-24 px-6 relative overflow-hidden">
+        
+        <a href="https://putto4u.github.io/06.Hacking-Security" class="absolute top-6 left-6 md:left-10 z-20 group cursor-pointer block" target="_blank" rel="noopener noreferrer">
+            <div class="flex items-center space-x-2 bg-slate-900/80 py-2 px-4 rounded-xl border border-cyan-900/50 backdrop-blur-md shadow-[0_0_15px_rgba(8,145,178,0.2)] transition-all duration-300 group-hover:border-cyan-400/60 group-hover:shadow-[0_0_20px_rgba(34,211,238,0.4)]">
+                <div class="relative flex h-3 w-3 mr-1">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
+                </div>
+                <span class="font-mono text-[10px] md:text-xs text-slate-400 tracking-wider">CHIEF SYSTEM ARCHITECT <span class="text-cyan-500 ml-1">❯</span></span>
+                <span class="font-black text-cyan-300 tracking-widest font-mono text-sm md:text-base neon-glow ml-1">PUTTO</span>
+                <span class="font-bold text-slate-200 tracking-widest font-mono text-sm md:text-base">'S LECTURES</span>
+            </div>
+        </a>
+
+        <div class="max-w-4xl mx-auto relative z-10 text-center mt-8">
+            <div class="inline-flex items-center justify-center space-x-3 mb-8 bg-slate-950/60 p-4 rounded-2xl backdrop-blur-md border border-slate-700/80 shadow-2xl">
+                <i class="fas fa-user-secret text-4xl text-cyan-400 drop-shadow-lg"></i>
+                <span class="text-slate-500">|</span>
+                <i class="fas fa-shield-halved text-4xl text-blue-500 drop-shadow-lg"></i>
+            </div>
+            
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-2 pb-2 bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 via-blue-400 to-indigo-400 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">
+                Cloud Security & Hacking Lab
+            </h1>
+            
+            <p class="mt-8 text-slate-100 font-medium text-lg md:text-xl max-w-2xl mx-auto leading-relaxed text-glow">
+                실전 클라우드 인프라 보안 및 모의 해킹 시나리오 연구 자료 저장소
+            </p>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-4xl mx-auto px-6 py-8 w-full">
+
+                <div class="bg-slate-950/90 p-8 md:p-12 rounded-2xl shadow-2xl border border-slate-700/50 backdrop-blur-xl prose prose-invert prose-slate max-w-none prose-img:rounded-xl prose-a:text-cyan-400 hover:prose-a:text-cyan-300 prose-headings:text-slate-100 prose-strong:text-cyan-100">
+                    <h2>5.2 실시간 이상 징후 탐지</h2>
+<hr />
+<h3><strong>1. IDS/IPS (Intrusion Detection System / Intrusion Prevention System, 침입 탐지 시스템 / 침입 방지 시스템)</strong></h3>
+<p><strong>IDS (Intrusion Detection System, 침입 탐지 시스템)</strong>는 네트워크나 시스템에서 발생하는 비정상적인 활동이나 알려진 공격 패턴을 실시간으로 감시하고 경고를 발생시키는 보안 솔루션입니다. 한 단계 더 나아가 <strong>IPS (Intrusion Prevention System, 침입 방지 시스템)</strong>는 탐지된 공격을 실시간으로 차단하는 능동적인 방어 기능을 수행합니다.</p>
+<ul>
+<li><strong>탐지 방식</strong>:<ul>
+<li><strong>Signature-based (시그니처 기반)</strong>: 이미 알려진 공격 패턴(데이터베이스)과 대조하여 탐지.</li>
+<li><strong>Anomaly-based (이상 현상 기반)</strong>: 평상시의 정상적인 트래픽 패턴(Baseline)을 학습한 뒤, 이를 벗어나는 비정상적 행위를 탐지.</li>
+</ul>
+</li>
+<li><strong>보안 목표</strong>: 공격자가 시스템 내부에 침투하거나 데이터를 유출하기 전에 즉각적으로 대응하여 피해를 최소화합니다.</li>
+</ul>
+<blockquote>
+<p><strong>설명</strong>: <strong>Signature (시그니처, 서명/특징)</strong>는 특정 바이러스나 해킹 공격이 가진 고유한 흔적입니다. 경찰이 범죄자의 지문을 대조하여 잡는 것이 시그니처 방식이라면, 평소와 다른 수상한 행동을 보고 검문하는 것이 이상 현상 방식입니다.</p>
+</blockquote>
+<hr />
+<h3><strong>2. 호스트 기반 이상 징후 탐지 및 차단 (Fail2ban)</strong></h3>
+<p>서버 내부 로그를 실시간으로 모니터링하여 <strong>Brute-force (무차별 대입 공격, 모든 조합을 시도하는 공격)</strong>나 반복적인 로그인 실패를 유발하는 IP를 자동으로 차단하는 도구를 활용합니다.</p>
+<ul>
+<li><strong>Fail2ban (페일투밴, 침입 차단 소프트웨어)</strong> 활용:<ul>
+<li>로그 파일을 분석하여 사전에 설정된 횟수 이상 실패가 발생하면 해당 IP를 <strong>iptables (리눅스 커널 방화벽 도구)</strong>나 <strong>NFTables (리눅스 차세대 패킷 필터링 프레임워크)</strong>를 통해 일정 시간 동안 차단합니다.</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-bash"># Fail2ban 설치 (Ubuntu 기준)
+sudo apt update &amp;&amp; sudo apt install fail2ban -y
+
+# 기본 설정 파일 복사 및 편집
+sudo cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
+sudo vi /etc/fail2ban/jail.local
+
+# SSH 서비스 보호 설정 예시 (5회 실패 시 10분 차단)
+[sshd]
+enabled = true
+port = ssh
+filter = sshd
+logpath = /var/log/auth.log
+maxretry = 5
+bantime = 600
+</code></pre>
+<blockquote>
+<p><strong>설명</strong>: <strong>Ban (밴, 금지)</strong>은 특정 사용자나 IP 주소의 접근을 기술적으로 막는 행위입니다. Fail2ban은 로그라는 '흔적'을 보고 방화벽이라는 '자물쇠'를 자동으로 채우는 역할을 합니다.</p>
+</blockquote>
+<hr />
+<h3><strong>3. 네트워크 트래픽 이상 징후 모니터링</strong></h3>
+<p>평소보다 과도하게 발생하는 네트워크 트래픽이나 비정상적인 연결 요청은 <strong>DoS (Denial of Service, 서비스 거부 공격)</strong>의 신호일 수 있습니다.</p>
+<ul>
+<li><strong>실시간 모니터링 항목</strong>:<ul>
+<li>초당 HTTP 요청 수 (Requests Per Second)의 급격한 증가.</li>
+<li>특정 국가나 특정 IP 대역에서의 과도한 접속 시도.</li>
+<li>서버의 <strong>CPU (Central Processing Unit, 중앙 처리 장치)</strong> 및 메모리 점유율의 비정상적 상승.</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p><strong>설명</strong>: 트래픽 모니터링은 서버의 '맥박'을 체크하는 것과 같습니다. 갑작스러운 맥박의 상승은 외부 공격이나 시스템 오류의 강력한 지표가 됩니다.</p>
+</blockquote>
+<hr />
+<h3><strong>4. [AWS 환경 보안 서비스 및 과금 안내]</strong></h3>
+<p>클라우드 환경에서는 머신러닝 기반의 지능형 탐지 서비스를 통해 수동으로 잡기 힘든 위협을 자동으로 찾아낼 수 있습니다.</p>
+<ul>
+<li><strong>Amazon GuardDuty (아마존 가드듀티, 지능형 위협 탐지 서비스)</strong><ul>
+<li><strong>VPC (Virtual Private Cloud, 가상 사설 클라우드)</strong> 흐름 로그, DNS 로그 등을 분석하여 악성 IP와의 통신이나 비정상적인 계정 활동을 탐지합니다.</li>
+<li><strong>과금 안내</strong>: 분석된 로그의 총량(GB)에 따라 비용이 청구됩니다. 30일 무료 체험판을 제공하므로 실습 시 활용 가능합니다. <a href="https://aws.amazon.com/ko/guardduty/pricing/">공식 요금 페이지</a></li>
+</ul>
+</li>
+<li><strong>AWS Config (AWS 컨피그, 리소스 구성 관리 서비스)</strong><ul>
+<li>보안 그룹 설정이나 인스턴스 구성이 사전에 정의된 보안 가이드라인에서 벗어날 경우 실시간으로 알림을 보냅니다.</li>
+<li><strong>과금 안내</strong>: 기록된 리소스 수와 규칙 평가 횟수에 따라 과금됩니다. <a href="https://aws.amazon.com/ko/config/pricing/">공식 요금 페이지</a></li>
+</ul>
+</li>
+</ul>
+<hr />
+<p>Next Step: 보안 점검 최종 실습 및 보고서 작성</p>
+<hr />
+<p><strong>상세 설명 주석</strong>
+1. <strong>IDS (Intrusion Detection System)</strong>: 네트워크 통로에 설치되어 패킷을 복사(Mirroring)하여 분석하며, 흐름에 직접적인 영향을 주지 않고 감시하는 시스템입니다.
+2. <strong>IPS (Intrusion Prevention System)</strong>: 네트워크 통로 중간에 직접 위치(In-line)하여 공격을 실시간으로 차단하므로 오탐(False Positive) 시 정상 트래픽까지 차단될 위험이 있어 주의 깊은 설정이 필요합니다.
+3. <strong>VPC (Virtual Private Cloud)</strong>: AWS 클라우드 내에서 논리적으로 격리된 가상 네트워크 공간을 의미합니다.
+4. <strong>Drift (드리프트, 구성 편차)</strong>: 원래 설정된 보안 기준값에서 실제 시스템 설정이 임의로 변경된 상태를 의미합니다.
+5. <strong>False Positive (오탐)</strong>: 정상적인 행위를 공격으로 잘못 판단하여 알람을 울리거나 차단하는 오류를 말합니다.</p>
+<p>OS Hardening, Kernel Tuning, Banner Grabbing, Permission Isolation, SSL/TLS, Security Headers, Directory Listing, WAF, SIEM, IDS/IPS</p>
+                </div>
+                
+    </main>
+    <footer class="border-t border-slate-800/80 py-8 text-center text-slate-400 text-sm bg-slate-950/90 backdrop-blur-md mt-auto">
+        <p class="font-mono">&copy; 2026 Putto's Lectures. All rights reserved. <span class="text-cyan-800 font-bold ml-2">| ACCESS SECURED.</span></p>
+    </footer>
+
+    <script>
+        // 전역 상태 변수: 디폴트를 'false'로 변경하여 모든 폴더가 처음에는 접혀있도록 설정합니다.
+        let isAllExpanded = false;
+
+        // 개별 폴더를 펼치거나 접는 함수
+        function toggleFolder(element) {
+            // 클릭된 헤더의 부모 섹션(Section) 및 내부 리스트 컨테이너(Container) 탐색
+            const section = element.closest('.folder-section');
+            const listContainer = section.querySelector('.list-container');
+            const folderIcon = element.querySelector('.folder-icon');
+            const chevronIcon = element.querySelector('.chevron-icon');
+            
+            // 데이터 속성(Data Attributes)에 저장된 아이콘 클래스명 불러오기
+            const baseIcon = element.getAttribute('data-base-icon');
+            const closedIcon = element.getAttribute('data-closed-icon');
+
+            // 현재 리스트가 펼쳐진 상태인지 확인 (CSS Grid 속성 기준)
+            const isExpanded = listContainer.classList.contains('grid-rows-[1fr]');
+
+            if (isExpanded) {
+                // 접기(Collapse) 액션 수행
+                listContainer.classList.remove('grid-rows-[1fr]', 'opacity-100');
+                listContainer.classList.add('grid-rows-[0fr]', 'opacity-0');
+                
+                // 우측 화살표 아이콘 회전
+                chevronIcon.classList.add('rotate-180');
+                
+                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 닫힘 상태로 변경
+                if (baseIcon !== 'fa-server') {
+                    folderIcon.classList.remove('fa-folder-open');
+                    folderIcon.classList.add('fa-folder');
+                }
+            } else {
+                // 펼치기(Expand) 액션 수행
+                listContainer.classList.remove('grid-rows-[0fr]', 'opacity-0');
+                listContainer.classList.add('grid-rows-[1fr]', 'opacity-100');
+                
+                // 우측 화살표 아이콘 원상 복구
+                chevronIcon.classList.remove('rotate-180');
+                
+                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 열림 상태로 변경
+                if (baseIcon !== 'fa-server') {
+                    folderIcon.classList.remove('fa-folder');
+                    folderIcon.classList.add('fa-folder-open');
+                }
+            }
+        }
+
+        // 전체 폴더를 일괄적으로 펼치거나 접는 함수
+        function toggleAllFolders() {
+            // 전역 상태 반전
+            isAllExpanded = !isAllExpanded;
+            
+            // DOM(Document Object Model, 문서 객체 모델)에서 모든 폴더 헤더 요소 선택
+            const headers = document.querySelectorAll('.folder-header');
+            const globalBtnIcon = document.getElementById('global-toggle-icon');
+            const globalBtnText = document.getElementById('global-toggle-text');
+
+            headers.forEach(header => {
+                const section = header.closest('.folder-section');
+                const listContainer = section.querySelector('.list-container');
+                const isCurrentlyExpanded = listContainer.classList.contains('grid-rows-[1fr]');
+
+                // 현재 개별 폴더의 상태가 전역 상태 목표와 다를 경우에만 토글 함수 실행
+                if (isAllExpanded !== isCurrentlyExpanded) {
+                    toggleFolder(header);
+                }
+            });
+
+            // 전역 토글 버튼의 UI(User Interface, 사용자 인터페이스) 업데이트
+            if (isAllExpanded) {
+                globalBtnIcon.classList.remove('fa-folder');
+                globalBtnIcon.classList.add('fa-folder-open');
+                globalBtnText.innerText = 'COLLAPSE ALL';
+            } else {
+                globalBtnIcon.classList.remove('fa-folder-open');
+                globalBtnIcon.classList.add('fa-folder');
+                globalBtnText.innerText = 'EXPAND ALL';
+            }
+        }
+    </script>
+</body>
+</html>
