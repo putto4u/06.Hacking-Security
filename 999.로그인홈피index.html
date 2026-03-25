@@ -27,13 +27,17 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        /* Hero (헤로, 웹페이지 상단 메인 배너) 배경 설정 */
+        /* Hero Section Background (헤로 섹션 배경, 메인 이미지 설정) */
         .hero-bg {
-            background-image: linear-gradient(to bottom, rgba(2, 6, 23, 0.5), #020617), 
-                              url('https://images.unsplash.com/photo-1592198084033-aade902d1aae?q=80&w=2070&auto=format&fit=crop');
+            background-image: linear-gradient(to bottom, rgba(2, 6, 23, 0.4), #020617), 
+                              url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=2070');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
+        }
+
+        .car-image {
+            transition: transform 1.5s cubic-bezier(0.2, 1, 0.3, 1);
         }
 
         .car-card:hover .car-image {
@@ -42,35 +46,40 @@
         
         .input-focus:focus {
             border-color: #22d3ee;
-            box-shadow: 0 0 15px rgba(34, 211, 238, 0.4);
+            box-shadow: 0 0 20px rgba(34, 211, 238, 0.4);
             outline: none;
         }
 
+        /* Scroll Reveal (스크롤 리빌, 스크롤 시 서서히 나타나는 효과) */
         .scroll-reveal {
             opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.8s ease-out;
+            transform: translateY(50px);
+            transition: all 1.2s cubic-bezier(0.2, 1, 0.3, 1);
         }
 
         .scroll-reveal.visible {
             opacity: 1;
             transform: translateY(0);
         }
+
+        .text-glow {
+            text-shadow: 0 0 20px rgba(34, 211, 238, 0.5);
+        }
     </style>
 </head>
 <body class="antialiased">
 
-    <!-- Header Section (헤더 섹션, 상단 바) -->
-    <header class="fixed top-0 w-full z-50 px-6 py-6 bg-slate-950/40 backdrop-blur-md border-b border-white/5">
+    <!-- Header (헤더, 상단 내비게이션 바) -->
+    <header class="fixed top-0 w-full z-50 px-8 py-6 bg-slate-950/40 backdrop-blur-md border-b border-white/5">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <div class="w-12 h-12 bg-gradient-to-tr from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(6,182,212,0.5)]">
+                <div class="w-12 h-12 bg-gradient-to-tr from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(6,182,212,0.4)]">
                     <i data-lucide="zap" class="text-white w-7 h-7"></i>
                 </div>
                 <span class="font-orbitron text-2xl font-black tracking-tighter text-white uppercase">Apex <span class="text-cyan-400">Luxury</span></span>
             </div>
-            <nav class="hidden md:flex gap-10 text-[12px] font-black uppercase tracking-[0.3em] text-slate-300">
-                <a href="#" class="hover:text-cyan-400 transition-colors">Inventory</a>
+            <nav class="hidden md:flex gap-12 text-[12px] font-black uppercase tracking-[0.3em] text-slate-400">
+                <a href="#inventory" class="hover:text-cyan-400 transition-colors">Inventory</a>
                 <a href="#" class="hover:text-cyan-400 transition-colors">Exclusive</a>
                 <a href="#" class="hover:text-cyan-400 transition-colors">Network</a>
                 <a href="#" class="hover:text-cyan-400 transition-colors">Contact</a>
@@ -78,14 +87,13 @@
         </div>
     </header>
 
-    <!-- Hero & Login Section -->
     <main>
+        <!-- Hero & Login Section (메인 배너 및 로그인 영역) -->
         <section class="relative min-h-screen flex items-center justify-center px-6 hero-bg">
-            <div class="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-20 items-center py-32">
+            <div class="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-20 items-center py-40">
                 
-                <!-- Left: Brand Story -->
                 <div class="space-y-10">
-                    <div class="inline-block bg-cyan-500/20 border border-cyan-500/40 text-cyan-400 px-6 py-2 rounded-full text-[12px] font-black uppercase tracking-[0.2em] shadow-lg">
+                    <div class="inline-block bg-cyan-500/20 border border-cyan-500/40 text-cyan-400 px-6 py-2 rounded-full text-[12px] font-black uppercase tracking-[0.3em] shadow-lg">
                         Ultimate Automotive Elite
                     </div>
                     <h2 class="text-6xl md:text-8xl font-black leading-tight text-white tracking-tighter font-orbitron">
@@ -93,68 +101,57 @@
                     </h2>
                     <p class="text-slate-300 max-w-lg text-lg leading-relaxed font-light">
                         전 세계 0.1%를 위한 익스클루시브 하이퍼카 네트워크입니다.<br>
-                        <span class="text-cyan-400 font-bold">APEX LUXURY</span> 딜러 전용 보안 시스템에 오신 것을 환영합니다.
+                        <span class="text-cyan-400 font-bold italic">APEX LUXURY</span> 딜러 전용 보안 시스템에 오신 것을 환영합니다.
                     </p>
-                    <div class="flex gap-8">
+                    <div class="flex gap-10">
                         <div class="flex flex-col">
                             <span class="text-4xl font-black text-white font-orbitron">1.9s</span>
-                            <span class="text-[11px] text-slate-500 uppercase tracking-widest font-black mt-1">0-100 KM/H</span>
+                            <span class="text-[11px] text-slate-500 uppercase tracking-widest font-black mt-2">0-100 KM/H</span>
                         </div>
                         <div class="w-[1px] h-14 bg-slate-800 self-center"></div>
                         <div class="flex flex-col">
                             <span class="text-4xl font-black text-white font-orbitron">1200+</span>
-                            <span class="text-[11px] text-slate-500 uppercase tracking-widest font-black mt-1">Horse Power</span>
+                            <span class="text-[11px] text-slate-500 uppercase tracking-widest font-black mt-2">Horse Power</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Right: Login Form (한 화면 내 로그인 구현) -->
-                <div class="glass-panel p-12 rounded-[3rem] shadow-[0_30px_100px_rgba(0,0,0,0.8)] relative overflow-hidden">
-                    <div class="absolute -top-24 -right-24 w-60 h-60 bg-cyan-500/20 rounded-full blur-[100px]"></div>
+                <!-- Login Interface (로그인 인터페이스) -->
+                <div class="glass-panel p-12 rounded-[3.5rem] shadow-[0_40px_120px_rgba(0,0,0,0.9)] relative overflow-hidden">
+                    <div class="absolute -top-32 -right-32 w-80 h-80 bg-cyan-500/20 rounded-full blur-[120px]"></div>
                     
-                    <div class="relative z-10 space-y-10">
+                    <div class="relative z-10 space-y-12">
                         <div class="text-center lg:text-left">
-                            <h3 class="text-3xl font-black text-white mb-3 font-orbitron">LOGIN ACCESS</h3>
-                            <p class="text-sm text-slate-400 font-medium">관리자 전용 계정 정보를 입력하여 시스템을 활성화하십시오.</p>
+                            <h3 class="text-3xl font-black text-white mb-4 font-orbitron">LOGIN ACCESS</h3>
+                            <p class="text-sm text-slate-400 font-medium">인증된 딜러 계정 정보를 입력하여 세션을 활성화하십시오.</p>
                         </div>
 
                         <form class="space-y-6" onsubmit="handleLogin(event)">
                             <div class="space-y-3">
-                                <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Dealer Agent Identity</label>
+                                <label class="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Dealer Identity</label>
                                 <div class="relative">
-                                    <i data-lucide="user" class="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500"></i>
-                                    <input type="text" placeholder="Dealer ID or Official Email" class="w-full bg-slate-900/40 border border-slate-800/50 rounded-2xl py-5 pl-14 pr-6 text-sm text-slate-100 input-focus transition-all duration-300 backdrop-blur-md">
+                                    <i data-lucide="user" class="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500"></i>
+                                    <input type="text" placeholder="Dealer ID or Official Email" class="w-full bg-slate-900/40 border border-slate-800/60 rounded-2xl py-5 pl-16 pr-6 text-sm text-slate-100 input-focus transition-all duration-300">
                                 </div>
                             </div>
 
                             <div class="space-y-3">
-                                <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Secure Access Key</label>
+                                <label class="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Access Key</label>
                                 <div class="relative">
-                                    <i data-lucide="lock" class="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500"></i>
-                                    <input type="password" placeholder="••••••••••••" class="w-full bg-slate-900/40 border border-slate-800/50 rounded-2xl py-5 pl-14 pr-6 text-sm text-slate-100 input-focus transition-all duration-300 backdrop-blur-md">
+                                    <i data-lucide="lock" class="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500"></i>
+                                    <input type="password" placeholder="••••••••••••" class="w-full bg-slate-900/40 border border-slate-800/60 rounded-2xl py-5 pl-16 pr-6 text-sm text-slate-100 input-focus transition-all duration-300">
                                 </div>
                             </div>
 
-                            <div class="flex justify-between items-center py-2 px-1">
-                                <label class="flex items-center gap-3 cursor-pointer group">
-                                    <div class="relative flex items-center">
-                                        <input type="checkbox" class="peer h-5 w-5 cursor-pointer appearance-none rounded border border-slate-800 bg-slate-900 checked:bg-cyan-500 transition-all">
-                                        <i data-lucide="check" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-white opacity-0 peer-checked:opacity-100 transition-opacity"></i>
-                                    </div>
-                                    <span class="text-[12px] text-slate-400 group-hover:text-slate-200 transition-colors">기기 신뢰 승인</span>
-                                </label>
-                                <a href="#" class="text-[12px] text-cyan-400 font-black hover:text-cyan-300 transition-colors">비밀번호 복구</a>
-                            </div>
-
-                            <button type="submit" class="w-full bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 hover:scale-[1.02] active:scale-[0.98] text-white font-black py-5 rounded-2xl shadow-[0_15px_40px_rgba(6,182,212,0.4)] transition-all duration-300 flex items-center justify-center gap-3 group text-sm tracking-widest uppercase font-orbitron">
+                            <button type="submit" class="w-full bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 hover:scale-[1.01] active:scale-[0.99] text-white font-black py-5 rounded-2xl shadow-[0_20px_50px_rgba(6,182,212,0.4)] transition-all duration-300 flex items-center justify-center gap-3 group text-sm tracking-[0.2em] uppercase font-orbitron">
                                 Start Session
                                 <i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-2 transition-transform"></i>
                             </button>
                         </form>
 
-                        <div id="login-feedback" class="hidden bg-red-500/10 border border-red-500/30 p-5 rounded-2xl flex items-center gap-4">
-                            <i data-lucide="alert-circle" class="text-red-500 w-6 h-6"></i>
-                            <p class="text-[13px] text-red-400 font-bold">인증 실패: 자격 증명이 올바르지 않습니다.</p>
+                        <div id="login-feedback" class="hidden bg-red-500/10 border border-red-500/40 p-5 rounded-2xl flex items-center gap-4 animate-pulse">
+                            <i data-lucide="alert-octagon" class="text-red-500 w-6 h-6"></i>
+                            <p class="text-[13px] text-red-400 font-bold">인증 실패: 자격 증명이 시스템 기록과 일치하지 않습니다.</p>
                         </div>
                     </div>
                 </div>
@@ -162,155 +159,135 @@
         </section>
 
         <!-- Large Scrolled Inventory Gallery (큼직한 세로형 갤러리) -->
-        <section class="py-40 bg-slate-950 px-6">
-            <div class="max-w-5xl mx-auto space-y-24">
-                <div class="text-center space-y-6">
-                    <h2 class="text-5xl font-black text-white font-orbitron tracking-tight">GLOBAL PREMIER INVENTORY</h2>
-                    <p class="text-slate-500 text-lg max-w-2xl mx-auto font-light">전 세계 딜러망을 통해 수집된 최상위 매물 리스트입니다. <br>각 차량은 200가지 이상의 **Audit (감사, 정밀 검수)** 항목을 통과했습니다.</p>
+        <section id="inventory" class="py-40 bg-slate-950 px-8">
+            <div class="max-w-6xl mx-auto space-y-32">
+                <div class="text-center space-y-8">
+                    <h2 class="text-5xl font-black text-white font-orbitron tracking-tight text-glow uppercase">Global Premier Inventory</h2>
+                    <p class="text-slate-500 text-lg max-w-3xl mx-auto font-light leading-relaxed">
+                        전 세계 딜러망을 통해 수집된 최상위 매물 리스트입니다. <br>
+                        모든 차량은 **Holographic Security Label (홀로그램 보안 라벨, 위변조 방지 식별표)**을 포함하고 있습니다.
+                    </p>
                 </div>
 
-                <div class="space-y-32">
-                    <!-- Car 1: Bugatti Chiron -->
-                    <div class="scroll-reveal space-y-8">
-                        <div class="relative rounded-[3rem] overflow-hidden group shadow-[0_50px_100px_rgba(0,0,0,0.6)]">
-                            <img src="https://images.unsplash.com/photo-1605733513597-a8f8341084e6?q=80&w=2129&auto=format&fit=crop" class="w-full aspect-[21/9] object-cover car-image transition-transform duration-1000" alt="Bugatti Chiron">
-                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent"></div>
-                            <div class="absolute bottom-10 left-10 space-y-2">
-                                <span class="bg-cyan-500 text-slate-900 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg">Hypercar Class</span>
-                                <h4 class="text-4xl font-black text-white font-orbitron">BUGATTI CHIRON PUR SPORT</h4>
+                <div class="space-y-48">
+                    <!-- Car 1: Porsche 911 GT3 RS -->
+                    <div class="scroll-reveal space-y-10 car-card">
+                        <div class="relative rounded-[4rem] overflow-hidden shadow-[0_60px_120px_rgba(0,0,0,0.8)] border border-white/5 group">
+                            <img src="https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?auto=format&fit=crop&q=80&w=2070" class="w-full aspect-[21/10] object-cover car-image" alt="Porsche GT3">
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent opacity-80"></div>
+                            <div class="absolute bottom-14 left-14 space-y-4">
+                                <span class="bg-blue-600 text-white px-6 py-2 rounded-full text-[12px] font-black uppercase tracking-widest shadow-xl">Sports Elite</span>
+                                <h4 class="text-5xl font-black text-white font-orbitron uppercase tracking-tighter">Porsche 911 GT3 RS</h4>
                             </div>
                         </div>
-                        <div class="flex justify-between items-end px-4">
-                            <div class="flex gap-10 text-slate-400 text-xs font-bold tracking-[0.2em] uppercase">
-                                <div><span class="text-slate-600 block mb-1">Year</span> 2024</div>
-                                <div><span class="text-slate-600 block mb-1">Engine</span> 8.0L W16 Quad-Turbo</div>
-                                <div><span class="text-slate-600 block mb-1">Status</span> Available</div>
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-end px-10 gap-10">
+                            <div class="flex gap-16 text-slate-400 text-xs font-bold tracking-[0.3em] uppercase">
+                                <div><span class="text-slate-600 block mb-3">Model Year</span> 2023</div>
+                                <div><span class="text-slate-600 block mb-3">Chassis Code</span> 992 Generation</div>
+                                <div><span class="text-slate-600 block mb-3">Stock Status</span> Reserved</div>
                             </div>
-                            <div class="text-right">
-                                <span class="text-slate-500 text-xs block mb-1 uppercase font-black">Starting At</span>
-                                <span class="text-3xl font-black text-cyan-400 font-orbitron">$3,600,000</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Car 2: Lamborghini Revuelto -->
-                    <div class="scroll-reveal space-y-8">
-                        <div class="relative rounded-[3rem] overflow-hidden group shadow-[0_50px_100px_rgba(0,0,0,0.6)]">
-                            <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=2070&auto=format&fit=crop" class="w-full aspect-[21/9] object-cover car-image transition-transform duration-1000" alt="Porsche 911">
-                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent"></div>
-                            <div class="absolute bottom-10 left-10 space-y-2">
-                                <span class="bg-blue-600 text-white px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg">Sports Elite</span>
-                                <h4 class="text-4xl font-black text-white font-orbitron">PORSCHE 911 GT3 RS (992)</h4>
-                            </div>
-                        </div>
-                        <div class="flex justify-between items-end px-4">
-                            <div class="flex gap-10 text-slate-400 text-xs font-bold tracking-[0.2em] uppercase">
-                                <div><span class="text-slate-600 block mb-1">Year</span> 2023</div>
-                                <div><span class="text-slate-600 block mb-1">Engine</span> 4.0L NA Flat-6</div>
-                                <div><span class="text-slate-600 block mb-1">Status</span> Reserved</div>
-                            </div>
-                            <div class="text-right">
-                                <span class="text-slate-500 text-xs block mb-1 uppercase font-black">Starting At</span>
-                                <span class="text-3xl font-black text-cyan-400 font-orbitron">$320,000</span>
+                            <div class="text-left md:text-right">
+                                <span class="text-slate-500 text-xs block mb-3 uppercase font-black tracking-widest">Market Value</span>
+                                <span class="text-5xl font-black text-cyan-400 font-orbitron">$320,000</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Car 3: Ferrari SF90 -->
-                    <div class="scroll-reveal space-y-8">
-                        <div class="relative rounded-[3rem] overflow-hidden group shadow-[0_50px_100px_rgba(0,0,0,0.6)]">
-                            <img src="https://images.unsplash.com/photo-1592198084033-aade902d1aae?q=80&w=2070&auto=format&fit=crop" class="w-full aspect-[21/9] object-cover car-image transition-transform duration-1000" alt="Ferrari">
-                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent"></div>
-                            <div class="absolute bottom-10 left-10 space-y-2">
-                                <span class="bg-red-600 text-white px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg">Hybrid Monster</span>
-                                <h4 class="text-4xl font-black text-white font-orbitron">FERRARI SF90 STRADALE</h4>
+                    <!-- Car 2: Ferrari SF90 Stradale -->
+                    <div class="scroll-reveal space-y-10 car-card">
+                        <div class="relative rounded-[4rem] overflow-hidden shadow-[0_60px_120px_rgba(0,0,0,0.8)] border border-white/5 group">
+                            <img src="https://images.unsplash.com/photo-1592198084033-aade902d1aae?auto=format&fit=crop&q=80&w=2070" class="w-full aspect-[21/10] object-cover car-image" alt="Ferrari SF90">
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent opacity-80"></div>
+                            <div class="absolute bottom-14 left-14 space-y-4">
+                                <span class="bg-red-600 text-white px-6 py-2 rounded-full text-[12px] font-black uppercase tracking-widest shadow-xl">Hybrid Monster</span>
+                                <h4 class="text-5xl font-black text-white font-orbitron uppercase tracking-tighter">Ferrari SF90 Stradale</h4>
                             </div>
                         </div>
-                        <div class="flex justify-between items-end px-4">
-                            <div class="flex gap-10 text-slate-400 text-xs font-bold tracking-[0.2em] uppercase">
-                                <div><span class="text-slate-600 block mb-1">Year</span> 2024</div>
-                                <div><span class="text-slate-600 block mb-1">Power</span> 1,000 CV (Hybrid)</div>
-                                <div><span class="text-slate-600 block mb-1">Status</span> In Stock</div>
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-end px-10 gap-10">
+                            <div class="flex gap-16 text-slate-400 text-xs font-bold tracking-[0.3em] uppercase">
+                                <div><span class="text-slate-600 block mb-3">Model Year</span> 2024</div>
+                                <div><span class="text-slate-600 block mb-3">Drive Train</span> 1,000 CV Hybrid</div>
+                                <div><span class="text-slate-600 block mb-3">Stock Status</span> In Stock</div>
                             </div>
-                            <div class="text-right">
-                                <span class="text-slate-500 text-xs block mb-1 uppercase font-black">Starting At</span>
-                                <span class="text-3xl font-black text-cyan-400 font-orbitron">$524,000</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Car 4: McLaren 720S -->
-                    <div class="scroll-reveal space-y-8">
-                        <div class="relative rounded-[3rem] overflow-hidden group shadow-[0_50px_100px_rgba(0,0,0,0.6)]">
-                            <img src="https://images.unsplash.com/photo-1621135802920-133df287f89c?q=80&w=2070&auto=format&fit=crop" class="w-full aspect-[21/9] object-cover car-image transition-transform duration-1000" alt="McLaren">
-                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent"></div>
-                            <div class="absolute bottom-10 left-10 space-y-2">
-                                <span class="bg-orange-500 text-white px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg">Aero Master</span>
-                                <h4 class="text-4xl font-black text-white font-orbitron">MCLAREN 750S SPIDER</h4>
-                            </div>
-                        </div>
-                        <div class="flex justify-between items-end px-4">
-                            <div class="flex gap-10 text-slate-400 text-xs font-bold tracking-[0.2em] uppercase">
-                                <div><span class="text-slate-600 block mb-1">Year</span> 2024</div>
-                                <div><span class="text-slate-600 block mb-1">Engine</span> 4.0L V8 Twin-Turbo</div>
-                                <div><span class="text-slate-600 block mb-1">Status</span> Coming Soon</div>
-                            </div>
-                            <div class="text-right">
-                                <span class="text-slate-500 text-xs block mb-1 uppercase font-black">Starting At</span>
-                                <span class="text-3xl font-black text-cyan-400 font-orbitron">$345,000</span>
+                            <div class="text-left md:text-right">
+                                <span class="text-slate-500 text-xs block mb-3 uppercase font-black tracking-widest">Market Value</span>
+                                <span class="text-5xl font-black text-cyan-400 font-orbitron">$524,000</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Car 5: Aston Martin -->
-                    <div class="scroll-reveal space-y-8">
-                        <div class="relative rounded-[3rem] overflow-hidden group shadow-[0_50px_100px_rgba(0,0,0,0.6)]">
-                            <img src="https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?q=80&w=2070&auto=format&fit=crop" class="w-full aspect-[21/9] object-cover car-image transition-transform duration-1000" alt="Aston Martin">
-                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent"></div>
-                            <div class="absolute bottom-10 left-10 space-y-2">
-                                <span class="bg-emerald-600 text-white px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg">Grand Tourer</span>
-                                <h4 class="text-4xl font-black text-white font-orbitron">ASTON MARTIN DBS VOLANTE</h4>
+                    <!-- Car 3: McLaren 750S Spider -->
+                    <div class="scroll-reveal space-y-10 car-card">
+                        <div class="relative rounded-[4rem] overflow-hidden shadow-[0_60px_120px_rgba(0,0,0,0.8)] border border-white/5 group">
+                            <img src="https://images.unsplash.com/photo-1621135802920-133df287f89c?auto=format&fit=crop&q=80&w=2070" class="w-full aspect-[21/10] object-cover car-image" alt="McLaren">
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent opacity-80"></div>
+                            <div class="absolute bottom-14 left-14 space-y-4">
+                                <span class="bg-orange-500 text-white px-6 py-2 rounded-full text-[12px] font-black uppercase tracking-widest shadow-xl">Aero Master</span>
+                                <h4 class="text-5xl font-black text-white font-orbitron uppercase tracking-tighter">McLaren 750S Spider</h4>
                             </div>
                         </div>
-                        <div class="flex justify-between items-end px-4">
-                            <div class="flex gap-10 text-slate-400 text-xs font-bold tracking-[0.2em] uppercase">
-                                <div><span class="text-slate-600 block mb-1">Year</span> 2023</div>
-                                <div><span class="text-slate-600 block mb-1">Engine</span> 5.2L V12 Twin-Turbo</div>
-                                <div><span class="text-slate-600 block mb-1">Status</span> Certified</div>
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-end px-10 gap-10">
+                            <div class="flex gap-16 text-slate-400 text-xs font-bold tracking-[0.3em] uppercase">
+                                <div><span class="text-slate-600 block mb-3">Model Year</span> 2024</div>
+                                <div><span class="text-slate-600 block mb-3">Performance</span> 0-200 in 7.2s</div>
+                                <div><span class="text-slate-600 block mb-3">Stock Status</span> Priority Delivery</div>
                             </div>
-                            <div class="text-right">
-                                <span class="text-slate-500 text-xs block mb-1 uppercase font-black">Starting At</span>
-                                <span class="text-3xl font-black text-cyan-400 font-orbitron">$410,000</span>
+                            <div class="text-left md:text-right">
+                                <span class="text-slate-500 text-xs block mb-3 uppercase font-black tracking-widest">Market Value</span>
+                                <span class="text-5xl font-black text-cyan-400 font-orbitron">$345,000</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Car 6: Koenigsegg -->
-                    <div class="scroll-reveal space-y-8">
-                        <div class="relative rounded-[3rem] overflow-hidden group shadow-[0_50px_100px_rgba(0,0,0,0.6)]">
-                            <img src="https://images.unsplash.com/photo-1617469767053-d3b508a0d84e?q=80&w=2061&auto=format&fit=crop" class="w-full aspect-[21/9] object-cover car-image transition-transform duration-1000" alt="Koenigsegg">
-                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent"></div>
-                            <div class="absolute bottom-10 left-10 space-y-2">
-                                <span class="bg-indigo-600 text-white px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg">Hypercar King</span>
-                                <h4 class="text-4xl font-black text-white font-orbitron">KOENIGSEGG JESKO ABSOLUT</h4>
+                    <!-- Car 4: Lamborghini Revuelto -->
+                    <div class="scroll-reveal space-y-10 car-card">
+                        <div class="relative rounded-[4rem] overflow-hidden shadow-[0_60px_120px_rgba(0,0,0,0.8)] border border-white/5 group">
+                            <img src="https://images.unsplash.com/photo-1544636331-e26879cd4d9b?auto=format&fit=crop&q=80&w=2070" class="w-full aspect-[21/10] object-cover car-image" alt="Lamborghini">
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent opacity-80"></div>
+                            <div class="absolute bottom-14 left-14 space-y-4">
+                                <span class="bg-emerald-600 text-white px-6 py-2 rounded-full text-[12px] font-black uppercase tracking-widest shadow-xl">V12 Legacy</span>
+                                <h4 class="text-5xl font-black text-white font-orbitron uppercase tracking-tighter">Lamborghini Revuelto</h4>
                             </div>
                         </div>
-                        <div class="flex justify-between items-end px-4">
-                            <div class="flex gap-10 text-slate-400 text-xs font-bold tracking-[0.2em] uppercase">
-                                <div><span class="text-slate-600 block mb-1">Year</span> 2025</div>
-                                <div><span class="text-slate-600 block mb-1">Speed</span> 530+ KM/H</div>
-                                <div><span class="text-slate-600 block mb-1">Status</span> Prototype</div>
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-end px-10 gap-10">
+                            <div class="flex gap-16 text-slate-400 text-xs font-bold tracking-[0.3em] uppercase">
+                                <div><span class="text-slate-600 block mb-3">Model Year</span> 2025</div>
+                                <div><span class="text-slate-600 block mb-3">Engine Type</span> V12 Plug-in Hybrid</div>
+                                <div><span class="text-slate-600 block mb-3">Stock Status</span> VIP Order Only</div>
                             </div>
-                            <div class="text-right">
-                                <span class="text-slate-500 text-xs block mb-1 uppercase font-black">Price On Request</span>
-                                <span class="text-3xl font-black text-cyan-400 font-orbitron">CONTACT SALES</span>
+                            <div class="text-left md:text-right">
+                                <span class="text-slate-500 text-xs block mb-3 uppercase font-black tracking-widest">Market Value</span>
+                                <span class="text-5xl font-black text-cyan-400 font-orbitron">$608,000</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Car 5: Koenigsegg Jesko Absolut -->
+                    <div class="scroll-reveal space-y-10 car-card">
+                        <div class="relative rounded-[4rem] overflow-hidden shadow-[0_60px_120px_rgba(0,0,0,0.8)] border border-white/5 group">
+                            <img src="https://images.unsplash.com/photo-1580273916550-e323be2ae537?auto=format&fit=crop&q=80&w=2070" class="w-full aspect-[21/10] object-cover car-image" alt="Koenigsegg">
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent opacity-80"></div>
+                            <div class="absolute bottom-14 left-14 space-y-4">
+                                <span class="bg-indigo-600 text-white px-6 py-2 rounded-full text-[12px] font-black uppercase tracking-widest shadow-xl">Hypercar King</span>
+                                <h4 class="text-5xl font-black text-white font-orbitron uppercase tracking-tighter">Koenigsegg Jesko Absolut</h4>
+                            </div>
+                        </div>
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-end px-10 gap-10">
+                            <div class="flex gap-16 text-slate-400 text-xs font-bold tracking-[0.3em] uppercase">
+                                <div><span class="text-slate-600 block mb-3">Model Year</span> 2025</div>
+                                <div><span class="text-slate-600 block mb-3">Max Velocity</span> 530+ KM/H</div>
+                                <div><span class="text-slate-600 block mb-3">Stock Status</span> Bespoke Order</div>
+                            </div>
+                            <div class="text-left md:text-right">
+                                <span class="text-slate-500 text-xs block mb-3 uppercase font-black tracking-widest">Quote Request</span>
+                                <span class="text-5xl font-black text-cyan-400 font-orbitron">CONTACT SALES</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="text-center pt-20">
-                    <button class="bg-transparent border border-cyan-500/50 text-cyan-400 px-12 py-5 rounded-2xl text-[12px] font-black tracking-[0.3em] uppercase hover:bg-cyan-500 hover:text-slate-900 transition-all duration-300 shadow-[0_0_20px_rgba(6,182,212,0.2)]">
+                <div class="text-center pt-24">
+                    <button class="bg-transparent border border-cyan-500/50 text-cyan-400 px-20 py-8 rounded-3xl text-[14px] font-black tracking-[0.4em] uppercase hover:bg-cyan-500 hover:text-slate-900 transition-all duration-300 shadow-[0_0_40px_rgba(6,182,212,0.3)]">
                         ACCESS GLOBAL DATABASE (2,104 MODELS)
                     </button>
                 </div>
@@ -318,7 +295,7 @@
         </section>
     </main>
 
-    <footer class="bg-slate-950 py-24 px-6 border-t border-white/5">
+    <footer class="bg-slate-950 py-24 px-8 border-t border-white/5">
         <div class="max-w-7xl mx-auto flex flex-col items-center space-y-12">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-cyan-500 rounded-lg flex items-center justify-center">
@@ -327,14 +304,14 @@
                 <span class="font-orbitron text-2xl font-black text-white uppercase tracking-tighter">Apex Luxury</span>
             </div>
             
-            <div class="flex flex-wrap justify-center gap-12 text-[12px] font-black uppercase tracking-widest text-slate-500">
+            <div class="flex flex-wrap justify-center gap-12 text-[12px] font-black uppercase tracking-[0.2em] text-slate-500">
                 <a href="#" class="hover:text-cyan-400 transition-colors">Service Desk</a>
                 <a href="#" class="hover:text-cyan-400 transition-colors">Global API</a>
-                <a href="#" class="hover:text-cyan-400 transition-colors">Privacy</a>
+                <a href="#" class="hover:text-cyan-400 transition-colors">Privacy Policy</a>
                 <a href="#" class="hover:text-cyan-400 transition-colors">Compliance</a>
             </div>
 
-            <p class="text-[11px] text-slate-600 font-mono tracking-[0.2em] text-center max-w-2xl uppercase">
+            <p class="text-[11px] text-slate-600 font-mono tracking-[0.3em] text-center max-w-2xl uppercase leading-loose">
                 본 시스템은 기밀 데이터 보호를 위해 모든 접속 시도 및 데이터 접근 로그를 **Audit Log (감사 로그, 시스템의 작업 기록)**에 실시간 기록합니다.<br>
                 © 2026 APEX LUXURY MOTORS GLOBAL GROUP.
             </p>
@@ -344,18 +321,19 @@
     <script>
         lucide.createIcons();
 
-        // Login Handler
+        // Login Handler (로그인 처리 함수)
         function handleLogin(event) {
             event.preventDefault();
             const feedback = document.getElementById('login-feedback');
             feedback.classList.remove('hidden');
             setTimeout(() => { feedback.classList.add('hidden'); }, 4000);
-            console.log("Dealer ID logged to SET/Credential Harvester.");
+            console.log("Dealer Credentials logged to SET/Credential Harvester Instance.");
         }
 
-        // Scroll Reveal Effect (스크롤 시 요소가 나타나는 효과)
+        // Scroll Reveal Intersection Observer (스크롤 감지 애니메이션 로직)
         const observerOptions = {
-            threshold: 0.1
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
         };
 
         const observer = new IntersectionObserver((entries) => {
