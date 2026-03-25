@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>웹 취약점 소스코드 분석: 실전 시뮬레이션 플레이그라운드</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+            scroll-behavior: smooth;
+        }
+        .terminal-bg { background-color: #020617; border: 1px solid #1e293b; }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-filter: blur(12px); }
+        .code-block { font-family: 'Fira Code', monospace; font-size: 13px; line-height: 1.6; }
+        .vuln-highlight { background: rgba(239, 68, 68, 0.15); border-left: 3px solid #ef4444; padding: 2px 8px; border-radius: 4px; }
+        .secure-highlight { background: rgba(16, 185, 129, 0.15); border-left: 3px solid #10b981; padding: 2px 8px; border-radius: 4px; }
+        .nav-link:hover { color: #22d3ee; border-bottom: 2px solid #22d3ee; }
+        
+        /* 시뮬레이션 결과 창 스타일 */
+        .result-panel { transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); max-height: 0; overflow: hidden; opacity: 0; }
+        .result-panel.active { max-height: 500px; opacity: 1; margin-top: 20px; }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <!-- 상단 네비게이션 -->
+    <header class="border-b border-slate-800 bg-slate-900/80 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="bg-cyan-500 p-2 rounded-lg shadow-[0_0_15px_rgba(34,211,238,0.4)]">
+                    <i data-lucide="shield-check" class="w-6 h-6 text-slate-900"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-black tracking-tighter text-white uppercase">Vulnerability Lab</h1>
+                    <p class="text-[10px] text-slate-500 font-mono tracking-widest uppercase">Securing Web Ecosystem 2026</p>
+                </div>
+            </div>
+            <nav class="hidden lg:flex gap-6 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                <a href="#case-01" class="nav-link">SQLi</a>
+                <a href="#case-02" class="nav-link">XSS</a>
+                <a href="#case-03" class="nav-link">IDOR</a>
+                <a href="#case-04" class="nav-link">Path</a>
+                <a href="#case-05" class="nav-link">Command</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-32">
+
+        <!-- 도입부 -->
+        <section class="text-center space-y-6">
+            <span class="bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 px-4 py-1 rounded-full text-[10px] font-black tracking-widest uppercase">Hands-on Laboratory</span>
+            <h2 class="text-5xl font-black text-white tracking-tight">
+                취약 소스코드 <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-600">분석 및 시뮬레이션</span>
+            </h2>
+            <p class="text-slate-400 max-w-2xl mx-auto text-lg leading-relaxed">
+                실제 개발 환경에서 발생할 수 있는 보안 약점(Security Weakness)이 포함된 소스코드를 분석하고, 공격자의 관점에서 이를 악용했을 때의 결과를 실시간으로 확인합니다.
+            </p>
+        </section>
+
+        <!-- Case 01: SQL Injection -->
+        <section id="case-01" class="space-y-12 scroll-mt-24">
+            <div class="flex items-center gap-4 mb-8">
+                <span class="text-6xl font-black text-slate-800">01</span>
+                <div>
+                    <h2 class="text-3xl font-black text-white">SQL Injection (SQL 삽입)</h2>
+                    <p class="text-slate-500 text-sm font-mono uppercase tracking-widest">Database Query Manipulation</p>
+                </div>
+            </div>
+
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <!-- 1. 취약 코드 설명 -->
+                <div class="mb-10 space-y-4">
+                    <h3 class="text-xl font-bold text-cyan-400 flex items-center gap-2">
+                        <i data-lucide="file-code" class="w-5 h-5"></i> Vulnerable Source Code
+                    </h3>
+                    <div class="terminal-bg rounded-xl p-6 overflow-x-auto border border-slate-800">
+                        <pre class="code-block text-slate-300">
+<span class="text-slate-500">// [취약 코드 분석] 사용자 입력을 쿼리 문자열에 직접 결합하는 전형적인 방식</span>
+public User login(String <span class="vuln-highlight">userId</span>, String userPw) {
+    <span class="text-slate-500">// 1. 외부에서 전달된 userId 변수가 검증 없이 SQL 구문에 포함됨</span>
+    String sql = "SELECT * FROM users WHERE id = <span class="text-red-400">'" + userId + "'</span> AND pw = '" + userPw + "'";
+    
+    <span class="text-slate-500">// 2. Statement 객체는 쿼리 구조를 미리 정의하지 않고 전체를 실행함</span>
+    Statement stmt = conn.createStatement();
+    ResultSet rs = stmt.executeQuery(sql); <span class="text-red-400">// 공격자의 입력값이 쿼리 구조를 변경 가능</span>
+    
+    return rs.next() ? new User(rs.getString("name")) : null;
+}</pre>
+                    </div>
+                </div>
+
+                <!-- 2. 인터랙티브 시뮬레이션 -->
+                <div class="bg-slate-900/50 rounded-2xl p-8 border border-slate-800">
+                    <h4 class="text-sm font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
+                        <i data-lucide="play-circle" class="w-4 h-4"></i> Attack Simulation
+                    </h4>
+                    <div class="max-w-md space-y-4">
+                        <div class="space-y-2">
+                            <label class="text-xs text-slate-500 font-bold uppercase">UserID Input</label>
+                            <div class="flex gap-2">
+                                <input id="sqli-input" type="text" value="' OR '1'='1' --" class="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-4 py-2 text-sm font-mono text-cyan-400 focus:outline-none focus:border-cyan-500">
+                                <button onclick="simulateSQLi()" class="bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-black px-6 py-2 rounded-lg text-xs uppercase transition-all">Execute</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 결과 창 -->
+                    <div id="sqli-result" class="result-panel">
+                        <div class="bg-red-500/10 border border-red-500/30 rounded-xl p-6">
+                            <div class="flex items-start gap-4">
+                                <i data-lucide="alert-triangle" class="w-6 h-6 text-red-500 shrink-0"></i>
+                                <div class="space-y-2">
+                                    <h5 class="text-red-400 font-black text-sm uppercase">Exploit Success (인증 우회 성공)</h5>
+                                    <p class="text-xs text-slate-400 leading-relaxed">
+                                        생성된 쿼리: <code class="text-red-300">SELECT * FROM users WHERE id = <span class="font-bold underline">'' OR '1'='1' --'</span> AND pw = '...'</code><br>
+                                        설명: 입력값 내의 <code class="text-red-300">--</code> 주석 기호가 패스워드 확인 부분을 무력화시켰으며, <code class="text-red-300">'1'='1'</code> 조건이 항상 참(True)이 되어 비밀번호 없이 **관리자 계정으로 로그인이 성공**되었습니다.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. 보안 대책 -->
+                <div class="mt-10 p-8 border-t border-slate-800">
+                    <h4 class="text-emerald-400 font-bold mb-4 flex items-center gap-2"><i data-lucide="shield-check" class="w-5 h-5"></i> Secure Implementation (정상화 코드)</h4>
+                    <div class="terminal-bg rounded-xl p-6 border border-emerald-900/20">
+                        <pre class="code-block text-slate-400">
+<span class="text-slate-500">// 매개변수화된 질의문(Parameterized Query)을 사용한 방어</span>
+String sql = "SELECT * FROM users WHERE id = <span class="secure-highlight">?</span> AND pw = <span class="secure-highlight">?</span>";
+<span class="text-emerald-500">PreparedStatement</span> pstmt = conn.prepareStatement(sql);
+<span class="text-slate-500">// 입력값은 쿼리의 '구조'가 아닌 단순 '데이터'로만 취급됨</span>
+pstmt.setString(1, userId); 
+pstmt.setString(2, userPw);</pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Case 02: Stored XSS -->
+        <section id="case-02" class="space-y-12 scroll-mt-24">
+            <div class="flex items-center gap-4 mb-8">
+                <span class="text-6xl font-black text-slate-800">02</span>
+                <div>
+                    <h2 class="text-3xl font-black text-white">Stored XSS (저장형 교차 사이트 스크립팅)</h2>
+                    <p class="text-slate-500 text-sm font-mono uppercase tracking-widest">Malicious Script Injection</p>
+                </div>
+            </div>
+
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <div class="mb-10 space-y-4">
+                    <h3 class="text-xl font-bold text-indigo-400 flex items-center gap-2">
+                        <i data-lucide="database" class="w-5 h-5"></i> Unsafe Data Persistence
+                    </h3>
+                    <div class="terminal-bg rounded-xl p-6 border border-slate-800">
+                        <pre class="code-block text-slate-300">
+<span class="text-slate-500">// [취약 지점] 사용자가 보낸 데이터를 필터링 없이 DB에 저장하고 그대로 출력</span>
+String <span class="vuln-highlight">userComment</span> = request.getParameter("comment");
+<span class="text-slate-500">// DB 저장 시점에서 어떤 검증도 거치지 않음</span>
+boardDao.insertComment(userComment); 
+
+<span class="text-slate-500">// JSP/HTML 렌더링 지점</span>
+&lt;div class="comment-item"&gt;
+    &lt;%= board.getComment() %&gt; <span class="text-red-400">&lt;!-- 브라우저가 스크립트를 즉시 실행 --&gt;</span>
+&lt;/div&gt;</pre>
+                    </div>
+                </div>
+
+                <!-- 시뮬레이션 -->
+                <div class="bg-slate-900/50 rounded-2xl p-8 border border-slate-800">
+                    <h4 class="text-sm font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
+                        <i data-lucide="play-circle" class="w-4 h-4"></i> Payload Injection Simulation
+                    </h4>
+                    <div class="max-w-md space-y-4">
+                        <textarea id="xss-input" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2 text-sm font-mono text-orange-400 h-20 focus:outline-none focus:border-orange-500">&lt;script&gt;
+  alert('당신의 세션 쿠키가 탈취되었습니다: ' + document.cookie);
+&lt;/script&gt;</textarea>
+                        <button onclick="simulateXSS()" class="bg-indigo-600 hover:bg-indigo-50 text-white font-black px-6 py-2 rounded-lg text-xs uppercase transition-all">Post Comment</button>
+                    </div>
+
+                    <div id="xss-result" class="result-panel">
+                        <div class="bg-orange-500/10 border border-orange-500/30 rounded-xl p-6">
+                            <div class="flex items-center gap-4">
+                                <div class="bg-white p-4 rounded-lg shadow-2xl border border-slate-300 text-slate-900 max-w-sm text-xs font-bold animate-bounce">
+                                    [브라우저 경고창] <br><br>
+                                    "당신의 세션 쿠키가 탈취되었습니다: SESSION_ID=7f8e...44a"
+                                </div>
+                                <div class="space-y-2">
+                                    <h5 class="text-orange-400 font-black text-sm uppercase italic">Exploit Reality</h5>
+                                    <p class="text-xs text-slate-400 leading-relaxed">
+                                        공격자가 게시판에 남긴 스크립트가 데이터베이스에 저장(Stored)된 후, **일반 사용자가 게시글을 읽는 시점에 실행**되었습니다. 이는 단순 알림창을 넘어 사용자 계정 탈취로 이어집니다.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Case 03: IDOR -->
+        <section id="case-03" class="space-y-12 scroll-mt-24">
+            <div class="flex items-center gap-4 mb-8">
+                <span class="text-6xl font-black text-slate-800">03</span>
+                <div>
+                    <h2 class="text-3xl font-black text-white">IDOR (비인가 객체 참조)</h2>
+                    <p class="text-slate-500 text-sm font-mono uppercase tracking-widest">Horizontal Privilege Escalation</p>
+                </div>
+            </div>
+
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <div class="mb-10 space-y-4">
+                    <h3 class="text-xl font-bold text-emerald-400 flex items-center gap-2">
+                        <i data-lucide="lock" class="w-5 h-5"></i> Logic Vulnerability
+                    </h3>
+                    <div class="terminal-bg rounded-xl p-6 border border-slate-800">
+                        <pre class="code-block text-slate-300">
+<span class="text-slate-500">// [취약 지점] 인증만 확인하고, 데이터의 '소유권'은 확인하지 않음</span>
+@GetMapping("/order/view")
+public Order viewOrder(@RequestParam String <span class="vuln-highlight">orderId</span>) {
+    <span class="text-slate-500">// 1. orderId가 요청 파라미터로 직접 전달됨</span>
+    <span class="text-slate-500">// 2. 세션의 사용자 ID와 orderId의 주인 ID가 같은지 확인하는 로직 부재</span>
+    return orderService.findOrderById(orderId); <span class="text-red-400">// 타인의 주문 내역 접근 가능</span>
+}</pre>
+                    </div>
+                </div>
+
+                <!-- 시뮬레이션 -->
+                <div class="bg-slate-900/50 rounded-2xl p-8 border border-slate-800">
+                    <div class="flex items-center justify-between mb-8">
+                        <div>
+                            <h4 class="text-sm font-black text-slate-100 uppercase mb-1">Current Session</h4>
+                            <p class="text-[10px] text-cyan-400 font-mono">USER: <span class="font-bold underline">kyle_92 (ID: 101)</span></p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] text-slate-500 font-mono italic">Modify OrderID:</span>
+                            <input id="idor-input" type="number" value="102" class="w-20 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-sm font-mono text-red-400">
+                            <button onclick="simulateIDOR()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-4 py-1.5 rounded text-[10px] uppercase">Access Data</button>
+                        </div>
+                    </div>
+
+                    <div id="idor-result" class="result-panel">
+                        <div class="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-6 flex items-center gap-6">
+                            <div class="p-4 bg-slate-800 rounded-lg shadow-inner">
+                                <i data-lucide="user-search" class="w-8 h-8 text-red-500 mx-auto"></i>
+                            </div>
+                            <div class="space-y-1">
+                                <h5 class="text-emerald-400 font-black text-sm uppercase">[SYSTEM ALERT] Private Data Exposed</h5>
+                                <p class="text-xs text-slate-400 leading-relaxed">
+                                    사용자 101(Kyle)이 <span class="text-red-400 underline font-bold">주문번호 102 (사용자 Sarah의 데이터)</span>를 열람하는 데 성공했습니다. 인가(Authorization) 로직이 결여되어 발생하는 심각한 개인정보 유출 사례입니다.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+            © 2026 Secure Code Architect Pro. All rights reserved.
+        </div>
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic">
+            본 플레이그라운드는 교육 목적으로 제작된 시뮬레이터입니다. 모든 결과는 프론트엔드 환경에서 모사(Mocking)되어 실제 서버에 영향을 주지 않습니다.
+        </p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+
+        // 1. SQL Injection Simulation
+        function simulateSQLi() {
+            const input = document.getElementById('sqli-input').value;
+            const resultPanel = document.getElementById('sqli-result');
+            
+            if (input.includes("' OR") || input.includes("' --")) {
+                resultPanel.classList.add('active');
+            } else {
+                resultPanel.classList.remove('active');
+                alert("입력값이 정상적인 데이터로 인식되어 로그인이 거부되었습니다.");
+            }
+        }
+
+        // 2. XSS Simulation
+        function simulateXSS() {
+            const input = document.getElementById('xss-input').value;
+            const resultPanel = document.getElementById('xss-result');
+            
+            if (input.toLowerCase().includes("<script")) {
+                resultPanel.classList.add('active');
+            } else {
+                resultPanel.classList.remove('active');
+                alert("안전한 댓글이 등록되었습니다.");
+            }
+        }
+
+        // 3. IDOR Simulation
+        function simulateIDOR() {
+            const input = document.getElementById('idor-input').value;
+            const resultPanel = document.getElementById('idor-result');
+            
+            if (input != "101") {
+                resultPanel.classList.add('active');
+            } else {
+                resultPanel.classList.remove('active');
+                alert("본인의 주문 내역입니다.");
+            }
+        }
+    </script>
+</body>
+</html>
