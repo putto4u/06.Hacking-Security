@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security & Cloud Hacking Lab</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+        
+        /* 기본 글꼴 및 다크 모드 배경색 설정 */
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            /* 전체 화면 배경 이미지 적용 및 투명도(Overlay) 설정: 텍스트 가시성을 위해 어두운 오버레이 강화 */
+            background-image: linear-gradient(to bottom, rgba(2, 6, 23, 0.75), rgba(2, 6, 23, 0.95)), 
+                              url('image_1a3201.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center center;
+        }
+
+        /* 텍스트 리스트 호버 효과: 터미널 스타일 */
+        .list-hover {
+            transition: all 0.2s ease;
+        }
+        .list-hover:hover {
+            color: #22d3ee; 
+            padding-left: 0.75rem; 
+            background-color: rgba(15, 23, 42, 0.8); 
+            border-left-color: #0ea5e9;
+        }
+
+        /* 텍스트 가시성을 높이는 그림자 효과 클래스 */
+        .text-glow {
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+        }
+        .neon-glow {
+            text-shadow: 0 0 8px rgba(34, 211, 238, 0.6);
+        }
+        
+        /* 커스텀 스크롤바 (선택적 시각 강화) */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+    </style>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+</head>
+<body class="min-h-screen flex flex-col">
+    <header class="py-24 px-6 relative overflow-hidden">
+        
+        <a href="https://putto4u.github.io/06.Hacking-Security" class="absolute top-6 left-6 md:left-10 z-20 group cursor-pointer block" target="_blank" rel="noopener noreferrer">
+            <div class="flex items-center space-x-2 bg-slate-900/80 py-2 px-4 rounded-xl border border-cyan-900/50 backdrop-blur-md shadow-[0_0_15px_rgba(8,145,178,0.2)] transition-all duration-300 group-hover:border-cyan-400/60 group-hover:shadow-[0_0_20px_rgba(34,211,238,0.4)]">
+                <div class="relative flex h-3 w-3 mr-1">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
+                </div>
+                <span class="font-mono text-[10px] md:text-xs text-slate-400 tracking-wider">CHIEF SYSTEM ARCHITECT <span class="text-cyan-500 ml-1">❯</span></span>
+                <span class="font-black text-cyan-300 tracking-widest font-mono text-sm md:text-base neon-glow ml-1">PUTTO</span>
+                <span class="font-bold text-slate-200 tracking-widest font-mono text-sm md:text-base">'S LECTURES</span>
+            </div>
+        </a>
+
+        <div class="max-w-4xl mx-auto relative z-10 text-center mt-8">
+            <div class="inline-flex items-center justify-center space-x-3 mb-8 bg-slate-950/60 p-4 rounded-2xl backdrop-blur-md border border-slate-700/80 shadow-2xl">
+                <i class="fas fa-user-secret text-4xl text-cyan-400 drop-shadow-lg"></i>
+                <span class="text-slate-500">|</span>
+                <i class="fas fa-shield-halved text-4xl text-blue-500 drop-shadow-lg"></i>
+            </div>
+            
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-2 pb-2 bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 via-blue-400 to-indigo-400 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">
+                Cloud Security & Hacking Lab
+            </h1>
+            
+            <p class="mt-8 text-slate-100 font-medium text-lg md:text-xl max-w-2xl mx-auto leading-relaxed text-glow">
+                실전 클라우드 인프라 보안 및 모의 해킹 시나리오 연구 자료 저장소
+            </p>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-4xl mx-auto px-6 py-8 w-full">
+
+                <div class="bg-slate-950/90 p-8 md:p-12 rounded-2xl shadow-2xl border border-slate-700/50 backdrop-blur-xl prose prose-invert prose-slate max-w-none prose-img:rounded-xl prose-a:text-cyan-400 hover:prose-a:text-cyan-300 prose-headings:text-slate-100 prose-strong:text-cyan-100">
+                    <h2>5.1 감사 로그 관리 및 중앙 집중화</h2>
+<hr />
+<h3><strong>1. 감사 로그(Audit Log)의 정의와 중요성</strong></h3>
+<p><strong>Audit Log (감사 로그, 시스템 및 사용자 활동 기록)</strong>는 정보 시스템 내에서 발생하는 모든 활동(접속 기록, 데이터 수정, 오류 발생 등)을 시간 순서대로 기록한 데이터입니다. 침해 사고 발생 시 <strong>Forensics (포렌식, 디지털 증명 및 분석)</strong>의 핵심 증거로 사용되며, 법적 규제 준수(Compliance)를 위해 반드시 안전하게 관리되어야 합니다.</p>
+<ul>
+<li><strong>기밀성 및 무결성</strong>: 로그는 공격자에 의해 변조되거나 삭제되지 않도록 별도의 격리된 저장소에 보관해야 합니다.</li>
+<li><strong>추적성</strong>: "누가, 언제, 어디서, 무엇을 했는지"에 대한 <strong>5W1H (Who, When, Where, What, Why, How)</strong> 정보를 포함해야 합니다.</li>
+</ul>
+<blockquote>
+<p><strong>설명</strong>: 웹 서버 보안의 완성은 침입을 막는 것뿐만 아니라, 침입 후의 행적을 완벽히 기록하여 재발을 방지하는 시스템을 갖추는 것입니다.</p>
+</blockquote>
+<hr />
+<h3><strong>2. 웹 서버 로그 설정 (Nginx 기준)</strong></h3>
+<p>웹 서버의 상세한 로그 설정은 공격 시도의 패턴을 분석하는 기초 자료가 됩니다.</p>
+<ul>
+<li><strong>Access Log (접근 로그)</strong>: 모든 HTTP 요청에 대한 기록을 남깁니다.</li>
+<li><strong>Error Log (에러 로그)</strong>: 서버 내부 오류나 비정상적인 요청에 대한 기록을 남깁니다.</li>
+</ul>
+<pre><code class="language-bash"># Nginx 로그 포맷 설정 (/etc/nginx/nginx.conf)
+log_format main '$remote_addr - $remote_user [$time_local] &quot;$request&quot; '
+                  '$status $body_bytes_sent &quot;$http_referer&quot; '
+                  '&quot;$http_user_agent&quot; &quot;$http_x_forwarded_for&quot;';
+
+# 로그 저장 경로 및 포맷 적용
+access_log /var/log/nginx/access.log main;
+error_log /var/log/nginx/error.log warn;
+</code></pre>
+<ul>
+<li><strong>Log Rotation (로그 로테이션, 로그 순환)</strong>: 로그 파일이 너무 커져 디스크 용량을 소모하는 것을 방지하기 위해 주기적으로 파일을 압축하고 교체합니다.</li>
+</ul>
+<pre><code class="language-bash"># 리눅스 logrotate 설정 확인
+cat /etc/logrotate.d/nginx
+</code></pre>
+<hr />
+<h3><strong>3. 로그 중앙 집중화 및 SIEM 연동</strong></h3>
+<p>개별 서버에 로그를 두면 서버 탈취 시 로그가 삭제될 위험이 있습니다. 따라서 외부의 <strong>Log Collector (로그 수집기)</strong>를 통해 중앙 저장소로 전송해야 합니다.</p>
+<ul>
+<li><strong>ELK Stack (Elasticsearch, Logstash, Kibana)</strong>: 오픈소스 기반의 실시간 로그 수집, 분석 및 시각화 도구입니다.</li>
+<li><strong>SIEM (Security Information and Event Management, 보안 정보 및 이벤트 관리)</strong>: 여러 시스템의 로그를 실시간으로 통합 분석하여 위협을 탐지하는 보안 솔루션입니다.</li>
+</ul>
+<blockquote>
+<p><strong>설명</strong>: <strong>SIEM (보안 정보 및 이벤트 관리)</strong>은 단순한 로그 저장을 넘어, 서로 다른 장비에서 발생하는 로그들 사이의 상관관계를 분석하여 고도화된 공격을 탐지합니다.</p>
+</blockquote>
+<hr />
+<h3><strong>4. [AWS 환경 보안 서비스 및 과금 안내]</strong></h3>
+<p>AWS에서는 로그 수집과 분석을 자동화해주는 강력한 관리형 서비스를 제공합니다.</p>
+<ul>
+<li><strong>Amazon CloudWatch Logs (아마존 클라우드워치 로그)</strong><ul>
+<li>EC2 인스턴스의 로그를 실시간으로 수집하고 저장합니다.</li>
+<li><strong>과금 안내</strong>: 수집되는 데이터량(GB당 <strong>$0.50</strong>)과 보관되는 데이터량(GB당 <strong>$0.03/월</strong>)에 따라 비용이 발생합니다. <a href="https://aws.amazon.com/ko/cloudwatch/pricing/">공식 요금 페이지</a></li>
+</ul>
+</li>
+<li><strong>Amazon S3 (아마존 S3)</strong><ul>
+<li>장기 보관이 필요한 로그를 저렴한 비용으로 저장하는 용도로 사용됩니다.</li>
+</ul>
+</li>
+<li><strong>Amazon OpenSearch Service (아마존 오픈서치 서비스)</strong><ul>
+<li>대량의 로그 데이터를 고속으로 검색하고 시각화합니다. (유료 인스턴스 시간당 과금)</li>
+</ul>
+</li>
+</ul>
+<hr />
+<p>Next Step: 실시간 이상 징후 탐지</p>
+<hr />
+<p><strong>상세 설명 주석</strong>
+1. <strong>Forensics</strong>: 디지털 매체에 기록된 정보를 수집, 식별, 분석하여 법적 증거 능력을 확보하는 기술입니다.
+2. <strong>Log Rotation</strong>: 로그 파일의 무한 증식을 막기 위해 특정 주기로 기존 파일을 보관하고 새 파일을 생성하는 관리 방식입니다.
+3. <strong>Logstash</strong>: 다양한 소스로부터 데이터를 수집하고 변환하여 원하는 저장소로 전송하는 데이터 파이프라인 도구입니다.
+4. <strong>CloudWatch Agent</strong>: 서버 내부의 로그 파일(access.log 등)을 읽어 CloudWatch Logs 서비스로 전송하기 위해 설치하는 에이전트 소프트웨어입니다.
+5. <strong>Retention Policy (보존 정책)</strong>: 로그 데이터를 법적/업무적 필요에 따라 얼마나 오래 보관할지 결정하는 기준입니다.</p>
+                </div>
+                
+    </main>
+    <footer class="border-t border-slate-800/80 py-8 text-center text-slate-400 text-sm bg-slate-950/90 backdrop-blur-md mt-auto">
+        <p class="font-mono">&copy; 2026 Putto's Lectures. All rights reserved. <span class="text-cyan-800 font-bold ml-2">| ACCESS SECURED.</span></p>
+    </footer>
+
+    <script>
+        // 전역 상태 변수: 디폴트를 'false'로 변경하여 모든 폴더가 처음에는 접혀있도록 설정합니다.
+        let isAllExpanded = false;
+
+        // 개별 폴더를 펼치거나 접는 함수
+        function toggleFolder(element) {
+            // 클릭된 헤더의 부모 섹션(Section) 및 내부 리스트 컨테이너(Container) 탐색
+            const section = element.closest('.folder-section');
+            const listContainer = section.querySelector('.list-container');
+            const folderIcon = element.querySelector('.folder-icon');
+            const chevronIcon = element.querySelector('.chevron-icon');
+            
+            // 데이터 속성(Data Attributes)에 저장된 아이콘 클래스명 불러오기
+            const baseIcon = element.getAttribute('data-base-icon');
+            const closedIcon = element.getAttribute('data-closed-icon');
+
+            // 현재 리스트가 펼쳐진 상태인지 확인 (CSS Grid 속성 기준)
+            const isExpanded = listContainer.classList.contains('grid-rows-[1fr]');
+
+            if (isExpanded) {
+                // 접기(Collapse) 액션 수행
+                listContainer.classList.remove('grid-rows-[1fr]', 'opacity-100');
+                listContainer.classList.add('grid-rows-[0fr]', 'opacity-0');
+                
+                // 우측 화살표 아이콘 회전
+                chevronIcon.classList.add('rotate-180');
+                
+                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 닫힘 상태로 변경
+                if (baseIcon !== 'fa-server') {
+                    folderIcon.classList.remove('fa-folder-open');
+                    folderIcon.classList.add('fa-folder');
+                }
+            } else {
+                // 펼치기(Expand) 액션 수행
+                listContainer.classList.remove('grid-rows-[0fr]', 'opacity-0');
+                listContainer.classList.add('grid-rows-[1fr]', 'opacity-100');
+                
+                // 우측 화살표 아이콘 원상 복구
+                chevronIcon.classList.remove('rotate-180');
+                
+                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 열림 상태로 변경
+                if (baseIcon !== 'fa-server') {
+                    folderIcon.classList.remove('fa-folder');
+                    folderIcon.classList.add('fa-folder-open');
+                }
+            }
+        }
+
+        // 전체 폴더를 일괄적으로 펼치거나 접는 함수
+        function toggleAllFolders() {
+            // 전역 상태 반전
+            isAllExpanded = !isAllExpanded;
+            
+            // DOM(Document Object Model, 문서 객체 모델)에서 모든 폴더 헤더 요소 선택
+            const headers = document.querySelectorAll('.folder-header');
+            const globalBtnIcon = document.getElementById('global-toggle-icon');
+            const globalBtnText = document.getElementById('global-toggle-text');
+
+            headers.forEach(header => {
+                const section = header.closest('.folder-section');
+                const listContainer = section.querySelector('.list-container');
+                const isCurrentlyExpanded = listContainer.classList.contains('grid-rows-[1fr]');
+
+                // 현재 개별 폴더의 상태가 전역 상태 목표와 다를 경우에만 토글 함수 실행
+                if (isAllExpanded !== isCurrentlyExpanded) {
+                    toggleFolder(header);
+                }
+            });
+
+            // 전역 토글 버튼의 UI(User Interface, 사용자 인터페이스) 업데이트
+            if (isAllExpanded) {
+                globalBtnIcon.classList.remove('fa-folder');
+                globalBtnIcon.classList.add('fa-folder-open');
+                globalBtnText.innerText = 'COLLAPSE ALL';
+            } else {
+                globalBtnIcon.classList.remove('fa-folder-open');
+                globalBtnIcon.classList.add('fa-folder');
+                globalBtnText.innerText = 'EXPAND ALL';
+            }
+        }
+    </script>
+</body>
+</html>
