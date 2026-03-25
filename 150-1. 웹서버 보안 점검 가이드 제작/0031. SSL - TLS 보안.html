@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security & Cloud Hacking Lab</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+        
+        /* 기본 글꼴 및 다크 모드 배경색 설정 */
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            /* 전체 화면 배경 이미지 적용 및 투명도(Overlay) 설정: 텍스트 가시성을 위해 어두운 오버레이 강화 */
+            background-image: linear-gradient(to bottom, rgba(2, 6, 23, 0.75), rgba(2, 6, 23, 0.95)), 
+                              url('image_1a3201.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center center;
+        }
+
+        /* 텍스트 리스트 호버 효과: 터미널 스타일 */
+        .list-hover {
+            transition: all 0.2s ease;
+        }
+        .list-hover:hover {
+            color: #22d3ee; 
+            padding-left: 0.75rem; 
+            background-color: rgba(15, 23, 42, 0.8); 
+            border-left-color: #0ea5e9;
+        }
+
+        /* 텍스트 가시성을 높이는 그림자 효과 클래스 */
+        .text-glow {
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+        }
+        .neon-glow {
+            text-shadow: 0 0 8px rgba(34, 211, 238, 0.6);
+        }
+        
+        /* 커스텀 스크롤바 (선택적 시각 강화) */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+    </style>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+</head>
+<body class="min-h-screen flex flex-col">
+    <header class="py-24 px-6 relative overflow-hidden">
+        
+        <a href="https://putto4u.github.io/06.Hacking-Security" class="absolute top-6 left-6 md:left-10 z-20 group cursor-pointer block" target="_blank" rel="noopener noreferrer">
+            <div class="flex items-center space-x-2 bg-slate-900/80 py-2 px-4 rounded-xl border border-cyan-900/50 backdrop-blur-md shadow-[0_0_15px_rgba(8,145,178,0.2)] transition-all duration-300 group-hover:border-cyan-400/60 group-hover:shadow-[0_0_20px_rgba(34,211,238,0.4)]">
+                <div class="relative flex h-3 w-3 mr-1">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
+                </div>
+                <span class="font-mono text-[10px] md:text-xs text-slate-400 tracking-wider">CHIEF SYSTEM ARCHITECT <span class="text-cyan-500 ml-1">❯</span></span>
+                <span class="font-black text-cyan-300 tracking-widest font-mono text-sm md:text-base neon-glow ml-1">PUTTO</span>
+                <span class="font-bold text-slate-200 tracking-widest font-mono text-sm md:text-base">'S LECTURES</span>
+            </div>
+        </a>
+
+        <div class="max-w-4xl mx-auto relative z-10 text-center mt-8">
+            <div class="inline-flex items-center justify-center space-x-3 mb-8 bg-slate-950/60 p-4 rounded-2xl backdrop-blur-md border border-slate-700/80 shadow-2xl">
+                <i class="fas fa-user-secret text-4xl text-cyan-400 drop-shadow-lg"></i>
+                <span class="text-slate-500">|</span>
+                <i class="fas fa-shield-halved text-4xl text-blue-500 drop-shadow-lg"></i>
+            </div>
+            
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-2 pb-2 bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 via-blue-400 to-indigo-400 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">
+                Cloud Security & Hacking Lab
+            </h1>
+            
+            <p class="mt-8 text-slate-100 font-medium text-lg md:text-xl max-w-2xl mx-auto leading-relaxed text-glow">
+                실전 클라우드 인프라 보안 및 모의 해킹 시나리오 연구 자료 저장소
+            </p>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-4xl mx-auto px-6 py-8 w-full">
+
+                <div class="bg-slate-950/90 p-8 md:p-12 rounded-2xl shadow-2xl border border-slate-700/50 backdrop-blur-xl prose prose-invert prose-slate max-w-none prose-img:rounded-xl prose-a:text-cyan-400 hover:prose-a:text-cyan-300 prose-headings:text-slate-100 prose-strong:text-cyan-100">
+                    <h2>3.1 SSL/TLS (Secure Sockets Layer / Transport Layer Security, 보안 소켓 계층 / 전송 계층 보안) 적용</h2>
+<hr />
+<h3><strong>1. SSL/TLS의 정의와 보안의 3요소</strong></h3>
+<p><strong>SSL/TLS (Secure Sockets Layer / Transport Layer Security, 보안 소켓 계층 / 전송 계층 보안)</strong>는 웹 브라우저와 웹 서버 간의 데이터를 암호화하여 전송하는 표준 보안 프로토콜입니다. 현대 웹 환경에서는 기존의 보안 취약점이 발견된 SSL을 대신하여 보다 안전한 TLS 프로토콜을 사용하며, 이를 통해 통신의 기밀성, 무결성, 가용성을 보장합니다.</p>
+<ul>
+<li><strong>Confidentiality (기밀성)</strong>: 스니핑(Sniffing) 공격으로부터 데이터를 보호하기 위해 모든 통신 내용을 암호화합니다.</li>
+<li><strong>Integrity (무결성)</strong>: 전송 중인 데이터가 변조되지 않았음을 보장합니다.</li>
+<li><strong>Authentication (인증)</strong>: 접속하려는 서버가 신뢰할 수 있는 기관으로부터 인증받은 실제 서버임을 증명합니다.</li>
+</ul>
+<blockquote>
+<p><strong>설명</strong>: <strong>Handshake (핸드셰이크, 악수)</strong> 과정을 통해 클라이언트와 서버는 서로의 신원을 확인하고 통신에 사용할 암호화 키를 안전하게 공유합니다.</p>
+</blockquote>
+<hr />
+<h3><strong>2. SSL/TLS 핸드셰이크 프로세스</strong></h3>
+<p>데이터 전송 전, 클라이언트와 서버는 암호화 알고리즘과 키를 결정하는 복잡한 협상 과정을 거칩니다.</p>
+<ol>
+<li><strong>Client Hello</strong>: 클라이언트가 지원 가능한 암호화 방식(Cipher Suite) 목록을 보냅니다.</li>
+<li><strong>Server Hello &amp; Certificate</strong>: 서버가 암호화 방식을 선택하고 자신의 <strong>Digital Certificate (디지털 인증서, 전자 서명된 보안 인증서)</strong>를 보냅니다.</li>
+<li><strong>Key Exchange</strong>: 공개키 암호화 방식을 이용하여 데이터를 암호화할 대칭키(Session Key)를 생성 및 공유합니다.</li>
+<li><strong>Cipher Spec Change</strong>: 이후 모든 통신은 공유된 대칭키로 암호화됨을 선언합니다.</li>
+</ol>
+<blockquote>
+<p><strong>설명</strong>: <strong>Cipher Suite (사이퍼 스위트, 암호화 알고리즘 세트)</strong>는 프로토콜 버전, 키 교환 방식, 대칭 암호화 방식, 해시 함수 등의 조합을 의미합니다.</p>
+</blockquote>
+<hr />
+<h3><strong>3. 웹 서버 보안 설정 (Nginx 기준)</strong></h3>
+<p>취약한 암호화 알고리즘(DES, RC4, MD5)을 제거하고 TLS 1.2 이상 버전만 사용하도록 설정하는 것이 보안의 핵심입니다.</p>
+<pre><code class="language-bash"># Nginx 가상 호스트 설정 파일 수정
+sudo vi /etc/nginx/sites-available/default
+
+# SSL 설정 블록 예시
+server {
+    listen 443 ssl;
+    server_name example.com;
+
+    # 인증서 경로 지정
+    ssl_certificate /etc/letsencrypt/live/example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem;
+
+    # 최신 보안 프로토콜만 허용 (TLS 1.2, 1.3)
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    # 취약한 암호화 알고리즘 제외 및 강력한 사이퍼 스위트 설정
+    ssl_ciphers 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384';
+    ssl_prefer_server_ciphers on;
+}
+</code></pre>
+<blockquote>
+<p><strong>설명</strong>: <strong>CA (Certificate Authority, 인증 기관)</strong>로부터 발급받은 인증서와 개인키를 서버에 설치하여 HTTPS 서비스를 활성화합니다.</p>
+</blockquote>
+<hr />
+<h3><strong>4. HSTS (HTTP Strict Transport Security) 적용</strong></h3>
+<p><strong>HSTS (HTTP Strict Transport Security, HTTP 엄격한 전송 보안)</strong>는 브라우저가 해당 사이트에 접속할 때 항상 HTTPS 프로토콜만 사용하도록 강제하는 보안 헤더입니다. 이를 통해 HTTP를 HTTPS로 리다이렉트하는 과정에서 발생할 수 있는 <strong>SSL Stripping (SSL 스트리핑, HTTPS를 HTTP로 하향 유도하는 공격)</strong>을 원천 차단합니다.</p>
+<pre><code class="language-bash"># Nginx 설정에 HSTS 헤더 추가
+add_header Strict-Transport-Security &quot;max-age=31536000; includeSubDomains&quot; always;
+</code></pre>
+<hr />
+<h3><strong>[AWS 환경 보안 가이드 및 과금 안내]</strong></h3>
+<p>AWS 환경에서는 서버 내부 설정보다 관리형 서비스를 이용하는 것이 가용성과 보안성 측면에서 유리합니다.</p>
+<ul>
+<li><strong>AWS Certificate Manager (ACM, AWS 인증서 관리자)</strong><ul>
+<li>Public SSL/TLS 인증서를 무료로 발급 및 갱신해 줍니다. (ELB, CloudFront와 연동 필수)</li>
+<li><strong>과금 안내</strong>: 인증서 발급 자체는 <strong>무료</strong>이나, 사설 CA(Private CA)를 구축하여 사용할 경우 월별 고정 비용 및 발급 비용이 발생합니다. <a href="https://aws.amazon.com/ko/certificate-manager/pricing/">공식 요금 페이지</a></li>
+</ul>
+</li>
+<li><strong>Application Load Balancer (ALB, 애플리케이션 로드 밸런서)</strong><ul>
+<li><strong>SSL Termination (SSL 종단)</strong> 기능을 제공하여 서버의 암복호화 부하를 대신 처리합니다.</li>
+<li><strong>과금 안내</strong>: ALB는 시간당 사용 요금과 <strong>LCU (Load Balancer Capacity Units, 로드 밸런서 용량 단위)</strong> 소비량에 따라 과금됩니다.</li>
+</ul>
+</li>
+</ul>
+<hr />
+<p>Next Step: 보안 헤더 설정</p>
+<hr />
+<p><strong>상세 설명 주석</strong>
+1. <strong>SSL Termination</strong>: 로드 밸런서에서 SSL 복호화를 수행하고, 내부 서버와는 HTTP로 통신하여 서버 자원을 절약하는 방식입니다.
+2. <strong>Let's Encrypt</strong>: 무료로 SSL 인증서를 발급해주는 비영리 인증 기관으로, 90일마다 자동 갱신 설정을 통해 주로 사용됩니다.
+3. <strong>Forward Secrecy (전방 향후 보안)</strong>: 서버의 개인키가 유출되더라도 과거에 통신했던 암호화된 데이터는 복구할 수 없도록 보장하는 성질입니다.
+4. <strong>max-age</strong>: HSTS 설정이 브라우저에 기억될 기간을 초 단위로 지정합니다. (31536000초 = 1년)</p>
+                </div>
+                
+    </main>
+    <footer class="border-t border-slate-800/80 py-8 text-center text-slate-400 text-sm bg-slate-950/90 backdrop-blur-md mt-auto">
+        <p class="font-mono">&copy; 2026 Putto's Lectures. All rights reserved. <span class="text-cyan-800 font-bold ml-2">| ACCESS SECURED.</span></p>
+    </footer>
+
+    <script>
+        // 전역 상태 변수: 디폴트를 'false'로 변경하여 모든 폴더가 처음에는 접혀있도록 설정합니다.
+        let isAllExpanded = false;
+
+        // 개별 폴더를 펼치거나 접는 함수
+        function toggleFolder(element) {
+            // 클릭된 헤더의 부모 섹션(Section) 및 내부 리스트 컨테이너(Container) 탐색
+            const section = element.closest('.folder-section');
+            const listContainer = section.querySelector('.list-container');
+            const folderIcon = element.querySelector('.folder-icon');
+            const chevronIcon = element.querySelector('.chevron-icon');
+            
+            // 데이터 속성(Data Attributes)에 저장된 아이콘 클래스명 불러오기
+            const baseIcon = element.getAttribute('data-base-icon');
+            const closedIcon = element.getAttribute('data-closed-icon');
+
+            // 현재 리스트가 펼쳐진 상태인지 확인 (CSS Grid 속성 기준)
+            const isExpanded = listContainer.classList.contains('grid-rows-[1fr]');
+
+            if (isExpanded) {
+                // 접기(Collapse) 액션 수행
+                listContainer.classList.remove('grid-rows-[1fr]', 'opacity-100');
+                listContainer.classList.add('grid-rows-[0fr]', 'opacity-0');
+                
+                // 우측 화살표 아이콘 회전
+                chevronIcon.classList.add('rotate-180');
+                
+                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 닫힘 상태로 변경
+                if (baseIcon !== 'fa-server') {
+                    folderIcon.classList.remove('fa-folder-open');
+                    folderIcon.classList.add('fa-folder');
+                }
+            } else {
+                // 펼치기(Expand) 액션 수행
+                listContainer.classList.remove('grid-rows-[0fr]', 'opacity-0');
+                listContainer.classList.add('grid-rows-[1fr]', 'opacity-100');
+                
+                // 우측 화살표 아이콘 원상 복구
+                chevronIcon.classList.remove('rotate-180');
+                
+                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 열림 상태로 변경
+                if (baseIcon !== 'fa-server') {
+                    folderIcon.classList.remove('fa-folder');
+                    folderIcon.classList.add('fa-folder-open');
+                }
+            }
+        }
+
+        // 전체 폴더를 일괄적으로 펼치거나 접는 함수
+        function toggleAllFolders() {
+            // 전역 상태 반전
+            isAllExpanded = !isAllExpanded;
+            
+            // DOM(Document Object Model, 문서 객체 모델)에서 모든 폴더 헤더 요소 선택
+            const headers = document.querySelectorAll('.folder-header');
+            const globalBtnIcon = document.getElementById('global-toggle-icon');
+            const globalBtnText = document.getElementById('global-toggle-text');
+
+            headers.forEach(header => {
+                const section = header.closest('.folder-section');
+                const listContainer = section.querySelector('.list-container');
+                const isCurrentlyExpanded = listContainer.classList.contains('grid-rows-[1fr]');
+
+                // 현재 개별 폴더의 상태가 전역 상태 목표와 다를 경우에만 토글 함수 실행
+                if (isAllExpanded !== isCurrentlyExpanded) {
+                    toggleFolder(header);
+                }
+            });
+
+            // 전역 토글 버튼의 UI(User Interface, 사용자 인터페이스) 업데이트
+            if (isAllExpanded) {
+                globalBtnIcon.classList.remove('fa-folder');
+                globalBtnIcon.classList.add('fa-folder-open');
+                globalBtnText.innerText = 'COLLAPSE ALL';
+            } else {
+                globalBtnIcon.classList.remove('fa-folder-open');
+                globalBtnIcon.classList.add('fa-folder');
+                globalBtnText.innerText = 'EXPAND ALL';
+            }
+        }
+    </script>
+</body>
+</html>
