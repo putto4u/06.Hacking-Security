@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security & Cloud Hacking Lab</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+        
+        /* 기본 글꼴 및 다크 모드 배경색 설정 */
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            /* 전체 화면 배경 이미지 적용 및 투명도(Overlay) 설정: 텍스트 가시성을 위해 어두운 오버레이 강화 */
+            background-image: linear-gradient(to bottom, rgba(2, 6, 23, 0.75), rgba(2, 6, 23, 0.95)), 
+                              url('image_1a3201.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center center;
+        }
+
+        /* 텍스트 리스트 호버 효과: 터미널 스타일 */
+        .list-hover {
+            transition: all 0.2s ease;
+        }
+        .list-hover:hover {
+            color: #22d3ee; 
+            padding-left: 0.75rem; 
+            background-color: rgba(15, 23, 42, 0.8); 
+            border-left-color: #0ea5e9;
+        }
+
+        /* 텍스트 가시성을 높이는 그림자 효과 클래스 */
+        .text-glow {
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+        }
+        .neon-glow {
+            text-shadow: 0 0 8px rgba(34, 211, 238, 0.6);
+        }
+        
+        /* 커스텀 스크롤바 (선택적 시각 강화) */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+    </style>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+</head>
+<body class="min-h-screen flex flex-col">
+    <header class="py-24 px-6 relative overflow-hidden">
+        
+        <a href="https://putto4u.github.io/06.Hacking-Security" class="absolute top-6 left-6 md:left-10 z-20 group cursor-pointer block" target="_blank" rel="noopener noreferrer">
+            <div class="flex items-center space-x-2 bg-slate-900/80 py-2 px-4 rounded-xl border border-cyan-900/50 backdrop-blur-md shadow-[0_0_15px_rgba(8,145,178,0.2)] transition-all duration-300 group-hover:border-cyan-400/60 group-hover:shadow-[0_0_20px_rgba(34,211,238,0.4)]">
+                <div class="relative flex h-3 w-3 mr-1">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
+                </div>
+                <span class="font-mono text-[10px] md:text-xs text-slate-400 tracking-wider">CHIEF SYSTEM ARCHITECT <span class="text-cyan-500 ml-1">❯</span></span>
+                <span class="font-black text-cyan-300 tracking-widest font-mono text-sm md:text-base neon-glow ml-1">PUTTO</span>
+                <span class="font-bold text-slate-200 tracking-widest font-mono text-sm md:text-base">'S LECTURES</span>
+            </div>
+        </a>
+
+        <div class="max-w-4xl mx-auto relative z-10 text-center mt-8">
+            <div class="inline-flex items-center justify-center space-x-3 mb-8 bg-slate-950/60 p-4 rounded-2xl backdrop-blur-md border border-slate-700/80 shadow-2xl">
+                <i class="fas fa-user-secret text-4xl text-cyan-400 drop-shadow-lg"></i>
+                <span class="text-slate-500">|</span>
+                <i class="fas fa-shield-halved text-4xl text-blue-500 drop-shadow-lg"></i>
+            </div>
+            
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-2 pb-2 bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 via-blue-400 to-indigo-400 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">
+                Cloud Security & Hacking Lab
+            </h1>
+            
+            <p class="mt-8 text-slate-100 font-medium text-lg md:text-xl max-w-2xl mx-auto leading-relaxed text-glow">
+                실전 클라우드 인프라 보안 및 모의 해킹 시나리오 연구 자료 저장소
+            </p>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-4xl mx-auto px-6 py-8 w-full">
+
+                <div class="bg-slate-950/90 p-8 md:p-12 rounded-2xl shadow-2xl border border-slate-700/50 backdrop-blur-xl prose prose-invert prose-slate max-w-none prose-img:rounded-xl prose-a:text-cyan-400 hover:prose-a:text-cyan-300 prose-headings:text-slate-100 prose-strong:text-cyan-100">
+                    <h2>웹 서버 보안 점검 및 강화 가이드 (Web Server Security Hardening Guide)</h2>
+<hr />
+<h3><strong>[PART 1] 1.1 OS Hardening (운영체제 요새화)</strong></h3>
+<p><strong>OS Hardening</strong>은 운영체제의 설정 오류와 불필요한 요소를 제거하여 <strong>Attack Surface (공격 표면, 공격 가능한 영역)</strong>를 최소화하는 공정입니다. 최신 리눅스 커널 및 패키지 관리 기준(2026년 가이드)을 적용하여 시스템의 기밀성과 무결성을 확보합니다.</p>
+<ul>
+<li><strong>불필요한 네트워크 서비스 식별</strong>
+    현재 외부로 노출된 포트와 해당 프로세스를 정확히 파악하여 미사용 서비스를 격리합니다.</li>
+<li><strong>보안 업데이트 자동화</strong>
+    발표된 <strong>CVE (Common Vulnerabilities and Exposures, 알려진 보안 취약점 식별자)</strong>에 대응하기 위해 보안 패치를 최신 상태로 유지합니다.</li>
+<li><strong>SSH (Secure Shell) 강화</strong>
+    원격 접속 시 <strong>Root (루트, 최고 관리자)</strong> 직접 접속을 차단하여 계정 탈취 위험을 방지합니다.</li>
+</ul>
+<blockquote>
+<p><strong>설명</strong>: 시스템의 가장 하단인 OS 레벨에서 보안 구멍을 메우는 것은 상위 웹 애플리케이션 보안을 위한 필수 전제 조건입니다.</p>
+</blockquote>
+<pre><code class="language-bash"># 1. 실행 중인 리스닝 포트 및 프로세스 확인 (최신 ss 명령어 사용)
+sudo ss -tulpn
+
+# 2. 불필요한 서비스 중지 및 비활성화 (예: rpcbind)
+sudo systemctl stop rpcbind
+sudo systemctl disable rpcbind
+
+# 3. 최신 패키지 업데이트 및 보안 패치 적용
+sudo apt update &amp;&amp; sudo apt upgrade -y
+
+# 4. SSH Root 로그인 차단 (sed를 이용한 안전한 수정)
+sudo sed -i 's/^#PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
+sudo systemctl restart ssh
+</code></pre>
+<ul>
+<li><strong>AWS 비용 안내</strong>: <strong>Amazon Inspector (아마존 인스펙터)</strong> 사용 시, EC2 인스턴스 스캔당 비용이 발생합니다. (월별 스캔 횟수에 따라 과금)</li>
+</ul>
+<p>Next Step: 리눅스 커널 파라미터 최적화</p>
+<hr />
+<h3><strong>[PART 1] 1.2 리눅스 커널 파라미터 최적화</strong></h3>
+<p>커널 파라미터 조정은 네트워크 스택 수준에서 발생할 수 있는 <strong>DDoS (Distributed Denial of Service, 분산 서비스 거부 공격)</strong> 및 <strong>IP Spoofing (IP 스푸핑, IP 주소 위변조)</strong>을 방어하는 효과적인 방법입니다.</p>
+<ul>
+<li><strong>SYN Cookies (SYN 쿠키) 활성화</strong>
+    <strong>TCP SYN Flood (TCP SYN 플러드, 연결 요청 폭주 공격)</strong> 시 서버 자원 고갈을 방지합니다.</li>
+<li><strong>ICMP (Internet Control Message Protocol) 제어</strong>
+    서버의 위치 노출 및 네트워크 진단을 악용한 공격(Smurf Attack 등)을 차단합니다.</li>
+<li><strong>Reverse Path Filtering (역경로 필터링)</strong>
+    위조된 소스 IP를 가진 패킷이 유입되지 않도록 경로 검증을 강화합니다.</li>
+</ul>
+<blockquote>
+<p><strong>설명</strong>: <strong>sysctl (System Control, 커널 매개변수 제어)</strong>은 재부팅 없이 커널 설정을 변경할 수 있는 도구이며, 설정 후에는 반드시 파일을 저장하여 영구 적용해야 합니다.</p>
+</blockquote>
+<pre><code class="language-bash"># 1. SYN Flood 방어 설정
+sudo sysctl -w net.ipv4.tcp_syncookies=1
+
+# 2. ICMP Redirect 차단 (MITM 공격 방지)
+sudo sysctl -w net.ipv4.conf.all.accept_redirects=0
+sudo sysctl -w net.ipv4.conf.default.accept_redirects=0
+
+# 3. IP 스푸핑 방지 (RP Filter 활성화)
+sudo sysctl -w net.ipv4.conf.all.rp_filter=1
+sudo sysctl -w net.ipv4.conf.default.rp_filter=1
+
+# 4. 설정 파일 영구 적용
+sudo sysctl -p
+</code></pre>
+<ul>
+<li><strong>AWS 비용 안내</strong>: <strong>AWS Shield Standard (아마존 실드 스탠다드)</strong>는 기본 무료 제공되나, <strong>Shield Advanced (고급형)</strong>는 월 $3,000의 고정비용과 데이터 전송 비용이 발생합니다.</li>
+</ul>
+<p>Next Step: 정보 노출 방지 및 배너 숨기기</p>
+<hr />
+<h3><strong>[PART 2] 2.1 정보 노출 방지 및 배너 숨기기</strong></h3>
+<p>공격자는 공격 전 <strong>Banner Grabbing (배너 그래빙, 서비스 정보 수집)</strong>을 통해 서버 종류와 버전을 파악합니다. 이를 숨김으로써 특정 버전에 특화된 <strong>Exploit (익스플로잇, 취약점 공격 코드)</strong> 시도를 사전에 차단합니다.</p>
+<ul>
+<li><strong>Nginx 버전 정보 은폐</strong>
+    HTTP 응답 헤더에서 <code>Server: nginx/1.x.x</code>와 같은 버전 노출을 차단합니다.</li>
+<li><strong>Apache 서버 서명 제거</strong>
+    에러 페이지 하단에 노출되는 시스템 정보를 비활성화합니다.</li>
+</ul>
+<blockquote>
+<p><strong>설명</strong>: <strong>Footprinting (풋프린팅, 사전 조사)</strong> 단계를 어렵게 만드는 것만으로도 자동화된 공격 도구의 타겟에서 제외될 확률이 높아집니다.</p>
+</blockquote>
+<pre><code class="language-bash"># [Nginx] 설정 파일 수정
+sudo vi /etc/nginx/nginx.conf
+# http { ... } 블록 내에 추가
+server_tokens off;
+
+# [Apache] 설정 파일 수정 (Ubuntu 기준)
+sudo vi /etc/apache2/conf-enabled/security.conf
+# 아래 항목 수정
+ServerTokens Prod
+ServerSignature Off
+
+# 서비스 재시작
+sudo systemctl restart nginx
+sudo systemctl restart apache2
+</code></pre>
+<p>Next Step: 권한 관리 및 프로세스 격리</p>
+<hr />
+<h3><strong>[PART 3] 3.1 SSL/TLS (보안 소켓 계층/전송 계층 보안) 적용</strong></h3>
+<p>최신 웹 표준인 <strong>TLS 1.3 (Transport Layer Security 1.3)</strong>을 적용하여 통신 과정의 기밀성과 데이터 무결성을 보장합니다. 취약한 암호화 알고리즘을 제거하는 것이 핵심입니다.</p>
+<ul>
+<li><strong>Cipher Suite (사이퍼 스위트, 암호 알고리즘 조합) 최적화</strong>
+    안전하지 않은 DES, RC4, MD5 등을 제거하고 강력한 알고리즘만 허용합니다.</li>
+<li><strong>HSTS (HTTP Strict Transport Security) 활성화</strong>
+    클라이언트가 항상 HTTPS로만 접속하도록 강제하여 <strong>SSL Stripping (SSL 스트리핑, 하향 유도 공격)</strong>을 방어합니다.</li>
+</ul>
+<blockquote>
+<p><strong>설명</strong>: <strong>Forward Secrecy (전방 향후 보안)</strong>가 보장되는 암호화 방식을 선택하면, 미래에 서버 개인키가 유출되어도 과거에 암호화된 통신 내용을 복구할 수 없습니다.</p>
+</blockquote>
+<pre><code class="language-bash"># Nginx 가상 호스트 보안 설정 예시
+server {
+    listen 443 ssl;
+    ssl_protocols TLSv1.2 TLSv1.3; # 최신 버전만 허용
+
+    # 강력한 암호화 알고리즘 세트 (Mozilla 권장 가이드 반영)
+    ssl_ciphers 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384';
+    ssl_prefer_server_ciphers on;
+
+    # HSTS 설정 (1년 유지)
+    add_header Strict-Transport-Security &quot;max-age=31536000; includeSubDomains&quot; always;
+}
+</code></pre>
+<ul>
+<li><strong>AWS 비용 안내</strong>: <strong>ACM (AWS Certificate Manager)</strong>을 통한 퍼블릭 인증서 발급은 <strong>무료</strong>이나, <strong>Private CA (사설 인증기관)</strong> 운영 시 월별 고정 비용이 발생합니다.</li>
+</ul>
+<p>Next Step: 보안 헤더 설정</p>
+<hr />
+<h3><strong>[PART 4] 4.1 디렉터리 리스팅 및 메소드 차단</strong></h3>
+<p>불필요한 디렉터리 목록 노출과 위험한 <strong>HTTP Methods (HTTP 메소드, 요청 방식)</strong>를 차단하여 서버 내부 구조가 드러나는 것을 방지합니다.</p>
+<ul>
+<li><strong>Directory Indexing (디렉터리 인덱싱) 비활성화</strong>
+    <code>index.html</code> 파일이 없는 폴더 접근 시 파일 목록이 나열되는 현상을 차단합니다.</li>
+<li><strong>위험한 메소드(PUT, DELETE, TRACE) 제한</strong>
+    서버 자원을 수정하거나 탈취할 수 있는 요청 방식을 원천 차단합니다.</li>
+</ul>
+<blockquote>
+<p><strong>설명</strong>: <strong>HTTP 405 Method Not Allowed</strong> 응답을 활용하여 허용된 방식(GET, POST) 외의 접근을 차단하는 것이 보안의 기본입니다.</p>
+</blockquote>
+<pre><code class="language-bash"># 1. [Nginx] 디렉터리 리스팅 차단 (기본값이 off이나 명시적 설정 권장)
+location / {
+    autoindex off;
+}
+
+# 2. [Nginx] 허용되지 않은 메소드 일괄 차단
+if ($request_method !~ ^(GET|HEAD|POST)$ ) {
+    return 405;
+}
+
+# 3. [Apache] 디렉터리 리스팅 차단
+&lt;Directory /var/www/html&gt;
+    Options -Indexes
+&lt;/Directory&gt;
+</code></pre>
+<ul>
+<li><strong>AWS 비용 안내</strong>: <strong>Amazon S3 (아마존 S3)</strong> 버킷 사용 시, '퍼블릭 액세스 차단' 설정은 무료이나 데이터를 리스팅하는 API 호출 건수에 따라 과금이 발생합니다.</li>
+</ul>
+<p>Next Step: WAF (웹 애플리케이션 방화벽) 연동</p>
+<hr />
+<h3><strong>용어 설명 및 주석 (Footnotes)</strong></h3>
+<ol>
+<li><strong>CVE (Common Vulnerabilities and Exposures)</strong>: 보안 취약점을 관리하는 국제 표준 식별 번호입니다.</li>
+<li><strong>HSTS (HTTP Strict Transport Security)</strong>: 브라우저에 해당 웹사이트는 HTTPS로만 접속해야 함을 알리는 보안 정책입니다.</li>
+<li><strong>SS (Socket Statistics)</strong>: 리눅스에서 네트워크 소켓 정보를 확인하는 최신 명령어로, 구형인 <code>netstat</code>을 대체합니다.</li>
+<li><strong>MITM (Man-In-The-Middle)</strong>: 중간자 공격으로, 통신 당사자 사이에서 데이터를 도청하거나 변조하는 행위입니다.</li>
+<li><strong>ACM (AWS Certificate Manager)</strong>: AWS 서비스(ELB, CloudFront 등)에서 사용할 SSL/TLS 인증서를 통합 관리하는 서비스입니다.</li>
+</ol>
+<p>전체 보안 점검 최종 실습 및 보고서 작성</p>
+                </div>
+                
+    </main>
+    <footer class="border-t border-slate-800/80 py-8 text-center text-slate-400 text-sm bg-slate-950/90 backdrop-blur-md mt-auto">
+        <p class="font-mono">&copy; 2026 Putto's Lectures. All rights reserved. <span class="text-cyan-800 font-bold ml-2">| ACCESS SECURED.</span></p>
+    </footer>
+
+    <script>
+        // 전역 상태 변수: 디폴트를 'false'로 변경하여 모든 폴더가 처음에는 접혀있도록 설정합니다.
+        let isAllExpanded = false;
+
+        // 개별 폴더를 펼치거나 접는 함수
+        function toggleFolder(element) {
+            // 클릭된 헤더의 부모 섹션(Section) 및 내부 리스트 컨테이너(Container) 탐색
+            const section = element.closest('.folder-section');
+            const listContainer = section.querySelector('.list-container');
+            const folderIcon = element.querySelector('.folder-icon');
+            const chevronIcon = element.querySelector('.chevron-icon');
+            
+            // 데이터 속성(Data Attributes)에 저장된 아이콘 클래스명 불러오기
+            const baseIcon = element.getAttribute('data-base-icon');
+            const closedIcon = element.getAttribute('data-closed-icon');
+
+            // 현재 리스트가 펼쳐진 상태인지 확인 (CSS Grid 속성 기준)
+            const isExpanded = listContainer.classList.contains('grid-rows-[1fr]');
+
+            if (isExpanded) {
+                // 접기(Collapse) 액션 수행
+                listContainer.classList.remove('grid-rows-[1fr]', 'opacity-100');
+                listContainer.classList.add('grid-rows-[0fr]', 'opacity-0');
+                
+                // 우측 화살표 아이콘 회전
+                chevronIcon.classList.add('rotate-180');
+                
+                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 닫힘 상태로 변경
+                if (baseIcon !== 'fa-server') {
+                    folderIcon.classList.remove('fa-folder-open');
+                    folderIcon.classList.add('fa-folder');
+                }
+            } else {
+                // 펼치기(Expand) 액션 수행
+                listContainer.classList.remove('grid-rows-[0fr]', 'opacity-0');
+                listContainer.classList.add('grid-rows-[1fr]', 'opacity-100');
+                
+                // 우측 화살표 아이콘 원상 복구
+                chevronIcon.classList.remove('rotate-180');
+                
+                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 열림 상태로 변경
+                if (baseIcon !== 'fa-server') {
+                    folderIcon.classList.remove('fa-folder');
+                    folderIcon.classList.add('fa-folder-open');
+                }
+            }
+        }
+
+        // 전체 폴더를 일괄적으로 펼치거나 접는 함수
+        function toggleAllFolders() {
+            // 전역 상태 반전
+            isAllExpanded = !isAllExpanded;
+            
+            // DOM(Document Object Model, 문서 객체 모델)에서 모든 폴더 헤더 요소 선택
+            const headers = document.querySelectorAll('.folder-header');
+            const globalBtnIcon = document.getElementById('global-toggle-icon');
+            const globalBtnText = document.getElementById('global-toggle-text');
+
+            headers.forEach(header => {
+                const section = header.closest('.folder-section');
+                const listContainer = section.querySelector('.list-container');
+                const isCurrentlyExpanded = listContainer.classList.contains('grid-rows-[1fr]');
+
+                // 현재 개별 폴더의 상태가 전역 상태 목표와 다를 경우에만 토글 함수 실행
+                if (isAllExpanded !== isCurrentlyExpanded) {
+                    toggleFolder(header);
+                }
+            });
+
+            // 전역 토글 버튼의 UI(User Interface, 사용자 인터페이스) 업데이트
+            if (isAllExpanded) {
+                globalBtnIcon.classList.remove('fa-folder');
+                globalBtnIcon.classList.add('fa-folder-open');
+                globalBtnText.innerText = 'COLLAPSE ALL';
+            } else {
+                globalBtnIcon.classList.remove('fa-folder-open');
+                globalBtnIcon.classList.add('fa-folder');
+                globalBtnText.innerText = 'EXPAND ALL';
+            }
+        }
+    </script>
+</body>
+</html>
