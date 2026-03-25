@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security & Cloud Hacking Lab</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+        
+        /* 기본 글꼴 및 다크 모드 배경색 설정 */
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            /* 전체 화면 배경 이미지 적용 및 투명도(Overlay) 설정: 텍스트 가시성을 위해 어두운 오버레이 강화 */
+            background-image: linear-gradient(to bottom, rgba(2, 6, 23, 0.75), rgba(2, 6, 23, 0.95)), 
+                              url('image_1a3201.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center center;
+        }
+
+        /* 텍스트 리스트 호버 효과: 터미널 스타일 */
+        .list-hover {
+            transition: all 0.2s ease;
+        }
+        .list-hover:hover {
+            color: #22d3ee; 
+            padding-left: 0.75rem; 
+            background-color: rgba(15, 23, 42, 0.8); 
+            border-left-color: #0ea5e9;
+        }
+
+        /* 텍스트 가시성을 높이는 그림자 효과 클래스 */
+        .text-glow {
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+        }
+        .neon-glow {
+            text-shadow: 0 0 8px rgba(34, 211, 238, 0.6);
+        }
+        
+        /* 커스텀 스크롤바 (선택적 시각 강화) */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+    </style>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+</head>
+<body class="min-h-screen flex flex-col">
+    <header class="py-24 px-6 relative overflow-hidden">
+        
+        <a href="https://putto4u.github.io/06.Hacking-Security" class="absolute top-6 left-6 md:left-10 z-20 group cursor-pointer block" target="_blank" rel="noopener noreferrer">
+            <div class="flex items-center space-x-2 bg-slate-900/80 py-2 px-4 rounded-xl border border-cyan-900/50 backdrop-blur-md shadow-[0_0_15px_rgba(8,145,178,0.2)] transition-all duration-300 group-hover:border-cyan-400/60 group-hover:shadow-[0_0_20px_rgba(34,211,238,0.4)]">
+                <div class="relative flex h-3 w-3 mr-1">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
+                </div>
+                <span class="font-mono text-[10px] md:text-xs text-slate-400 tracking-wider">CHIEF SYSTEM ARCHITECT <span class="text-cyan-500 ml-1">❯</span></span>
+                <span class="font-black text-cyan-300 tracking-widest font-mono text-sm md:text-base neon-glow ml-1">PUTTO</span>
+                <span class="font-bold text-slate-200 tracking-widest font-mono text-sm md:text-base">'S LECTURES</span>
+            </div>
+        </a>
+
+        <div class="max-w-4xl mx-auto relative z-10 text-center mt-8">
+            <div class="inline-flex items-center justify-center space-x-3 mb-8 bg-slate-950/60 p-4 rounded-2xl backdrop-blur-md border border-slate-700/80 shadow-2xl">
+                <i class="fas fa-user-secret text-4xl text-cyan-400 drop-shadow-lg"></i>
+                <span class="text-slate-500">|</span>
+                <i class="fas fa-shield-halved text-4xl text-blue-500 drop-shadow-lg"></i>
+            </div>
+            
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-2 pb-2 bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 via-blue-400 to-indigo-400 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">
+                Cloud Security & Hacking Lab
+            </h1>
+            
+            <p class="mt-8 text-slate-100 font-medium text-lg md:text-xl max-w-2xl mx-auto leading-relaxed text-glow">
+                실전 클라우드 인프라 보안 및 모의 해킹 시나리오 연구 자료 저장소
+            </p>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-4xl mx-auto px-6 py-8 w-full">
+
+                <div class="bg-slate-950/90 p-8 md:p-12 rounded-2xl shadow-2xl border border-slate-700/50 backdrop-blur-xl prose prose-invert prose-slate max-w-none prose-img:rounded-xl prose-a:text-cyan-400 hover:prose-a:text-cyan-300 prose-headings:text-slate-100 prose-strong:text-cyan-100">
+                    <h2>4.2 WAF (Web Application Firewall, 웹 애플리케이션 방화벽) 연동</h2>
+<hr />
+<h3><strong>1. WAF의 정의와 필요성</strong></h3>
+<p><strong>WAF (Web Application Firewall, 웹 애플리케이션 방화벽)</strong>는 일반적인 네트워크 방화벽이 탐지하지 못하는 <strong>L7 (Application Layer, 애플리케이션 계층)</strong>의 비정상적인 트래픽을 분석하고 차단하는 보안 솔루션입니다. 기존 방화벽이 IP 주소나 포트 번호를 기준으로 차단한다면, WAF는 HTTP 패킷의 내용(Payload)을 검사하여 웹 공격을 정교하게 방어합니다.</p>
+<ul>
+<li><strong>필요성</strong>: 웹 애플리케이션은 항상 외부로 노출되어 있으며, 소스 코드의 취약점을 이용한 공격은 네트워크 방화벽만으로는 방어가 불가능합니다.</li>
+<li><strong>보안 목표</strong>: <strong>OWASP (Open Web Application Security Project, 오픈 소스 웹 애플리케이션 보안 프로젝트)</strong> Top 10과 같은 주요 웹 취약점 공격을 실시간으로 차단합니다.</li>
+</ul>
+<blockquote>
+<p><strong>설명</strong>: <strong>Payload (페이로드, 데이터 본체)</strong>는 전송되는 데이터 중 실제 공격 코드가 포함될 수 있는 부분입니다. WAF는 이 페이로드를 하나하나 검사하는 '세밀한 검문소' 역할을 수행합니다.</p>
+</blockquote>
+<hr />
+<h3><strong>2. 주요 탐지 및 차단 패턴</strong></h3>
+<p>WAF는 사전에 정의된 규칙(Rule)을 바탕으로 다음과 같은 대표적인 웹 공격을 탐지합니다.</p>
+<ul>
+<li><strong>SQL Injection (SQL 인젝션, 데이터베이스 명령 삽입)</strong><ul>
+<li>입력창에 SQL 구문을 삽입하여 데이터베이스 정보를 무단으로 조회하거나 변조하는 공격입니다.</li>
+</ul>
+</li>
+<li><strong>XSS (Cross-Site Scripting, 교차 사이트 스크립팅)</strong><ul>
+<li>악성 스크립트를 웹 페이지에 삽입하여 사용자의 세션 쿠키를 탈취하는 공격입니다.</li>
+</ul>
+</li>
+<li><strong>Path Traversal (경로 탐색, 디렉터리 접근 공격)</strong><ul>
+<li><code>../</code> 와 같은 상대 경로를 이용하여 서버의 민감한 시스템 파일에 접근하는 공격입니다.</li>
+</ul>
+</li>
+</ul>
+<hr />
+<h3><strong>3. ModSecurity (모드시큐리티) 오픈소스 WAF 연동</strong></h3>
+<p>호스트 기반 WAF인 <strong>ModSecurity</strong>를 Nginx나 Apache에 연동하여 서버 자체적인 방어력을 높일 수 있습니다.</p>
+<pre><code class="language-bash"># Nginx용 ModSecurity 커넥터 및 라이브러리 설치 (Ubuntu 기준)
+sudo apt update
+sudo apt install libnginx-mod-http-modsecurity -y
+
+# ModSecurity 활성화 설정 (nginx.conf)
+# http { ... } 또는 server { ... } 블록에 추가
+modsecurity on;
+modsecurity_rules_file /etc/nginx/modsec/main.conf;
+
+# 서비스 재시작하여 적용
+sudo systemctl restart nginx
+</code></pre>
+<blockquote>
+<p><strong>설명</strong>: <strong>ModSecurity (모드시큐리티)</strong>는 전 세계적으로 가장 많이 사용되는 오픈소스 WAF 엔진으로, 정교한 규칙 세트인 <strong>OWASP CRS (Core Rule Set)</strong>를 적용하여 높은 보안 수준을 유지할 수 있습니다.</p>
+</blockquote>
+<hr />
+<h3><strong>4. AWS WAF (아마존 웹 애플리케이션 방화벽) 활용 및 과금</strong></h3>
+<p>클라우드 환경에서는 별도의 서버 설치 없이 <strong>AWS WAF</strong>를 <strong>ALB (Application Load Balancer)</strong> 또는 <strong>CloudFront</strong>에 직접 연결하여 관리할 수 있습니다.</p>
+<ul>
+<li><strong>Managed Rule Groups (관리형 규칙 그룹)</strong>: AWS 보안 전문가가 미리 작성한 규칙(예: SQLi 방어, 봇 제어)을 클릭 한 번으로 적용할 수 있습니다.</li>
+<li>
+<p><strong>Web ACL (웹 접근 제어 목록)</strong>: 여러 규칙을 묶어 특정 리소스에 적용하는 최상위 보안 설정 단위입니다.</p>
+</li>
+<li>
+<p><strong>과금 안내 (유료 서비스)</strong>:</p>
+<ul>
+<li><strong>Web ACL</strong>: 생성된 ACL당 <strong>월 $5.00</strong> (시간 비례 계산).</li>
+<li><strong>Rule</strong>: 추가된 규칙당 <strong>월 $1.00</strong>.</li>
+<li><strong>Request</strong>: 처리된 웹 요청 100만 건당 <strong>$0.60</strong>.</li>
+<li><strong>Managed Rules</strong>: AWS 또는 마켓플레이스 판매자가 제공하는 유료 규칙 사용 시 추가 비용이 발생할 수 있습니다. <a href="https://aws.amazon.com/ko/waf/pricing/">공식 요금 페이지</a></li>
+</ul>
+</li>
+</ul>
+<hr />
+<p>Next Step: 감사 로그 관리 및 중앙 집중화</p>
+<hr />
+<p><strong>상세 설명 주석</strong>
+1. <strong>L7 (Application Layer)</strong>: OSI 7계층 중 최상위 계층으로, HTTP, FTP, SMTP 등 사용자가 직접 접하는 프로토콜이 동작하는 영역입니다.
+2. <strong>OWASP Top 10</strong>: 웹 애플리케이션 보안에서 가장 빈번하게 발생하는 10가지 위험 요소에 대한 표준 가이드라인입니다.
+3. <strong>ModSecurity</strong>: 웹 서버 모듈 형태로 동작하며 패킷의 헤더와 바디를 실시간으로 필터링하는 방화벽 엔진입니다.
+4. <strong>Web ACL (Web Access Control List)</strong>: 웹 요청을 허용, 차단 또는 모니터링할지 결정하는 규칙들의 집합입니다.
+5. <strong>ALB (Application Load Balancer)</strong>: 여러 대의 서버로 트래픽을 분산시켜주는 장치로, L7 계층에서 동작하므로 WAF와 직접 연동됩니다.</p>
+                </div>
+                
+    </main>
+    <footer class="border-t border-slate-800/80 py-8 text-center text-slate-400 text-sm bg-slate-950/90 backdrop-blur-md mt-auto">
+        <p class="font-mono">&copy; 2026 Putto's Lectures. All rights reserved. <span class="text-cyan-800 font-bold ml-2">| ACCESS SECURED.</span></p>
+    </footer>
+
+    <script>
+        // 전역 상태 변수: 디폴트를 'false'로 변경하여 모든 폴더가 처음에는 접혀있도록 설정합니다.
+        let isAllExpanded = false;
+
+        // 개별 폴더를 펼치거나 접는 함수
+        function toggleFolder(element) {
+            // 클릭된 헤더의 부모 섹션(Section) 및 내부 리스트 컨테이너(Container) 탐색
+            const section = element.closest('.folder-section');
+            const listContainer = section.querySelector('.list-container');
+            const folderIcon = element.querySelector('.folder-icon');
+            const chevronIcon = element.querySelector('.chevron-icon');
+            
+            // 데이터 속성(Data Attributes)에 저장된 아이콘 클래스명 불러오기
+            const baseIcon = element.getAttribute('data-base-icon');
+            const closedIcon = element.getAttribute('data-closed-icon');
+
+            // 현재 리스트가 펼쳐진 상태인지 확인 (CSS Grid 속성 기준)
+            const isExpanded = listContainer.classList.contains('grid-rows-[1fr]');
+
+            if (isExpanded) {
+                // 접기(Collapse) 액션 수행
+                listContainer.classList.remove('grid-rows-[1fr]', 'opacity-100');
+                listContainer.classList.add('grid-rows-[0fr]', 'opacity-0');
+                
+                // 우측 화살표 아이콘 회전
+                chevronIcon.classList.add('rotate-180');
+                
+                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 닫힘 상태로 변경
+                if (baseIcon !== 'fa-server') {
+                    folderIcon.classList.remove('fa-folder-open');
+                    folderIcon.classList.add('fa-folder');
+                }
+            } else {
+                // 펼치기(Expand) 액션 수행
+                listContainer.classList.remove('grid-rows-[0fr]', 'opacity-0');
+                listContainer.classList.add('grid-rows-[1fr]', 'opacity-100');
+                
+                // 우측 화살표 아이콘 원상 복구
+                chevronIcon.classList.remove('rotate-180');
+                
+                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 열림 상태로 변경
+                if (baseIcon !== 'fa-server') {
+                    folderIcon.classList.remove('fa-folder');
+                    folderIcon.classList.add('fa-folder-open');
+                }
+            }
+        }
+
+        // 전체 폴더를 일괄적으로 펼치거나 접는 함수
+        function toggleAllFolders() {
+            // 전역 상태 반전
+            isAllExpanded = !isAllExpanded;
+            
+            // DOM(Document Object Model, 문서 객체 모델)에서 모든 폴더 헤더 요소 선택
+            const headers = document.querySelectorAll('.folder-header');
+            const globalBtnIcon = document.getElementById('global-toggle-icon');
+            const globalBtnText = document.getElementById('global-toggle-text');
+
+            headers.forEach(header => {
+                const section = header.closest('.folder-section');
+                const listContainer = section.querySelector('.list-container');
+                const isCurrentlyExpanded = listContainer.classList.contains('grid-rows-[1fr]');
+
+                // 현재 개별 폴더의 상태가 전역 상태 목표와 다를 경우에만 토글 함수 실행
+                if (isAllExpanded !== isCurrentlyExpanded) {
+                    toggleFolder(header);
+                }
+            });
+
+            // 전역 토글 버튼의 UI(User Interface, 사용자 인터페이스) 업데이트
+            if (isAllExpanded) {
+                globalBtnIcon.classList.remove('fa-folder');
+                globalBtnIcon.classList.add('fa-folder-open');
+                globalBtnText.innerText = 'COLLAPSE ALL';
+            } else {
+                globalBtnIcon.classList.remove('fa-folder-open');
+                globalBtnIcon.classList.add('fa-folder');
+                globalBtnText.innerText = 'EXPAND ALL';
+            }
+        }
+    </script>
+</body>
+</html>
