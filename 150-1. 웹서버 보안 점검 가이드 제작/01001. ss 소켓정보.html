@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security & Cloud Hacking Lab</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+        
+        /* 기본 글꼴 및 다크 모드 배경색 설정 */
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            /* 전체 화면 배경 이미지 적용 및 투명도(Overlay) 설정: 텍스트 가시성을 위해 어두운 오버레이 강화 */
+            background-image: linear-gradient(to bottom, rgba(2, 6, 23, 0.75), rgba(2, 6, 23, 0.95)), 
+                              url('image_1a3201.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center center;
+        }
+
+        /* 텍스트 리스트 호버 효과: 터미널 스타일 */
+        .list-hover {
+            transition: all 0.2s ease;
+        }
+        .list-hover:hover {
+            color: #22d3ee; 
+            padding-left: 0.75rem; 
+            background-color: rgba(15, 23, 42, 0.8); 
+            border-left-color: #0ea5e9;
+        }
+
+        /* 텍스트 가시성을 높이는 그림자 효과 클래스 */
+        .text-glow {
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+        }
+        .neon-glow {
+            text-shadow: 0 0 8px rgba(34, 211, 238, 0.6);
+        }
+        
+        /* 커스텀 스크롤바 (선택적 시각 강화) */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+    </style>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+</head>
+<body class="min-h-screen flex flex-col">
+    <header class="py-24 px-6 relative overflow-hidden">
+        
+        <a href="https://putto4u.github.io/06.Hacking-Security" class="absolute top-6 left-6 md:left-10 z-20 group cursor-pointer block" target="_blank" rel="noopener noreferrer">
+            <div class="flex items-center space-x-2 bg-slate-900/80 py-2 px-4 rounded-xl border border-cyan-900/50 backdrop-blur-md shadow-[0_0_15px_rgba(8,145,178,0.2)] transition-all duration-300 group-hover:border-cyan-400/60 group-hover:shadow-[0_0_20px_rgba(34,211,238,0.4)]">
+                <div class="relative flex h-3 w-3 mr-1">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
+                </div>
+                <span class="font-mono text-[10px] md:text-xs text-slate-400 tracking-wider">CHIEF SYSTEM ARCHITECT <span class="text-cyan-500 ml-1">❯</span></span>
+                <span class="font-black text-cyan-300 tracking-widest font-mono text-sm md:text-base neon-glow ml-1">PUTTO</span>
+                <span class="font-bold text-slate-200 tracking-widest font-mono text-sm md:text-base">'S LECTURES</span>
+            </div>
+        </a>
+
+        <div class="max-w-4xl mx-auto relative z-10 text-center mt-8">
+            <div class="inline-flex items-center justify-center space-x-3 mb-8 bg-slate-950/60 p-4 rounded-2xl backdrop-blur-md border border-slate-700/80 shadow-2xl">
+                <i class="fas fa-user-secret text-4xl text-cyan-400 drop-shadow-lg"></i>
+                <span class="text-slate-500">|</span>
+                <i class="fas fa-shield-halved text-4xl text-blue-500 drop-shadow-lg"></i>
+            </div>
+            
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-2 pb-2 bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 via-blue-400 to-indigo-400 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">
+                Cloud Security & Hacking Lab
+            </h1>
+            
+            <p class="mt-8 text-slate-100 font-medium text-lg md:text-xl max-w-2xl mx-auto leading-relaxed text-glow">
+                실전 클라우드 인프라 보안 및 모의 해킹 시나리오 연구 자료 저장소
+            </p>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-4xl mx-auto px-6 py-8 w-full">
+
+                <div class="bg-slate-950/90 p-8 md:p-12 rounded-2xl shadow-2xl border border-slate-700/50 backdrop-blur-xl prose prose-invert prose-slate max-w-none prose-img:rounded-xl prose-a:text-cyan-400 hover:prose-a:text-cyan-300 prose-headings:text-slate-100 prose-strong:text-cyan-100">
+                    <p>네트워크 소켓 상태를 분석하고 시스템 성능을 최적화하기 위한 <strong>ss(Socket Statistics, 소켓 통계)</strong> 명령어의 종합 가이드입니다. 이 자료는 기본 옵션부터 전문가 수준의 분석 기법까지 체계적으로 정리하여 강의 교재로 활용할 수 있도록 구성되었습니다.</p>
+<hr />
+<h2>1. ss 명령어 핵심 옵션 일람표</h2>
+<p><strong>ss</strong> 명령어는 다양한 옵션을 조합하여 필요한 정보만 정밀하게 타격하여 추출할 수 있습니다.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">옵션</th>
+<th style="text-align: left;">명칭 (Full Name)</th>
+<th style="text-align: left;">상세 기능 설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>-a</strong></td>
+<td style="text-align: left;"><strong>All</strong></td>
+<td style="text-align: left;">모든 소켓(Listening 및 Non-listening)을 표시합니다.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>-l</strong></td>
+<td style="text-align: left;"><strong>Listening</strong></td>
+<td style="text-align: left;">연결을 기다리고 있는 <strong>Listening(리슨)</strong> 상태의 소켓만 표시합니다.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>-t</strong></td>
+<td style="text-align: left;"><strong>TCP</strong></td>
+<td style="text-align: left;"><strong>TCP(Transmission Control Protocol)</strong> 소켓만 표시합니다.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>-u</strong></td>
+<td style="text-align: left;"><strong>UDP</strong></td>
+<td style="text-align: left;"><strong>UDP(User Datagram Protocol)</strong> 소켓만 표시합니다.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>-n</strong></td>
+<td style="text-align: left;"><strong>Numeric</strong></td>
+<td style="text-align: left;">서비스 이름 대신 포트 번호를 숫자로 표시합니다. (DNS 해석 생략으로 속도 빠름)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>-p</strong></td>
+<td style="text-align: left;"><strong>Process</strong></td>
+<td style="text-align: left;">소켓을 사용하는 <strong>PID(Process ID)</strong>와 프로세스 이름을 함께 출력합니다.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>-i</strong></td>
+<td style="text-align: left;"><strong>Internal</strong></td>
+<td style="text-align: left;"><strong>TCP</strong>의 내부 성능 지표(RTT, CWND 등)를 상세히 출력합니다.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>-s</strong></td>
+<td style="text-align: left;"><strong>Summary</strong></td>
+<td style="text-align: left;">현재 활성화된 소켓의 프로토콜별 요약 통계를 보여줍니다.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>-m</strong></td>
+<td style="text-align: left;"><strong>Memory</strong></td>
+<td style="text-align: left;">각 소켓이 사용 중인 <strong>Memory(메모리)</strong> 점유량을 표시합니다.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>-e</strong></td>
+<td style="text-align: left;"><strong>Extended</strong></td>
+<td style="text-align: left;">상세한 소켓 정보를 추가로 표시합니다.</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>포트 해석(DNS Resolution)의 차이</strong>: <code>-n</code> 옵션을 사용하지 않으면 <code>80</code>번 포트는 <code>http</code>, <code>443</code>번은 <code>https</code>로 자동 변환되어 출력됩니다. 하지만 대규모 트래픽 분석 시에는 속도를 위해 숫자로 표기하는 <code>-n</code> 옵션이 권장됩니다.</p>
+</blockquote>
+<hr />
+<h2>2. 전문가의 실전 활용 시나리오</h2>
+<p>단순한 조회를 넘어 시스템 장애 진단 및 보안 분석에 활용되는 고급 기법입니다.</p>
+<p>sudo ss -tulpn # 리스닝 상태의 모든 TCP/UDP 포트와 프로세스 ID 확인</p>
+<h3>① 요약 통계를 통한 시스템 부하 진단</h3>
+<p>서버의 전체적인 연결 상태를 한눈에 파악하여 <strong>DDoS(Distributed Denial of Service, 분산 서비스 거부 공격)</strong> 상황이나 리소스 고갈 여부를 확인합니다.
+* <strong>명령어</strong>: <code>ss -s</code>
+* <strong>활용</strong>: 전체 세션 중 <code>ESTABLISHED</code> 상태가 비정상적으로 높다면 서비스 부하를 의심해야 합니다.
+<code>sudo ss -tulpn # 리스닝 상태의 모든 TCP/UDP 포트와 프로세스 ID 확인</code></p>
+<h3>② 특정 TCP 상태(State) 필터링</h3>
+<p>특정 단계에 머물러 있는 연결을 찾아내어 네트워크 병목 지점을 파악합니다.
+* <strong>명령어</strong>: <code>ss -t state time-wait</code>
+* <strong>설명</strong>: <code>TIME-WAIT</code> 상태가 너무 많으면 소켓 고갈로 인해 새로운 연결이 거부될 수 있습니다.</p>
+<h3>③ 네트워크 품질(RTT) 분석</h3>
+<p>패킷의 왕복 시간을 확인하여 네트워크 지연의 원인이 내부 서버인지 외부 회선인지 판단합니다.
+* <strong>명령어</strong>: <code>ss -ti</code>
+* <strong>핵심 지표</strong>: <strong>RTT(Round Trip Time, 왕복 시간)</strong> 값이 높으면 회선 품질 저하나 네트워크 혼잡을 의미합니다.</p>
+<hr />
+<h2>3. 고급 조건부 필터링 (Filter Expressions)</h2>
+<p>복잡한 네트워크 환경에서 특정 조건에 맞는 데이터만 추출하는 강력한 기능입니다.</p>
+<ul>
+<li><strong>포트 대역 필터링</strong>: <code>ss -atn sport &gt;= :1024</code> (1024번 이상의 사용자 포트만 확인)</li>
+<li><strong>특정 IP 대역 제외</strong>: <code>ss -at dst != 192.168.1.1</code> (특정 내부 서버를 제외한 외부 연결 확인)</li>
+<li><strong>웹 트래픽 전용</strong>: <code>ss -atn '( dport = :80 or dport = :443 )'</code> (HTTP/HTTPS 트래픽만 집계)</li>
+</ul>
+<hr />
+<h2>4. 소켓 상태 구조 도식화</h2>
+<p>시스템 내부에서 프로세스가 생성한 소켓이 어떤 단계를 거쳐 외부와 연결되는지에 대한 논리적 흐름입니다.</p>
+<blockquote>
+<p><strong>[Application Process]</strong> (데이터 생성)
+      ↓
+<strong>[Socket Buffer]</strong> (Send-Q / Recv-Q 메모리 할당)
+      ↓
+<strong>[TCP/IP Stack]</strong> (커널 내 프로토콜 처리)
+      ↓
+<strong>[Network Interface]</strong> (물리적 패킷 전송)</p>
+</blockquote>
+<hr />
+<p><strong>Next Step: TCP 튜닝 파라미터 최적화, 커널 로그(dmesg) 분석, 네트워크 보안 침해 사고 대응</strong></p>
+<hr />
+<p><code>ss</code> 명령어의 옵션과 전문가용 분석 기법을 체계적으로 정리했습니다. 모든 기술 용어는 원문과 한글 설명을 병기하였으며, 실무에서 바로 활용할 수 있는 필터링 예시를 포함했습니다. 가독성을 위해 블록 구조와 여백을 충분히 활용하였습니다. 추가로 특정 네트워크 장애 상황에 대한 트러블슈팅 사례가 필요하시면 말씀해 주세요.</p>
+<p>TCP 상태 전이도, 소켓 고갈 해결, 커널 네트워크 최적화</p>
+                </div>
+                
+    </main>
+    <footer class="border-t border-slate-800/80 py-8 text-center text-slate-400 text-sm bg-slate-950/90 backdrop-blur-md mt-auto">
+        <p class="font-mono">&copy; 2026 Putto's Lectures. All rights reserved. <span class="text-cyan-800 font-bold ml-2">| ACCESS SECURED.</span></p>
+    </footer>
+
+    <script>
+        // 전역 상태 변수: 디폴트를 'false'로 변경하여 모든 폴더가 처음에는 접혀있도록 설정합니다.
+        let isAllExpanded = false;
+
+        // 개별 폴더를 펼치거나 접는 함수
+        function toggleFolder(element) {
+            // 클릭된 헤더의 부모 섹션(Section) 및 내부 리스트 컨테이너(Container) 탐색
+            const section = element.closest('.folder-section');
+            const listContainer = section.querySelector('.list-container');
+            const folderIcon = element.querySelector('.folder-icon');
+            const chevronIcon = element.querySelector('.chevron-icon');
+            
+            // 데이터 속성(Data Attributes)에 저장된 아이콘 클래스명 불러오기
+            const baseIcon = element.getAttribute('data-base-icon');
+            const closedIcon = element.getAttribute('data-closed-icon');
+
+            // 현재 리스트가 펼쳐진 상태인지 확인 (CSS Grid 속성 기준)
+            const isExpanded = listContainer.classList.contains('grid-rows-[1fr]');
+
+            if (isExpanded) {
+                // 접기(Collapse) 액션 수행
+                listContainer.classList.remove('grid-rows-[1fr]', 'opacity-100');
+                listContainer.classList.add('grid-rows-[0fr]', 'opacity-0');
+                
+                // 우측 화살표 아이콘 회전
+                chevronIcon.classList.add('rotate-180');
+                
+                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 닫힘 상태로 변경
+                if (baseIcon !== 'fa-server') {
+                    folderIcon.classList.remove('fa-folder-open');
+                    folderIcon.classList.add('fa-folder');
+                }
+            } else {
+                // 펼치기(Expand) 액션 수행
+                listContainer.classList.remove('grid-rows-[0fr]', 'opacity-0');
+                listContainer.classList.add('grid-rows-[1fr]', 'opacity-100');
+                
+                // 우측 화살표 아이콘 원상 복구
+                chevronIcon.classList.remove('rotate-180');
+                
+                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 열림 상태로 변경
+                if (baseIcon !== 'fa-server') {
+                    folderIcon.classList.remove('fa-folder');
+                    folderIcon.classList.add('fa-folder-open');
+                }
+            }
+        }
+
+        // 전체 폴더를 일괄적으로 펼치거나 접는 함수
+        function toggleAllFolders() {
+            // 전역 상태 반전
+            isAllExpanded = !isAllExpanded;
+            
+            // DOM(Document Object Model, 문서 객체 모델)에서 모든 폴더 헤더 요소 선택
+            const headers = document.querySelectorAll('.folder-header');
+            const globalBtnIcon = document.getElementById('global-toggle-icon');
+            const globalBtnText = document.getElementById('global-toggle-text');
+
+            headers.forEach(header => {
+                const section = header.closest('.folder-section');
+                const listContainer = section.querySelector('.list-container');
+                const isCurrentlyExpanded = listContainer.classList.contains('grid-rows-[1fr]');
+
+                // 현재 개별 폴더의 상태가 전역 상태 목표와 다를 경우에만 토글 함수 실행
+                if (isAllExpanded !== isCurrentlyExpanded) {
+                    toggleFolder(header);
+                }
+            });
+
+            // 전역 토글 버튼의 UI(User Interface, 사용자 인터페이스) 업데이트
+            if (isAllExpanded) {
+                globalBtnIcon.classList.remove('fa-folder');
+                globalBtnIcon.classList.add('fa-folder-open');
+                globalBtnText.innerText = 'COLLAPSE ALL';
+            } else {
+                globalBtnIcon.classList.remove('fa-folder-open');
+                globalBtnIcon.classList.add('fa-folder');
+                globalBtnText.innerText = 'EXPAND ALL';
+            }
+        }
+    </script>
+</body>
+</html>
