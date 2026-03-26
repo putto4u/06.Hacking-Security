@@ -3,406 +3,257 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SSL/TLS: 보안 전송 계층 적용 실습</title>
+    <title>Security & Cloud Hacking Lab</title>
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+        
+        /* 기본 글꼴 및 다크 모드 배경색 설정 */
         body { 
             font-family: 'Noto Sans KR', sans-serif; 
             background-color: #020617; 
             color: #f8fafc; 
-            margin: 0; padding: 0;
-            line-height: 1.8;
-            background-image: radial-gradient(circle at 50% 0%, #0f172a 0%, #020617 100%);
+            /* 전체 화면 배경 이미지 적용 및 투명도(Overlay) 설정: 텍스트 가시성을 위해 어두운 오버레이 강화 */
+            background-image: linear-gradient(to bottom, rgba(2, 6, 23, 0.75), rgba(2, 6, 23, 0.95)), 
+                              url('image_1a3201.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center center;
         }
-        .terminal-bg { background-color: #010409; border: 1px solid #1e293b; }
-        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
-        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-filter: blur(12px); }
-        .code-block { font-family: 'Fira Code', monospace; }
-        .neon-border { border: 1px solid rgba(34, 211, 238, 0.3); box-shadow: 0 0 20px rgba(34, 211, 238, 0.05); }
-        .glossary-note { background: rgba(30, 41, 59, 0.5); border-left: 2px solid #0ea5e9; }
+
+        /* 텍스트 리스트 호버 효과: 터미널 스타일 */
+        .list-hover {
+            transition: all 0.2s ease;
+        }
+        .list-hover:hover {
+            color: #22d3ee; 
+            padding-left: 0.75rem; 
+            background-color: rgba(15, 23, 42, 0.8); 
+            border-left-color: #0ea5e9;
+        }
+
+        /* 텍스트 가시성을 높이는 그림자 효과 클래스 */
+        .text-glow {
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+        }
+        .neon-glow {
+            text-shadow: 0 0 8px rgba(34, 211, 238, 0.6);
+        }
         
+        /* 커스텀 스크롤바 (선택적 시각 강화) */
         ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
     </style>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
 </head>
-<body class="antialiased pb-20">
+<body class="min-h-screen flex flex-col">
+    <header class="py-24 px-6 relative overflow-hidden">
+        
+        <a href="https://putto4u.github.io/06.Hacking-Security" class="absolute top-6 left-6 md:left-10 z-20 group cursor-pointer block" target="_blank" rel="noopener noreferrer">
+            <div class="flex items-center space-x-2 bg-slate-900/80 py-2 px-4 rounded-xl border border-cyan-900/50 backdrop-blur-md shadow-[0_0_15px_rgba(8,145,178,0.2)] transition-all duration-300 group-hover:border-cyan-400/60 group-hover:shadow-[0_0_20px_rgba(34,211,238,0.4)]">
+                <div class="relative flex h-3 w-3 mr-1">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
+                </div>
+                <span class="font-mono text-[10px] md:text-xs text-slate-400 tracking-wider">CHIEF SYSTEM ARCHITECT <span class="text-cyan-500 ml-1">❯</span></span>
+                <span class="font-black text-cyan-300 tracking-widest font-mono text-sm md:text-base neon-glow ml-1">PUTTO</span>
+                <span class="font-bold text-slate-200 tracking-widest font-mono text-sm md:text-base">'S LECTURES</span>
+            </div>
+        </a>
 
-    <!-- Header: 기술 사양 및 타이틀 -->
-    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
-        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
-            <div>
-                <div class="flex items-center gap-2 mb-2">
-                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Cyber Security Lab</span>
-                    <span class="text-slate-500 font-mono text-[10px]">INFRA-SEC-05 | Transport Security</span>
-                </div>
-                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
-                    SSL/TLS Implementation<br><span class="text-slate-100 text-2xl">보안 소켓 계층 / 전송 계층 보안 적용</span>
-                </h1>
+        <div class="max-w-4xl mx-auto relative z-10 text-center mt-8">
+            <div class="inline-flex items-center justify-center space-x-3 mb-8 bg-slate-950/60 p-4 rounded-2xl backdrop-blur-md border border-slate-700/80 shadow-2xl">
+                <i class="fas fa-user-secret text-4xl text-cyan-400 drop-shadow-lg"></i>
+                <span class="text-slate-500">|</span>
+                <i class="fas fa-shield-halved text-4xl text-blue-500 drop-shadow-lg"></i>
             </div>
-            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
-                <div class="bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
-                    VER: 2026.04
-                </div>
-                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">Chief System Architect Pro</p>
-            </div>
+            
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-2 pb-2 bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 via-blue-400 to-indigo-400 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">
+                Cloud Security & Hacking Lab
+            </h1>
+            
+            <p class="mt-8 text-slate-100 font-medium text-lg md:text-xl max-w-2xl mx-auto leading-relaxed text-glow">
+                실전 클라우드 인프라 보안 및 모의 해킹 시나리오 연구 자료 저장소
+            </p>
         </div>
     </header>
 
-    <main class="max-w-6xl mx-auto px-6 py-16 space-y-24">
+    <main class="flex-grow max-w-4xl mx-auto px-6 py-8 w-full">
 
-        <!-- Section 1: SSL/TLS의 정의와 보안의 3요소 -->
-        <section>
-            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
-                1. SSL/TLS의 정의와 보안의 3요소 (Security Triad)
-            </h2>
-            <div class="space-y-4">
-                <div class="section-card rounded-3xl p-10 shadow-2xl space-y-8">
-                    <p class="text-slate-300 text-lg leading-relaxed">
-                        <strong>SSL/TLS (Secure Sockets Layer / Transport Layer Security, 보안 소켓 계층 / 전송 계층 보안)</strong>는 웹 브라우저와 웹 서버 간의 데이터를 암호화하여 전송하는 표준 보안 프로토콜입니다. 현대 웹 환경에서는 기존의 보안 취약점이 발견된 SSL을 대신하여 보다 안전한 TLS 프로토콜을 사용하며, 이를 통해 통신의 기밀성, 무결성, 가용성을 보장합니다.
-                    </p>
+                <div class="bg-slate-950/90 p-8 md:p-12 rounded-2xl shadow-2xl border border-slate-700/50 backdrop-blur-xl prose prose-invert prose-slate max-w-none prose-img:rounded-xl prose-a:text-cyan-400 hover:prose-a:text-cyan-300 prose-headings:text-slate-100 prose-strong:text-cyan-100">
+                    <h2>3.1 SSL/TLS (Secure Sockets Layer / Transport Layer Security, 보안 소켓 계층 / 전송 계층 보안) 적용</h2>
+<hr />
+<h3><strong>1. SSL/TLS의 정의와 보안의 3요소</strong></h3>
+<p><strong>SSL/TLS (Secure Sockets Layer / Transport Layer Security, 보안 소켓 계층 / 전송 계층 보안)</strong>는 웹 브라우저와 웹 서버 간의 데이터를 암호화하여 전송하는 표준 보안 프로토콜입니다. 현대 웹 환경에서는 기존의 보안 취약점이 발견된 SSL을 대신하여 보다 안전한 TLS 프로토콜을 사용하며, 이를 통해 통신의 기밀성, 무결성, 가용성을 보장합니다.</p>
+<ul>
+<li><strong>Confidentiality (기밀성)</strong>: 스니핑(Sniffing) 공격으로부터 데이터를 보호하기 위해 모든 통신 내용을 암호화합니다.</li>
+<li><strong>Integrity (무결성)</strong>: 전송 중인 데이터가 변조되지 않았음을 보장합니다.</li>
+<li><strong>Authentication (인증)</strong>: 접속하려는 서버가 신뢰할 수 있는 기관으로부터 인증받은 실제 서버임을 증명합니다.</li>
+</ul>
+<blockquote>
+<p><strong>설명</strong>: <strong>Handshake (핸드셰이크, 악수)</strong> 과정을 통해 클라이언트와 서버는 서로의 신원을 확인하고 통신에 사용할 암호화 키를 안전하게 공유합니다.</p>
+</blockquote>
+<hr />
+<h3><strong>2. SSL/TLS 핸드셰이크 프로세스</strong></h3>
+<p>데이터 전송 전, 클라이언트와 서버는 암호화 알고리즘과 키를 결정하는 복잡한 협상 과정을 거칩니다.</p>
+<ol>
+<li><strong>Client Hello</strong>: 클라이언트가 지원 가능한 암호화 방식(Cipher Suite) 목록을 보냅니다.</li>
+<li><strong>Server Hello &amp; Certificate</strong>: 서버가 암호화 방식을 선택하고 자신의 <strong>Digital Certificate (디지털 인증서, 전자 서명된 보안 인증서)</strong>를 보냅니다.</li>
+<li><strong>Key Exchange</strong>: 공개키 암호화 방식을 이용하여 데이터를 암호화할 대칭키(Session Key)를 생성 및 공유합니다.</li>
+<li><strong>Cipher Spec Change</strong>: 이후 모든 통신은 공유된 대칭키로 암호화됨을 선언합니다.</li>
+</ol>
+<blockquote>
+<p><strong>설명</strong>: <strong>Cipher Suite (사이퍼 스위트, 암호화 알고리즘 세트)</strong>는 프로토콜 버전, 키 교환 방식, 대칭 암호화 방식, 해시 함수 등의 조합을 의미합니다.</p>
+</blockquote>
+<hr />
+<h3><strong>3. 웹 서버 보안 설정 (Nginx 기준)</strong></h3>
+<p>취약한 암호화 알고리즘(DES, RC4, MD5)을 제거하고 TLS 1.2 이상 버전만 사용하도록 설정하는 것이 보안의 핵심입니다.</p>
+<pre><code class="language-bash"># Nginx 가상 호스트 설정 파일 수정
+sudo vi /etc/nginx/sites-available/default
 
-                    <!-- 도식: 보안의 3요소와 SSL/TLS -->
-                    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-10 shadow-inner">
-                        <h4 class="text-center font-bold text-slate-400 mb-10 text-xs tracking-widest uppercase">
-                            [도식: Security Triad in SSL/TLS (보안 3요소 매커니즘)]
-                        </h4>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                            <div class="text-center p-6 bg-slate-800 rounded-2xl border border-cyan-500/30">
-                                <i data-lucide="eye-off" class="w-10 h-10 text-cyan-400 mx-auto mb-4"></i>
-                                <div class="text-sm font-black text-slate-100 mb-2 uppercase">Confidentiality (기밀성)</div>
-                                <p class="text-[10px] text-slate-500">스니핑(Sniffing) 공격 방어<br>모든 통신 데이터 암호화</p>
-                            </div>
-                            <div class="text-center p-6 bg-slate-800 rounded-2xl border border-blue-500/30">
-                                <i data-lucide="file-check" class="w-10 h-10 text-blue-400 mx-auto mb-4"></i>
-                                <div class="text-sm font-black text-slate-100 mb-2 uppercase">Integrity (무결성)</div>
-                                <p class="text-[10px] text-slate-500">데이터 변조 여부 보장<br>메시지 인증 코드(MAC) 활용</p>
-                            </div>
-                            <div class="text-center p-6 bg-slate-800 rounded-2xl border border-indigo-500/30">
-                                <i data-lucide="badge-check" class="w-10 h-10 text-indigo-400 mx-auto mb-4"></i>
-                                <div class="text-sm font-black text-slate-100 mb-2 uppercase">Authentication (인증)</div>
-                                <p class="text-[10px] text-slate-500">서버 신뢰성 증명<br>디지털 인증서 기반 신원 확인</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <p class="bg-blue-500/10 border-l-4 border-blue-500 p-4 text-sm text-blue-300 italic">
-                        <strong>설명</strong>: <strong>Handshake (핸드셰이크, 악수)</strong> 과정을 통해 클라이언트와 서버는 서로의 신원을 확인하고 통신에 사용할 암호화 키를 안전하게 공유합니다.
-                    </p>
+# SSL 설정 블록 예시
+server {
+    listen 443 ssl;
+    server_name example.com;
+
+    # 인증서 경로 지정
+    ssl_certificate /etc/letsencrypt/live/example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem;
+
+    # 최신 보안 프로토콜만 허용 (TLS 1.2, 1.3)
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    # 취약한 암호화 알고리즘 제외 및 강력한 사이퍼 스위트 설정
+    ssl_ciphers 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384';
+    ssl_prefer_server_ciphers on;
+}
+</code></pre>
+<blockquote>
+<p><strong>설명</strong>: <strong>CA (Certificate Authority, 인증 기관)</strong>로부터 발급받은 인증서와 개인키를 서버에 설치하여 HTTPS 서비스를 활성화합니다.</p>
+</blockquote>
+<hr />
+<h3><strong>4. HSTS (HTTP Strict Transport Security) 적용</strong></h3>
+<p><strong>HSTS (HTTP Strict Transport Security, HTTP 엄격한 전송 보안)</strong>는 브라우저가 해당 사이트에 접속할 때 항상 HTTPS 프로토콜만 사용하도록 강제하는 보안 헤더입니다. 이를 통해 HTTP를 HTTPS로 리다이렉트하는 과정에서 발생할 수 있는 <strong>SSL Stripping (SSL 스트리핑, HTTPS를 HTTP로 하향 유도하는 공격)</strong>을 원천 차단합니다.</p>
+<pre><code class="language-bash"># Nginx 설정에 HSTS 헤더 추가
+add_header Strict-Transport-Security &quot;max-age=31536000; includeSubDomains&quot; always;
+</code></pre>
+<hr />
+<h3><strong>[AWS 환경 보안 가이드 및 과금 안내]</strong></h3>
+<p>AWS 환경에서는 서버 내부 설정보다 관리형 서비스를 이용하는 것이 가용성과 보안성 측면에서 유리합니다.</p>
+<ul>
+<li><strong>AWS Certificate Manager (ACM, AWS 인증서 관리자)</strong><ul>
+<li>Public SSL/TLS 인증서를 무료로 발급 및 갱신해 줍니다. (ELB, CloudFront와 연동 필수)</li>
+<li><strong>과금 안내</strong>: 인증서 발급 자체는 <strong>무료</strong>이나, 사설 CA(Private CA)를 구축하여 사용할 경우 월별 고정 비용 및 발급 비용이 발생합니다. <a href="https://aws.amazon.com/ko/certificate-manager/pricing/">공식 요금 페이지</a></li>
+</ul>
+</li>
+<li><strong>Application Load Balancer (ALB, 애플리케이션 로드 밸런서)</strong><ul>
+<li><strong>SSL Termination (SSL 종단)</strong> 기능을 제공하여 서버의 암복호화 부하를 대신 처리합니다.</li>
+<li><strong>과금 안내</strong>: ALB는 시간당 사용 요금과 <strong>LCU (Load Balancer Capacity Units, 로드 밸런서 용량 단위)</strong> 소비량에 따라 과금됩니다.</li>
+</ul>
+</li>
+</ul>
+<hr />
+<p>Next Step: 보안 헤더 설정</p>
+<hr />
+<p><strong>상세 설명 주석</strong>
+1. <strong>SSL Termination</strong>: 로드 밸런서에서 SSL 복호화를 수행하고, 내부 서버와는 HTTP로 통신하여 서버 자원을 절약하는 방식입니다.
+2. <strong>Let's Encrypt</strong>: 무료로 SSL 인증서를 발급해주는 비영리 인증 기관으로, 90일마다 자동 갱신 설정을 통해 주로 사용됩니다.
+3. <strong>Forward Secrecy (전방 향후 보안)</strong>: 서버의 개인키가 유출되더라도 과거에 통신했던 암호화된 데이터는 복구할 수 없도록 보장하는 성질입니다.
+4. <strong>max-age</strong>: HSTS 설정이 브라우저에 기억될 기간을 초 단위로 지정합니다. (31536000초 = 1년)</p>
                 </div>
-                <!-- 상세 설명 주석 (Glossary Section 1) -->
-                <div class="glossary-note p-6 rounded-2xl shadow-lg space-y-3 ml-4">
-                    <div class="text-[11px]">
-                        <span class="font-black text-cyan-400 uppercase tracking-tighter">Annotate 01. Handshake</span>: 클라이언트와 서버가 암호화 통신을 시작하기 전, 프로토콜 버전과 암호화 알고리즘을 협상하는 절차입니다.
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 2: SSL/TLS 핸드셰이크 프로세스 -->
-        <section>
-            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
-                2. SSL/TLS 핸드셰이크 프로세스 (Handshake Process)
-            </h2>
-            <div class="space-y-4">
-                <div class="section-card rounded-3xl p-10 shadow-2xl space-y-10">
-                    <p class="text-slate-300">데이터 전송 전, 클라이언트와 서버는 암호화 알고리즘과 키를 결정하는 복잡한 협상 과정을 거칩니다.</p>
-
-                    <!-- 도식: 핸드셰이크 플로우 -->
-                    <div class="bg-slate-950/50 rounded-2xl p-10 border border-slate-800 overflow-x-auto">
-                        <h4 class="text-center font-bold text-slate-500 mb-12 text-xs uppercase tracking-widest">[도식: SSL/TLS Handshake Sequential Flow (단계별 협상 과정)]</h4>
-                        <div class="min-w-[600px] flex flex-col gap-8 relative">
-                            <!-- Vertical Line -->
-                            <div class="absolute left-1/2 top-0 bottom-0 w-px bg-slate-800 -translate-x-1/2 hidden md:block"></div>
-                            
-                            <!-- Step 1 -->
-                            <div class="flex items-center gap-6 group">
-                                <div class="w-1/2 text-right">
-                                    <div class="inline-block p-4 bg-slate-800 rounded-xl border border-cyan-500/30 shadow-lg">
-                                        <div class="text-[10px] font-black text-cyan-500 mb-1 uppercase">Step 01. Client Hello</div>
-                                        <div class="text-xs text-slate-300 italic">Cipher Suite List, Random Number</div>
-                                    </div>
-                                </div>
-                                <div class="z-10 bg-cyan-500 w-3 h-3 rounded-full shadow-[0_0_10px_#22d3ee]"></div>
-                                <div class="w-1/2"></div>
-                            </div>
-
-                            <!-- Step 2 -->
-                            <div class="flex items-center gap-6">
-                                <div class="w-1/2"></div>
-                                <div class="z-10 bg-blue-500 w-3 h-3 rounded-full shadow-[0_0_10px_#3b82f6]"></div>
-                                <div class="w-1/2 text-left">
-                                    <div class="inline-block p-4 bg-slate-800 rounded-xl border border-blue-500/30 shadow-lg">
-                                        <div class="text-[10px] font-black text-blue-500 mb-1 uppercase">Step 02. Server Hello & Certificate</div>
-                                        <div class="text-xs text-slate-300 italic">Selected Cipher, Digital Certificate</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Step 3 -->
-                            <div class="flex items-center gap-6">
-                                <div class="w-1/2 text-right">
-                                    <div class="inline-block p-4 bg-slate-800 rounded-xl border border-indigo-500/30 shadow-lg">
-                                        <div class="text-[10px] font-black text-indigo-500 mb-1 uppercase">Step 03. Key Exchange</div>
-                                        <div class="text-xs text-slate-300 italic">Pre-master Secret (Encrypted)</div>
-                                    </div>
-                                </div>
-                                <div class="z-10 bg-indigo-500 w-3 h-3 rounded-full shadow-[0_0_10px_#6366f1]"></div>
-                                <div class="w-1/2"></div>
-                            </div>
-
-                            <!-- Step 4 -->
-                            <div class="flex items-center gap-6">
-                                <div class="w-1/2"></div>
-                                <div class="z-10 bg-emerald-500 w-3 h-3 rounded-full shadow-[0_0_10px_#10b981]"></div>
-                                <div class="w-1/2 text-left">
-                                    <div class="inline-block p-4 bg-slate-800 rounded-xl border border-emerald-500/30 shadow-lg">
-                                        <div class="text-[10px] font-black text-emerald-500 mb-1 uppercase">Step 04. Cipher Spec Change</div>
-                                        <div class="text-xs text-slate-300 italic">Encrypted Session Start</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <p class="bg-indigo-500/10 border-l-4 border-indigo-500 p-4 text-sm text-indigo-300 italic">
-                        <strong>설명</strong>: <strong>Cipher Suite (사이퍼 스위트, 암호화 알고리즘 세트)</strong>는 프로토콜 버전, 키 교환 방식, 대칭 암호화 방식, 해시 함수 등의 조합을 의미합니다.
-                    </p>
-                </div>
-                <!-- 상세 설명 주석 (Glossary Section 2) -->
-                <div class="glossary-note p-6 rounded-2xl shadow-lg space-y-3 ml-4">
-                    <div class="text-[11px] grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div><span class="font-black text-cyan-400 uppercase tracking-tighter">Annotate 02. Digital Certificate</span>: 인증 기관(CA)이 서버의 공개키에 전자 서명을 하여 신뢰성을 보증하는 문서입니다.</div>
-                        <div><span class="font-black text-cyan-400 uppercase tracking-tighter">Annotate 03. Cipher Suite</span>: 보안 통신을 위해 사용되는 알고리즘들의 묶음으로, 협상 과정을 통해 결정됩니다.</div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 3: 웹 서버 보안 설정 -->
-        <section>
-            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
-                3. 웹 서버 보안 설정 (Nginx 기준)
-            </h2>
-            <div class="space-y-4">
-                <div class="section-card rounded-3xl p-10 shadow-2xl space-y-12">
-                    <p class="text-slate-300">취약한 암호화 알고리즘(DES, RC4, MD5)을 제거하고 TLS 1.2 이상 버전만 사용하도록 설정하는 것이 보안의 핵심입니다.</p>
-
-                    <!-- 도식: 인증서 및 설정 구조 -->
-                    <div class="bg-slate-950/50 rounded-2xl p-10 border border-slate-800">
-                        <h4 class="text-center font-bold text-slate-500 mb-10 text-xs uppercase tracking-widest">[도식: Nginx SSL Configuration Architecture (보안 설정 아키텍처)]</h4>
-                        <div class="flex flex-col md:flex-row gap-8 items-stretch">
-                            <div class="flex-1 bg-slate-800 p-6 rounded-xl border border-slate-700 space-y-4">
-                                <div class="flex items-center gap-2 font-black text-xs text-cyan-400 uppercase"><i data-lucide="shield-check"></i> Security Protocol</div>
-                                <div class="p-3 bg-slate-900 rounded border border-cyan-500/20 text-xs font-mono text-cyan-300">TLS 1.2, TLS 1.3 Only</div>
-                                <p class="text-[10px] text-slate-500 italic">취약한 하위 버전(SSL 3.0, TLS 1.0) 차단</p>
-                            </div>
-                            <div class="flex-1 bg-slate-800 p-6 rounded-xl border border-blue-500/30 space-y-4">
-                                <div class="flex items-center gap-2 font-black text-xs text-blue-400 uppercase"><i data-lucide="file-key"></i> Key Management</div>
-                                <div class="p-3 bg-slate-900 rounded border border-blue-500/20 text-xs font-mono text-blue-300">fullchain.pem / privkey.pem</div>
-                                <p class="text-[10px] text-slate-500 italic">CA 인증서 및 개인키 경로 지정</p>
-                            </div>
-                            <div class="flex-1 bg-slate-800 p-6 rounded-xl border border-indigo-500/30 space-y-4">
-                                <div class="flex items-center gap-2 font-black text-xs text-indigo-400 uppercase"><i data-lucide="cpu"></i> Cipher Suites</div>
-                                <div class="p-3 bg-slate-900 rounded border border-indigo-500/20 text-xs font-mono text-indigo-300">AES-GCM, SHA-384...</div>
-                                <p class="text-[10px] text-slate-500 italic">강력한 대칭 암호화 및 해시 함수 선택</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="space-y-6">
-                        <h3 class="text-xl font-bold text-slate-100 flex items-center gap-3">
-                            <i data-lucide="terminal" class="w-6 h-6 text-cyan-400"></i> Nginx SSL 설정 구현 (Implementation)
-                        </h3>
-                        <div class="terminal-bg rounded-xl p-8 font-mono text-sm shadow-inner space-y-4 overflow-x-auto">
-                            <div class="text-slate-500 italic"># Nginx 가상 호스트 설정 파일 수정</div>
-                            <div class="text-slate-200"><span class="text-cyan-400">sudo vi /etc/nginx/sites-available/default</span> <span class="text-slate-600"># 기본 설정 파일을 편집기로 엽니다.</span></div>
-                            <br>
-                            <div class="text-slate-400"><span class="text-indigo-400">server {</span> <span class="text-slate-600"># 가상 서버 설정을 시작합니다.</span></div>
-                            <div class="text-slate-400 pl-4"><span class="text-indigo-400">listen 443 ssl;</span> <span class="text-slate-600"># 443번 포트에서 SSL 통신을 대기합니다.</span></div>
-                            <div class="text-slate-400 pl-4"><span class="text-indigo-400">server_name example.com;</span> <span class="text-slate-600"># 서비스할 도메인 주소를 지정합니다.</span></div>
-                            <br>
-                            <div class="text-slate-400 pl-4 italic"># SSL 인증서 및 개인키 경로 지정</div>
-                            <div class="text-cyan-400 pl-4">ssl_certificate /etc/letsencrypt/live/example.com/fullchain.pem; <span class="text-slate-600"># 공개키가 포함된 인증서 경로입니다.</span></div>
-                            <div class="text-cyan-400 pl-4">ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem; <span class="text-slate-600"># 서버의 개인키 파일 경로입니다.</span></div>
-                            <br>
-                            <div class="text-slate-400 pl-4 italic"># 보안 프로토콜 및 알고리즘 최적화</div>
-                            <div class="text-blue-400 pl-4">ssl_protocols TLSv1.2 TLSv1.3; <span class="text-slate-600"># 보안이 검증된 최신 TLS 버전만 허용합니다.</span></div>
-                            <div class="text-blue-400 pl-4">ssl_ciphers 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256...'; <span class="text-slate-600"># 강력한 암호화 알고리즘 목록을 지정합니다.</span></div>
-                            <div class="text-blue-400 pl-4">ssl_prefer_server_ciphers on; <span class="text-slate-600"># 클라이언트보다 서버의 암호화 설정 우선순위를 따릅니다.</span></div>
-                            <div class="text-slate-400"><span class="text-indigo-400">}</span> <span class="text-slate-600"># 서버 블록 설정을 종료합니다.</span></div>
-                        </div>
-                    </div>
-
-                    <p class="bg-blue-500/10 border-l-4 border-blue-500 p-4 text-sm text-blue-300 italic">
-                        <strong>설명</strong>: <strong>CA (Certificate Authority, 인증 기관)</strong>로부터 발급받은 인증서와 개인키를 서버에 설치하여 HTTPS 서비스를 활성화합니다.
-                    </p>
-                </div>
-                <!-- 상세 설명 주석 (Glossary Section 3) -->
-                <div class="glossary-note p-6 rounded-2xl shadow-lg space-y-3 ml-4">
-                    <div class="text-[11px] grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div><span class="font-black text-cyan-400 uppercase tracking-tighter">Annotate 04. CA (Certificate Authority)</span>: 디지털 인증서를 발급하고 신원을 보증하는 공신력 있는 비영리/영리 기관입니다.</div>
-                        <div><span class="font-black text-cyan-400 uppercase tracking-tighter">Annotate 05. Let's Encrypt</span>: 무료로 SSL 인증서를 발급해주는 대표적인 비영리 인증 기관입니다.</div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 4: HSTS 적용 -->
-        <section>
-            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
-                4. HSTS (HTTP Strict Transport Security) 적용
-            </h2>
-            <div class="space-y-4">
-                <div class="section-card rounded-3xl p-10 shadow-2xl space-y-12">
-                    <p class="text-slate-300">
-                        <strong>HSTS (HTTP Strict Transport Security, HTTP 엄격한 전송 보안)</strong>는 브라우저가 해당 사이트에 접속할 때 항상 HTTPS 프로토콜만 사용하도록 강제하는 보안 헤더입니다.
-                    </p>
-
-                    <!-- 도식: SSL Stripping 방어 원리 -->
-                    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-10 shadow-inner">
-                        <h4 class="text-center font-bold text-slate-400 mb-10 text-xs tracking-widest uppercase">
-                            [도식: Defense against SSL Stripping via HSTS (보안 강제 매커니즘)]
-                        </h4>
-                        <div class="flex flex-col md:flex-row items-center justify-center gap-10">
-                            <div class="text-center space-y-2">
-                                <i data-lucide="chrome" class="w-12 h-12 text-slate-100 mx-auto"></i>
-                                <div class="text-[10px] font-bold text-slate-400">Web Browser</div>
-                            </div>
-                            <div class="flex-1 max-w-sm space-y-4">
-                                <div class="relative p-4 bg-slate-800 rounded-xl border border-red-500/50 flex flex-col items-center">
-                                    <div class="absolute -top-3 left-4 bg-red-600 text-[8px] px-2 py-0.5 rounded italic">Attack Scenario</div>
-                                    <i data-lucide="unlocked" class="w-6 h-6 text-red-400 mb-1"></i>
-                                    <span class="text-[10px] text-red-400">HTTP Downshift (Stripping)</span>
-                                </div>
-                                <div class="flex justify-center"><i data-lucide="shield" class="w-8 h-8 text-cyan-500"></i></div>
-                                <div class="relative p-4 bg-slate-800 rounded-xl border border-cyan-500/50 flex flex-col items-center">
-                                    <div class="absolute -top-3 left-4 bg-cyan-600 text-[8px] px-2 py-0.5 rounded italic">HSTS Enabled</div>
-                                    <i data-lucide="lock" class="w-6 h-6 text-cyan-400 mb-1"></i>
-                                    <span class="text-[10px] text-cyan-400">Enforce HTTPS Always</span>
-                                </div>
-                            </div>
-                            <div class="text-center space-y-2">
-                                <i data-lucide="server" class="w-12 h-12 text-slate-100 mx-auto"></i>
-                                <div class="text-[10px] font-bold text-slate-400">Secure Server</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="space-y-6">
-                        <h3 class="text-xl font-bold text-slate-100 flex items-center gap-3">
-                            <i data-lucide="shield-check" class="w-6 h-6 text-cyan-400"></i> HSTS 헤더 설정 (Implementation)
-                        </h3>
-                        <div class="pl-10">
-                            <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
-                                <div class="text-slate-500 italic"># Nginx 설정에 HSTS 보안 헤더 추가</div>
-                                <div class="text-cyan-400">add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always; <span class="text-slate-600"># 1년간 하위 도메인 포함 모든 접속을 HTTPS로 강제합니다.</span></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- 상세 설명 주석 (Glossary Section 4) -->
-                <div class="glossary-note p-6 rounded-2xl shadow-lg space-y-3 ml-4">
-                    <div class="text-[11px] grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div><span class="font-black text-cyan-400 uppercase tracking-tighter">Annotate 06. SSL Stripping</span>: HTTPS 연결을 강제로 HTTP로 내려서 중간에 데이터를 가로채는 공격 기법입니다.</div>
-                        <div><span class="font-black text-cyan-400 uppercase tracking-tighter">Annotate 07. max-age</span>: HSTS 설정이 브라우저에 기억될 기간을 초 단위로 지정합니다. (31536000초 = 1년)</div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 5: 클라우드 연동 (AWS) -->
-        <section>
-            <h2 class="text-2xl font-black border-l-4 border-orange-500 pl-4 text-slate-100 mb-8 tracking-tight">
-                [AWS 환경 보안 가이드 및 과금 안내]
-            </h2>
-            <div class="space-y-4">
-                <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-10">
-                    <p class="text-sm text-slate-400 italic">AWS 환경에서는 서버 내부 설정보다 관리형 서비스를 이용하는 것이 가용성과 보안성 측면에서 유리합니다.</p>
-                    
-                    <!-- 도식: ALB SSL Termination 아키텍처 -->
-                    <div class="bg-slate-950/50 rounded-2xl p-10 border border-slate-800">
-                        <h4 class="text-center font-bold text-slate-500 mb-10 text-xs uppercase tracking-widest">[도식: AWS Managed SSL Termination Architecture]</h4>
-                        <div class="flex flex-col md:flex-row items-center justify-between gap-6 max-w-4xl mx-auto">
-                            <div class="text-center w-full md:w-32">
-                                <i data-lucide="users" class="w-10 h-10 text-slate-400 mx-auto"></i>
-                                <div class="text-[10px] text-slate-500 mt-2">Public Users</div>
-                            </div>
-                            <div class="flex flex-col items-center">
-                                <span class="text-[8px] text-cyan-400 font-black italic">HTTPS (Encrypted)</span>
-                                <i data-lucide="arrow-right" class="w-8 h-8 text-cyan-600"></i>
-                            </div>
-                            <div class="p-6 bg-slate-800 rounded-2xl border-2 border-orange-500/50 text-center w-full md:w-56 shadow-2xl relative">
-                                <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-orange-600 text-white text-[8px] px-2 py-0.5 rounded font-black uppercase">SSL Termination</div>
-                                <i data-lucide="refresh-cw" class="w-8 h-8 text-orange-400 mx-auto mb-2"></i>
-                                <div class="text-xs font-black text-slate-100">AWS ALB + ACM</div>
-                                <p class="text-[9px] text-slate-500 mt-1">Decrypt & Offload</p>
-                            </div>
-                            <div class="flex flex-col items-center">
-                                <span class="text-[8px] text-slate-500 font-black italic">HTTP (Internal)</span>
-                                <i data-lucide="arrow-right" class="w-8 h-8 text-slate-600"></i>
-                            </div>
-                            <div class="p-6 bg-slate-800 rounded-2xl border border-slate-700 text-center w-full md:w-48 shadow-lg">
-                                <i data-lucide="server" class="w-8 h-8 text-slate-400 mx-auto mb-2"></i>
-                                <div class="text-xs font-black text-slate-100">EC2 Instances</div>
-                                <p class="text-[9px] text-slate-500 mt-1">Resource Optimized</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div class="bg-slate-800/50 p-8 rounded-2xl border border-blue-900/30 relative">
-                            <div class="absolute top-4 right-4 text-blue-500"><i data-lucide="award" class="w-6 h-6"></i></div>
-                            <h4 class="font-bold text-slate-100 mb-4 uppercase tracking-tighter">AWS Certificate Manager (ACM)</h4>
-                            <div class="bg-blue-500/10 border border-blue-500/20 p-4 rounded-xl mb-4 text-center">
-                                <h5 class="text-[10px] font-black text-blue-400 uppercase mb-2">Billing (과금 안내)</h5>
-                                <ul class="text-[9px] text-slate-300 space-y-1 text-left">
-                                    <li>• Public 인증서: <span class="text-cyan-400 font-bold">무료 (Free)</span></li>
-                                    <li>• Private CA 구축 시: <span class="text-red-400 font-bold">유료</span> (월 고정 및 발급 비용 발생)</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <div class="bg-slate-800/50 p-8 rounded-2xl border border-orange-900/30 relative">
-                            <div class="absolute top-4 right-4 text-orange-500"><i data-lucide="shuffle" class="w-6 h-6"></i></div>
-                            <h4 class="font-bold text-slate-100 mb-4 uppercase tracking-tighter">Application Load Balancer (ALB)</h4>
-                            <div class="bg-orange-500/10 border border-orange-500/20 p-4 rounded-xl mb-4">
-                                <h5 class="text-[10px] font-black text-orange-400 uppercase mb-2">Billing (유료 서비스)</h5>
-                                <ul class="text-[9px] text-slate-300 space-y-1">
-                                    <li>• 시간당 기본 요금 발생</li>
-                                    <li>• LCU (Load Balancer Capacity Units) 소비량에 따라 과금</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- 상세 설명 주석 (Glossary Section 5) -->
-                <div class="glossary-note p-6 rounded-2xl shadow-lg space-y-3 ml-4">
-                    <div class="text-[11px] grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div><span class="font-black text-cyan-400 uppercase tracking-tighter">Annotate 08. SSL Termination</span>: 로드 밸런서에서 복호화를 완료하고 내부 서버와는 HTTP로 통신하여 서버 자원을 절약하는 방식입니다.</div>
-                        <div><span class="font-black text-cyan-400 uppercase tracking-tighter">Annotate 09. Forward Secrecy</span>: 서버 개인키 유출 시에도 과거 통신 데이터를 복구할 수 없도록 보장하는 암호학적 성질입니다.</div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
+                
     </main>
-
-    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
-        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
-            © 2026 PUTTO'S LECTURES. ACCESS SECURED.
-        </div>
-        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic">
-            Next Step: 보안 헤더 설정
-        </p>
+    <footer class="border-t border-slate-800/80 py-8 text-center text-slate-400 text-sm bg-slate-950/90 backdrop-blur-md mt-auto">
+        <p class="font-mono">&copy; 2026 Putto's Lectures. All rights reserved. <span class="text-cyan-800 font-bold ml-2">| ACCESS SECURED.</span></p>
     </footer>
 
     <script>
-        lucide.createIcons();
+        // 전역 상태 변수: 디폴트를 'false'로 변경하여 모든 폴더가 처음에는 접혀있도록 설정합니다.
+        let isAllExpanded = false;
+
+        // 개별 폴더를 펼치거나 접는 함수
+        function toggleFolder(element) {
+            // 클릭된 헤더의 부모 섹션(Section) 및 내부 리스트 컨테이너(Container) 탐색
+            const section = element.closest('.folder-section');
+            const listContainer = section.querySelector('.list-container');
+            const folderIcon = element.querySelector('.folder-icon');
+            const chevronIcon = element.querySelector('.chevron-icon');
+            
+            // 데이터 속성(Data Attributes)에 저장된 아이콘 클래스명 불러오기
+            const baseIcon = element.getAttribute('data-base-icon');
+            const closedIcon = element.getAttribute('data-closed-icon');
+
+            // 현재 리스트가 펼쳐진 상태인지 확인 (CSS Grid 속성 기준)
+            const isExpanded = listContainer.classList.contains('grid-rows-[1fr]');
+
+            if (isExpanded) {
+                // 접기(Collapse) 액션 수행
+                listContainer.classList.remove('grid-rows-[1fr]', 'opacity-100');
+                listContainer.classList.add('grid-rows-[0fr]', 'opacity-0');
+                
+                // 우측 화살표 아이콘 회전
+                chevronIcon.classList.add('rotate-180');
+                
+                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 닫힘 상태로 변경
+                if (baseIcon !== 'fa-server') {
+                    folderIcon.classList.remove('fa-folder-open');
+                    folderIcon.classList.add('fa-folder');
+                }
+            } else {
+                // 펼치기(Expand) 액션 수행
+                listContainer.classList.remove('grid-rows-[0fr]', 'opacity-0');
+                listContainer.classList.add('grid-rows-[1fr]', 'opacity-100');
+                
+                // 우측 화살표 아이콘 원상 복구
+                chevronIcon.classList.remove('rotate-180');
+                
+                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 열림 상태로 변경
+                if (baseIcon !== 'fa-server') {
+                    folderIcon.classList.remove('fa-folder');
+                    folderIcon.classList.add('fa-folder-open');
+                }
+            }
+        }
+
+        // 전체 폴더를 일괄적으로 펼치거나 접는 함수
+        function toggleAllFolders() {
+            // 전역 상태 반전
+            isAllExpanded = !isAllExpanded;
+            
+            // DOM(Document Object Model, 문서 객체 모델)에서 모든 폴더 헤더 요소 선택
+            const headers = document.querySelectorAll('.folder-header');
+            const globalBtnIcon = document.getElementById('global-toggle-icon');
+            const globalBtnText = document.getElementById('global-toggle-text');
+
+            headers.forEach(header => {
+                const section = header.closest('.folder-section');
+                const listContainer = section.querySelector('.list-container');
+                const isCurrentlyExpanded = listContainer.classList.contains('grid-rows-[1fr]');
+
+                // 현재 개별 폴더의 상태가 전역 상태 목표와 다를 경우에만 토글 함수 실행
+                if (isAllExpanded !== isCurrentlyExpanded) {
+                    toggleFolder(header);
+                }
+            });
+
+            // 전역 토글 버튼의 UI(User Interface, 사용자 인터페이스) 업데이트
+            if (isAllExpanded) {
+                globalBtnIcon.classList.remove('fa-folder');
+                globalBtnIcon.classList.add('fa-folder-open');
+                globalBtnText.innerText = 'COLLAPSE ALL';
+            } else {
+                globalBtnIcon.classList.remove('fa-folder-open');
+                globalBtnIcon.classList.add('fa-folder');
+                globalBtnText.innerText = 'EXPAND ALL';
+            }
+        }
     </script>
 </body>
 </html>
