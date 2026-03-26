@@ -186,7 +186,6 @@ add_header Strict-Transport-Security &quot;max-age=31536000; includeSubDomains&q
 </li>
 </ul>
 <hr />
-<p>웹 서버(Web Server) 구축이 완료된 상태에서 <strong>HTTPS(Hypertext Transfer Protocol Secure, 보안 하이퍼텍스트 전송 프로토콜)</strong>를 활성화하는 과정은 크게 <strong>인증서 배치</strong>, <strong>설정 파일 수정</strong>, <strong>서비스 활성화</strong>의 3단계로 나뉩니다. <strong>Apache(아파치)</strong>와 <strong>Nginx(엔진엑스)</strong> 각각의 실전 가이드를 정리해 드립니다.</p>
 <hr />
 <h2>1. Apache (아파치) HTTPS 설정 절차</h2>
 <p><strong>Apache</strong>는 모듈 방식이므로 SSL 모듈을 먼저 활성화해야 합니다.</p>
@@ -315,6 +314,167 @@ curl -I https://localhost
 2. <strong>Let's Encrypt</strong>: 무료로 SSL 인증서를 발급해주는 비영리 인증 기관으로, 90일마다 자동 갱신 설정을 통해 주로 사용됩니다.
 3. <strong>Forward Secrecy (전방 향후 보안)</strong>: 서버의 개인키가 유출되더라도 과거에 통신했던 암호화된 데이터는 복구할 수 없도록 보장하는 성질입니다.
 4. <strong>max-age</strong>: HSTS 설정이 브라우저에 기억될 기간을 초 단위로 지정합니다. (31536000초 = 1년)</p>
+<hr />
+<p>하지만, <strong>인증서 없이는 HTTPS 서비스를 할 수 없습니다.</strong> <br />
+다만, 공인 기관에서 <strong>받지(발급받지)</strong> 않고 본인이 직접 만든 <strong>Self-signed Certificate(자가 서명 인증서)</strong>를 사용하여 기술적으로 HTTPS를 가동하는 것은 가능합니다.</p>
+<hr />
+<h2>1. 인증서 없이 HTTPS가 불가능한 이유</h2>
+<p><strong>HTTPS</strong>의 핵심은 <strong>TLS(Transport Layer Security, 전송 계층 보안)</strong> 프로토콜을 통한 암호화 통신입니다. 이 암호화 과정에서 서버의 정체를 확인하고 암호화 키를 교환하기 위한 <strong>Digital Certificate(디지털 인증서)</strong>가 반드시 필요합니다.</p>
+<h3>자가 서명 인증서 (Self-signed Certificate)의 특징</h3>
+<p>외부 기관(CA)을 거치지 않고 서버 관리자가 직접 생성한 인증서입니다.
+* <strong>장점</strong>: 비용이 들지 않고 즉시 생성이 가능하여 내부 테스트용으로 적합합니다.
+* <strong>단점</strong>: 웹 브라우저가 해당 인증서를 신뢰할 수 없으므로 접속 시 <strong>"주의 요함"</strong> 또는 <strong>"연결이 비공개로 설정되어 있지 않습니다"</strong>라는 경고창을 띄웁니다.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">구분</th>
+<th style="text-align: left;">자가 서명 인증서 (Self-signed)</th>
+<th style="text-align: left;">공인 인증서 (CA-signed)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>신뢰도</strong></td>
+<td style="text-align: left;">낮음 (브라우저 경고 발생)</td>
+<td style="text-align: left;">높음 (자물쇠 아이콘 표시)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>용도</strong></td>
+<td style="text-align: left;">개인 개발, 내부 망 테스트</td>
+<td style="text-align: left;">운영 서비스, 쇼핑몰, 기업 웹사이트</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>비용</strong></td>
+<td style="text-align: left;">무료</td>
+<td style="text-align: left;">무료(Let's Encrypt) ~ 유료</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>암호화 여부</strong></td>
+<td style="text-align: left;"><strong>동일하게 암호화됨</strong></td>
+<td style="text-align: left;"><strong>동일하게 암호화됨</strong></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>2. CSR (Certificate Signing Request)의 이해</h2>
+<p><strong>CSR(인증서 서명 요청)</strong>은 공인 기관(CA)에 인증서를 신청하기 위해 보내는 <strong>신청서 데이터</strong>입니다. 이 파일에는 서버의 <strong>Public Key(공개키)</strong> 정보와 도메인 정보가 포함되어 있습니다.</p>
+<h3>CSR 생성 과정 및 포함 정보</h3>
+<ol>
+<li>서버에서 <strong>Private Key(개인키)</strong>를 먼저 생성합니다.</li>
+<li>이 개인키를 바탕으로 <strong>CSR</strong> 파일을 생성합니다.</li>
+<li><strong>CSR</strong> 파일만 공인 기관(CA)에 전달하고, <strong>Private Key</strong>는 절대로 외부로 유출해서는 안 됩니다.</li>
+</ol>
+<blockquote>
+<p><strong>CSR 포함 주요 항목</strong>
+* <strong>Common Name (CN)</strong>: 인증서를 적용할 도메인 주소 (예: <code>example.com</code>)
+* <strong>Organization (O)</strong>: 회사 또는 단체명
+* <strong>Country (C)</strong>: 국가 코드 (대한민국은 <code>KR</code>)
+* <strong>Public Key</strong>: 암호화에 사용될 공개키 정보</p>
+</blockquote>
+<hr />
+<h2>3. 실전: OpenSSL을 이용한 CSR 생성 명령어</h2>
+<p>실제 서버에서 인증서를 신청하기 위해 실행하는 표준 명령어입니다.</p>
+<pre><code class="language-bash"># 1. 개인키(Private Key)와 CSR을 동시에 생성
+openssl req -new -newkey rsa:2048 -nodes -keyout example.com.key -out example.com.csr
+</code></pre>
+<ul>
+<li><strong>-newkey rsa:2048</strong>: 2048비트 크기의 <strong>RSA</strong>(Rivest-Shamir-Adleman, 공개키 암호화 알고리즘) 키 쌍을 생성합니다.</li>
+<li><strong>-nodes</strong>: 개인키를 암호화하지 않고 저장합니다 (서버 재시작 시 비밀번호 입력 생략을 위함).</li>
+<li><strong>-keyout</strong>: 생성될 개인키 파일명입니다.</li>
+<li><strong>-out</strong>: 생성될 <strong>CSR</strong> 파일명입니다.</li>
+</ul>
+<hr />
+<h2>4. 인증서 발급 및 적용 논리 흐름</h2>
+<p>인증서를 준비하여 서비스를 가동하기까지의 단계별 블록 구조입니다.</p>
+<blockquote>
+<p><strong>[1. 키 생성]</strong> (서버에서 Private Key 생성)
+      ↓
+<strong>[2. CSR 작성]</strong> (도메인 정보 입력 및 신청서 생성)
+      ↓
+<strong>[3. CA 전송]</strong> (CSR을 기관에 보내고 심사 후 인증서 수령)
+      ↓
+<strong>[4. 웹 서버 설정]</strong> (수령한 인증서와 개인키를 Apache/Nginx에 등록)
+      ↓
+<strong>[5. HTTPS 가동]</strong> (브라우저에서 자물쇠 아이콘 확인)</p>
+</blockquote>
+<hr />
+<p><strong>Next Step: Let's Encrypt를 이용한 자동 발급 절차, 와일드카드 인증서 개념, SSL 보안 등급 강화</strong></p>
+<hr />
+<p>웹 사이트 보안을 완성하기 위해서는 사용자가 <strong>HTTP(Hypertext Transfer Protocol, 하이퍼텍스트 전송 프로토콜)</strong>로 접속하더라도 자동으로 암호화된 <strong>HTTPS(Hypertext Transfer Protocol Secure, 보안 하이퍼텍스트 전송 프로토콜)</strong>로 전환해주는 <strong>강제 리다이렉션(Forced Redirection, 통신 경로 재지정)</strong> 설정이 필수적입니다.</p>
+<hr />
+<h2>1. Apache (아파치) 리다이렉션 설정</h2>
+<p><strong>Apache</strong>에서는 크게 두 가지 방법을 사용합니다. <code>VirtualHost</code> 설정을 직접 수정하거나 <code>.htaccess</code> 파일을 활용합니다.</p>
+<h3>① VirtualHost (가상 호스트) 설정을 이용한 방법 (권장)</h3>
+<p>80번 포트(HTTP)로 들어오는 모든 요청을 443번 포트(HTTPS)로 보냅니다.
+* <strong>파일 경로</strong>: <code>/etc/apache2/sites-available/000-default.conf</code></p>
+<pre><code class="language-apache">&lt;VirtualHost *:80&gt;
+    ServerName example.com
+    # [핵심] 모든 요청을 HTTPS로 영구 이동(301) 시킴
+    Redirect permanent / https://example.com/
+&lt;/VirtualHost&gt;
+</code></pre>
+<h3>② mod_rewrite (리라이트 모듈)를 이용한 방법</h3>
+<p>특정 조건에 따라 더 세밀한 제어가 필요할 때 사용합니다.</p>
+<pre><code class="language-apache">RewriteEngine On
+# HTTPS가 꺼져 있는(off) 경우에만 동작
+RewriteCond %{HTTPS} off
+# 모든 경로(.*)를 HTTPS 주소로 변경하여 전달
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</code></pre>
+<hr />
+<h2>2. Nginx (엔진엑스) 리다이렉션 설정</h2>
+<p><strong>Nginx</strong>는 구조가 단순하며, <code>return</code> 지시어를 사용하여 매우 빠르게 처리합니다.</p>
+<h3>① Server 블록 설정을 이용한 방법</h3>
+<p>80번 포트 전용 <code>server</code> 블록을 생성하여 리다이렉트합니다.
+* <strong>파일 경로</strong>: <code>/etc/nginx/sites-available/default</code></p>
+<pre><code class="language-nginx">server {
+    listen 80;
+    server_name example.com;
+
+    # [핵심] 301 상태 코드를 반환하며 HTTPS 주소로 연결
+    return 301 https://$host$request_uri;
+}
+</code></pre>
+<blockquote>
+<p><strong>기술 보충 설명</strong>
+<strong>301 Moved Permanently (301 영구 이동)</strong>: 브라우저와 검색 엔진에 해당 페이지의 주소가 영구적으로 변경되었음을 알리는 <strong>HTTP Status Code (HTTP 상태 코드)</strong>입니다. SEO(Search Engine Optimization, 검색 엔진 최적화) 점수를 유지하는 데 유리합니다.</p>
+</blockquote>
+<hr />
+<h2>3. 보안 강화: HSTS (HTTP Strict Transport Security)</h2>
+<p>리다이렉션만으로는 첫 번째 HTTP 접속 시 발생하는 <strong>Man-in-the-Middle Attack (MITM, 중간자 공격)</strong>을 완벽히 막을 수 없습니다. 이를 보완하기 위해 <strong>HSTS (HTTP Strict Transport Security, HTTP 엄격한 전송 보안)</strong>를 설정합니다.</p>
+<ul>
+<li><strong>동작 원리</strong>: 브라우저에게 "이 사이트는 앞으로 일정 기간(max-age) 동안 무조건 HTTPS로만 접속하라"는 지시를 내립니다.</li>
+<li><strong>Apache 설정</strong>: <code>Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"</code></li>
+<li><strong>Nginx 설정</strong>: <code>add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;</code></li>
+</ul>
+<hr />
+<h2>4. 리다이렉션 동작 구조 도식화</h2>
+<p>사용자의 요청이 보안 연결로 전환되는 단계별 블록 구조입니다.</p>
+<blockquote>
+<p><strong>[1. 클라이언트 접속]</strong> (<a href="http://example.com">http://example.com</a>)
+      ↓
+<strong>[2. 웹 서버 수신]</strong> (80번 포트에서 요청 확인)
+      ↓
+<strong>[3. 리다이렉트 응답]</strong> (HTTP 301 응답 + https:// 주소 전달)
+      ↓
+<strong>[4. 클라이언트 재접속]</strong> (<a href="https://example.com">https://example.com</a>으로 자동 요청)
+      ↓
+<strong>[5. 보안 연결 확립]</strong> (TLS 핸드쉐이크 후 암호화 통신 시작)</p>
+</blockquote>
+<hr />
+<h2>5. 설정 확인 방법</h2>
+<p>명령행 도구인 <strong>curl (컬, 데이터 전송 도구)</strong>을 사용하여 정상적으로 리다이렉트되는지 확인합니다.</p>
+<pre><code class="language-bash"># -I 옵션은 헤더 정보만 출력함
+curl -I http://example.com
+</code></pre>
+<ul>
+<li><strong>확인 사항</strong>: 출력 결과의 첫 줄에 <code>HTTP/1.1 301 Moved Permanently</code>가 나타나고, <code>Location</code> 항목에 <code>https://...</code> 주소가 포함되어야 합니다.</li>
+</ul>
+<hr />
+<p><strong>Next Step: SSL 보안 등급 튜닝 (A+ 등급), 혼합 콘텐츠(Mixed Content) 해결 방법, 리버스 프록시 환경에서의 리다이렉션 주의사항</strong></p>
+<hr />
+<p>HTTP에서 HTTPS로의 강제 전환 설정을 아파치와 엔진엑스 각각의 사례로 정리했습니다. 보안을 위해 리다이렉션과 함께 <strong>HSTS</strong> 설정을 병행하는 것이 전문가 수준의 권장 사항입니다. 추가로 특정 서브도메인만 제외하거나, 로드 밸런서 뒷단에서의 특수한 리다이렉션 설정도 필요합니다. </p>
+<p>Next Step : HSTS 설정, 301 vs 302 리다이렉트 차이, SSL 성능 최적화</p>
                 </div>
                 
     </main>
