@@ -163,14 +163,11 @@ server {
     # 보안 헤더 설정 (HSTS 활성화 권장)
     Header always set Strict-Transport-Security &quot;max-age=63072000&quot;
 &lt;/VirtualHost&gt;
----
-
-### **4. HSTS (HTTP Strict Transport Security) 적용**
-
-**HSTS (HTTP Strict Transport Security, HTTP 엄격한 전송 보안)**는 브라우저가 해당 사이트에 접속할 때 항상 HTTPS 프로토콜만 사용하도록 강제하는 보안 헤더입니다. 이를 통해 HTTP를 HTTPS로 리다이렉트하는 과정에서 발생할 수 있는 **SSL Stripping (SSL 스트리핑, HTTPS를 HTTP로 하향 유도하는 공격)**을 원천 차단합니다.
-
-```bash
-# Nginx 설정에 HSTS 헤더 추가
+</code></pre>
+<hr />
+<h3><strong>4. HSTS (HTTP Strict Transport Security) 적용</strong></h3>
+<p><strong>HSTS (HTTP Strict Transport Security, HTTP 엄격한 전송 보안)</strong>는 브라우저가 해당 사이트에 접속할 때 항상 HTTPS 프로토콜만 사용하도록 강제하는 보안 헤더입니다. 이를 통해 HTTP를 HTTPS로 리다이렉트하는 과정에서 발생할 수 있는 <strong>SSL Stripping (SSL 스트리핑, HTTPS를 HTTP로 하향 유도하는 공격)</strong>을 원천 차단합니다.</p>
+<pre><code class="language-bash"># Nginx 설정에 HSTS 헤더 추가
 add_header Strict-Transport-Security &quot;max-age=31536000; includeSubDomains&quot; always;
 </code></pre>
 <hr />
@@ -189,7 +186,129 @@ add_header Strict-Transport-Security &quot;max-age=31536000; includeSubDomains&q
 </li>
 </ul>
 <hr />
-<p>Next Step: 보안 헤더 설정</p>
+<p>웹 서버(Web Server) 구축이 완료된 상태에서 <strong>HTTPS(Hypertext Transfer Protocol Secure, 보안 하이퍼텍스트 전송 프로토콜)</strong>를 활성화하는 과정은 크게 <strong>인증서 배치</strong>, <strong>설정 파일 수정</strong>, <strong>서비스 활성화</strong>의 3단계로 나뉩니다. <strong>Apache(아파치)</strong>와 <strong>Nginx(엔진엑스)</strong> 각각의 실전 가이드를 정리해 드립니다.</p>
+<hr />
+<h2>1. Apache (아파치) HTTPS 설정 절차</h2>
+<p><strong>Apache</strong>는 모듈 방식이므로 SSL 모듈을 먼저 활성화해야 합니다.</p>
+<h3>[1단계] SSL 모듈 및 가상 호스트 활성화</h3>
+<pre><code class="language-bash"># 1. SSL 모듈(Module) 활성화
+sudo a2enmod ssl
+
+# 2. SSL 전용 기본 가상 호스트(Virtual Host) 설정 파일 활성화
+sudo a2ensite default-ssl
+</code></pre>
+<h3>[2단계] 설정 파일 수정</h3>
+<ul>
+<li><strong>파일 경로</strong>: <code>/etc/apache2/sites-available/default-ssl.conf</code></li>
+<li><strong>주요 수정 내용</strong>:</li>
+</ul>
+<pre><code class="language-apache">&lt;VirtualHost *:443&gt;
+    ServerName example.com
+    DocumentRoot /var/www/html
+
+    # SSL 엔진 가동
+    SSLEngine on
+
+    # 인증서 및 개인키 경로 (실제 발급받은 파일 경로로 수정)
+    SSLCertificateFile    /etc/ssl/certs/example.com.crt
+    SSLCertificateKeyFile /etc/ssl/private/example.com.key
+
+    # 중간 인증서가 있는 경우 주석 해제 후 경로 지정
+    # SSLCertificateChainFile /etc/ssl/certs/chain.pem
+&lt;/VirtualHost&gt;
+</code></pre>
+<h3>[3단계] 실행 및 확인</h3>
+<pre><code class="language-bash"># 1. 설정 문법 검사 (Syntax Check)
+sudo apache2ctl configtest
+
+# 2. 결과가 'Syntax OK'라면 서비스 재시작
+sudo systemctl restart apache2
+
+# 3. 443 포트 리슨(Listen) 확인
+ss -tulpn | grep :443
+</code></pre>
+<hr />
+<h2>2. Nginx (엔진엑스) HTTPS 설정 절차</h2>
+<p><strong>Nginx</strong>는 설정 파일 내에 직접 SSL 지시어를 추가하는 방식입니다.</p>
+<h3>[1단계] 설정 파일 수정</h3>
+<ul>
+<li><strong>파일 경로</strong>: <code>/etc/nginx/sites-available/default</code> (또는 <code>/etc/nginx/conf.d/default.conf</code>)</li>
+<li><strong>주요 수정 내용</strong>: 기존 <code>server</code> 블록을 수정하거나 443용 블록을 추가합니다.</li>
+</ul>
+<pre><code class="language-nginx">server {
+    listen 443 ssl;
+    server_name example.com;
+
+    # 인증서 및 개인키 경로 지정
+    ssl_certificate     /etc/nginx/ssl/example.com.crt;
+    ssl_certificate_key /etc/nginx/ssl/example.com.key;
+
+    # 보안 프로토콜 및 사이퍼 스위트(Cipher Suite) 설정
+    ssl_protocols       TLSv1.2 TLSv1.3;
+    ssl_ciphers         HIGH:!aNULL:!MD5;
+
+    location / {
+        root   /var/www/html;
+        index  index.html index.htm;
+    }
+}
+</code></pre>
+<h3>[2단계] 실행 및 확인</h3>
+<pre><code class="language-bash"># 1. 설정 파일 오류 검사
+sudo nginx -t
+
+# 2. 결과가 'successful'이라면 설정 반영 (Restart보다 안전한 Reload 권장)
+sudo systemctl reload nginx
+
+# 3. 브라우저 확인 또는 컬(curl) 명령어로 확인
+curl -I https://localhost
+</code></pre>
+<hr />
+<h2>3. 공통 작업: 방화벽 개방</h2>
+<p>인증서 설정이 끝나도 네트워크 포트가 막혀 있으면 접속이 불가능합니다.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">방화벽 도구</th>
+<th style="text-align: left;">명령어</th>
+<th style="text-align: left;">설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>UFW</strong> (Ubuntu)</td>
+<td style="text-align: left;"><code>sudo ufw allow 443/tcp</code></td>
+<td style="text-align: left;">443번 <strong>TCP</strong> 포트 허용</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Firewalld</strong> (CentOS)</td>
+<td style="text-align: left;"><code>sudo firewall-cmd --permanent --add-service=https</code></td>
+<td style="text-align: left;"><strong>HTTPS</strong> 서비스 영구 허용</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>적용</strong></td>
+<td style="text-align: left;"><code>sudo ufw reload</code> 또는 <code>firewall-cmd --reload</code></td>
+<td style="text-align: left;">설정 내용 즉시 반영</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>4. 백엔드(Backend) 서버에도 HTTPS가 필요한가?</h2>
+<p>일반적으로 <strong>백엔드 서버</strong>(예: Node.js, Python/Django, Spring Boot 등)는 웹 서버(Nginx/Apache) 뒷단에 위치합니다. 이를 <strong>Reverse Proxy(리버스 프록시)</strong> 구조라고 합니다.</p>
+<h3>[보안 아키텍처 관점]</h3>
+<ul>
+<li><strong>외부 구간 (Client ↔ Web Server)</strong>: 반드시 <strong>HTTPS</strong>가 필요합니다. 공인망을 통과하므로 데이터 암호화가 필수입니다.</li>
+<li><strong>내부 구간 (Web Server ↔ Backend)</strong>: 보통 <strong>HTTP</strong>로 통신합니다. 동일한 서버 내부나 신뢰할 수 있는 사설망(VPC) 내에 있다면 암호화 오버헤드를 줄이기 위해 HTTP를 사용해도 무방합니다.</li>
+<li><strong>예외 상황</strong>: 금융권이나 고도의 보안이 필요한 환경에서는 <strong>End-to-End Encryption(종단 간 암호화)</strong>을 위해 내부 구간까지 HTTPS를 적용하기도 합니다.</li>
+</ul>
+<blockquote>
+<p><strong>기술 보충 설명</strong>
+<strong>Reverse Proxy(리버스 프록시)</strong>는 클라이언트의 요청을 대신 받아 백엔드 서버로 전달하는 대리인 역할을 수행합니다. 이때 웹 서버가 SSL 처리를 전담하는 것을 <strong>SSL Termination(SSL 종단)</strong>이라고 부릅니다.</p>
+</blockquote>
+<hr />
+<p><strong>Next Step: Let's Encrypt(Certbot)를 이용한 무료 인증서 자동 발급, HTTP에서 HTTPS로의 강제 리다이렉션 설정, SSL 보안 등급(A+) 튜닝</strong></p>
+<hr />
+<p>웹 서버의 HTTPS 활성화를 위한 필수 명령어와 설정법을 단계별로 정리했습니다. 백엔드 서버의 경우 내부 통신 보안 정책에 따라 HTTPS 적용 여부를 결정하시면 됩니다. </p>
 <hr />
 <p><strong>상세 설명 주석</strong>
 1. <strong>SSL Termination</strong>: 로드 밸런서에서 SSL 복호화를 수행하고, 내부 서버와는 HTTP로 통신하여 서버 자원을 절약하는 방식입니다.
