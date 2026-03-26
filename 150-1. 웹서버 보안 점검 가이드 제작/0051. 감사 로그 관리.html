@@ -3,248 +3,340 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Security & Cloud Hacking Lab</title>
+    <title>Audit Log Management: 감사 로그 관리 및 중앙 집중화 실습</title>
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
-        
-        /* 기본 글꼴 및 다크 모드 배경색 설정 */
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
         body { 
             font-family: 'Noto Sans KR', sans-serif; 
             background-color: #020617; 
             color: #f8fafc; 
-            /* 전체 화면 배경 이미지 적용 및 투명도(Overlay) 설정: 텍스트 가시성을 위해 어두운 오버레이 강화 */
-            background-image: linear-gradient(to bottom, rgba(2, 6, 23, 0.75), rgba(2, 6, 23, 0.95)), 
-                              url('image_1a3201.jpg');
-            background-size: cover;
-            background-attachment: fixed;
-            background-position: center center;
+            margin: 0; padding: 0;
+            line-height: 1.8;
+            background-image: radial-gradient(circle at 50% 0%, #0f172a 0%, #020617 100%);
         }
-
-        /* 텍스트 리스트 호버 효과: 터미널 스타일 */
-        .list-hover {
-            transition: all 0.2s ease;
-        }
-        .list-hover:hover {
-            color: #22d3ee; 
-            padding-left: 0.75rem; 
-            background-color: rgba(15, 23, 42, 0.8); 
-            border-left-color: #0ea5e9;
-        }
-
-        /* 텍스트 가시성을 높이는 그림자 효과 클래스 */
-        .text-glow {
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
-        }
-        .neon-glow {
-            text-shadow: 0 0 8px rgba(34, 211, 238, 0.6);
-        }
+        .terminal-bg { background-color: #010409; border: 1px solid #1e293b; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-filter: blur(12px); }
+        .code-block { font-family: 'Fira Code', monospace; }
+        .neon-border { border: 1px solid rgba(34, 211, 238, 0.3); box-shadow: 0 0 20px rgba(34, 211, 238, 0.05); }
+        .glossary-note { background: rgba(30, 41, 59, 0.5); border-left: 2px solid #0ea5e9; }
         
-        /* 커스텀 스크롤바 (선택적 시각 강화) */
         ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
     </style>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-        }
-    </script>
 </head>
-<body class="min-h-screen flex flex-col">
-    <header class="py-24 px-6 relative overflow-hidden">
-        
-        <a href="https://putto4u.github.io/06.Hacking-Security" class="absolute top-6 left-6 md:left-10 z-20 group cursor-pointer block" target="_blank" rel="noopener noreferrer">
-            <div class="flex items-center space-x-2 bg-slate-900/80 py-2 px-4 rounded-xl border border-cyan-900/50 backdrop-blur-md shadow-[0_0_15px_rgba(8,145,178,0.2)] transition-all duration-300 group-hover:border-cyan-400/60 group-hover:shadow-[0_0_20px_rgba(34,211,238,0.4)]">
-                <div class="relative flex h-3 w-3 mr-1">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
-                </div>
-                <span class="font-mono text-[10px] md:text-xs text-slate-400 tracking-wider">CHIEF SYSTEM ARCHITECT <span class="text-cyan-500 ml-1">❯</span></span>
-                <span class="font-black text-cyan-300 tracking-widest font-mono text-sm md:text-base neon-glow ml-1">PUTTO</span>
-                <span class="font-bold text-slate-200 tracking-widest font-mono text-sm md:text-base">'S LECTURES</span>
-            </div>
-        </a>
+<body class="antialiased pb-20">
 
-        <div class="max-w-4xl mx-auto relative z-10 text-center mt-8">
-            <div class="inline-flex items-center justify-center space-x-3 mb-8 bg-slate-950/60 p-4 rounded-2xl backdrop-blur-md border border-slate-700/80 shadow-2xl">
-                <i class="fas fa-user-secret text-4xl text-cyan-400 drop-shadow-lg"></i>
-                <span class="text-slate-500">|</span>
-                <i class="fas fa-shield-halved text-4xl text-blue-500 drop-shadow-lg"></i>
+    <!-- Header: 기술 사양 및 타이틀 -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Cyber Security Lab</span>
+                    <span class="text-slate-500 font-mono text-[10px]">INFRA-SEC-09 | Visibility & Forensics</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
+                    Audit Log Centralization<br><span class="text-slate-100 text-2xl">감사 로그 관리 및 중앙 집중화</span>
+                </h1>
             </div>
-            
-            <h1 class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-2 pb-2 bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 via-blue-400 to-indigo-400 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">
-                Cloud Security & Hacking Lab
-            </h1>
-            
-            <p class="mt-8 text-slate-100 font-medium text-lg md:text-xl max-w-2xl mx-auto leading-relaxed text-glow">
-                실전 클라우드 인프라 보안 및 모의 해킹 시나리오 연구 자료 저장소
-            </p>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    VER: 2026.04
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">Chief System Architect Pro</p>
+            </div>
         </div>
     </header>
 
-    <main class="flex-grow max-w-4xl mx-auto px-6 py-8 w-full">
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-24">
 
-                <div class="bg-slate-950/90 p-8 md:p-12 rounded-2xl shadow-2xl border border-slate-700/50 backdrop-blur-xl prose prose-invert prose-slate max-w-none prose-img:rounded-xl prose-a:text-cyan-400 hover:prose-a:text-cyan-300 prose-headings:text-slate-100 prose-strong:text-cyan-100">
-                    <h2>5.1 감사 로그 관리 및 중앙 집중화</h2>
-<hr />
-<h3><strong>1. 감사 로그(Audit Log)의 정의와 중요성</strong></h3>
-<p><strong>Audit Log (감사 로그, 시스템 및 사용자 활동 기록)</strong>는 정보 시스템 내에서 발생하는 모든 활동(접속 기록, 데이터 수정, 오류 발생 등)을 시간 순서대로 기록한 데이터입니다. 침해 사고 발생 시 <strong>Forensics (포렌식, 디지털 증명 및 분석)</strong>의 핵심 증거로 사용되며, 법적 규제 준수(Compliance)를 위해 반드시 안전하게 관리되어야 합니다.</p>
-<ul>
-<li><strong>기밀성 및 무결성</strong>: 로그는 공격자에 의해 변조되거나 삭제되지 않도록 별도의 격리된 저장소에 보관해야 합니다.</li>
-<li><strong>추적성</strong>: "누가, 언제, 어디서, 무엇을 했는지"에 대한 <strong>5W1H (Who, When, Where, What, Why, How)</strong> 정보를 포함해야 합니다.</li>
-</ul>
-<blockquote>
-<p><strong>설명</strong>: 웹 서버 보안의 완성은 침입을 막는 것뿐만 아니라, 침입 후의 행적을 완벽히 기록하여 재발을 방지하는 시스템을 갖추는 것입니다.</p>
-</blockquote>
-<hr />
-<h3><strong>2. 웹 서버 로그 설정 (Nginx 기준)</strong></h3>
-<p>웹 서버의 상세한 로그 설정은 공격 시도의 패턴을 분석하는 기초 자료가 됩니다.</p>
-<ul>
-<li><strong>Access Log (접근 로그)</strong>: 모든 HTTP 요청에 대한 기록을 남깁니다.</li>
-<li><strong>Error Log (에러 로그)</strong>: 서버 내부 오류나 비정상적인 요청에 대한 기록을 남깁니다.</li>
-</ul>
-<pre><code class="language-bash"># Nginx 로그 포맷 설정 (/etc/nginx/nginx.conf)
-log_format main '$remote_addr - $remote_user [$time_local] &quot;$request&quot; '
-                  '$status $body_bytes_sent &quot;$http_referer&quot; '
-                  '&quot;$http_user_agent&quot; &quot;$http_x_forwarded_for&quot;';
+        <!-- Section 1: 감사 로그의 정의와 중요성 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                1. 감사 로그(Audit Log)의 정의와 중요성
+            </h2>
+            <div class="space-y-4">
+                <div class="section-card rounded-3xl p-10 shadow-2xl space-y-8">
+                    <p class="text-slate-300 text-lg leading-relaxed">
+                        <strong>Audit Log (감사 로그, 시스템 및 사용자 활동 기록)</strong>는 정보 시스템 내에서 발생하는 모든 활동(접속 기록, 데이터 수정, 오류 발생 등)을 시간 순서대로 기록한 데이터입니다. 침해 사고 발생 시 <strong>Forensics (디지털 포렌식, 디지털 증명 및 분석)</strong>의 핵심 증거로 사용되며, 법적 규제 준수(Compliance, 컴플라이언스)를 위해 반드시 안전하게 관리되어야 합니다.
+                    </p>
 
-# 로그 저장 경로 및 포맷 적용
-access_log /var/log/nginx/access.log main;
-error_log /var/log/nginx/error.log warn;
-</code></pre>
-<ul>
-<li><strong>Log Rotation (로그 로테이션, 로그 순환)</strong>: 로그 파일이 너무 커져 디스크 용량을 소모하는 것을 방지하기 위해 주기적으로 파일을 압축하고 교체합니다.</li>
-</ul>
-<pre><code class="language-bash"># 리눅스 logrotate 설정 확인
-cat /etc/logrotate.d/nginx
-</code></pre>
-<hr />
-<h3><strong>3. 로그 중앙 집중화 및 SIEM 연동</strong></h3>
-<p>개별 서버에 로그를 두면 서버 탈취 시 로그가 삭제될 위험이 있습니다. 따라서 외부의 <strong>Log Collector (로그 수집기)</strong>를 통해 중앙 저장소로 전송해야 합니다.</p>
-<ul>
-<li><strong>ELK Stack (Elasticsearch, Logstash, Kibana)</strong>: 오픈소스 기반의 실시간 로그 수집, 분석 및 시각화 도구입니다.</li>
-<li><strong>SIEM (Security Information and Event Management, 보안 정보 및 이벤트 관리)</strong>: 여러 시스템의 로그를 실시간으로 통합 분석하여 위협을 탐지하는 보안 솔루션입니다.</li>
-</ul>
-<blockquote>
-<p><strong>설명</strong>: <strong>SIEM (보안 정보 및 이벤트 관리)</strong>은 단순한 로그 저장을 넘어, 서로 다른 장비에서 발생하는 로그들 사이의 상관관계를 분석하여 고도화된 공격을 탐지합니다.</p>
-</blockquote>
-<hr />
-<h3><strong>4. [AWS 환경 보안 서비스 및 과금 안내]</strong></h3>
-<p>AWS에서는 로그 수집과 분석을 자동화해주는 강력한 관리형 서비스를 제공합니다.</p>
-<ul>
-<li><strong>Amazon CloudWatch Logs (아마존 클라우드워치 로그)</strong><ul>
-<li>EC2 인스턴스의 로그를 실시간으로 수집하고 저장합니다.</li>
-<li><strong>과금 안내</strong>: 수집되는 데이터량(GB당 <strong>$0.50</strong>)과 보관되는 데이터량(GB당 <strong>$0.03/월</strong>)에 따라 비용이 발생합니다. <a href="https://aws.amazon.com/ko/cloudwatch/pricing/">공식 요금 페이지</a></li>
-</ul>
-</li>
-<li><strong>Amazon S3 (아마존 S3)</strong><ul>
-<li>장기 보관이 필요한 로그를 저렴한 비용으로 저장하는 용도로 사용됩니다.</li>
-</ul>
-</li>
-<li><strong>Amazon OpenSearch Service (아마존 오픈서치 서비스)</strong><ul>
-<li>대량의 로그 데이터를 고속으로 검색하고 시각화합니다. (유료 인스턴스 시간당 과금)</li>
-</ul>
-</li>
-</ul>
-<hr />
-<p>Next Step: 실시간 이상 징후 탐지</p>
-<hr />
-<p><strong>상세 설명 주석</strong>
-1. <strong>Forensics</strong>: 디지털 매체에 기록된 정보를 수집, 식별, 분석하여 법적 증거 능력을 확보하는 기술입니다.
-2. <strong>Log Rotation</strong>: 로그 파일의 무한 증식을 막기 위해 특정 주기로 기존 파일을 보관하고 새 파일을 생성하는 관리 방식입니다.
-3. <strong>Logstash</strong>: 다양한 소스로부터 데이터를 수집하고 변환하여 원하는 저장소로 전송하는 데이터 파이프라인 도구입니다.
-4. <strong>CloudWatch Agent</strong>: 서버 내부의 로그 파일(access.log 등)을 읽어 CloudWatch Logs 서비스로 전송하기 위해 설치하는 에이전트 소프트웨어입니다.
-5. <strong>Retention Policy (보존 정책)</strong>: 로그 데이터를 법적/업무적 필요에 따라 얼마나 오래 보관할지 결정하는 기준입니다.</p>
+                    <!-- 도식: 로그 데이터의 5W1H 구조 -->
+                    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-10 shadow-inner">
+                        <h4 class="text-center font-bold text-slate-400 mb-10 text-xs tracking-widest uppercase">
+                            [도식: 5W1H Principle of Audit Logging (감사 로그의 6하원칙 구조)]
+                        </h4>
+                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 max-w-5xl mx-auto">
+                            <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-center">
+                                <div class="text-cyan-400 mb-2 font-black">WHO</div>
+                                <div class="text-[9px] text-slate-500">사용자 계정 및 IP</div>
+                            </div>
+                            <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-center">
+                                <div class="text-blue-400 mb-2 font-black">WHEN</div>
+                                <div class="text-[9px] text-slate-500">정확한 타임스탬프</div>
+                            </div>
+                            <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-center">
+                                <div class="text-indigo-400 mb-2 font-black">WHERE</div>
+                                <div class="text-[9px] text-slate-500">시스템 및 서비스 위치</div>
+                            </div>
+                            <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-center">
+                                <div class="text-purple-400 mb-2 font-black">WHAT</div>
+                                <div class="text-[9px] text-slate-500">수행된 구체적 행위</div>
+                            </div>
+                            <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-center">
+                                <div class="text-pink-400 mb-2 font-black">WHY</div>
+                                <div class="text-[9px] text-slate-500">행위의 목적 및 배경</div>
+                            </div>
+                            <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-center">
+                                <div class="text-emerald-400 mb-2 font-black">HOW</div>
+                                <div class="text-[9px] text-slate-500">사용된 프로토콜/도구</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-slate-800/40 p-6 rounded-2xl border border-slate-700/50">
+                            <h4 class="font-bold text-slate-100 mb-2 text-sm flex items-center gap-2"><i data-lucide="lock" class="w-4 h-4 text-cyan-400"></i> 기밀성 및 무결성</h4>
+                            <p class="text-[11px] text-slate-400 leading-relaxed">로그는 공격자에 의해 변조되거나 삭제되지 않도록 별도의 격리된 저장소에 보관해야 합니다.</p>
+                        </div>
+                        <div class="bg-slate-800/40 p-6 rounded-2xl border border-slate-700/50">
+                            <h4 class="font-bold text-slate-100 mb-2 text-sm flex items-center gap-2"><i data-lucide="history" class="w-4 h-4 text-cyan-400"></i> 추적성 (Traceability)</h4>
+                            <p class="text-[11px] text-slate-400 leading-relaxed">"누가, 언제, 어디서, 무엇을 했는지"에 대한 <strong>5W1H</strong> 정보를 포함하여 사후 추적을 가능케 합니다.</p>
+                        </div>
+                    </div>
+                    
+                    <p class="bg-blue-500/10 border-l-4 border-blue-500 p-4 text-sm text-blue-300 italic">
+                        <strong>설명</strong>: 웹 서버 보안의 완성은 침입을 막는 것뿐만 아니라, 침입 후의 행적을 완벽히 기록하여 재발을 방지하는 시스템을 갖추는 것입니다.
+                    </p>
                 </div>
-                
+                <!-- 용어 설명 (Glossary Section 1) -->
+                <div class="glossary-note p-6 rounded-2xl shadow-lg space-y-3 ml-4">
+                    <div class="text-[11px] grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div><span class="font-black text-cyan-400 uppercase tracking-tighter">Forensics (디지털 포렌식)</span>: 디지털 매체에 기록된 정보를 수집, 식별, 분석하여 법적 증거 능력을 확보하는 기술입니다.</div>
+                        <div><span class="font-black text-cyan-400 uppercase tracking-tighter">Log Rotation (로그 순환)</span>: 로그 파일의 무한 증식을 막기 위해 특정 주기로 기존 파일을 보관하고 새 파일을 생성하는 관리 방식입니다.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: 웹 서버 로그 설정 (Nginx 기준) -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                2. 웹 서버 로그 설정 (Nginx 기준)
+            </h2>
+            <div class="space-y-4">
+                <div class="section-card rounded-3xl p-10 shadow-2xl space-y-10">
+                    <p class="text-slate-300">웹 서버의 상세한 로그 설정은 공격 시도의 패턴을 분석하는 기초 자료가 됩니다.</p>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- Log Formats -->
+                        <div class="space-y-6">
+                            <div class="bg-slate-900/60 p-6 rounded-2xl border border-slate-800 space-y-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="bg-blue-500/20 p-2 rounded text-blue-400"><i data-lucide="file-json"></i></div>
+                                    <h4 class="font-bold text-slate-100 text-sm uppercase">Access & Error Logging</h4>
+                                </div>
+                                <p class="text-[11px] text-slate-400">모든 HTTP 요청(Access)과 시스템 비정상 동작(Error)을 분리하여 정교한 로그 포맷으로 기록합니다.</p>
+                            </div>
+                            <div class="terminal-bg rounded-xl p-8 font-mono text-xs shadow-inner space-y-4 overflow-x-auto">
+                                <div class="text-slate-500 italic"># Nginx 로그 포맷 정의 (/etc/nginx/nginx.conf)</div>
+                                <div class="text-slate-400">log_format main '$remote_addr - $remote_user [$time_local] "$request" ' <span class="text-slate-600"># 클라이언트 주소, 사용자, 시간을 기록합니다.</span></div>
+                                <div class="text-slate-400 pl-16">'$status $body_bytes_sent "$http_referer" ' <span class="text-slate-600"># 응답 상태, 전송량, 유입 경로를 기록합니다.</span></div>
+                                <div class="text-slate-400 pl-16">'"$http_user_agent" "$http_x_forwarded_for"'; <span class="text-slate-600"># 브라우저 정보와 경유 IP를 포함합니다.</span></div>
+                                <br>
+                                <div class="text-slate-500 italic"># 로그 저장 경로 및 정의된 포맷 적용</div>
+                                <div class="text-cyan-400">access_log /var/log/nginx/access.log main; <span class="text-slate-600"># 접근 로그를 main 포맷으로 저장합니다.</span></div>
+                                <div class="text-red-400">error_log /var/log/nginx/error.log warn; <span class="text-slate-600"># 경고 이상의 에러만 로그로 남깁니다.</span></div>
+                            </div>
+                        </div>
+
+                        <!-- Log Rotation -->
+                        <div class="space-y-6">
+                            <div class="bg-slate-900/60 p-6 rounded-2xl border border-slate-800 space-y-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="bg-emerald-500/20 p-2 rounded text-emerald-400"><i data-lucide="refresh-cw"></i></div>
+                                    <h4 class="font-bold text-slate-100 text-sm uppercase">Log Rotation Policy</h4>
+                                </div>
+                                <p class="text-[11px] text-slate-400">파일이 무한정 커지는 것을 방지하기 위해 주기적으로 파일을 압축하고 순환(Rotation) 관리합니다.</p>
+                            </div>
+                            <div class="terminal-bg rounded-xl p-8 font-mono text-xs shadow-inner space-y-4">
+                                <div class="text-slate-500 italic"># 시스템 로그 순환 설정 확인</div>
+                                <div class="text-slate-200"><span class="text-emerald-400">cat /etc/logrotate.d/nginx</span> <span class="text-slate-600"># 엔진엑스용 로그 로테이션 설정을 출력합니다.</span></div>
+                                <div class="mt-4 p-4 bg-slate-900/50 rounded border border-slate-800 text-slate-500">
+                                    /var/log/nginx/*.log {<br>
+                                    &nbsp;&nbsp;daily<br>
+                                    &nbsp;&nbsp;rotate 14<br>
+                                    &nbsp;&nbsp;compress<br>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 용어 설명 (Glossary Section 2) -->
+                <div class="glossary-note p-6 rounded-2xl shadow-lg space-y-3 ml-4">
+                    <div class="text-[11px]">
+                        <span class="font-black text-cyan-400 uppercase tracking-tighter">Logstash (로그스태시)</span>: 다양한 소스로부터 데이터를 실시간으로 수집, 변환하여 원하는 저장소로 전송하는 데이터 파이프라인 도구입니다.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: 로그 중앙 집중화 및 SIEM 연동 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                3. 로그 중앙 집중화 및 SIEM 연동
+            </h2>
+            <div class="space-y-4">
+                <div class="section-card rounded-3xl p-10 shadow-2xl space-y-12">
+                    <p class="text-slate-300">개별 서버에 로그를 두면 서버 탈취 시 로그가 삭제될 위험이 있습니다. 따라서 외부의 <strong>Log Collector (로그 수집기)</strong>를 통해 중앙 저장소로 전송해야 합니다.</p>
+
+                    <!-- 도식: 로그 중앙 집중화 아키텍처 -->
+                    <div class="bg-slate-950/50 rounded-2xl p-10 border border-slate-800">
+                        <h4 class="text-center font-bold text-slate-500 mb-10 text-xs uppercase tracking-widest">[도식: Centralized Logging & SIEM Architecture (통합 보안 분석 체계)]</h4>
+                        <div class="flex flex-col lg:flex-row items-center justify-between gap-6 max-w-5xl mx-auto">
+                            <!-- Sources -->
+                            <div class="grid grid-cols-1 gap-2 w-full lg:w-32">
+                                <div class="bg-slate-800 p-2 rounded border border-slate-700 text-[8px] text-center">Web Server</div>
+                                <div class="bg-slate-800 p-2 rounded border border-slate-700 text-[8px] text-center">DB Server</div>
+                                <div class="bg-slate-800 p-2 rounded border border-slate-700 text-[8px] text-center">App Server</div>
+                            </div>
+                            <i data-lucide="chevrons-right" class="text-slate-700 hidden lg:block"></i>
+                            <!-- Collector -->
+                            <div class="p-6 bg-slate-900 border border-blue-500/30 rounded-2xl text-center w-full lg:w-48 shadow-lg relative">
+                                <div class="absolute -top-2 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-[8px] px-2 py-0.5 rounded font-black uppercase">COLLECTOR</div>
+                                <i data-lucide="arrow-down-to-dot" class="w-8 h-8 text-blue-400 mx-auto mb-2"></i>
+                                <div class="text-xs font-black text-slate-100 uppercase">Logstash</div>
+                                <p class="text-[9px] text-slate-500 mt-1">Transform & Filter</p>
+                            </div>
+                            <i data-lucide="chevrons-right" class="text-slate-700 hidden lg:block"></i>
+                            <!-- Analytics (SIEM) -->
+                            <div class="p-6 bg-slate-900 border border-cyan-500/30 rounded-3xl text-center flex-1 shadow-2xl relative">
+                                <div class="absolute -top-2 left-6 bg-cyan-600 text-white text-[8px] px-2 py-0.5 rounded font-black uppercase">SIEM & ANALYTICS (ELK STACK)</div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="bg-slate-800 p-3 rounded-xl">
+                                        <div class="text-[10px] font-black text-cyan-400">Elasticsearch</div>
+                                        <div class="text-[8px] text-slate-500">Index & Store</div>
+                                    </div>
+                                    <div class="bg-slate-800 p-3 rounded-xl">
+                                        <div class="text-[10px] font-black text-emerald-400">Kibana</div>
+                                        <div class="text-[8px] text-slate-500">Visualize</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="bg-slate-800/40 p-8 rounded-2xl border border-slate-700/50">
+                            <h4 class="font-bold text-slate-100 mb-4 flex items-center gap-2"><i data-lucide="layers-2" class="w-5 h-5 text-blue-400"></i> ELK Stack (엘크 스택)</h4>
+                            <p class="text-[11px] text-slate-400 leading-relaxed italic">Elasticsearch, Logstash, Kibana를 결합한 오픈소스 기반의 실시간 로그 수집, 분석 및 시각화 도구 세트입니다.</p>
+                        </div>
+                        <div class="bg-slate-800/40 p-8 rounded-2xl border border-slate-700/50">
+                            <h4 class="font-bold text-slate-100 mb-4 flex items-center gap-2"><i data-lucide="shield-search" class="w-5 h-5 text-cyan-400"></i> SIEM (보안 정보 및 이벤트 관리)</h4>
+                            <p class="text-[11px] text-slate-400 leading-relaxed italic">여러 시스템의 로그를 실시간으로 통합 분석하여 보안 위협 및 비정상 행위를 탐지하는 전문 보안 솔루션입니다.</p>
+                        </div>
+                    </div>
+
+                    <p class="bg-indigo-500/10 border-l-4 border-indigo-500 p-4 text-sm text-indigo-300 italic">
+                        <strong>설명</strong>: <strong>SIEM (보안 정보 및 이벤트 관리)</strong>은 단순한 로그 저장을 넘어, 서로 다른 장비에서 발생하는 로그들 사이의 상관관계를 분석하여 고도화된 공격을 탐지합니다.
+                    </p>
+                </div>
+                <!-- 용어 설명 (Glossary Section 3) -->
+                <div class="glossary-note p-6 rounded-2xl shadow-lg space-y-3 ml-4">
+                    <div class="text-[11px]">
+                        <span class="font-black text-cyan-400 uppercase tracking-tighter">SIEM (Security Information and Event Management)</span>: 정보 시스템의 보안 로그와 이벤트를 실시간으로 통합하여 이상 징후를 탐지하는 체계입니다.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: AWS 환경 보안 서비스 및 과금 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-orange-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                4. [AWS 환경 보안 서비스 및 과금 안내]
+            </h2>
+            <div class="space-y-4">
+                <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-10">
+                    <p class="text-sm text-slate-400 italic">AWS에서는 로그 수집과 분석을 자동화해주는 강력한 관리형 서비스를 제공합니다.</p>
+                    
+                    <!-- 도식: AWS Log Pipeline -->
+                    <div class="bg-slate-950/50 rounded-2xl p-10 border border-slate-800">
+                        <h4 class="text-center font-bold text-slate-500 mb-10 text-xs uppercase tracking-widest">[도식: AWS Managed Log Pipeline (AWS 관리형 로그 분석 아키텍처)]</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
+                            <!-- CloudWatch -->
+                            <div class="p-6 bg-slate-900 border-2 border-orange-500/30 rounded-2xl text-center relative">
+                                <div class="absolute -top-3 left-4 bg-orange-600 text-white text-[8px] px-2 py-0.5 rounded font-black">REAL-TIME</div>
+                                <i data-lucide="cloud" class="w-8 h-8 text-orange-400 mx-auto mb-4"></i>
+                                <h5 class="text-xs font-black text-slate-100 mb-2">CloudWatch Logs</h5>
+                                <p class="text-[9px] text-slate-500 mb-4">실시간 수집 및 모니터링</p>
+                                <div class="bg-red-500/10 p-3 rounded-xl border border-red-500/20 text-left">
+                                    <div class="text-[8px] font-black text-red-400 uppercase mb-1">Billing (유료)</div>
+                                    <div class="text-[8px] text-slate-300">• 수집: GB당 <span class="font-bold">$0.50</span></div>
+                                    <div class="text-[8px] text-slate-300">• 보관: GB당 <span class="font-bold">$0.03/월</span></div>
+                                </div>
+                            </div>
+                            <!-- S3 -->
+                            <div class="p-6 bg-slate-900 border border-blue-500/30 rounded-2xl text-center relative">
+                                <div class="absolute -top-3 left-4 bg-blue-600 text-white text-[8px] px-2 py-0.5 rounded font-black uppercase">Archive</div>
+                                <i data-lucide="database" class="w-8 h-8 text-blue-400 mx-auto mb-4"></i>
+                                <h5 class="text-xs font-black text-slate-100 mb-2">Amazon S3</h5>
+                                <p class="text-[9px] text-slate-500">저비용 장기 보관소</p>
+                                <div class="mt-4 p-3 bg-blue-500/5 border border-blue-500/10 text-[8px] text-slate-400 italic">장기 보존 정책(Retention) 적용</div>
+                            </div>
+                            <!-- OpenSearch -->
+                            <div class="p-6 bg-slate-900 border border-indigo-500/30 rounded-2xl text-center relative">
+                                <div class="absolute -top-3 left-4 bg-indigo-600 text-white text-[8px] px-2 py-0.5 rounded font-black uppercase">Advanced Search</div>
+                                <i data-lucide="search" class="w-8 h-8 text-indigo-400 mx-auto mb-4"></i>
+                                <h5 class="text-xs font-black text-slate-100 mb-2">OpenSearch Service</h5>
+                                <p class="text-[9px] text-slate-500">고속 검색 및 대시보드</p>
+                                <div class="bg-red-500/10 p-3 rounded-xl border border-red-500/20 text-left mt-4">
+                                    <div class="text-[8px] font-black text-red-400 uppercase mb-1">Billing (유료)</div>
+                                    <div class="text-[8px] text-slate-300">• 인스턴스 시간당 과금</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                            <h5 class="text-slate-100 font-bold text-sm mb-2">Amazon CloudWatch Logs (아마존 클라우드워치 로그)</h5>
+                            <p class="text-[11px] text-slate-400 leading-relaxed">EC2 및 AWS 리소스의 로그를 실시간으로 수집하고 저장하는 핵심 서비스입니다. 요금 페이지 참조: <a href="https://aws.amazon.com/ko/cloudwatch/pricing/" target="_blank" class="text-cyan-400 hover:underline">공식 요금 안내</a></p>
+                        </div>
+                        <div class="bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                            <h5 class="text-slate-100 font-bold text-sm mb-2">Amazon OpenSearch Service (아마존 오픈서치 서비스)</h5>
+                            <p class="text-[11px] text-slate-400 leading-relaxed">Elasticsearch의 분기 버전으로, 대규모 로그에 대한 인덱싱과 고성능 시각화를 지원하는 완전 관리형 서비스입니다.</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- 용어 설명 (Glossary Section 4) -->
+                <div class="glossary-note p-6 rounded-2xl shadow-lg space-y-3 ml-4">
+                    <div class="text-[11px] grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div><span class="font-black text-cyan-400 uppercase tracking-tighter">CloudWatch Agent (클라우드워치 에이전트)</span>: 서버 내부 로그 파일(access.log 등)을 실시간으로 읽어 AWS 클라우드로 전송하기 위한 소프트웨어입니다.</div>
+                        <div><span class="font-black text-cyan-400 uppercase tracking-tighter">Retention Policy (보존 정책)</span>: 법적 근거 또는 비즈니스 필요에 따라 로그 데이터를 얼마나 보관할지 정의하는 기준입니다.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
     </main>
-    <footer class="border-t border-slate-800/80 py-8 text-center text-slate-400 text-sm bg-slate-950/90 backdrop-blur-md mt-auto">
-        <p class="font-mono">&copy; 2026 Putto's Lectures. All rights reserved. <span class="text-cyan-800 font-bold ml-2">| ACCESS SECURED.</span></p>
+
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+            © 2026 PUTTO'S LECTURES. ACCESS SECURED.
+        </div>
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic">
+            Next Step: 실시간 이상 징후 탐지
+        </p>
     </footer>
 
     <script>
-        // 전역 상태 변수: 디폴트를 'false'로 변경하여 모든 폴더가 처음에는 접혀있도록 설정합니다.
-        let isAllExpanded = false;
-
-        // 개별 폴더를 펼치거나 접는 함수
-        function toggleFolder(element) {
-            // 클릭된 헤더의 부모 섹션(Section) 및 내부 리스트 컨테이너(Container) 탐색
-            const section = element.closest('.folder-section');
-            const listContainer = section.querySelector('.list-container');
-            const folderIcon = element.querySelector('.folder-icon');
-            const chevronIcon = element.querySelector('.chevron-icon');
-            
-            // 데이터 속성(Data Attributes)에 저장된 아이콘 클래스명 불러오기
-            const baseIcon = element.getAttribute('data-base-icon');
-            const closedIcon = element.getAttribute('data-closed-icon');
-
-            // 현재 리스트가 펼쳐진 상태인지 확인 (CSS Grid 속성 기준)
-            const isExpanded = listContainer.classList.contains('grid-rows-[1fr]');
-
-            if (isExpanded) {
-                // 접기(Collapse) 액션 수행
-                listContainer.classList.remove('grid-rows-[1fr]', 'opacity-100');
-                listContainer.classList.add('grid-rows-[0fr]', 'opacity-0');
-                
-                // 우측 화살표 아이콘 회전
-                chevronIcon.classList.add('rotate-180');
-                
-                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 닫힘 상태로 변경
-                if (baseIcon !== 'fa-server') {
-                    folderIcon.classList.remove('fa-folder-open');
-                    folderIcon.classList.add('fa-folder');
-                }
-            } else {
-                // 펼치기(Expand) 액션 수행
-                listContainer.classList.remove('grid-rows-[0fr]', 'opacity-0');
-                listContainer.classList.add('grid-rows-[1fr]', 'opacity-100');
-                
-                // 우측 화살표 아이콘 원상 복구
-                chevronIcon.classList.remove('rotate-180');
-                
-                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 열림 상태로 변경
-                if (baseIcon !== 'fa-server') {
-                    folderIcon.classList.remove('fa-folder');
-                    folderIcon.classList.add('fa-folder-open');
-                }
-            }
-        }
-
-        // 전체 폴더를 일괄적으로 펼치거나 접는 함수
-        function toggleAllFolders() {
-            // 전역 상태 반전
-            isAllExpanded = !isAllExpanded;
-            
-            // DOM(Document Object Model, 문서 객체 모델)에서 모든 폴더 헤더 요소 선택
-            const headers = document.querySelectorAll('.folder-header');
-            const globalBtnIcon = document.getElementById('global-toggle-icon');
-            const globalBtnText = document.getElementById('global-toggle-text');
-
-            headers.forEach(header => {
-                const section = header.closest('.folder-section');
-                const listContainer = section.querySelector('.list-container');
-                const isCurrentlyExpanded = listContainer.classList.contains('grid-rows-[1fr]');
-
-                // 현재 개별 폴더의 상태가 전역 상태 목표와 다를 경우에만 토글 함수 실행
-                if (isAllExpanded !== isCurrentlyExpanded) {
-                    toggleFolder(header);
-                }
-            });
-
-            // 전역 토글 버튼의 UI(User Interface, 사용자 인터페이스) 업데이트
-            if (isAllExpanded) {
-                globalBtnIcon.classList.remove('fa-folder');
-                globalBtnIcon.classList.add('fa-folder-open');
-                globalBtnText.innerText = 'COLLAPSE ALL';
-            } else {
-                globalBtnIcon.classList.remove('fa-folder-open');
-                globalBtnIcon.classList.add('fa-folder');
-                globalBtnText.innerText = 'EXPAND ALL';
-            }
-        }
+        lucide.createIcons();
     </script>
 </body>
 </html>
