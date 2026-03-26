@@ -174,6 +174,67 @@ location = /custom_404.html {
 2. <strong>Server Tokens</strong>: Nginx에서 서버의 버전 정보를 응답 헤더에 포함할지 여부를 결정하는 지시어입니다.
 3. <strong>Response Header</strong>: 웹 서버가 브라우저의 요청에 응답할 때 보내는 메타데이터로, 여기에 서버의 소프트웨어 정보가 포함됩니다.
 4. <strong>Internal 지시어</strong>: Nginx에서 외부 사용자가 직접 해당 경로(예: /custom_404.html)로 접속하는 것을 막고, 서버 내부적인 리다이렉션으로만 접근 가능하게 제한하는 설정입니다.</p>
+<ol>
+<li>웹 서버(Web Server)에서 발생하는 오류는 보안 관리 측면에서 매우 민감한 정보입니다. 기본적으로 제공되는 에러 페이지는 서버의 종류, 버전, 내부 경로 등을 노출할 수 있는 <strong>Information Leakage(정보 유출, 정보 누출)</strong>의 원인이 됩니다.</li>
+</ol>
+<hr />
+<h2>1. 웹 서버별 기본 에러 페이지 구성 및 경로</h2>
+<p>대부분의 웹 서버는 오류 발생 시 별도의 외부 파일을 불러오기보다, 서버 바이너리에 내장된 <strong>Hardcoded(하드코딩, 코드 내에 고정됨)</strong> 메시지를 먼저 출력하거나, 배포판에서 제공하는 기본 <strong>HTML(HyperText Markup Language, 하이퍼텍스트 마크업 언어)</strong> 파일을 참조합니다.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">웹 서버 종류</th>
+<th style="text-align: left;">기본 에러 페이지 처리 방식 및 경로</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Apache HTTP Server</strong> (아파치 HTTP 서버)</td>
+<td style="text-align: left;">별도 설정이 없으면 내장된 메시지를 출력합니다. 하지만 패키지 설치 시 <code>/usr/share/apache2/error/</code> (Ubuntu) 또는 <code>/var/www/error/</code> (CentOS) 경로의 다국어 지원 파일을 사용하기도 합니다.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Nginx</strong> (엔진엑스)</td>
+<td style="text-align: left;">기본적으로 <code>/usr/share/nginx/html/</code> 경로에 <code>50x.html</code> 파일을 생성하여 관리합니다. 파일이 없으면 서버 내부의 단순한 HTML 코드를 응답합니다.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>IIS</strong> (Internet Information Services, 인터넷 정보 서비스)</td>
+<td style="text-align: left;">윈도우 서버의 경우 <code>C:\inetpub\custerr\</code> 디렉터리 하위에 상태 코드별(404, 500 등) 폴더를 만들어 관리합니다.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>2. 보안 위협: 기본 에러 페이지를 숨겨야 하는 이유</h2>
+<p>기본 에러 페이지를 그대로 사용할 경우, 공격자는 다음과 같은 정보를 획득하여 <strong>Reconnaissance(정찰, 정보 수집)</strong> 단계에서 활용할 수 있습니다.</p>
+<ul>
+<li><strong>서버 소프트웨어 및 버전</strong>: "Apache/2.4.41 (Ubuntu)"와 같은 문구가 하단에 노출됩니다.</li>
+<li><strong>물리적 경로</strong>: 스택 트레이스(Stack Trace) 등이 노출될 경우 서버의 절대 경로가 드러납니다.</li>
+<li><strong>백엔드 기술 스택</strong>: 에러 메시지의 형식을 통해 <strong>PHP(Hypertext Preprocessor, PHP: 하이퍼텍스트 전처리기)</strong>나 <strong>Python(파이썬)</strong> 등의 사용 여부를 추측할 수 있습니다.</li>
+</ul>
+<hr />
+<h2>3. 에러 페이지 커스터마이징 구조</h2>
+<p>관리자가 정의한 페이지로 리다이렉트(Redirect)하는 과정은 웹 서버 설정 파일(예: <code>httpd.conf</code>, <code>nginx.conf</code>)에서 정의됩니다.</p>
+<blockquote>
+<p><strong>[클라이언트 요청]</strong> (잘못된 URL 접근)
+      ↓
+<strong>[웹 서버 판단]</strong> (404 Not Found 발생)
+      ↓
+<strong>[설정 확인]</strong> (ErrorDocument 또는 error_page 지시어 확인)
+      ↓
+<strong>[사용자 정의 페이지 응답]</strong> (관리자가 만든 <code>/errors/404.html</code> 출력)</p>
+</blockquote>
+<hr />
+<h2>4. 실전 가이드: 설정 파일 수정 예시</h2>
+<p>각 서버의 설정 파일에 다음과 같은 지시어를 추가하여 기본 페이지 대신 안전한 페이지를 보여주어야 합니다.</p>
+<h3>① Apache (아파치)</h3>
+<p><code>.htaccess</code> 또는 설정 파일(<code>sites-available/default</code>)에 작성합니다.
+* <code>ErrorDocument 404 /custom_404.html</code>
+* <code>ErrorDocument 500 /custom_500.html</code></p>
+<h3>② Nginx (엔진엑스)</h3>
+<p><code>server</code> 블록 내부에 작성합니다.
+* <code>error_page 404 /custom_404.html;</code>
+* <code>location = /custom_404.html { root /var/www/html; internal; }</code></p>
+<hr />
+<p><strong>Next Step: 특정 에러 코드별 리다이렉션 전략, 보안 헤더 설정을 통한 정보 은닉, WAF를 활용한 에러 페이지 제어</strong></p>
                 </div>
                 
     </main>
