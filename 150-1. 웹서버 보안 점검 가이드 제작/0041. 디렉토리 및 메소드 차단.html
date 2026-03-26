@@ -3,263 +3,314 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Security & Cloud Hacking Lab</title>
+    <title>Directory Listing & Method Control: 서버 자원 보호 실습</title>
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
-        
-        /* 기본 글꼴 및 다크 모드 배경색 설정 */
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
         body { 
             font-family: 'Noto Sans KR', sans-serif; 
             background-color: #020617; 
             color: #f8fafc; 
-            /* 전체 화면 배경 이미지 적용 및 투명도(Overlay) 설정: 텍스트 가시성을 위해 어두운 오버레이 강화 */
-            background-image: linear-gradient(to bottom, rgba(2, 6, 23, 0.75), rgba(2, 6, 23, 0.95)), 
-                              url('image_1a3201.jpg');
-            background-size: cover;
-            background-attachment: fixed;
-            background-position: center center;
+            margin: 0; padding: 0;
+            line-height: 1.8;
+            background-image: radial-gradient(circle at 50% 0%, #0f172a 0%, #020617 100%);
         }
-
-        /* 텍스트 리스트 호버 효과: 터미널 스타일 */
-        .list-hover {
-            transition: all 0.2s ease;
-        }
-        .list-hover:hover {
-            color: #22d3ee; 
-            padding-left: 0.75rem; 
-            background-color: rgba(15, 23, 42, 0.8); 
-            border-left-color: #0ea5e9;
-        }
-
-        /* 텍스트 가시성을 높이는 그림자 효과 클래스 */
-        .text-glow {
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
-        }
-        .neon-glow {
-            text-shadow: 0 0 8px rgba(34, 211, 238, 0.6);
-        }
+        .terminal-bg { background-color: #010409; border: 1px solid #1e293b; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-filter: blur(12px); }
+        .code-block { font-family: 'Fira Code', monospace; }
+        .neon-border { border: 1px solid rgba(34, 211, 238, 0.3); box-shadow: 0 0 20px rgba(34, 211, 238, 0.05); }
+        .glossary-note { background: rgba(30, 41, 59, 0.5); border-left: 2px solid #0ea5e9; }
         
-        /* 커스텀 스크롤바 (선택적 시각 강화) */
         ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
     </style>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-        }
-    </script>
 </head>
-<body class="min-h-screen flex flex-col">
-    <header class="py-24 px-6 relative overflow-hidden">
-        
-        <a href="https://putto4u.github.io/06.Hacking-Security" class="absolute top-6 left-6 md:left-10 z-20 group cursor-pointer block" target="_blank" rel="noopener noreferrer">
-            <div class="flex items-center space-x-2 bg-slate-900/80 py-2 px-4 rounded-xl border border-cyan-900/50 backdrop-blur-md shadow-[0_0_15px_rgba(8,145,178,0.2)] transition-all duration-300 group-hover:border-cyan-400/60 group-hover:shadow-[0_0_20px_rgba(34,211,238,0.4)]">
-                <div class="relative flex h-3 w-3 mr-1">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
-                </div>
-                <span class="font-mono text-[10px] md:text-xs text-slate-400 tracking-wider">CHIEF SYSTEM ARCHITECT <span class="text-cyan-500 ml-1">❯</span></span>
-                <span class="font-black text-cyan-300 tracking-widest font-mono text-sm md:text-base neon-glow ml-1">PUTTO</span>
-                <span class="font-bold text-slate-200 tracking-widest font-mono text-sm md:text-base">'S LECTURES</span>
-            </div>
-        </a>
+<body class="antialiased pb-20">
 
-        <div class="max-w-4xl mx-auto relative z-10 text-center mt-8">
-            <div class="inline-flex items-center justify-center space-x-3 mb-8 bg-slate-950/60 p-4 rounded-2xl backdrop-blur-md border border-slate-700/80 shadow-2xl">
-                <i class="fas fa-user-secret text-4xl text-cyan-400 drop-shadow-lg"></i>
-                <span class="text-slate-500">|</span>
-                <i class="fas fa-shield-halved text-4xl text-blue-500 drop-shadow-lg"></i>
+    <!-- Header: 기술 사양 및 타이틀 -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Cyber Security Lab</span>
+                    <span class="text-slate-500 font-mono text-[10px]">INFRA-SEC-07 | Information Disclosure Defense</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
+                    Directory Listing & HTTP Methods<br><span class="text-slate-100 text-2xl">디렉터리 리스팅 및 불필요한 HTTP 메소드 차단</span>
+                </h1>
             </div>
-            
-            <h1 class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-2 pb-2 bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 via-blue-400 to-indigo-400 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">
-                Cloud Security & Hacking Lab
-            </h1>
-            
-            <p class="mt-8 text-slate-100 font-medium text-lg md:text-xl max-w-2xl mx-auto leading-relaxed text-glow">
-                실전 클라우드 인프라 보안 및 모의 해킹 시나리오 연구 자료 저장소
-            </p>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    VER: 2026.04
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">Chief System Architect Pro</p>
+            </div>
         </div>
     </header>
 
-    <main class="flex-grow max-w-4xl mx-auto px-6 py-8 w-full">
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-24">
 
-                <div class="bg-slate-950/90 p-8 md:p-12 rounded-2xl shadow-2xl border border-slate-700/50 backdrop-blur-xl prose prose-invert prose-slate max-w-none prose-img:rounded-xl prose-a:text-cyan-400 hover:prose-a:text-cyan-300 prose-headings:text-slate-100 prose-strong:text-cyan-100">
-                    <h2>4.1 디렉터리 리스팅 및 불필요한 HTTP 메소드 차단</h2>
-<hr />
-<h3><strong>1. Directory Listing (디렉터리 리스팅)의 보안 위협</strong></h3>
-<p><strong>Directory Listing (디렉터리 리스팅, 서버 내 파일 목록 노출)</strong>은 브라우저가 인덱스 파일(index.html 등)이 없는 디렉터리에 접근했을 때, 서버가 해당 디렉터리에 포함된 모든 파일과 폴더 목록을 보여주는 기능입니다. 이는 공격자에게 서버의 디렉터리 구조, 백업 파일, 소스 코드, 설정 파일 등을 노출시키는 심각한 <strong>Information Disclosure (정보 노출, 인가되지 않은 정보의 외부 유출)</strong> 취약점이 됩니다.</p>
-<ul>
-<li><strong>취약점 영향</strong>: 관리자가 실수로 남겨둔 <code>.bak</code>, <code>.sql</code>, <code>.git</code> 등의 민감한 파일이 공격자에 의해 다운로드될 수 있습니다.</li>
-<li><strong>보안 목표</strong>: 인덱스 파일이 없는 경우에도 파일 목록을 보여주지 않고 <strong>403 Forbidden (접근 금지)</strong> 에러를 반환하도록 설정합니다.</li>
-</ul>
-<blockquote>
-<p><strong>설명</strong>: 웹 서버는 요청받은 경로에 기본 페이지가 없을 경우 자동으로 목록을 생성하여 응답하는 기능을 내장하고 있습니다. 보안을 위해 이 자동 생성 기능을 명시적으로 비활성화해야 합니다.</p>
-</blockquote>
-<hr />
-<h3><strong>2. 웹 서버별 디렉터리 리스팅 차단 설정</strong></h3>
-<p>가장 널리 쓰이는 두 웹 서버에서 해당 기능을 끄는 방법은 다음과 같습니다.</p>
-<ul>
-<li><strong>Nginx (엔진엑스)</strong>
-    기본적으로 Nginx는 이 기능이 꺼져 있으나, 설정 파일에서 <code>autoindex</code> 속성이 <code>on</code>으로 되어 있는지 반드시 확인해야 합니다.</li>
-</ul>
-<pre><code class="language-bash"># Nginx 설정 파일 수정
-sudo vi /etc/nginx/sites-available/default
+        <!-- Section 1: 디렉터리 리스팅의 보안 위협 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                1. Directory Listing (디렉터리 리스팅)의 보안 위협
+            </h2>
+            <div class="space-y-4">
+                <div class="section-card rounded-3xl p-10 shadow-2xl space-y-8">
+                    <p class="text-slate-300 text-lg leading-relaxed">
+                        <strong>Directory Listing (디렉터리 리스팅, 서버 내 파일 목록 노출)</strong>은 브라우저가 인덱스 파일(index.html 등)이 없는 디렉터리에 접근했을 때, 서버가 해당 디렉터리에 포함된 모든 파일과 폴더 목록을 보여주는 기능입니다. 이는 공격자에게 서버의 디렉터리 구조, 백업 파일, 소스 코드, 설정 파일 등을 노출시키는 심각한 <strong>Information Disclosure (정보 노출, 인가되지 않은 정보의 외부 유출)</strong> 취약점이 됩니다.
+                    </p>
 
-# server 또는 location 블록 내 설정
-location / {
-    autoindex off;  # 디렉터리 리스팅 비활성화
-}
-
-# 설정 적용
-sudo systemctl restart nginx
-</code></pre>
-<ul>
-<li><strong>Apache (아파치)</strong>
-    Apache는 기본적으로 리스팅이 활성화된 경우가 많으므로 <code>Options</code> 지시어에서 <code>Indexes</code>를 제거해야 합니다.</li>
-</ul>
-<pre><code class="language-bash"># Apache 보안 설정 또는 사이트 설정 수정
-sudo vi /etc/apache2/apache2.conf
-
-# 해당 디렉터리 설정에서 Indexes 옵션 제거 (-)
-&lt;Directory /var/www/html&gt;
-    Options -Indexes
-&lt;/Directory&gt;
-
-# 설정 적용
-sudo systemctl restart apache2
-</code></pre>
-<hr />
-<h3><strong>3. 불필요한 HTTP Methods (HTTP 메소드) 제한</strong></h3>
-<p><strong>HTTP Methods (HTTP 메소드, 하이퍼텍스트 전송 프로토콜 요청 방식)</strong>는 클라이언트가 서버에 요청하는 동작의 종류를 정의합니다. 일반적인 웹 서비스는 <strong>GET (데이터 조회)</strong>과 <strong>POST (데이터 제출)</strong>만으로 충분합니다. <strong>PUT (데이터 수정)</strong>, <strong>DELETE (데이터 삭제)</strong>, <strong>TRACE (루프백 진단)</strong> 등의 메소드가 활성화되어 있으면 공격자가 서버의 파일을 무단으로 수정하거나 정보를 탈취할 위험이 커집니다.</p>
-<ul>
-<li><strong>제한 대상</strong>: PUT, DELETE, OPTIONS, TRACE, CONNECT, PATCH 등 업무상 불필요한 모든 메소드.</li>
-<li><strong>Nginx에서의 메소드 제한 설정</strong>:</li>
-</ul>
-<pre><code class="language-bash"># Nginx에서 특정 메소드만 허용하고 나머지는 차단
-server {
-    if ($request_method !~ ^(GET|HEAD|POST)$ ) {
-        return 405; # Method Not Allowed (허용되지 않은 메소드) 반환
-    }
-}
-</code></pre>
-<blockquote>
-<p><strong>설명</strong>: <strong>HTTP 405 Method Not Allowed</strong> 응답은 클라이언트가 사용한 요청 방식이 서버에서 금지되었음을 의미합니다. 이를 통해 공격 벡터를 최소화할 수 있습니다.</p>
-</blockquote>
-<hr />
-<h3><strong>4. [AWS 환경 보안 및 과금 안내]</strong></h3>
-<p>클라우드 환경에서는 스토리지 서비스와 네트워크 레벨에서 리스팅과 메소드 제어를 병행해야 합니다.</p>
-<ul>
-<li><strong>Amazon S3 (아마존 S3, 객체 스토리지 서비스)</strong><ul>
-<li>S3 버킷의 <strong>ListBucket (리스트버킷, 버킷 내 객체 목록 조회 권한)</strong> 권한이 퍼블릭으로 열려 있을 경우 전 세계 누구나 파일을 리스팅할 수 있습니다. 반드시 '퍼블릭 액세스 차단' 설정을 활성화해야 합니다.</li>
-<li><strong>과금 안내</strong>: S3는 저장 용량, 데이터 전송량, <strong>API 요청 건수 (PUT, GET, LIST)</strong>에 따라 비용이 발생합니다. LIST 요청이 과도하게 발생하면 비용이 증가할 수 있습니다. <a href="https://aws.amazon.com/ko/s3/pricing/">공식 요금 페이지</a></li>
-</ul>
-</li>
-<li><strong>AWS WAF (웹 애플리케이션 방화벽)</strong><ul>
-<li>WAF의 <strong>Custom Rule (사용자 정의 규칙)</strong>을 사용하여 특정 HTTP 메소드(예: DELETE)를 원천적으로 차단할 수 있습니다.</li>
-<li><strong>과금 안내</strong>: 활성화된 규칙 수와 처리된 웹 요청 수에 따라 월별 과금이 발생합니다.</li>
-</ul>
-</li>
-</ul>
-<hr />
-<p>Next Step: WAF 연동</p>
-<hr />
-<p><strong>상세 설명 주석</strong>
-1. <strong>autoindex</strong>: Nginx에서 디렉터리 내의 파일 목록을 HTML 형태로 자동 생성하여 보여주는 모듈입니다.
-2. <strong>Indexes</strong>: Apache에서 인덱스 파일이 없을 때 파일 목록을 출력하도록 허용하는 옵션입니다. 앞에 <code>-</code>를 붙여 기능을 제거합니다.
-3. <strong>HTTP TRACE</strong>: 클라이언트의 요청 메시지를 그대로 응답 본문에 담아 보내는 메소드로, <strong>XSS (Cross-Site Scripting)</strong>와 결합하여 쿠키 정보를 탈취하는 <strong>XST (Cross-Site Tracing)</strong> 공격에 악용될 수 있습니다.
-4. <strong>ListBucket</strong>: S3 버킷 내의 파일 목록을 볼 수 있는 권한으로, 보안 사고의 주요 원인 중 하나이므로 엄격히 관리되어야 합니다.
-5. <strong>405 Method Not Allowed</strong>: 요청한 메소드가 서버에서 지원되지만 명시적으로 금지되었을 때 발생하는 HTTP 상태 코드입니다.</p>
+                    <!-- 도식: 디렉터리 리스팅 노출 위험성 -->
+                    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-10 shadow-inner">
+                        <h4 class="text-center font-bold text-slate-400 mb-10 text-xs tracking-widest uppercase">
+                            [도식: Information Disclosure via Directory Listing (정보 노출 시나리오)]
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center max-w-4xl mx-auto">
+                            <div class="p-6 bg-slate-950 border border-red-500/30 rounded-xl shadow-2xl">
+                                <div class="flex items-center gap-2 mb-4 border-b border-slate-800 pb-2">
+                                    <div class="flex gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-red-500"></div><div class="w-2.5 h-2.5 rounded-full bg-amber-500"></div><div class="w-2.5 h-2.5 rounded-full bg-emerald-500"></div></div>
+                                    <div class="text-[10px] text-slate-500 font-mono">Index of /backup</div>
+                                </div>
+                                <ul class="text-[10px] font-mono text-red-400 space-y-1">
+                                    <li><i data-lucide="file-text" class="w-3 h-3 inline mr-1"></i> config.php.bak</li>
+                                    <li><i data-lucide="database" class="w-3 h-3 inline mr-1"></i> users_dump.sql</li>
+                                    <li><i data-lucide="folder" class="w-3 h-3 inline mr-1"></i> .git/</li>
+                                </ul>
+                                <div class="mt-4 text-center"><span class="bg-red-500/20 text-red-400 text-[8px] font-black px-2 py-0.5 rounded border border-red-500/30">VULNERABLE: RISKY EXPOSURE</span></div>
+                            </div>
+                            <div class="space-y-6">
+                                <div class="flex items-start gap-4">
+                                    <div class="bg-red-500/20 p-2 rounded-lg text-red-500"><i data-lucide="alert-triangle"></i></div>
+                                    <div>
+                                        <h5 class="text-slate-100 font-bold text-sm">취약점 영향 (Impact)</h5>
+                                        <p class="text-[11px] text-slate-400">관리자가 실수로 남겨둔 <code>.bak</code>, <code>.sql</code>, <code>.git</code> 등의 민감한 파일이 공격자에 의해 다운로드될 수 있습니다.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-4">
+                                    <div class="bg-cyan-500/20 p-2 rounded-lg text-cyan-500"><i data-lucide="shield-check"></i></div>
+                                    <div>
+                                        <h5 class="text-slate-100 font-bold text-sm">보안 목표 (Security Goal)</h5>
+                                        <p class="text-[11px] text-slate-400 text-glow">파일 목록 대신 <strong>403 Forbidden (접근 금지)</strong> 에러를 반환하도록 명시적으로 설정합니다.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <p class="bg-blue-500/10 border-l-4 border-blue-500 p-4 text-sm text-blue-300 italic">
+                        <strong>설명</strong>: 웹 서버는 요청받은 경로에 기본 페이지가 없을 경우 자동으로 목록을 생성하여 응답하는 기능을 내장하고 있습니다. 보안을 위해 이 자동 생성 기능을 명시적으로 비활성화해야 합니다.
+                    </p>
                 </div>
-                
+                <!-- 상세 설명 주석 (Glossary Section 1) -->
+                <div class="glossary-note p-6 rounded-2xl shadow-lg space-y-3 ml-4">
+                    <div class="text-[11px] grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div><span class="font-black text-cyan-400 uppercase tracking-tighter">autoindex (오토인덱스)</span>: Nginx(엔진엑스)에서 디렉터리 내의 파일 목록을 HTML 형태로 자동 생성하여 보여주는 모듈입니다.</div>
+                        <div><span class="font-black text-cyan-400 uppercase tracking-tighter">Indexes (인덱스 옵션)</span>: Apache(아파치)에서 인덱스 파일이 없을 때 파일 목록을 출력하도록 허용하는 옵션입니다.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: 웹 서버별 디렉터리 리스팅 차단 설정 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                2. 웹 서버별 디렉터리 리스팅 차단 설정
+            </h2>
+            <div class="space-y-4">
+                <div class="section-card rounded-3xl p-10 shadow-2xl space-y-10">
+                    <p class="text-slate-300">가장 널리 쓰이는 두 웹 서버에서 해당 기능을 끄는 방법은 다음과 같습니다.</p>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- Nginx Config -->
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-3">
+                                <div class="bg-emerald-500/20 p-2 rounded-lg text-emerald-400"><i data-lucide="server"></i></div>
+                                <h3 class="text-lg font-bold text-slate-100">Nginx (엔진엑스) 설정</h3>
+                            </div>
+                            <div class="terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner space-y-3 overflow-x-auto">
+                                <div class="text-slate-500 italic"># 1. Nginx 기본 설정 파일 편집</div>
+                                <div class="text-slate-200"><span class="text-cyan-400">sudo vi /etc/nginx/sites-available/default</span> <span class="text-slate-600"># 설정 파일을 텍스트 에디터로 엽니다.</span></div>
+                                <br>
+                                <div class="text-slate-400">location / {</div>
+                                <div class="text-cyan-400 pl-4">autoindex off; <span class="text-slate-600"># 디렉터리 파일 목록 자동 생성 기능을 끕니다.</span></div>
+                                <div class="text-slate-400">}</div>
+                                <br>
+                                <div class="text-slate-500 italic"># 2. 변경된 설정 적용</div>
+                                <div class="text-slate-200"><span class="text-blue-400">sudo systemctl restart nginx</span> <span class="text-slate-600"># 엔진엑스 서비스를 재시작하여 반영합니다.</span></div>
+                            </div>
+                        </div>
+
+                        <!-- Apache Config -->
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-3">
+                                <div class="bg-red-500/20 p-2 rounded-lg text-red-400"><i data-lucide="feather"></i></div>
+                                <h3 class="text-lg font-bold text-slate-100">Apache (아파치) 설정</h3>
+                            </div>
+                            <div class="terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner space-y-3 overflow-x-auto">
+                                <div class="text-slate-500 italic"># 1. 아파치 메인 설정 파일 편집</div>
+                                <div class="text-slate-200"><span class="text-cyan-400">sudo vi /etc/apache2/apache2.conf</span> <span class="text-slate-600"># 시스템 설정 파일을 편집기로 엽니다.</span></div>
+                                <br>
+                                <div class="text-slate-400">&lt;Directory /var/www/html&gt;</div>
+                                <div class="text-red-400 pl-4">Options -Indexes <span class="text-slate-600"># 하이픈(-)을 붙여 인덱싱 기능을 명시적으로 제거합니다.</span></div>
+                                <div class="text-slate-400">&lt;/Directory&gt;</div>
+                                <br>
+                                <div class="text-slate-500 italic"># 2. 서비스 재시작</div>
+                                <div class="text-slate-200"><span class="text-blue-400">sudo systemctl restart apache2</span> <span class="text-slate-600"># 아파치 서버를 재시작하여 설정을 확정합니다.</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 상세 설명 주석 (Glossary Section 2) -->
+                <div class="glossary-note p-6 rounded-2xl shadow-lg space-y-3 ml-4">
+                    <div class="text-[11px]">
+                        <span class="font-black text-cyan-400 uppercase tracking-tighter">Options -Indexes</span>: 아파치 설정에서 특정 디렉터리에 대해 파일 목록 출력을 금지하는 가장 확실한 방법입니다.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: 불필요한 HTTP Methods 제한 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                3. 불필요한 HTTP Methods (HTTP 메소드) 제한
+            </h2>
+            <div class="space-y-4">
+                <div class="section-card rounded-3xl p-10 shadow-2xl space-y-12">
+                    <p class="text-slate-300"><strong>HTTP Methods (HTTP 메소드, 하이퍼텍스트 전송 프로토콜 요청 방식)</strong>는 클라이언트가 서버에 요청하는 동작의 종류를 정의합니다. 일반적인 웹 서비스는 <strong>GET (데이터 조회)</strong>과 <strong>POST (데이터 제출)</strong>만으로 충분합니다.</p>
+
+                    <!-- 도식: HTTP 메소드 필터링 -->
+                    <div class="bg-slate-950/50 rounded-2xl p-10 border border-slate-800">
+                        <h4 class="text-center font-bold text-slate-500 mb-10 text-xs uppercase tracking-widest">[도식: HTTP Method Filtering Policy (허용/차단 정책)]</h4>
+                        <div class="flex flex-col md:flex-row items-center justify-center gap-12">
+                            <div class="flex-1 max-w-xs space-y-4">
+                                <div class="bg-emerald-500/10 border border-emerald-500/30 p-4 rounded-xl flex items-center justify-between">
+                                    <span class="font-black text-emerald-400">GET / POST</span>
+                                    <i data-lucide="check-circle" class="text-emerald-500 w-5 h-5"></i>
+                                </div>
+                                <div class="bg-slate-800/50 border border-slate-700 p-4 rounded-xl flex items-center justify-between opacity-50">
+                                    <span class="text-slate-400">HEAD / OPTIONS</span>
+                                    <i data-lucide="help-circle" class="text-slate-500 w-5 h-5"></i>
+                                </div>
+                            </div>
+                            <div class="relative flex flex-col items-center">
+                                <span class="text-[8px] font-black text-red-500 uppercase mb-2">Security Barrier</span>
+                                <div class="w-1 bg-gradient-to-b from-transparent via-red-500 to-transparent h-32 animate-pulse"></div>
+                                <i data-lucide="shield-x" class="w-10 h-10 text-red-500 absolute top-1/2 -translate-y-1/2"></i>
+                            </div>
+                            <div class="flex-1 max-w-xs space-y-4">
+                                <div class="bg-red-500/10 border border-red-500/30 p-4 rounded-xl flex items-center justify-between">
+                                    <span class="font-black text-red-400 italic">PUT / DELETE</span>
+                                    <i data-lucide="x-circle" class="text-red-500 w-5 h-5"></i>
+                                </div>
+                                <div class="bg-red-900/10 border border-red-900/30 p-4 rounded-xl flex items-center justify-between">
+                                    <span class="font-black text-red-500 italic">TRACE / CONNECT</span>
+                                    <i data-lucide="slash" class="text-red-600 w-5 h-5"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <h3 class="text-xl font-bold text-slate-100 flex items-center gap-3">
+                            <i data-lucide="terminal" class="w-6 h-6 text-cyan-400"></i> Nginx 메소드 제한 구현 (Implementation)
+                        </h3>
+                        <div class="terminal-bg rounded-xl p-8 font-mono text-sm shadow-inner space-y-4 overflow-x-auto">
+                            <div class="text-slate-400"><span class="text-indigo-400">server {</span> <span class="text-slate-600"># 서버 가상 호스트 설정을 시작합니다.</span></div>
+                            <div class="text-slate-400 pl-4 italic"># 지정된 메소드(GET, HEAD, POST)가 아닐 경우 조건문 실행</div>
+                            <div class="text-blue-400 pl-4">if ($request_method !~ ^(GET|HEAD|POST)$ ) {</div>
+                            <div class="text-red-400 pl-8">return 405; <span class="text-slate-600"># 405 Method Not Allowed 코드를 응답하며 요청을 거부합니다.</span></div>
+                            <div class="text-blue-400 pl-4">}</div>
+                            <div class="text-slate-400"><span class="text-indigo-400">}</span></div>
+                        </div>
+                    </div>
+
+                    <p class="bg-indigo-500/10 border-l-4 border-indigo-500 p-4 text-sm text-indigo-300 italic">
+                        <strong>설명</strong>: <strong>HTTP 405 Method Not Allowed</strong> 응답은 클라이언트가 사용한 요청 방식이 서버에서 금지되었음을 의미합니다. 이를 통해 공격 벡터를 최소화할 수 있습니다.
+                    </p>
+                </div>
+                <!-- 상세 설명 주석 (Glossary Section 3) -->
+                <div class="glossary-note p-6 rounded-2xl shadow-lg space-y-3 ml-4">
+                    <div class="text-[11px] grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div><span class="font-black text-cyan-400 uppercase tracking-tighter">HTTP TRACE (HTTP 트레이스)</span>: 클라이언트의 요청 메시지를 그대로 응답 본문에 담아 보내는 진단용 메소드로, 보안상 위험하여 반드시 차단해야 합니다.</div>
+                        <div><span class="font-black text-cyan-400 uppercase tracking-tighter">405 Method Not Allowed (405 허용되지 않은 메소드)</span>: 요청한 메소드가 서버에서 지원되지만 보안 정책상 명시적으로 금지되었을 때 발생하는 상태 코드입니다.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: AWS 환경 보안 및 과금 안내 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-orange-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                [AWS 환경 보안 및 과금 안내]
+            </h2>
+            <div class="space-y-4">
+                <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-10">
+                    <p class="text-sm text-slate-400 italic">클라우드 환경에서는 스토리지 서비스와 네트워크 레벨에서 리스팅과 메소드 제어를 병행해야 합니다.</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- Amazon S3 -->
+                        <div class="bg-slate-800/50 p-8 rounded-2xl border border-blue-900/30 relative">
+                            <div class="absolute top-4 right-4 text-blue-500"><i data-lucide="database" class="w-6 h-6"></i></div>
+                            <h4 class="font-bold text-slate-100 mb-4 uppercase tracking-tighter">Amazon S3 (아마존 S3, 객체 스토리지 서비스)</h4>
+                            <p class="text-[11px] text-slate-400 mb-6 leading-relaxed">
+                                <strong>ListBucket</strong> 권한이 퍼블릭으로 열려 있을 경우 전 세계 누구나 파일을 리스팅할 수 있습니다. 반드시 '퍼블릭 액세스 차단' 설정을 활성화해야 합니다.
+                            </p>
+                            <div class="bg-blue-500/10 border border-blue-500/20 p-4 rounded-xl mb-4">
+                                <h5 class="text-[10px] font-black text-blue-400 uppercase mb-2">Billing (과금 안내)</h5>
+                                <ul class="text-[9px] text-slate-300 space-y-1 text-left">
+                                    <li>• 저장 용량 및 데이터 전송량(DTO) 기준 과금</li>
+                                    <li>• <strong>API 요청 건수 (PUT, GET, LIST)</strong>에 따라 비용 발생</li>
+                                    <li>• 비정상적인 LIST 요청 폭주 시 비용 증가 주의</li>
+                                </ul>
+                            </div>
+                            <a href="https://aws.amazon.com/ko/s3/pricing/" target="_blank" class="text-[10px] text-blue-400 hover:underline uppercase font-bold tracking-widest">S3 Pricing →</a>
+                        </div>
+
+                        <!-- AWS WAF -->
+                        <div class="bg-slate-800/50 p-8 rounded-2xl border border-red-900/30 relative">
+                            <div class="absolute top-4 right-4 text-red-500"><i data-lucide="shield-check" class="w-6 h-6"></i></div>
+                            <h4 class="font-bold text-slate-100 mb-4 uppercase tracking-tighter">AWS WAF (웹 애플리케이션 방화벽)</h4>
+                            <p class="text-[11px] text-slate-400 mb-6 leading-relaxed">
+                                WAF의 <strong>Custom Rule (사용자 정의 규칙)</strong>을 사용하여 특정 HTTP 메소드(예: DELETE, PUT)를 서버 도달 전 원천적으로 차단할 수 있습니다.
+                            </p>
+                            <div class="bg-red-500/10 border border-red-500/20 p-4 rounded-xl mb-4">
+                                <h5 class="text-[10px] font-black text-red-400 uppercase mb-2">Billing (유료 서비스)</h5>
+                                <ul class="text-[9px] text-slate-300 space-y-1">
+                                    <li>• 활성화된 웹 ACL 및 규칙 수 기준 월 고정 비용</li>
+                                    <li>• 처리된 100만 건당 약 <strong>$0.60</strong>의 요청 처리 비용</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 상세 설명 주석 (Glossary Section 4) -->
+                <div class="glossary-note p-6 rounded-2xl shadow-lg space-y-3 ml-4">
+                    <div class="text-[11px]">
+                        <span class="font-black text-cyan-400 uppercase tracking-tighter">ListBucket (리스트버킷, 버킷 내 객체 목록 조회 권한)</span>: S3 버킷 내의 파일 목록을 볼 수 있는 권한으로, 보안 사고의 주요 원인이므로 엄격히 관리되어야 합니다.
+                    </div>
+                </div>
+            </div>
+        </section>
+
     </main>
-    <footer class="border-t border-slate-800/80 py-8 text-center text-slate-400 text-sm bg-slate-950/90 backdrop-blur-md mt-auto">
-        <p class="font-mono">&copy; 2026 Putto's Lectures. All rights reserved. <span class="text-cyan-800 font-bold ml-2">| ACCESS SECURED.</span></p>
+
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+            © 2026 PUTTO'S LECTURES. ACCESS SECURED.
+        </div>
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic">
+            Next Step: WAF 연동
+        </p>
     </footer>
 
     <script>
-        // 전역 상태 변수: 디폴트를 'false'로 변경하여 모든 폴더가 처음에는 접혀있도록 설정합니다.
-        let isAllExpanded = false;
-
-        // 개별 폴더를 펼치거나 접는 함수
-        function toggleFolder(element) {
-            // 클릭된 헤더의 부모 섹션(Section) 및 내부 리스트 컨테이너(Container) 탐색
-            const section = element.closest('.folder-section');
-            const listContainer = section.querySelector('.list-container');
-            const folderIcon = element.querySelector('.folder-icon');
-            const chevronIcon = element.querySelector('.chevron-icon');
-            
-            // 데이터 속성(Data Attributes)에 저장된 아이콘 클래스명 불러오기
-            const baseIcon = element.getAttribute('data-base-icon');
-            const closedIcon = element.getAttribute('data-closed-icon');
-
-            // 현재 리스트가 펼쳐진 상태인지 확인 (CSS Grid 속성 기준)
-            const isExpanded = listContainer.classList.contains('grid-rows-[1fr]');
-
-            if (isExpanded) {
-                // 접기(Collapse) 액션 수행
-                listContainer.classList.remove('grid-rows-[1fr]', 'opacity-100');
-                listContainer.classList.add('grid-rows-[0fr]', 'opacity-0');
-                
-                // 우측 화살표 아이콘 회전
-                chevronIcon.classList.add('rotate-180');
-                
-                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 닫힘 상태로 변경
-                if (baseIcon !== 'fa-server') {
-                    folderIcon.classList.remove('fa-folder-open');
-                    folderIcon.classList.add('fa-folder');
-                }
-            } else {
-                // 펼치기(Expand) 액션 수행
-                listContainer.classList.remove('grid-rows-[0fr]', 'opacity-0');
-                listContainer.classList.add('grid-rows-[1fr]', 'opacity-100');
-                
-                // 우측 화살표 아이콘 원상 복구
-                chevronIcon.classList.remove('rotate-180');
-                
-                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 열림 상태로 변경
-                if (baseIcon !== 'fa-server') {
-                    folderIcon.classList.remove('fa-folder');
-                    folderIcon.classList.add('fa-folder-open');
-                }
-            }
-        }
-
-        // 전체 폴더를 일괄적으로 펼치거나 접는 함수
-        function toggleAllFolders() {
-            // 전역 상태 반전
-            isAllExpanded = !isAllExpanded;
-            
-            // DOM(Document Object Model, 문서 객체 모델)에서 모든 폴더 헤더 요소 선택
-            const headers = document.querySelectorAll('.folder-header');
-            const globalBtnIcon = document.getElementById('global-toggle-icon');
-            const globalBtnText = document.getElementById('global-toggle-text');
-
-            headers.forEach(header => {
-                const section = header.closest('.folder-section');
-                const listContainer = section.querySelector('.list-container');
-                const isCurrentlyExpanded = listContainer.classList.contains('grid-rows-[1fr]');
-
-                // 현재 개별 폴더의 상태가 전역 상태 목표와 다를 경우에만 토글 함수 실행
-                if (isAllExpanded !== isCurrentlyExpanded) {
-                    toggleFolder(header);
-                }
-            });
-
-            // 전역 토글 버튼의 UI(User Interface, 사용자 인터페이스) 업데이트
-            if (isAllExpanded) {
-                globalBtnIcon.classList.remove('fa-folder');
-                globalBtnIcon.classList.add('fa-folder-open');
-                globalBtnText.innerText = 'COLLAPSE ALL';
-            } else {
-                globalBtnIcon.classList.remove('fa-folder-open');
-                globalBtnIcon.classList.add('fa-folder');
-                globalBtnText.innerText = 'EXPAND ALL';
-            }
-        }
+        lucide.createIcons();
     </script>
 </body>
 </html>
