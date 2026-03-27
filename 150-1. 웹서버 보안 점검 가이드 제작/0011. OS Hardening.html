@@ -3,271 +3,308 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Security & Cloud Hacking Lab</title>
+    <title>OS Hardening: 운영체제 요새화 실습</title>
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
-        
-        /* 기본 글꼴 및 다크 모드 배경색 설정 */
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
         body { 
             font-family: 'Noto Sans KR', sans-serif; 
             background-color: #020617; 
             color: #f8fafc; 
-            /* 전체 화면 배경 이미지 적용 및 투명도(Overlay) 설정: 텍스트 가시성을 위해 어두운 오버레이 강화 */
-            background-image: linear-gradient(to bottom, rgba(2, 6, 23, 0.75), rgba(2, 6, 23, 0.95)), 
-                              url('image_1a3201.jpg');
-            background-size: cover;
-            background-attachment: fixed;
-            background-position: center center;
+            margin: 0; padding: 0;
+            line-height: 1.8;
         }
-
-        /* 텍스트 리스트 호버 효과: 터미널 스타일 */
-        .list-hover {
-            transition: all 0.2s ease;
-        }
-        .list-hover:hover {
-            color: #22d3ee; 
-            padding-left: 0.75rem; 
-            background-color: rgba(15, 23, 42, 0.8); 
-            border-left-color: #0ea5e9;
-        }
-
-        /* 텍스트 가시성을 높이는 그림자 효과 클래스 */
-        .text-glow {
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
-        }
-        .neon-glow {
-            text-shadow: 0 0 8px rgba(34, 211, 238, 0.6);
-        }
-        
-        /* 커스텀 스크롤바 (선택적 시각 강화) */
+        .terminal-bg { background-color: #020617; border: 1px solid #1e293b; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-filter: blur(12px); }
+        .code-block { font-family: 'Fira Code', monospace; }
         ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
     </style>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-        }
-    </script>
 </head>
-<body class="min-h-screen flex flex-col">
-    <header class="py-24 px-6 relative overflow-hidden">
-        
-        <a href="https://putto4u.github.io/06.Hacking-Security" class="absolute top-6 left-6 md:left-10 z-20 group cursor-pointer block" target="_blank" rel="noopener noreferrer">
-            <div class="flex items-center space-x-2 bg-slate-900/80 py-2 px-4 rounded-xl border border-cyan-900/50 backdrop-blur-md shadow-[0_0_15px_rgba(8,145,178,0.2)] transition-all duration-300 group-hover:border-cyan-400/60 group-hover:shadow-[0_0_20px_rgba(34,211,238,0.4)]">
-                <div class="relative flex h-3 w-3 mr-1">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
-                </div>
-                <span class="font-mono text-[10px] md:text-xs text-slate-400 tracking-wider">CHIEF SYSTEM ARCHITECT <span class="text-cyan-500 ml-1">❯</span></span>
-                <span class="font-black text-cyan-300 tracking-widest font-mono text-sm md:text-base neon-glow ml-1">PUTTO</span>
-                <span class="font-bold text-slate-200 tracking-widest font-mono text-sm md:text-base">'S LECTURES</span>
-            </div>
-        </a>
+<body class="antialiased pb-20">
 
-        <div class="max-w-4xl mx-auto relative z-10 text-center mt-8">
-            <div class="inline-flex items-center justify-center space-x-3 mb-8 bg-slate-950/60 p-4 rounded-2xl backdrop-blur-md border border-slate-700/80 shadow-2xl">
-                <i class="fas fa-user-secret text-4xl text-cyan-400 drop-shadow-lg"></i>
-                <span class="text-slate-500">|</span>
-                <i class="fas fa-shield-halved text-4xl text-blue-500 drop-shadow-lg"></i>
+    <!-- Header: 기술 사양 및 타이틀 -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Cyber Security Lab</span>
+                    <span class="text-slate-500 font-mono text-[10px]">SEC-OS-01 | System Architect Pro</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
+                    OS Hardening<br><span class="text-slate-100 text-2xl">(Operating System Hardening, 운영체제 요새화)</span>
+                </h1>
             </div>
-            
-            <h1 class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-2 pb-2 bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 via-blue-400 to-indigo-400 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">
-                Cloud Security & Hacking Lab
-            </h1>
-            
-            <p class="mt-8 text-slate-100 font-medium text-lg md:text-xl max-w-2xl mx-auto leading-relaxed text-glow">
-                실전 클라우드 인프라 보안 및 모의 해킹 시나리오 연구 자료 저장소
-            </p>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    SCORE: 9.5
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">Security Compliance</p>
+            </div>
         </div>
     </header>
 
-    <main class="flex-grow max-w-4xl mx-auto px-6 py-8 w-full">
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-24">
 
-                <div class="bg-slate-950/90 p-8 md:p-12 rounded-2xl shadow-2xl border border-slate-700/50 backdrop-blur-xl prose prose-invert prose-slate max-w-none prose-img:rounded-xl prose-a:text-cyan-400 hover:prose-a:text-cyan-300 prose-headings:text-slate-100 prose-strong:text-cyan-100">
-                    <h2>1.1 OS Hardening (Operating System Hardening, 운영체제 요새화)</h2>
-<hr />
-<h3><strong>1. OS Hardening의 정의 및 최신 보안 트렌드</strong></h3>
-<p><strong>OS Hardening</strong>은 운영체제의 설정 오류나 불필요한 기능을 제거하여 <strong>Attack Surface (공격 표면, 공격자가 침입할 수 있는 지점)</strong>를 최소화하는 보안 강화 공정입니다. 최신 보안 표준인 <strong>CIS Benchmark (Center for Internet Security Benchmark, 인터넷 보안 센터 인증 벤치마크)</strong> v1.0.0(Ubuntu 24.04 기준)을 준수하는 것이 권장됩니다.</p>
-<ul>
-<li><strong>보안 원칙: Defense in Depth (심층 방어, 다층적 보안 계층 구성)</strong><ul>
-<li>단일 보안 솔루션에 의존하지 않고 OS, 네트워크, 어플리케이션 각 계층에서 방어벽을 구축합니다.</li>
-</ul>
-</li>
-<li><strong>보안 원칙: Zero Trust (제로 트러스트, 아무도 신뢰하지 않는 보안 모델)</strong><ul>
-<li>내부 사용자나 프로세스라 할지라도 적절한 인증과 최소 권한이 확인된 경우에만 접근을 허용합니다.</li>
-</ul>
-</li>
-</ul>
-<blockquote>
-<p><strong>설명</strong>: 최신 서버 보안은 단순히 방화벽을 세우는 것을 넘어, OS 내부의 구성 요소 하나하나를 표준 가이드라인에 맞게 '단단하게' 만드는 과정입니다.</p>
-</blockquote>
-<hr />
-<h3><strong>2. 불필요한 서비스 및 취약 데몬(Daemon) 제거</strong></h3>
-<p>최신 리눅스 배포판(Ubuntu 24.04 LTS 등)은 기본적으로 보안이 강화되어 있으나, 관리 편의를 위해 설치된 불필요한 패키지는 잠재적 위협이 됩니다.</p>
-<ul>
-<li><strong>네트워크 소켓 및 서비스 상태 점검</strong>
-    실제 외부로 노출된 포트와 해당 포트를 사용하는 프로세스를 실시간으로 확인합니다.</li>
-</ul>
-<pre><code class="language-bash"># 리스닝 상태의 모든 TCP/UDP 포트와 프로세스 ID 확인
-sudo ss -tulpn
-</code></pre>
-<ul>
-<li><strong>보안에 취약한 서비스 비활성화</strong>
-    암호화되지 않은 프로토콜인 <strong>Telnet (Telecommunication Network, 원격 접속 프로토콜)</strong> 및 <strong>FTP (File Transfer Protocol, 파일 전송 프로토콜)</strong>는 즉시 제거하고 <strong>SSH (Secure Shell, 보안 셸)</strong>로 대체해야 합니다.</li>
-</ul>
-<pre><code class="language-bash"># 불필요한 서비스 중지 및 자동 실행 방지 (예: rpcbind)
-sudo systemctl stop rpcbind
-sudo systemctl disable rpcbind
-</code></pre>
-<blockquote>
-<p><strong>설명</strong>: <strong>Daemon (데몬, 백그라운드 상주 프로그램)</strong>은 외부 요청을 항상 대기하므로, 취약점이 발견될 경우 공격자에게 시스템 권한을 넘겨주는 통로가 될 수 있습니다.</p>
-<p>systemctl list-units --type=service --state=running  # 서비스 리스트와 설명
-systemctl list-unit-files --type=service | grep enabled  # 부팅 시 자동 실행되는 서비스 리스트 확인</p>
-</blockquote>
-<hr />
-<h3><strong>3. 시스템 업데이트 및 패치 관리 자동화</strong></h3>
-<p><strong>CVE (Common Vulnerabilities and Exposures, 공개적으로 알려진 보안 취약점)</strong>가 발표되면 공격자는 즉시 공격 도구를 제작하므로, 신속한 패치 적용이 필수입니다.</p>
-<ul>
-<li><strong>최신 패키지 업데이트 수행</strong>
-    운영체제 및 설치된 모든 소프트웨어를 최신 보안 패치 상태로 유지합니다.</li>
-</ul>
-<pre><code class="language-bash"># 패키지 인덱스 갱신 및 보안 업데이트 적용
-sudo apt update &amp;&amp; sudo apt upgrade -y
-</code></pre>
-<ul>
-<li><strong>보안 자동 업데이트 (Unattended-Upgrades) 설정</strong>
-    관리자의 수동 작업 없이도 치명적인 보안 패치를 즉시 적용하도록 구성합니다.</li>
-</ul>
-<pre><code class="language-bash"># 자동 보안 업데이트 설정 및 상태 확인
-sudo dpkg-reconfigure -plow unattended-upgrades
-</code></pre>
-<blockquote>
-<p><strong>설명</strong>: 보안 패치 자동화는 관리자의 실수를 방지하고, 제로 데이(Zero-day) 공격의 위험 노출 시간을 최소화하는 가장 효과적인 방법입니다.</p>
-</blockquote>
-<hr />
-<h3><strong>4. 계정 보안 및 원격 접속 제한</strong></h3>
-<ul>
-<li><strong>SSH 강화 및 Root 로그인 차단</strong>
-    최고 관리자인 <strong>Root (루트, 시스템 최고 관리자)</strong>의 직접 접속을 차단하고 키 기반 인증을 사용합니다.</li>
-</ul>
-<pre><code class="language-bash"># SSH 설정에서 Root 로그인 금지 (PermitRootLogin no 확인)
-sudo sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin no/' /etc/ssh/sshd_config
-sudo systemctl restart ssh
-</code></pre>
-<hr />
-<h3><strong>[AWS 환경 보안 가이드 및 과금 안내]</strong></h3>
-<p>AWS 환경에서 서버 보안을 자동화할 때는 다음 서비스를 참조하십시오.</p>
-<ul>
-<li><strong>Amazon Inspector (아마존 인스펙터, 자동화된 취약점 관리 서비스)</strong><ul>
-<li><strong>중요 알림</strong>: 기존의 <strong>Inspector Classic</strong>은 2026년 5월 20일부로 지원이 종료됩니다. 반드시 최신 버전인 <strong>Amazon Inspector (v2)</strong>를 사용하십시오.</li>
-<li><strong>과금</strong>: 스캔된 EC2 인스턴스당 월별 비용이 발생하며, 지속적 스캔 기능 활성화 시 비용이 추가될 수 있습니다. <a href="https://aws.amazon.com/ko/inspector/pricing/">공식 요금 페이지</a></li>
-</ul>
-</li>
-<li><strong>AWS Systems Manager (SSM, 시스템즈 매니저 - 패치 관리자)</strong><ul>
-<li>여러 대의 인스턴스에 보안 패치를 일괄 적용할 수 있는 <strong>Patch Manager (패치 매니저)</strong> 기능을 제공합니다.</li>
-<li><strong>과금</strong>: 기본 패치 관리 기능은 무료이나, 온프레미스 서버를 연결하는 하이브리드 노드나 고급 인스턴스 티어 사용 시 시간당 비용이 발생합니다. <a href="https://aws.amazon.com/ko/systems-manager/pricing/">공식 요금 페이지</a></li>
-</ul>
-</li>
-</ul>
-<hr />
-<p>Next Step: 리눅스 커널 파라미터 최적화</p>
-<hr />
-<p><strong>상세 설명 주석</strong>
-1. <strong>OS Hardening</strong>: 운영체제 수준에서 허점을 제거하는 행위로, 불필요한 계정 삭제, 서비스 차단, 파일 권한 강화 등을 포함합니다.
-2. <strong>CIS Benchmark</strong>: 전 세계 보안 전문가들이 정의한 시스템 보안 설정의 '골든 스탠다드'로, 기업 보안 감사 시 필수 기준이 됩니다.
-3. <strong>CVE</strong>: 보안 취약점의 표준 식별자로, 보안 패치가 나올 때마다 고유 번호(예: CVE-2024-XXXX)가 부여됩니다.
-4. <strong>Amazon Inspector v2</strong>: 에이전트 없이도 소프트웨어 취약점과 네트워크 노출을 실시간으로 감지하는 최신 보안 서비스입니다.</p>
+        <!-- Section 1: 정의 및 최신 트렌드 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                1. OS Hardening의 정의 및 최신 보안 트렌드
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-10 leading-relaxed">
+                    <span class="font-bold text-cyan-400 text-glow">OS Hardening</span>은 운영체제의 설정 오류나 불필요한 기능을 제거하여 <span class="font-bold text-blue-400">Attack Surface (공격 표면, 공격자가 침입할 수 있는 지점)</span>를 최소화하는 보안 강화 공정입니다. 최신 보안 표준인 <span class="font-bold text-indigo-400">CIS Benchmark (Center for Internet Security Benchmark, 인터넷 보안 센터 인증 벤치마크)</span> v1.0.0(Ubuntu 24.04 기준)을 준수하는 것이 권장됩니다.
+                </p>
+
+                <!-- 도식화: 보안 원칙 아키텍처 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner">
+                    <h4 class="text-center font-bold text-slate-400 mb-10 text-xs tracking-widest uppercase">
+                        [도식: 다층적 보안 계층 구성 (Security Principles)]
+                    </h4>
+                    <div class="flex flex-col md:flex-row items-center justify-around gap-8">
+                        <!-- Principle A -->
+                        <div class="flex-1 text-center p-8 bg-slate-800/80 rounded-2xl border border-cyan-500/30 shadow-xl relative">
+                            <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-cyan-500 text-slate-900 px-3 py-1 rounded-full text-[10px] font-black uppercase">Layered</div>
+                            <i data-lucide="shield" class="w-12 h-12 text-cyan-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm mb-2">Defense in Depth<br>(심층 방어)</div>
+                            <p class="text-[10px] text-slate-400">OS, 네트워크, 어플리케이션<br>다층적 보안 계층 구축</p>
+                        </div>
+                        <!-- Arrow -->
+                        <div class="flex flex-col items-center">
+                            <i data-lucide="arrow-right" class="w-8 h-8 text-slate-700 rotate-90 md:rotate-0"></i>
+                        </div>
+                        <!-- Principle B -->
+                        <div class="flex-1 text-center p-8 bg-slate-800/80 rounded-2xl border border-blue-500/30 shadow-xl relative">
+                            <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-blue-500 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase">Verified</div>
+                            <i data-lucide="lock" class="w-12 h-12 text-blue-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm mb-2">Zero Trust<br>(제로 트러스트)</div>
+                            <p class="text-[10px] text-slate-400">적절한 인증과 최소 권한<br>확인된 경우에만 접근 허용</p>
+                        </div>
+                    </div>
                 </div>
-                
+            </div>
+        </section>
+
+        <!-- Section 2: 불필요한 서비스 및 취약 데몬 제거 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                2. 불필요한 서비스 및 취약 데몬(Daemon) 제거
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="section-card rounded-3xl p-8 border-cyan-900/30 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-cyan-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">SOCKET CHECK</div>
+                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                        <i data-lucide="activity" class="w-6 h-6 text-cyan-400"></i> 포트 및 프로세스 점검
+                    </h3>
+                    <p class="text-sm text-slate-300 leading-relaxed mb-6">
+                        실제 외부로 노출된 포트와 해당 포트를 사용하는 프로세스를 실시간으로 확인하여 시스템 상태를 점검합니다.
+                    </p>
+                    <div class="terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner">
+                        <div class="text-slate-200">$ <span class="text-cyan-400 font-bold">sudo ss -tulpn</span></div>
+                        <div class="text-slate-500 mt-2"># 리스닝 상태의 모든 TCP/UDP 포트와 프로세스 ID 확인</div>
+                    </div>
+                </div>
+                <div class="section-card rounded-3xl p-8 border-indigo-900/30 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">SERVICE HARDENING</div>
+                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                        <i data-lucide="user-x" class="w-6 h-6 text-indigo-400"></i> 취약 프로토콜 제거
+                    </h3>
+                    <p class="text-sm text-slate-300 leading-relaxed mb-6">
+                        <span class="text-indigo-400 font-bold">Telnet</span> 및 <span class="text-indigo-400 font-bold">FTP</span>와 같은 취약한 서비스는 즉시 제거하고 <span class="text-indigo-400 font-bold">SSH</span>로 대체합니다.
+                    </p>
+                    <div class="terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner">
+                        <div class="text-slate-200">$ sudo systemctl stop rpcbind</div>
+                        <div class="text-slate-200">$ sudo systemctl disable rpcbind</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-8 section-card p-6 rounded-2xl border-slate-800">
+                <div class="flex items-center gap-3 mb-4">
+                    <i data-lucide="info" class="w-4 h-4 text-blue-400"></i>
+                    <h4 class="text-sm font-bold text-slate-100 uppercase tracking-widest">Service Inspection Commands</h4>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="terminal-bg p-4 rounded-xl font-mono text-[11px] text-slate-400">
+                        systemctl list-units --type=service --state=running <br>
+                        <span class="text-slate-600"># 서비스 리스트와 설명</span>
+                    </div>
+                    <div class="terminal-bg p-4 rounded-xl font-mono text-[11px] text-slate-400">
+                        systemctl list-unit-files --type=service | grep enabled <br>
+                        <span class="text-slate-600"># 부팅 시 자동 실행 서비스 확인</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: 시스템 업데이트 및 패치 관리 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                3. 시스템 업데이트 및 패치 관리 자동화
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-12">
+                <div class="flex flex-col lg:flex-row gap-12">
+                    <div class="flex-1 space-y-6">
+                        <div class="flex items-center gap-3">
+                            <span class="bg-cyan-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black">01</span>
+                            <h3 class="text-xl font-bold text-slate-100">최신 패키지 업데이트</h3>
+                        </div>
+                        <p class="text-sm text-slate-400 leading-relaxed pl-11">
+                            <span class="text-slate-100 font-bold underline decoration-cyan-500">CVE (Common Vulnerabilities and Exposures, 공개적으로 알려진 보안 취약점)</span>가 발표되면 즉시 패치를 적용해야 합니다.
+                        </p>
+                        <div class="pl-11">
+                            <div class="terminal-bg rounded-xl p-6 font-mono text-sm">
+                                <span class="text-cyan-400">$ sudo apt update && sudo apt upgrade -y</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex-1 space-y-6">
+                        <div class="flex items-center gap-3">
+                            <span class="bg-indigo-500 text-white w-8 h-8 rounded-full flex items-center justify-center text-xs font-black">02</span>
+                            <h3 class="text-xl font-bold text-slate-100">보안 자동 업데이트</h3>
+                        </div>
+                        <p class="text-sm text-slate-400 leading-relaxed pl-11">
+                            관리자의 수동 작업 없이도 치명적인 보안 패치를 즉시 적용하도록 <span class="text-indigo-400 font-bold">Unattended-Upgrades</span>를 구성합니다.
+                        </p>
+                        <div class="pl-11">
+                            <div class="terminal-bg rounded-xl p-6 font-mono text-sm">
+                                <span class="text-indigo-400">$ sudo dpkg-reconfigure -plow unattended-upgrades</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: 계정 보안 및 원격 접속 제한 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                4. 계정 보안 및 원격 접속 제한
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <div class="flex flex-col md:flex-row gap-10 items-center">
+                    <div class="flex-1 space-y-6">
+                        <h3 class="text-xl font-bold text-slate-100 flex items-center gap-3">
+                            <i data-lucide="key" class="w-6 h-6 text-yellow-400"></i> SSH 강화 및 Root 로그인 차단
+                        </h3>
+                        <p class="text-sm text-slate-300 leading-relaxed">
+                            최고 관리자인 <span class="font-bold text-red-500">Root (루트, 시스템 최고 관리자)</span>의 직접 접속을 차단하고 키 기반 인증을 사용합니다.
+                        </p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-xs">
+                            <div class="text-slate-500 mb-2"># SSH 설정에서 Root 로그인 금지 (PermitRootLogin no 확인)</div>
+                            <div class="text-slate-200">sudo sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin no/' /etc/ssh/sshd_config</div>
+                            <div class="text-slate-200">sudo systemctl restart ssh</div>
+                        </div>
+                    </div>
+                    <div class="w-full md:w-64 bg-slate-900 border border-slate-800 p-8 rounded-3xl text-center shadow-inner">
+                        <i data-lucide="user-minus" class="w-16 h-16 text-red-500 mx-auto mb-4"></i>
+                        <div class="text-[10px] text-slate-500 font-black tracking-widest uppercase mb-2">Security Policy</div>
+                        <div class="text-sm font-bold text-slate-100">ROOT LOGIN<br>DISABLED</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- AWS Security Section -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-red-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
+                AWS 환경 보안 가이드 및 과금 안내
+            </h2>
+            <div class="bg-red-500/5 border border-red-500/20 rounded-3xl p-10 shadow-2xl space-y-10">
+                <p class="text-slate-300 text-lg leading-relaxed">
+                    AWS 환경에서 서버 보안을 자동화할 때는 다음 서비스를 참조하십시오.
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Amazon Inspector -->
+                    <div class="bg-slate-800/40 p-8 rounded-2xl border border-red-900/30">
+                        <div class="text-red-400 mb-4"><i data-lucide="shield-alert" class="w-10 h-10"></i></div>
+                        <h4 class="font-bold text-slate-100 text-xl mb-4 italic uppercase tracking-tighter">Amazon Inspector (v2)</h4>
+                        <ul class="space-y-4 text-xs text-slate-400">
+                            <li><span class="text-red-400 font-bold">중요 알림:</span> 기존 Inspector Classic은 2026년 5월 20일부로 지원 종료됩니다. 반드시 최신 버전인 <span class="text-white underline">Amazon Inspector (v2)</span>를 사용하십시오.</li>
+                            <li class="pt-4 border-t border-slate-700">
+                                <span class="bg-red-500/20 text-red-400 px-2 py-0.5 rounded text-[10px] font-black mr-2 uppercase">Billing</span>
+                                스캔된 EC2 인스턴스당 월별 비용 발생. 지속적 스캔 기능 활성화 시 추가 비용이 발생할 수 있습니다.
+                            </li>
+                        </ul>
+                    </div>
+                    <!-- AWS SSM -->
+                    <div class="bg-slate-800/40 p-8 rounded-2xl border border-orange-900/30">
+                        <div class="text-orange-400 mb-4"><i data-lucide="layout-list" class="w-10 h-10"></i></div>
+                        <h4 class="font-bold text-slate-100 text-xl mb-4 italic uppercase tracking-tighter">AWS Systems Manager (SSM)</h4>
+                        <ul class="space-y-4 text-xs text-slate-400">
+                            <li><span class="text-orange-400 font-bold">Patch Manager:</span> 여러 대의 인스턴스에 보안 패치를 일괄 적용할 수 있는 기능을 제공합니다.</li>
+                            <li class="pt-4 border-t border-slate-700">
+                                <span class="bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded text-[10px] font-black mr-2 uppercase">Billing</span>
+                                기본 패치 관리는 무료이나, 하이브리드 노드나 고급 인스턴스 티어 사용 시 시간당 비용이 발생합니다.
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: 전문가 분석 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                5. 아키텍트 인사이트 (Expert Insight)
+            </h2>
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl">
+                <div class="flex flex-col md:flex-row gap-8">
+                    <div class="flex-1 bg-slate-800/50 p-8 rounded-2xl border border-slate-700">
+                        <div class="text-cyan-400 mb-4"><i data-lucide="lightbulb" class="w-10 h-10"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-4 uppercase text-xs tracking-widest">보안 전략의 본질</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            최신 서버 보안은 단순히 방화벽을 세우는 것을 넘어, OS 내부의 구성 요소 하나하나를 표준 가이드라인에 맞게 '단단하게' 만드는 과정입니다.
+                        </p>
+                    </div>
+                    <div class="flex-1 bg-slate-800/50 p-8 rounded-2xl border border-slate-700">
+                        <div class="text-red-400 mb-4"><i data-lucide="shield-check" class="w-10 h-10"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-4 uppercase text-xs tracking-widest">패치 자동화의 가치</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            보안 패치 자동화는 관리자의 실수를 방지하고, 제로 데이(Zero-day) 공격의 위험 노출 시간을 최소화하는 가장 효과적인 방법입니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
     </main>
-    <footer class="border-t border-slate-800/80 py-8 text-center text-slate-400 text-sm bg-slate-950/90 backdrop-blur-md mt-auto">
-        <p class="font-mono">&copy; 2026 Putto's Lectures. All rights reserved. <span class="text-cyan-800 font-bold ml-2">| ACCESS SECURED.</span></p>
+
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-10">
+            © 2026 Gemini Pro System Architect. All rights reserved.
+        </div>
+        <!-- Annotations -->
+        <div class="max-w-3xl mx-auto text-left border-l-2 border-slate-800 pl-6 space-y-4">
+            <p class="text-slate-600 text-[10px] leading-relaxed italic">
+                <b>주석 01. OS Hardening:</b> 운영체제 수준에서 허점을 제거하는 행위로, 불필요한 계정 삭제, 서비스 차단, 파일 권한 강화 등을 포함합니다.
+            </p>
+            <p class="text-slate-600 text-[10px] leading-relaxed italic">
+                <b>주석 02. CIS Benchmark:</b> 전 세계 보안 전문가들이 정의한 시스템 보안 설정의 '골든 스탠다드'로, 기업 보안 감사 시 필수 기준이 됩니다.
+            </p>
+            <p class="text-slate-600 text-[10px] leading-relaxed italic">
+                <b>주석 03. CVE:</b> 보안 취약점의 표준 식별자로, 보안 패치가 나올 때마다 고유 번호(예: CVE-2024-XXXX)가 부여됩니다.
+            </p>
+            <p class="text-slate-600 text-[10px] leading-relaxed italic">
+                <b>주석 04. Amazon Inspector v2:</b> 에이전트 없이도 소프트웨어 취약점과 네트워크 노출을 실시간으로 감지하는 최신 보안 서비스입니다.
+            </p>
+            <p class="text-slate-600 text-[10px] leading-relaxed italic">
+                <b>주석 05. Daemon (데몬, 백그라운드 상주 프로그램):</b> 외부 요청을 항상 대기하므로, 취약점이 발견될 경우 공격자에게 시스템 권한을 넘겨주는 통로가 될 수 있습니다.
+            </p>
+        </div>
+        <div class="mt-16 text-cyan-600 font-black text-sm tracking-[0.3em] uppercase">
+            Next Step: 리눅스 커널 파라미터 최적화
+        </div>
     </footer>
 
     <script>
-        // 전역 상태 변수: 디폴트를 'false'로 변경하여 모든 폴더가 처음에는 접혀있도록 설정합니다.
-        let isAllExpanded = false;
-
-        // 개별 폴더를 펼치거나 접는 함수
-        function toggleFolder(element) {
-            // 클릭된 헤더의 부모 섹션(Section) 및 내부 리스트 컨테이너(Container) 탐색
-            const section = element.closest('.folder-section');
-            const listContainer = section.querySelector('.list-container');
-            const folderIcon = element.querySelector('.folder-icon');
-            const chevronIcon = element.querySelector('.chevron-icon');
-            
-            // 데이터 속성(Data Attributes)에 저장된 아이콘 클래스명 불러오기
-            const baseIcon = element.getAttribute('data-base-icon');
-            const closedIcon = element.getAttribute('data-closed-icon');
-
-            // 현재 리스트가 펼쳐진 상태인지 확인 (CSS Grid 속성 기준)
-            const isExpanded = listContainer.classList.contains('grid-rows-[1fr]');
-
-            if (isExpanded) {
-                // 접기(Collapse) 액션 수행
-                listContainer.classList.remove('grid-rows-[1fr]', 'opacity-100');
-                listContainer.classList.add('grid-rows-[0fr]', 'opacity-0');
-                
-                // 우측 화살표 아이콘 회전
-                chevronIcon.classList.add('rotate-180');
-                
-                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 닫힘 상태로 변경
-                if (baseIcon !== 'fa-server') {
-                    folderIcon.classList.remove('fa-folder-open');
-                    folderIcon.classList.add('fa-folder');
-                }
-            } else {
-                // 펼치기(Expand) 액션 수행
-                listContainer.classList.remove('grid-rows-[0fr]', 'opacity-0');
-                listContainer.classList.add('grid-rows-[1fr]', 'opacity-100');
-                
-                // 우측 화살표 아이콘 원상 복구
-                chevronIcon.classList.remove('rotate-180');
-                
-                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 열림 상태로 변경
-                if (baseIcon !== 'fa-server') {
-                    folderIcon.classList.remove('fa-folder');
-                    folderIcon.classList.add('fa-folder-open');
-                }
-            }
-        }
-
-        // 전체 폴더를 일괄적으로 펼치거나 접는 함수
-        function toggleAllFolders() {
-            // 전역 상태 반전
-            isAllExpanded = !isAllExpanded;
-            
-            // DOM(Document Object Model, 문서 객체 모델)에서 모든 폴더 헤더 요소 선택
-            const headers = document.querySelectorAll('.folder-header');
-            const globalBtnIcon = document.getElementById('global-toggle-icon');
-            const globalBtnText = document.getElementById('global-toggle-text');
-
-            headers.forEach(header => {
-                const section = header.closest('.folder-section');
-                const listContainer = section.querySelector('.list-container');
-                const isCurrentlyExpanded = listContainer.classList.contains('grid-rows-[1fr]');
-
-                // 현재 개별 폴더의 상태가 전역 상태 목표와 다를 경우에만 토글 함수 실행
-                if (isAllExpanded !== isCurrentlyExpanded) {
-                    toggleFolder(header);
-                }
-            });
-
-            // 전역 토글 버튼의 UI(User Interface, 사용자 인터페이스) 업데이트
-            if (isAllExpanded) {
-                globalBtnIcon.classList.remove('fa-folder');
-                globalBtnIcon.classList.add('fa-folder-open');
-                globalBtnText.innerText = 'COLLAPSE ALL';
-            } else {
-                globalBtnIcon.classList.remove('fa-folder-open');
-                globalBtnIcon.classList.add('fa-folder');
-                globalBtnText.innerText = 'EXPAND ALL';
-            }
-        }
+        lucide.createIcons();
     </script>
 </body>
 </html>
