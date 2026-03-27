@@ -1,272 +1,302 @@
-import React from 'react';
-import { Monitor, Database, ArrowRight, Terminal, Server, Check, Lightbulb, ShieldAlert, Cpu, Activity, ShieldCheck } from 'lucide-react';
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>리눅스 커널 파라미터 최적화: 보안 강화 실습</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+        }
+        .terminal-bg { background-color: #020617; border: 1px solid #1e293b; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-filter: blur(12px); }
+        .code-block { font-family: 'Fira Code', monospace; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+    </style>
+</head>
+<body class="antialiased pb-20">
 
-const App = () => {
-  return (
-    <div className="antialiased pb-20 font-['Noto_Sans_KR',sans-serif] bg-[#020617] text-[#f8fafc] leading-relaxed">
-      {/* Header */}
-      <header className="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
-        <div className="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">
-                Cyber Security Lab
-              </span>
-              <span className="text-slate-500 font-mono text-[10px]">SEC-KRN-01 | System Hardening</span>
+    <!-- Header: 기술 사양 및 타이틀 -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Cyber Security Lab</span>
+                    <span class="text-slate-500 font-mono text-[10px]">SEC-KRN-01 | System Hardening</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
+                    리눅스 커널 파라미터 최적화<br><span class="text-slate-100 text-2xl">(Linux Kernel Parameter Optimization)</span>
+                </h1>
             </div>
-            <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
-              리눅스 커널 파라미터 최적화<br />
-              <span className="text-slate-100 text-2xl">(Linux Kernel Parameter Optimization)</span>
-            </h1>
-          </div>
-          <div className="text-right hidden md:block border-l border-slate-800 pl-6">
-            <div className="bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
-              SCORE: 9.8
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    SCORE: 9.8
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">System Architect Pro</p>
             </div>
-            <p className="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">System Architect Pro</p>
-          </div>
         </div>
-      </header>
+    </header>
 
-      <main className="max-w-6xl mx-auto px-6 py-16 space-y-24">
-        
-        {/* Section 1: 이론 및 아키텍처 도식 */}
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-24">
+
+        <!-- Section 1: 이론 및 아키텍처 도식 -->
         <section>
-          <h2 className="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
-            1. 커널(Kernel)과 sysctl의 역할 아키텍처
-          </h2>
-          <div className="bg-[#0f172a]/60 border border-slate-700/50 backdrop-blur-xl rounded-3xl p-10 shadow-2xl">
-            <div className="section-card bg-slate-800/40 p-8 rounded-2xl mb-10 border border-slate-700">
-              <p className="text-slate-300 text-lg leading-relaxed">
-                <span className="font-bold text-cyan-400">Kernel (커널, 운영체제의 핵심)</span>은 하드웨어 자원을 관리하고 프로세스 간의 통신을 제어하는 리눅스의 심장부입니다. 
-                <span className="font-bold text-blue-400"> sysctl (System Control, 커널 매개변수 제어 도구)</span> 명령어를 사용하면 시스템을 재부팅하지 않고도 실행 중인 커널의 네트워크 스택 및 가상 메모리 파라미터를 실시간으로 수정하여 보안을 강화할 수 있습니다.
-              </p>
-            </div>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                1. 커널(Kernel)과 sysctl의 역할 아키텍처
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-10 leading-relaxed">
+                    <span class="font-bold text-cyan-400 text-glow">Kernel (커널, 운영체제의 핵심)</span>은 하드웨어 자원을 관리하고 프로세스 간의 통신을 제어하는 리눅스의 심장부입니다. <span class="font-bold text-blue-400">sysctl (System Control, 커널 매개변수 제어 도구)</span> 명령어를 사용하면 시스템을 재부팅하지 않고도 실행 중인 커널의 네트워크 스택 및 가상 메모리 파라미터를 실시간으로 수정하여 보안을 강화할 수 있습니다.
+                </p>
 
-            {/* 도식화 인포그래픽 영역 */}
-            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner">
-              <h4 className="text-center font-bold text-slate-400 mb-8 text-xs tracking-widest uppercase">
-                [도식: 커널 파라미터 제어 흐름도]
-              </h4>
-              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                <div className="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-cyan-900/50 shadow-lg">
-                  <Terminal className="w-12 h-12 text-cyan-400 mx-auto mb-4" />
-                  <div className="font-black text-slate-100 text-sm">Administrator<br/>(sysctl CLI)</div>
+                <!-- 도식화 인포그래픽 영역 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner">
+                    <h4 class="text-center font-bold text-slate-400 mb-8 text-xs tracking-widest uppercase">
+                        [도식: 커널 파라미터 제어 흐름도]
+                    </h4>
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                        <!-- Admin -->
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-cyan-900/50 shadow-lg">
+                            <i data-lucide="terminal" class="w-12 h-12 text-cyan-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">Administrator<br>(sysctl CLI)</div>
+                        </div>
+                        <!-- Arrow -->
+                        <div class="flex flex-col items-center">
+                            <i data-lucide="arrow-right" class="w-8 h-8 text-slate-600 rotate-90 md:rotate-0"></i>
+                        </div>
+                        <!-- Kernel Space -->
+                        <div class="flex-1 text-center p-6 bg-slate-900 border-2 border-dashed border-blue-500/30 rounded-xl shadow-lg">
+                            <i data-lucide="cpu" class="w-12 h-12 text-blue-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">Kernel Space<br>(/proc/sys/*)</div>
+                        </div>
+                        <!-- Arrow -->
+                        <div class="flex flex-col items-center">
+                            <i data-lucide="arrow-right" class="w-8 h-8 text-slate-600 rotate-90 md:rotate-0"></i>
+                        </div>
+                        <!-- Resource -->
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-indigo-900/50 shadow-lg">
+                            <i data-lucide="activity" class="w-12 h-12 text-indigo-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">System Resource<br>(Network/Memory)</div>
+                        </div>
+                    </div>
                 </div>
-                <ArrowRight className="w-8 h-8 text-slate-600 rotate-90 md:rotate-0" />
-                <div className="flex-1 text-center p-6 bg-slate-900 border-2 border-dashed border-blue-500/30 rounded-xl shadow-lg">
-                  <Cpu className="w-12 h-12 text-blue-400 mx-auto mb-4" />
-                  <div className="font-black text-slate-100 text-sm">Kernel Space<br/>(/proc/sys/*)</div>
+
+                <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-4 bg-slate-900/50 border border-slate-800 rounded-xl">
+                        <h5 class="text-cyan-400 font-bold text-[10px] mb-2 uppercase tracking-tighter">설정 파일 경로</h5>
+                        <p class="text-slate-400 text-xs font-mono">/etc/sysctl.conf | /etc/sysctl.d/</p>
+                    </div>
+                    <div class="p-4 bg-slate-900/50 border border-slate-800 rounded-xl">
+                        <h5 class="text-blue-400 font-bold text-[10px] mb-2 uppercase tracking-tighter">보안 목표</h5>
+                        <p class="text-slate-400 text-xs">네트워크 성능 최적화 및 외부 공격 패킷으로부터 자원 보호</p>
+                    </div>
                 </div>
-                <ArrowRight className="w-8 h-8 text-slate-600 rotate-90 md:rotate-0" />
-                <div className="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-indigo-900/50 shadow-lg">
-                  <Activity className="w-12 h-12 text-indigo-400 mx-auto mb-4" />
-                  <div className="font-black text-slate-100 text-sm">System Resource<br/>(Network/Memory)</div>
-                </div>
-              </div>
             </div>
-            
-            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-               <div className="p-4 bg-slate-900/50 border border-slate-800 rounded-xl">
-                 <h5 className="text-cyan-400 font-bold text-xs mb-2 uppercase">설정 파일 경로</h5>
-                 <p className="text-slate-400 text-xs font-mono">/etc/sysctl.conf | /etc/sysctl.d/</p>
-               </div>
-               <div className="p-4 bg-slate-900/50 border border-slate-800 rounded-xl">
-                 <h5 className="text-blue-400 font-bold text-xs mb-2 uppercase">보안 목표</h5>
-                 <p className="text-slate-400 text-xs">네트워크 성능 최적화 및 외부 공격 패킷으로부터 자원 보호</p>
-               </div>
-            </div>
-          </div>
         </section>
 
-        {/* Section 2: 네트워크 스택 보안 강화 */}
+        <!-- Section 2: 네트워크 스택 보안 강화 -->
         <section>
-          <h2 className="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
-            2. 네트워크 스택 보안 강화 (Network Stack Hardening)
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="bg-[#0f172a]/60 rounded-3xl p-8 border border-cyan-900/30 shadow-xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 bg-cyan-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">SYN FLOOD DEFENSE</div>
-              <h3 className="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
-                <ShieldCheck className="w-6 h-6 text-cyan-400" /> SYN Cookies 활성
-              </h3>
-              <p className="text-sm text-slate-400 leading-relaxed mb-6">
-                공격자가 대량의 연결 요청(SYN)만 보내고 응답(ACK)을 하지 않아 서버의 대기 자원을 고갈시키는 <span className="text-cyan-400">SYN Flood (SYN 플러드, TCP 연결 요청 폭주 공격)</span>를 방어하기 위해 <span className="text-cyan-400">SYN Cookies (SYN 쿠키, 연결 요청 검증 메커니즘)</span>를 활성화합니다.
-              </p>
-              <div className="terminal-bg rounded-xl p-4 font-mono text-xs shadow-inner">
-                <div className="text-slate-400"># 1: 활성, 0: 비활성</div>
-                <div className="text-slate-200">$ sudo sysctl -w net.ipv4.tcp_syncookies=1</div>
-              </div>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                2. 네트워크 스택 보안 강화 (Network Stack Hardening)
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="section-card rounded-3xl p-8 border-cyan-900/30 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-cyan-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">SYN FLOOD DEFENSE</div>
+                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                        <i data-lucide="shield-check" class="w-6 h-6 text-cyan-400"></i> SYN Cookies 활성
+                    </h3>
+                    <p class="text-sm text-slate-300 leading-relaxed mb-6">
+                        공격자가 대량의 연결 요청(SYN)만 보내고 응답(ACK)을 하지 않아 서버의 대기 자원을 고갈시키는 <span class="text-cyan-400 font-bold">SYN Flood (SYN 플러드, TCP 연결 요청 폭주 공격)</span>를 방어하기 위해 <span class="text-cyan-400 font-bold">SYN Cookies (SYN 쿠키, 연결 요청 검증 메커니즘)</span>를 활성화합니다.
+                    </p>
+                    <div class="terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner">
+                        <div class="text-slate-500 mb-2"># SYN Cookies 활성화 (1: 활성, 0: 비활성)</div>
+                        <div class="text-slate-200">$ <span class="text-cyan-400 font-bold">sudo sysctl -w net.ipv4.tcp_syncookies=1</span></div>
+                    </div>
+                </div>
+                <div class="section-card rounded-3xl p-8 border-indigo-900/30 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">IP SPOOFING DEFENSE</div>
+                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                        <i data-lucide="shield-check" class="w-6 h-6 text-indigo-400"></i> RP Filtering 적용
+                    </h3>
+                    <p class="text-sm text-slate-300 leading-relaxed mb-6">
+                        공격자가 발신지 IP를 위조하여 접근하는 <span className="text-indigo-400 font-bold">IP Spoofing (IP 스푸핑, IP 주소 위변조)</span>를 막기 위해 <span className="text-indigo-400 font-bold">Reverse Path Filtering (RP 필터링, 역경로 필터링)</span>을 적용합니다.
+                    </p>
+                    <div class="terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner">
+                        <div class="text-slate-500 mb-2"># 모든 인터페이스에 대해 역경로 필터링 활성화</div>
+                        <div class="text-slate-200">$ sudo sysctl -w net.ipv4.conf.all.rp_filter=1</div>
+                        <div class="text-slate-200">$ sudo sysctl -w net.ipv4.conf.default.rp_filter=1</div>
+                    </div>
+                </div>
             </div>
-
-            <div className="bg-[#0f172a]/60 rounded-3xl p-8 border-indigo-900/30 shadow-xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">IP SPOOFING DEFENSE</div>
-              <h3 className="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
-                <ShieldCheck className="w-6 h-6 text-indigo-400" /> RP Filtering 적용
-              </h3>
-              <p className="text-sm text-slate-400 leading-relaxed mb-6">
-                공격자가 발신지 IP를 위조하여 접근하는 <span className="text-indigo-400">IP Spoofing (IP 스푸핑, IP 주소 위변조)</span>를 막기 위해 <span className="text-indigo-400">Reverse Path Filtering (RP 필터링, 역경로 필터링)</span>을 적용합니다.
-              </p>
-              <div className="terminal-bg rounded-xl p-4 font-mono text-xs shadow-inner">
-                <div className="text-slate-200">$ sudo sysctl -w net.ipv4.conf.all.rp_filter=1</div>
-                <div className="text-slate-200">$ sudo sysctl -w net.ipv4.conf.default.rp_filter=1</div>
-              </div>
-            </div>
-          </div>
         </section>
 
-        {/* Section 3: ICMP 및 DDoS 방어 실무 */}
+        <!-- Section 3: ICMP 및 DDoS 방어 -->
         <section>
-          <h2 className="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
-            3. ICMP 및 DDoS (분산 서비스 거부 공격) 방어
-          </h2>
-          <div className="bg-[#0f172a]/60 border border-slate-700/50 backdrop-blur-xl rounded-3xl p-10 shadow-2xl space-y-12">
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-               <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <span className="bg-cyan-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black">01</span>
-                    <h3 className="text-lg font-bold text-slate-100">ICMP Redirect 차단</h3>
-                  </div>
-                  <p className="text-sm text-slate-400 pl-11">
-                    공격자가 가짜 경로 정보를 보내 데이터를 가로채는 행위를 방지하기 위해 <span className="text-slate-200">ICMP Redirect (ICMP 리다이렉트, 경로 변경 요청)</span>를 수락 거부합니다.
-                  </p>
-                  <div className="pl-11">
-                    <div className="terminal-bg rounded-xl p-4 font-mono text-xs">
-                      <div className="text-cyan-400">net.ipv4.conf.all.accept_redirects=0</div>
-                    </div>
-                  </div>
-               </div>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                3. ICMP 및 DDoS (분산 서비스 거부 공격) 방어
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-12">
+                <p class="text-slate-300 text-lg">
+                    <span class="font-bold text-slate-100 underline decoration-cyan-500">ICMP (Internet Control Message Protocol, 인터넷 제어 메시지 프로토콜)</span>는 네트워크 진단에 쓰이지만, 공격자에 의해 서버의 위치를 파악하거나 <span class="font-bold text-slate-100 underline decoration-blue-500">DDoS (Distributed Denial of Service, 분산 서비스 거부 공격)</span> 통로로 악용될 수 있습니다.
+                </p>
 
-               <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <span className="bg-blue-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black">02</span>
-                    <h3 className="text-lg font-bold text-slate-100">Broadcast ICMP 무시</h3>
-                  </div>
-                  <p className="text-sm text-slate-400 pl-11">
-                    네트워크 전체에 응답을 유도하는 <span className="text-slate-200">Smurf Attack (스머프 공격, ICMP 증폭 공격)</span>을 차단하기 위해 <span className="text-slate-200">Broadcast ICMP (브로드캐스트 ICMP, 전체 전송 메시지)</span> 에코 요청을 무시합니다.
-                  </p>
-                  <div className="pl-11">
-                    <div className="terminal-bg rounded-xl p-4 font-mono text-xs">
-                      <div className="text-blue-400">net.ipv4.icmp_echo_ignore_broadcasts=1</div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <!-- Step 01 -->
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-3">
+                            <span class="bg-cyan-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black">01</span>
+                            <h3 class="text-xl font-bold text-slate-100">ICMP Redirect 차단</h3>
+                        </div>
+                        <div class="pl-11">
+                            <p class="text-sm text-slate-400 mb-4">공격자가 가짜 경로 정보를 보내 데이터를 가로채는 행위를 방지하기 위해 <span class="text-slate-200">ICMP Redirect (ICMP 리다이렉트, 경로 변경 요청)</span> 수락을 거부합니다.</p>
+                            <div class="terminal-bg rounded-xl p-4 font-mono text-xs shadow-inner">
+                                <div class="text-cyan-400">net.ipv4.conf.all.accept_redirects=0</div>
+                                <div class="text-cyan-400">net.ipv4.conf.default.accept_redirects=0</div>
+                            </div>
+                        </div>
                     </div>
-                  </div>
-               </div>
-            </div>
+                    <!-- Step 02 -->
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-3">
+                            <span class="bg-blue-500 text-slate-100 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black">02</span>
+                            <h3 class="text-xl font-bold text-slate-100">Broadcast ICMP 무시</h3>
+                        </div>
+                        <div class="pl-11">
+                            <p class="text-sm text-slate-400 mb-4">네트워크 전체에 응답을 유도하는 <span class="text-slate-200">Smurf Attack (스머프 공격, ICMP 증폭 공격)</span>을 차단하기 위해 <span class="text-slate-200">Broadcast ICMP (브로드캐스트 ICMP, 전체 전송 메시지)</span> 에코 요청을 무시합니다.</p>
+                            <div class="terminal-bg rounded-xl p-4 font-mono text-xs shadow-inner">
+                                <div class="text-blue-400">net.ipv4.icmp_echo_ignore_broadcasts=1</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-            {/* 영구 적용 섹션 */}
-            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-8">
-               <h4 className="text-cyan-400 font-bold text-sm mb-4 flex items-center gap-2">
-                 <Terminal className="w-4 h-4" /> 파라미터 영구 적용 및 확인 (Persistence)
-               </h4>
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                 <div className="space-y-2">
-                    <p className="text-xs text-slate-500 uppercase tracking-widest font-black">즉시 적용</p>
-                    <div className="terminal-bg p-4 rounded-xl font-mono text-sm text-slate-200">
-                      $ sudo sysctl -p
+                <!-- Persistence Block -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8">
+                    <h4 class="text-cyan-400 font-bold text-sm mb-6 flex items-center gap-2">
+                        <i data-lucide="terminal" class="w-4 h-4"></i> 파라미터 영구 적용 및 확인 (Persistence)
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <p class="text-[10px] text-slate-500 uppercase tracking-widest font-black mb-2">즉시 적용</p>
+                            <div class="terminal-bg p-4 rounded-xl font-mono text-xs text-slate-300">
+                                $ sudo sysctl -p
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-slate-500 uppercase tracking-widest font-black mb-2">설정값 확인</p>
+                            <div class="terminal-bg p-4 rounded-xl font-mono text-xs text-slate-300">
+                                $ sysctl net.ipv4.tcp_syncookies
+                            </div>
+                        </div>
                     </div>
-                 </div>
-                 <div className="space-y-2">
-                    <p className="text-xs text-slate-500 uppercase tracking-widest font-black">설정값 확인</p>
-                    <div className="terminal-bg p-4 rounded-xl font-mono text-sm text-slate-200">
-                      $ sysctl net.ipv4.tcp_syncookies
-                    </div>
-                 </div>
-               </div>
+                </div>
             </div>
-          </div>
         </section>
 
-        {/* AWS Security Section */}
+        <!-- Section 4: AWS Security -->
         <section>
-          <h2 className="text-2xl font-black border-l-4 border-red-500 pl-4 text-slate-100 mb-8 tracking-tight">
-            4. AWS 환경 보안 서비스 (Cloud Mitigation)
-          </h2>
-          <div className="bg-red-500/5 border border-red-500/20 rounded-3xl p-10 shadow-2xl">
-            <p className="text-slate-300 mb-8 text-lg">
-              OS 레벨의 커널 튜닝은 기초적인 방어선이며, 대규모 트래픽 공격에는 AWS 전용 서비스를 병행하는 것이 효과적입니다.
+            <h2 class="text-2xl font-black border-l-4 border-red-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
+                4. AWS 환경 보안 서비스 및 과금 안내
+            </h2>
+            <div class="bg-red-500/5 border border-red-500/20 rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-10 leading-relaxed">
+                    OS 레벨의 커널 튜닝은 기초적인 방어선이며, 대규모 트래픽 공격에는 AWS 전용 서비스를 병행하는 것이 효과적입니다.
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- AWS Shield -->
+                    <div class="bg-slate-800/40 p-8 rounded-2xl border border-red-900/30">
+                        <div class="text-red-400 mb-4"><i data-lucide="shield-check" class="w-10 h-10"></i></div>
+                        <h4 class="font-bold text-slate-100 text-xl mb-4 italic">AWS Shield (AWS 실드)</h4>
+                        <ul class="space-y-4 text-xs text-slate-400">
+                            <li class="flex gap-2"><i data-lucide="check" class="w-4 h-4 text-red-500 shrink-0"></i> <b>Standard (기본형)</b>: 추가 비용 없이 모든 고객에게 제공되며 일반적인 네트워크 계층(L3/L4) 공격을 방어합니다.</li>
+                            <li class="flex gap-2">
+                                <i data-lucide="shield-alert" class="w-4 h-4 text-red-500 shrink-0"></i> 
+                                <div>
+                                    <b>Advanced (고급형)</b>: <span class="bg-red-500/20 text-red-400 px-1 py-0.5 rounded font-black uppercase text-[8px]">유료 서비스</span><br>
+                                    애플리케이션 계층(L7) 공격에 대한 정밀 방어와 24/7 보안 팀의 지원을 제공합니다. (월 고정 비용 발생)
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    <!-- AWS WAF -->
+                    <div class="bg-slate-800/40 p-8 rounded-2xl border border-orange-900/30">
+                        <div class="text-orange-400 mb-4"><i data-lucide="server" class="w-10 h-10"></i></div>
+                        <h4 class="font-bold text-slate-100 text-xl mb-4 italic">AWS WAF (AWS 웹 애플리케이션 방화벽)</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            애플리케이션 계층의 비정상적인 트래픽 패턴을 분석하여 커널 레벨에 도달하기 전에 차단합니다. 
+                            <br><br>
+                            <span class="bg-orange-500/20 text-orange-400 px-2 py-1 rounded font-black text-[10px]">* 사용한 규칙 수 및 웹 요청 수에 따라 과금됩니다.</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: 전문가 분석 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                5. 아키텍트 인사이트 (Expert Insight)
+            </h2>
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-10">
+                <div class="flex flex-col md:flex-row gap-8">
+                    <div class="flex-1 bg-slate-800/50 p-8 rounded-2xl border border-slate-700">
+                        <div class="text-cyan-400 mb-4"><i data-lucide="lightbulb" class="w-10 h-10"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-4 uppercase text-xs tracking-widest">Parameter 튜닝의 이해</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            매개변수(Parameter)를 조정하는 것은 엔진의 세부 튜닝을 통해 차량의 안정성을 높이는 과정과 같습니다. 서비스 성격에 맞는 최적값을 찾는 것이 중요합니다.
+                        </p>
+                    </div>
+                    <div class="flex-1 bg-slate-800/50 p-8 rounded-2xl border border-slate-700">
+                        <div class="text-red-400 mb-4"><i data-lucide="shield-alert" class="w-10 h-10"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-4 uppercase text-xs tracking-widest">데이터 통제와 필터링</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            필터링(Filtering)은 들어오는 패킷의 경로가 정상적인 인터페이스를 통해 들어왔는지 검증하여 가짜 IP를 가진 패킷을 차단하는 기술로, 공격 표면을 줄이는 핵심 기법입니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-10">
+            © 2026 Gemini Pro System Architect. All rights reserved.
+        </div>
+        <!-- Annotations -->
+        <div class="max-w-3xl mx-auto text-left border-l-2 border-slate-800 pl-6 space-y-4">
+            <p class="text-slate-600 text-[10px] leading-relaxed italic">
+                <b>주석 01. sysctl:</b> 리눅스에서 /proc/sys 디렉터리 밑에 있는 커널 변수들을 읽고 쓰기 위한 인터페이스입니다.
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-               <div className="bg-slate-800/40 p-8 rounded-2xl border border-red-900/20">
-                  <h4 className="font-bold text-red-400 mb-4 flex items-center gap-2">
-                    <ShieldCheck className="w-6 h-6" /> AWS Shield (AWS 실드)
-                  </h4>
-                  <ul className="space-y-4 text-xs text-slate-400">
-                    <li className="flex gap-2"><Check className="w-4 h-4 text-red-500 shrink-0" /> <b>Standard (기본형)</b>: 추가 비용 없이 모든 고객에게 제공, L3/L4 계층 방어</li>
-                    <li className="flex gap-2">
-                      <ShieldAlert className="w-4 h-4 text-red-500 shrink-0" /> 
-                      <div>
-                        <b>Advanced (고급형)</b>: <span className="text-red-400 font-bold uppercase underline">유료 서비스</span>, L7 정밀 방어 및 24/7 보안 팀 지원 (월 고정 비용 발생)
-                      </div>
-                    </li>
-                  </ul>
-               </div>
-               <div className="bg-slate-800/40 p-8 rounded-2xl border border-red-900/20">
-                  <h4 className="font-bold text-orange-400 mb-4 flex items-center gap-2">
-                    <Server className="w-6 h-6" /> AWS WAF (AWS 웹 애플리케이션 방화벽)
-                  </h4>
-                  <p className="text-xs text-slate-400 leading-relaxed">
-                    애플리케이션 계층(L7)의 비정상적인 트래픽 패턴을 분석하여 커널 레벨에 도달하기 전에 차단합니다. 
-                    <br/><br/>
-                    <span className="italic text-slate-500">* 사용한 규칙 수 및 웹 요청 수에 따라 과금됩니다.</span>
-                  </p>
-               </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Section 4: 아키텍트 인사이트 */}
-        <section>
-          <h2 className="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
-            5. 아키텍트 인사이트 (Expert Insight)
-          </h2>
-          <div className="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-10">
-            <div className="flex flex-col md:flex-row gap-8">
-              <div className="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
-                <div className="text-cyan-400 mb-4"><Lightbulb className="w-8 h-8" /></div>
-                <h4 className="font-bold text-slate-100 mb-2">Parameter (파라미터) 튜닝의 이해</h4>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  매개변수를 조정하는 것은 엔진의 세부 튜닝을 통해 차량의 안정성을 높이는 과정과 같습니다. 서비스 성격에 맞는 최적값을 찾는 것이 중요합니다.
-                </p>
-              </div>
-              <div className="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
-                <div className="text-red-400 mb-4"><ShieldAlert className="w-8 h-8" /></div>
-                <h4 className="font-bold text-slate-100 mb-2">과도한 필터링 주의</h4>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Filtering (필터링)은 들어오는 패킷을 검증하는 훌륭한 도구이지만, 너무 엄격하게 설정할 경우 정상적인 통신 패킷도 차단될 위험이 있으므로 항상 모니터링이 병행되어야 합니다.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-      </main>
-
-      {/* Footer */}
-      <footer className="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
-        <div className="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
-          © 2026 Gemini Pro System Architect. All rights reserved.
+            <p class="text-slate-600 text-[10px] leading-relaxed italic">
+                <b>주석 02. SYN Cookies:</b> TCP 핸드셰이크 시 서버 측에 세션 정보를 저장하지 않고 암호화된 쿠키를 클라이언트에 보내 연결의 정당성을 확인하는 기술입니다.
+            </p>
+            <p class="text-slate-600 text-[10px] leading-relaxed italic">
+                <b>주석 03. RP Filter:</b> 패킷이 들어온 인터페이스가 해당 소스 IP로 패킷을 보낼 때 사용될 인터페이스와 일치하는지 확인하여 스푸핑을 방지합니다.
+            </p>
+            <p class="text-slate-600 text-[10px] leading-relaxed italic">
+                <b>주석 04. Smurf Attack:</b> 소스 IP를 서버 IP로 위조하여 네트워크 내의 모든 장비에 ICMP 에코 요청을 보내 서버가 수많은 응답 패킷에 파묻히게 만드는 공격입니다.
+            </p>
         </div>
-        <div className="space-y-4 text-left border-l-2 border-slate-800 pl-6 max-w-2xl mx-auto">
-          <p className="text-slate-600 text-[10px] leading-relaxed italic">
-            <b>주석 01. sysctl:</b> 리눅스에서 /proc/sys 디렉터리 밑에 있는 커널 변수들을 읽고 쓰기 위한 인터페이스입니다.
-          </p>
-          <p className="text-slate-600 text-[10px] leading-relaxed italic">
-            <b>주석 02. SYN Cookies:</b> TCP 핸드셰이크 시 서버 측에 세션 정보를 저장하지 않고 암호화된 쿠키를 클라이언트에 보내 연결의 정당성을 확인하는 기술입니다.
-          </p>
-          <p className="text-slate-600 text-[10px] leading-relaxed italic">
-            <b>주석 03. RP Filter:</b> 패킷이 들어온 인터페이스가 해당 소스 IP로 패킷을 보낼 때 사용될 인터페이스와 일치하는지 확인하여 스푸핑을 방지합니다.
-          </p>
-          <p className="text-slate-600 text-[10px] leading-relaxed italic">
-            <b>주석 04. Smurf Attack:</b> 소스 IP를 서버 IP로 위조하여 네트워크 내의 모든 장비에 ICMP 에코 요청을 보내 서버가 수많은 응답 패킷에 파묻히게 만드는 공격입니다.
-          </p>
-        </div>
-        <div className="mt-12 text-cyan-600 font-black text-sm tracking-widest">
+        <div class="mt-16 text-cyan-600 font-black text-sm tracking-[0.3em] uppercase">
             Next Step: 정보 노출 방지 및 배너 숨기기
         </div>
-      </footer>
-    </div>
-  );
-};
+    </footer>
 
-export default App;
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
