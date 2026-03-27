@@ -3,122 +3,164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Security & Cloud Hacking Lab</title>
+    <title>SSL/TLS (보안 소켓 계층 / 전송 계층 보안) 적용 실습</title>
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
-        
-        /* 기본 글꼴 및 다크 모드 배경색 설정 */
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
         body { 
             font-family: 'Noto Sans KR', sans-serif; 
             background-color: #020617; 
             color: #f8fafc; 
-            /* 전체 화면 배경 이미지 적용 및 투명도(Overlay) 설정: 텍스트 가시성을 위해 어두운 오버레이 강화 */
-            background-image: linear-gradient(to bottom, rgba(2, 6, 23, 0.75), rgba(2, 6, 23, 0.95)), 
-                              url('image_1a3201.jpg');
-            background-size: cover;
-            background-attachment: fixed;
-            background-position: center center;
+            margin: 0; padding: 0;
+            line-height: 1.8;
         }
-
-        /* 텍스트 리스트 호버 효과: 터미널 스타일 */
-        .list-hover {
-            transition: all 0.2s ease;
-        }
-        .list-hover:hover {
-            color: #22d3ee; 
-            padding-left: 0.75rem; 
-            background-color: rgba(15, 23, 42, 0.8); 
-            border-left-color: #0ea5e9;
-        }
-
-        /* 텍스트 가시성을 높이는 그림자 효과 클래스 */
-        .text-glow {
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
-        }
-        .neon-glow {
-            text-shadow: 0 0 8px rgba(34, 211, 238, 0.6);
-        }
-        
-        /* 커스텀 스크롤바 (선택적 시각 강화) */
+        .terminal-bg { background-color: #020617; border: 1px solid #1e293b; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-blur: xl; }
+        .code-block { font-family: 'Fira Code', monospace; }
         ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
     </style>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-        }
-    </script>
 </head>
-<body class="min-h-screen flex flex-col">
-    <header class="py-24 px-6 relative overflow-hidden">
-        
-        <a href="https://putto4u.github.io/06.Hacking-Security" class="absolute top-6 left-6 md:left-10 z-20 group cursor-pointer block" target="_blank" rel="noopener noreferrer">
-            <div class="flex items-center space-x-2 bg-slate-900/80 py-2 px-4 rounded-xl border border-cyan-900/50 backdrop-blur-md shadow-[0_0_15px_rgba(8,145,178,0.2)] transition-all duration-300 group-hover:border-cyan-400/60 group-hover:shadow-[0_0_20px_rgba(34,211,238,0.4)]">
-                <div class="relative flex h-3 w-3 mr-1">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
-                </div>
-                <span class="font-mono text-[10px] md:text-xs text-slate-400 tracking-wider">CHIEF SYSTEM ARCHITECT <span class="text-cyan-500 ml-1">❯</span></span>
-                <span class="font-black text-cyan-300 tracking-widest font-mono text-sm md:text-base neon-glow ml-1">PUTTO</span>
-                <span class="font-bold text-slate-200 tracking-widest font-mono text-sm md:text-base">'S LECTURES</span>
-            </div>
-        </a>
+<body class="antialiased pb-20">
 
-        <div class="max-w-4xl mx-auto relative z-10 text-center mt-8">
-            <div class="inline-flex items-center justify-center space-x-3 mb-8 bg-slate-950/60 p-4 rounded-2xl backdrop-blur-md border border-slate-700/80 shadow-2xl">
-                <i class="fas fa-user-secret text-4xl text-cyan-400 drop-shadow-lg"></i>
-                <span class="text-slate-500">|</span>
-                <i class="fas fa-shield-halved text-4xl text-blue-500 drop-shadow-lg"></i>
+    <!-- Header: 기술 사양 및 타이틀 -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Cyber Security Lab</span>
+                    <span class="text-slate-500 font-mono text-[10px]">SEC-03-01 | Network Security</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
+                    SSL/TLS 보안 적용<br><span class="text-slate-100 text-2xl">웹 서버 암호화 및 HTTPS 통신 구현</span>
+                </h1>
             </div>
-            
-            <h1 class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-2 pb-2 bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 via-blue-400 to-indigo-400 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">
-                Cloud Security & Hacking Lab
-            </h1>
-            
-            <p class="mt-8 text-slate-100 font-medium text-lg md:text-xl max-w-2xl mx-auto leading-relaxed text-glow">
-                실전 클라우드 인프라 보안 및 모의 해킹 시나리오 연구 자료 저장소
-            </p>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    SCORE: 10.0
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">System Architect Pro</p>
+            </div>
         </div>
     </header>
 
-    <main class="flex-grow max-w-4xl mx-auto px-6 py-8 w-full">
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-24">
 
-                <div class="bg-slate-950/90 p-8 md:p-12 rounded-2xl shadow-2xl border border-slate-700/50 backdrop-blur-xl prose prose-invert prose-slate max-w-none prose-img:rounded-xl prose-a:text-cyan-400 hover:prose-a:text-cyan-300 prose-headings:text-slate-100 prose-strong:text-cyan-100">
-                    <h2>3.1 SSL/TLS (Secure Sockets Layer / Transport Layer Security, 보안 소켓 계층 / 전송 계층 보안) 적용</h2>
-<hr />
-<h3><strong>1. SSL/TLS의 정의와 보안의 3요소</strong></h3>
-<p><strong>SSL/TLS (Secure Sockets Layer / Transport Layer Security, 보안 소켓 계층 / 전송 계층 보안)</strong>는 웹 브라우저와 웹 서버 간의 데이터를 암호화하여 전송하는 표준 보안 프로토콜입니다. 현대 웹 환경에서는 기존의 보안 취약점이 발견된 SSL을 대신하여 보다 안전한 TLS 프로토콜을 사용하며, 이를 통해 통신의 기밀성, 무결성, 가용성을 보장합니다.</p>
-<ul>
-<li><strong>Confidentiality (기밀성)</strong>: 스니핑(Sniffing) 공격으로부터 데이터를 보호하기 위해 모든 통신 내용을 암호화합니다.</li>
-<li><strong>Integrity (무결성)</strong>: 전송 중인 데이터가 변조되지 않았음을 보장합니다.</li>
-<li><strong>Authentication (인증)</strong>: 접속하려는 서버가 신뢰할 수 있는 기관으로부터 인증받은 실제 서버임을 증명합니다.</li>
-</ul>
-<blockquote>
-<p><strong>설명</strong>: <strong>Handshake (핸드셰이크, 악수)</strong> 과정을 통해 클라이언트와 서버는 서로의 신원을 확인하고 통신에 사용할 암호화 키를 안전하게 공유합니다.</p>
-</blockquote>
-<hr />
-<h3><strong>2. SSL/TLS 핸드셰이크 프로세스</strong></h3>
-<p>데이터 전송 전, 클라이언트와 서버는 암호화 알고리즘과 키를 결정하는 복잡한 협상 과정을 거칩니다.</p>
-<ol>
-<li><strong>Client Hello</strong>: 클라이언트가 지원 가능한 암호화 방식(Cipher Suite) 목록을 보냅니다.</li>
-<li><strong>Server Hello &amp; Certificate</strong>: 서버가 암호화 방식을 선택하고 자신의 <strong>Digital Certificate (디지털 인증서, 전자 서명된 보안 인증서)</strong>를 보냅니다.</li>
-<li><strong>Key Exchange</strong>: 공개키 암호화 방식을 이용하여 데이터를 암호화할 대칭키(Session Key)를 생성 및 공유합니다.</li>
-<li><strong>Cipher Spec Change</strong>: 이후 모든 통신은 공유된 대칭키로 암호화됨을 선언합니다.</li>
-</ol>
-<blockquote>
-<p><strong>설명</strong>: <strong>Cipher Suite (사이퍼 스위트, 암호화 알고리즘 세트)</strong>는 프로토콜 버전, 키 교환 방식, 대칭 암호화 방식, 해시 함수 등의 조합을 의미합니다.</p>
-</blockquote>
-<hr />
-<h3><strong>3. 웹 서버 보안 설정 (Nginx 기준)</strong></h3>
-<p>취약한 암호화 알고리즘(DES, RC4, MD5)을 제거하고 TLS 1.2 이상 버전만 사용하도록 설정하는 것이 보안의 핵심입니다.</p>
-<pre><code class="language-bash"># Nginx 가상 호스트 설정 파일 수정
-sudo vi /etc/nginx/sites-available/default
+        <!-- Section 1: 이론 및 아키텍처 도식 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
+                1. 아키텍처 개요 (Architecture Overview)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-10 leading-relaxed">
+                    <strong>SSL/TLS (Secure Sockets Layer / Transport Layer Security, 보안 소켓 계층 / 전송 계층 보안)</strong>는 웹 브라우저와 웹 서버 간의 데이터를 암호화하여 전송하는 표준 보안 프로토콜입니다. 현대 웹 환경에서는 기존의 보안 취약점이 발견된 SSL을 대신하여 보다 안전한 TLS 프로토콜을 사용하며, 이를 통해 통신의 기밀성, 무결성, 가용성을 보장합니다.
+                </p>
 
-# SSL 설정 블록 예시
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                    <div class="p-6 bg-slate-800/40 border border-slate-700 rounded-2xl">
+                        <div class="text-cyan-400 font-black mb-2 italic">Confidentiality (기밀성)</div>
+                        <p class="text-xs text-slate-400">스니핑(Sniffing) 공격으로부터 데이터를 보호하기 위해 모든 통신 내용을 암호화합니다.</p>
+                    </div>
+                    <div class="p-6 bg-slate-800/40 border border-slate-700 rounded-2xl">
+                        <div class="text-blue-400 font-black mb-2 italic">Integrity (무결성)</div>
+                        <p class="text-xs text-slate-400">전송 중인 데이터가 변조되지 않았음을 보장합니다.</p>
+                    </div>
+                    <div class="p-6 bg-slate-800/40 border border-slate-700 rounded-2xl">
+                        <div class="text-indigo-400 font-black mb-2 italic">Authentication (인증)</div>
+                        <p class="text-xs text-slate-400">접속하려는 서버가 신뢰할 수 있는 기관으로부터 인증받은 실제 서버임을 증명합니다.</p>
+                    </div>
+                </div>
+
+                <!-- 핸드셰이크 도식 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner">
+                    <h4 class="text-center font-bold text-slate-400 mb-8 text-xs tracking-widest uppercase">
+                        [도식: TLS Handshake (전송 계층 보안 핸드셰이크) 프로세스]
+                    </h4>
+                    <div class="space-y-6 max-w-2xl mx-auto">
+                        <div class="flex items-center gap-4">
+                            <div class="w-24 text-center font-bold text-cyan-400 text-xs">Client</div>
+                            <div class="flex-1 h-px bg-slate-700 relative">
+                                <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-slate-900 px-3 text-[10px] text-slate-500">1. Client Hello (암호화 방식 제안)</div>
+                                <div class="absolute -right-1 -top-1 border-t-4 border-l-4 border-transparent border-l-cyan-500 w-0 h-0"></div>
+                            </div>
+                            <div class="w-24 text-center font-bold text-slate-500 text-xs">Server</div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="w-24 text-center font-bold text-slate-500 text-xs">Client</div>
+                            <div class="flex-1 h-px bg-slate-700 relative">
+                                <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-slate-900 px-3 text-[10px] text-slate-500">2. Server Hello & Certificate (인증서 전달)</div>
+                                <div class="absolute -left-1 -top-1 border-t-4 border-r-4 border-transparent border-r-blue-500 w-0 h-0"></div>
+                            </div>
+                            <div class="w-24 text-center font-bold text-blue-400 text-xs">Server</div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="w-24 text-center font-bold text-indigo-400 text-xs">Client</div>
+                            <div class="flex-1 h-px bg-slate-700 relative">
+                                <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-slate-900 px-3 text-[10px] text-slate-500">3. Key Exchange (대칭키 공유)</div>
+                                <div class="absolute -right-1 -top-1 border-t-4 border-l-4 border-transparent border-l-indigo-500 w-0 h-0"></div>
+                            </div>
+                            <div class="w-24 text-center font-bold text-slate-500 text-xs">Server</div>
+                        </div>
+                    </div>
+                    <p class="text-center text-[10px] text-slate-600 mt-8 italic">Handshake (핸드셰이크, 악수) 과정을 통해 신원을 확인하고 암호화 키를 안전하게 공유합니다.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: 실습 환경 구성 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
+                2. 실습 구성 요소 (Components)
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="section-card rounded-3xl p-8 border-cyan-900/30 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-cyan-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">NODE 01</div>
+                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                        <i data-lucide="server" class="w-6 h-6 text-cyan-400"></i> Apache (아파치 웹 서버)
+                    </h3>
+                    <ul class="space-y-4 text-sm text-slate-300">
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-cyan-500"></i> 모듈 기반 SSL/TLS 활성화</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-cyan-500"></i> VirtualHost 기반 443 포트 설정</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-cyan-500"></i> HSTS 및 보안 헤더 적용</li>
+                    </ul>
+                </div>
+                <div class="section-card rounded-3xl p-8 border-indigo-900/30 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">NODE 02</div>
+                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                        <i data-lucide="terminal" class="w-6 h-6 text-indigo-400"></i> Nginx (엔진엑스 웹 서버)
+                    </h3>
+                    <ul class="space-y-4 text-sm text-slate-300">
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-indigo-500"></i> 통합 지시어 기반 SSL 설정</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-indigo-500"></i> 강력한 Cipher Suite 최적화</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-indigo-500"></i> Reverse Proxy 및 SSL Termination</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: 명령어 및 절차 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
+                3. 실증 및 구현 (Implementation)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-16">
+                
+                <!-- Nginx Implementation -->
+                <div class="space-y-6">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black italic">STEP 01</span>
+                        <h3 class="text-xl font-bold text-slate-100 uppercase tracking-tight">Nginx 보안 설정 (HTTPS 활성화)</h3>
+                    </div>
+                    <div class="pl-12 space-y-4">
+                        <p class="text-sm text-slate-400">취약한 암호화 알고리즘(DES, RC4, MD5)을 제거하고 TLS 1.2 이상 버전만 사용하도록 설정합니다.</p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">Nginx Config</div>
+                            <pre class="text-slate-300">
 server {
     listen 443 ssl;
     server_name example.com;
@@ -127,441 +169,171 @@ server {
     ssl_certificate /etc/letsencrypt/live/example.com/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem;
 
-    # 최신 보안 프로토콜만 허용 (TLS 1.2, 1.3)
+    # 최신 보안 프로토콜만 허용 (TLSv1.2, TLSv1.3)
     ssl_protocols TLSv1.2 TLSv1.3;
 
-    # 취약한 암호화 알고리즘 제외 및 강력한 사이퍼 스위트 설정
-    ssl_ciphers 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384';
+    # 강력한 사이퍼 스위트(Cipher Suite) 설정
+    ssl_ciphers 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256...';
     ssl_prefer_server_ciphers on;
-}
-</code></pre>
-<blockquote>
-<p><strong>설명</strong>: <strong>CA (Certificate Authority, 인증 기관)</strong>로부터 발급받은 인증서와 개인키를 서버에 설치하여 HTTPS 서비스를 활성화합니다.</p>
-</blockquote>
-<p>&lt;아파치2의 경우&gt;  /etc/apache2/sites-available/default-ssl.conf</p>
-<pre><code>&lt;VirtualHost *:443&gt;
-    ServerName example.com
-    DocumentRoot /var/www/html
 
-    # SSL 엔진 활성화
+    # HSTS 헤더 추가 (HTTPS 강제)
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+}</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Apache Implementation -->
+                <div class="space-y-6">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black italic">STEP 02</span>
+                        <h3 class="text-xl font-bold text-slate-100 uppercase tracking-tight">Apache 보안 설정 (HTTPS 활성화)</h3>
+                    </div>
+                    <div class="pl-12 space-y-4">
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative mb-4">
+                            <div class="text-slate-200">$ <span class="text-cyan-400">sudo a2enmod ssl && sudo a2ensite default-ssl</span></div>
+                            <div class="text-slate-500 mt-2">Enabling module ssl... Enabling site default-ssl.</div>
+                        </div>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">Apache Config</div>
+                            <pre class="text-slate-300">
+&lt;VirtualHost *:443&gt;
+    ServerName example.com
     SSLEngine on
 
     # 인증서 경로 지정
-    SSLCertificateFile    /etc/letsencrypt/live/example.com/fullchain.pem
-    SSLCertificateKeyFile /etc/letsencrypt/live/example.com/privkey.pem
-
-    # [보안 핵심 1] 최신 프로토콜만 허용 (TLS 1.2, 1.3)
-    # 기존의 SSLv2, SSLv3, TLSv1, TLSv1.1은 명시적으로 제외(-) 처리
-    SSLProtocol all -SSLv3 -TLSv1 -TLSv1.1
-
-    # [보안 핵심 2] 강력한 사이퍼 스위트 설정 (취약한 RC4, DES, MD5 제외)
-    SSLCipherSuite ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384
-
-    # [보안 핵심 3] 서버가 정의한 암호화 순서를 우선함 (Client 무시)
-    SSLHonorCipherOrder on
-
-    # 보안 헤더 설정 (HSTS 활성화 권장)
-    Header always set Strict-Transport-Security &quot;max-age=63072000&quot;
-&lt;/VirtualHost&gt;
-</code></pre>
-<hr />
-<h3><strong>4. HSTS (HTTP Strict Transport Security) 적용</strong></h3>
-<p><strong>HSTS (HTTP Strict Transport Security, HTTP 엄격한 전송 보안)</strong>는 브라우저가 해당 사이트에 접속할 때 항상 HTTPS 프로토콜만 사용하도록 강제하는 보안 헤더입니다. 이를 통해 HTTP를 HTTPS로 리다이렉트하는 과정에서 발생할 수 있는 <strong>SSL Stripping (SSL 스트리핑, HTTPS를 HTTP로 하향 유도하는 공격)</strong>을 원천 차단합니다.</p>
-<pre><code class="language-bash"># Nginx 설정에 HSTS 헤더 추가
-add_header Strict-Transport-Security &quot;max-age=31536000; includeSubDomains&quot; always;
-</code></pre>
-<hr />
-<h3><strong>[AWS 환경 보안 가이드 및 과금 안내]</strong></h3>
-<p>AWS 환경에서는 서버 내부 설정보다 관리형 서비스를 이용하는 것이 가용성과 보안성 측면에서 유리합니다.</p>
-<ul>
-<li><strong>AWS Certificate Manager (ACM, AWS 인증서 관리자)</strong><ul>
-<li>Public SSL/TLS 인증서를 무료로 발급 및 갱신해 줍니다. (ELB, CloudFront와 연동 필수)</li>
-<li><strong>과금 안내</strong>: 인증서 발급 자체는 <strong>무료</strong>이나, 사설 CA(Private CA)를 구축하여 사용할 경우 월별 고정 비용 및 발급 비용이 발생합니다. <a href="https://aws.amazon.com/ko/certificate-manager/pricing/">공식 요금 페이지</a></li>
-</ul>
-</li>
-<li><strong>Application Load Balancer (ALB, 애플리케이션 로드 밸런서)</strong><ul>
-<li><strong>SSL Termination (SSL 종단)</strong> 기능을 제공하여 서버의 암복호화 부하를 대신 처리합니다.</li>
-<li><strong>과금 안내</strong>: ALB는 시간당 사용 요금과 <strong>LCU (Load Balancer Capacity Units, 로드 밸런서 용량 단위)</strong> 소비량에 따라 과금됩니다.</li>
-</ul>
-</li>
-</ul>
-<hr />
-<hr />
-<h2>1. Apache (아파치) HTTPS 설정 절차</h2>
-<p><strong>Apache</strong>는 모듈 방식이므로 SSL 모듈을 먼저 활성화해야 합니다.</p>
-<h3>[1단계] SSL 모듈 및 가상 호스트 활성화</h3>
-<pre><code class="language-bash"># 1. SSL 모듈(Module) 활성화
-sudo a2enmod ssl
-
-# 2. SSL 전용 기본 가상 호스트(Virtual Host) 설정 파일 활성화
-sudo a2ensite default-ssl
-</code></pre>
-<h3>[2단계] 설정 파일 수정</h3>
-<ul>
-<li><strong>파일 경로</strong>: <code>/etc/apache2/sites-available/default-ssl.conf</code></li>
-<li><strong>주요 수정 내용</strong>:</li>
-</ul>
-<pre><code class="language-apache">&lt;VirtualHost *:443&gt;
-    ServerName example.com
-    DocumentRoot /var/www/html
-
-    # SSL 엔진 가동
-    SSLEngine on
-
-    # 인증서 및 개인키 경로 (실제 발급받은 파일 경로로 수정)
     SSLCertificateFile    /etc/ssl/certs/example.com.crt
     SSLCertificateKeyFile /etc/ssl/private/example.com.key
 
-    # 중간 인증서가 있는 경우 주석 해제 후 경로 지정
-    # SSLCertificateChainFile /etc/ssl/certs/chain.pem
-&lt;/VirtualHost&gt;
-</code></pre>
-<h3>[3단계] 실행 및 확인</h3>
-<pre><code class="language-bash"># 1. 설정 문법 검사 (Syntax Check)
-sudo apache2ctl configtest
+    # 보안 핵심: 최신 프로토콜만 허용 및 취약 프로토콜 제외(-)
+    SSLProtocol all -SSLv3 -TLSv1 -TLSv1.1
+    
+    # 서버 정의 암호화 순서 우선
+    SSLHonorCipherOrder on
+    
+    # HSTS 활성화 권장
+    Header always set Strict-Transport-Security "max-age=63072000"
+&lt;/VirtualHost&gt;</pre>
+                        </div>
+                    </div>
+                </div>
 
-# 2. 결과가 'Syntax OK'라면 서비스 재시작
-sudo systemctl restart apache2
+                <!-- CSR Implementation -->
+                <div class="space-y-6">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black italic">STEP 03</span>
+                        <h3 class="text-xl font-bold text-slate-100 uppercase tracking-tight">CSR (인증서 서명 요청) 생성</h3>
+                    </div>
+                    <div class="pl-12 space-y-4">
+                        <p class="text-sm text-slate-400">공인 기관(CA)에 인증서를 신청하기 위해 <strong>Private Key (개인키)</strong>와 <strong>CSR (Certificate Signing Request, 인증서 서명 요청)</strong>을 생성합니다.</p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">OpenSSL Console</div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">openssl req -new -newkey rsa:2048 -nodes -keyout example.com.key -out example.com.csr</span></div>
+                        </div>
+                        <!-- CSR Flow Chart -->
+                        <div class="grid grid-cols-1 md:grid-cols-5 items-center gap-2 p-4 bg-slate-900/50 rounded-xl text-[10px] font-mono text-center">
+                            <div class="p-2 border border-cyan-800 rounded">Private Key 생성</div>
+                            <div class="text-slate-700">▶</div>
+                            <div class="p-2 border border-blue-800 rounded font-black text-blue-400">CSR 작성</div>
+                            <div class="text-slate-700">▶</div>
+                            <div class="p-2 border border-indigo-800 rounded">CA 전송 & 발급</div>
+                        </div>
+                    </div>
+                </div>
 
-# 3. 443 포트 리슨(Listen) 확인
-ss -tulpn | grep :443
-</code></pre>
-<hr />
-<h2>2. Nginx (엔진엑스) HTTPS 설정 절차</h2>
-<p><strong>Nginx</strong>는 설정 파일 내에 직접 SSL 지시어를 추가하는 방식입니다.</p>
-<h3>[1단계] 설정 파일 수정</h3>
-<ul>
-<li><strong>파일 경로</strong>: <code>/etc/nginx/sites-available/default</code> (또는 <code>/etc/nginx/conf.d/default.conf</code>)</li>
-<li><strong>주요 수정 내용</strong>: 기존 <code>server</code> 블록을 수정하거나 443용 블록을 추가합니다.</li>
-</ul>
-<pre><code class="language-nginx">server {
-    listen 443 ssl;
-    server_name example.com;
-
-    # 인증서 및 개인키 경로 지정
-    ssl_certificate     /etc/nginx/ssl/example.com.crt;
-    ssl_certificate_key /etc/nginx/ssl/example.com.key;
-
-    # 보안 프로토콜 및 사이퍼 스위트(Cipher Suite) 설정
-    ssl_protocols       TLSv1.2 TLSv1.3;
-    ssl_ciphers         HIGH:!aNULL:!MD5;
-
-    location / {
-        root   /var/www/html;
-        index  index.html index.htm;
-    }
-}
-</code></pre>
-<h3>[2단계] 실행 및 확인</h3>
-<pre><code class="language-bash"># 1. 설정 파일 오류 검사
-sudo nginx -t
-
-# 2. 결과가 'successful'이라면 설정 반영 (Restart보다 안전한 Reload 권장)
-sudo systemctl reload nginx
-
-# 3. 브라우저 확인 또는 컬(curl) 명령어로 확인
-curl -I https://localhost
-</code></pre>
-<hr />
-<h2>3. 공통 작업: 방화벽 개방</h2>
-<p>인증서 설정이 끝나도 네트워크 포트가 막혀 있으면 접속이 불가능합니다.</p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">방화벽 도구</th>
-<th style="text-align: left;">명령어</th>
-<th style="text-align: left;">설명</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><strong>UFW</strong> (Ubuntu)</td>
-<td style="text-align: left;"><code>sudo ufw allow 443/tcp</code></td>
-<td style="text-align: left;">443번 <strong>TCP</strong> 포트 허용</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>Firewalld</strong> (CentOS)</td>
-<td style="text-align: left;"><code>sudo firewall-cmd --permanent --add-service=https</code></td>
-<td style="text-align: left;"><strong>HTTPS</strong> 서비스 영구 허용</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>적용</strong></td>
-<td style="text-align: left;"><code>sudo ufw reload</code> 또는 <code>firewall-cmd --reload</code></td>
-<td style="text-align: left;">설정 내용 즉시 반영</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h2>4. 백엔드(Backend) 서버에도 HTTPS가 필요한가?</h2>
-<p>일반적으로 <strong>백엔드 서버</strong>(예: Node.js, Python/Django, Spring Boot 등)는 웹 서버(Nginx/Apache) 뒷단에 위치합니다. 이를 <strong>Reverse Proxy(리버스 프록시)</strong> 구조라고 합니다.</p>
-<h3>[보안 아키텍처 관점]</h3>
-<ul>
-<li><strong>외부 구간 (Client ↔ Web Server)</strong>: 반드시 <strong>HTTPS</strong>가 필요합니다. 공인망을 통과하므로 데이터 암호화가 필수입니다.</li>
-<li><strong>내부 구간 (Web Server ↔ Backend)</strong>: 보통 <strong>HTTP</strong>로 통신합니다. 동일한 서버 내부나 신뢰할 수 있는 사설망(VPC) 내에 있다면 암호화 오버헤드를 줄이기 위해 HTTP를 사용해도 무방합니다.</li>
-<li><strong>예외 상황</strong>: 금융권이나 고도의 보안이 필요한 환경에서는 <strong>End-to-End Encryption(종단 간 암호화)</strong>을 위해 내부 구간까지 HTTPS를 적용하기도 합니다.</li>
-</ul>
-<blockquote>
-<p><strong>기술 보충 설명</strong>
-<strong>Reverse Proxy(리버스 프록시)</strong>는 클라이언트의 요청을 대신 받아 백엔드 서버로 전달하는 대리인 역할을 수행합니다. 이때 웹 서버가 SSL 처리를 전담하는 것을 <strong>SSL Termination(SSL 종단)</strong>이라고 부릅니다.</p>
-</blockquote>
-<hr />
-<p><strong>Next Step: Let's Encrypt(Certbot)를 이용한 무료 인증서 자동 발급, HTTP에서 HTTPS로의 강제 리다이렉션 설정, SSL 보안 등급(A+) 튜닝</strong></p>
-<hr />
-<p>웹 서버의 HTTPS 활성화를 위한 필수 명령어와 설정법을 단계별로 정리했습니다. 백엔드 서버의 경우 내부 통신 보안 정책에 따라 HTTPS 적용 여부를 결정하시면 됩니다. </p>
-<hr />
-<p><strong>상세 설명 주석</strong>
-1. <strong>SSL Termination</strong>: 로드 밸런서에서 SSL 복호화를 수행하고, 내부 서버와는 HTTP로 통신하여 서버 자원을 절약하는 방식입니다.
-2. <strong>Let's Encrypt</strong>: 무료로 SSL 인증서를 발급해주는 비영리 인증 기관으로, 90일마다 자동 갱신 설정을 통해 주로 사용됩니다.
-3. <strong>Forward Secrecy (전방 향후 보안)</strong>: 서버의 개인키가 유출되더라도 과거에 통신했던 암호화된 데이터는 복구할 수 없도록 보장하는 성질입니다.
-4. <strong>max-age</strong>: HSTS 설정이 브라우저에 기억될 기간을 초 단위로 지정합니다. (31536000초 = 1년)</p>
-<hr />
-<p>하지만, <strong>인증서 없이는 HTTPS 서비스를 할 수 없습니다.</strong> <br />
-다만, 공인 기관에서 <strong>받지(발급받지)</strong> 않고 본인이 직접 만든 <strong>Self-signed Certificate(자가 서명 인증서)</strong>를 사용하여 기술적으로 HTTPS를 가동하는 것은 가능합니다.</p>
-<hr />
-<h2>1. 인증서 없이 HTTPS가 불가능한 이유</h2>
-<p><strong>HTTPS</strong>의 핵심은 <strong>TLS(Transport Layer Security, 전송 계층 보안)</strong> 프로토콜을 통한 암호화 통신입니다. 이 암호화 과정에서 서버의 정체를 확인하고 암호화 키를 교환하기 위한 <strong>Digital Certificate(디지털 인증서)</strong>가 반드시 필요합니다.</p>
-<h3>자가 서명 인증서 (Self-signed Certificate)의 특징</h3>
-<p>외부 기관(CA)을 거치지 않고 서버 관리자가 직접 생성한 인증서입니다.
-* <strong>장점</strong>: 비용이 들지 않고 즉시 생성이 가능하여 내부 테스트용으로 적합합니다.
-* <strong>단점</strong>: 웹 브라우저가 해당 인증서를 신뢰할 수 없으므로 접속 시 <strong>"주의 요함"</strong> 또는 <strong>"연결이 비공개로 설정되어 있지 않습니다"</strong>라는 경고창을 띄웁니다.</p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">구분</th>
-<th style="text-align: left;">자가 서명 인증서 (Self-signed)</th>
-<th style="text-align: left;">공인 인증서 (CA-signed)</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><strong>신뢰도</strong></td>
-<td style="text-align: left;">낮음 (브라우저 경고 발생)</td>
-<td style="text-align: left;">높음 (자물쇠 아이콘 표시)</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>용도</strong></td>
-<td style="text-align: left;">개인 개발, 내부 망 테스트</td>
-<td style="text-align: left;">운영 서비스, 쇼핑몰, 기업 웹사이트</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>비용</strong></td>
-<td style="text-align: left;">무료</td>
-<td style="text-align: left;">무료(Let's Encrypt) ~ 유료</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>암호화 여부</strong></td>
-<td style="text-align: left;"><strong>동일하게 암호화됨</strong></td>
-<td style="text-align: left;"><strong>동일하게 암호화됨</strong></td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h2>2. CSR (Certificate Signing Request)의 이해</h2>
-<p><strong>CSR(인증서 서명 요청)</strong>은 공인 기관(CA)에 인증서를 신청하기 위해 보내는 <strong>신청서 데이터</strong>입니다. 이 파일에는 서버의 <strong>Public Key(공개키)</strong> 정보와 도메인 정보가 포함되어 있습니다.</p>
-<h3>CSR 생성 과정 및 포함 정보</h3>
-<ol>
-<li>서버에서 <strong>Private Key(개인키)</strong>를 먼저 생성합니다.</li>
-<li>이 개인키를 바탕으로 <strong>CSR</strong> 파일을 생성합니다.</li>
-<li><strong>CSR</strong> 파일만 공인 기관(CA)에 전달하고, <strong>Private Key</strong>는 절대로 외부로 유출해서는 안 됩니다.</li>
-</ol>
-<blockquote>
-<p><strong>CSR 포함 주요 항목</strong>
-* <strong>Common Name (CN)</strong>: 인증서를 적용할 도메인 주소 (예: <code>example.com</code>)
-* <strong>Organization (O)</strong>: 회사 또는 단체명
-* <strong>Country (C)</strong>: 국가 코드 (대한민국은 <code>KR</code>)
-* <strong>Public Key</strong>: 암호화에 사용될 공개키 정보</p>
-</blockquote>
-<hr />
-<h2>3. 실전: OpenSSL을 이용한 CSR 생성 명령어</h2>
-<p>실제 서버에서 인증서를 신청하기 위해 실행하는 표준 명령어입니다.</p>
-<pre><code class="language-bash"># 1. 개인키(Private Key)와 CSR을 동시에 생성
-openssl req -new -newkey rsa:2048 -nodes -keyout example.com.key -out example.com.csr
-</code></pre>
-<ul>
-<li><strong>-newkey rsa:2048</strong>: 2048비트 크기의 <strong>RSA</strong>(Rivest-Shamir-Adleman, 공개키 암호화 알고리즘) 키 쌍을 생성합니다.</li>
-<li><strong>-nodes</strong>: 개인키를 암호화하지 않고 저장합니다 (서버 재시작 시 비밀번호 입력 생략을 위함).</li>
-<li><strong>-keyout</strong>: 생성될 개인키 파일명입니다.</li>
-<li><strong>-out</strong>: 생성될 <strong>CSR</strong> 파일명입니다.</li>
-</ul>
-<hr />
-<h2>4. 인증서 발급 및 적용 논리 흐름</h2>
-<p>인증서를 준비하여 서비스를 가동하기까지의 단계별 블록 구조입니다.</p>
-<blockquote>
-<p><strong>[1. 키 생성]</strong> (서버에서 Private Key 생성)
-      ↓
-<strong>[2. CSR 작성]</strong> (도메인 정보 입력 및 신청서 생성)
-      ↓
-<strong>[3. CA 전송]</strong> (CSR을 기관에 보내고 심사 후 인증서 수령)
-      ↓
-<strong>[4. 웹 서버 설정]</strong> (수령한 인증서와 개인키를 Apache/Nginx에 등록)
-      ↓
-<strong>[5. HTTPS 가동]</strong> (브라우저에서 자물쇠 아이콘 확인)</p>
-</blockquote>
-<hr />
-<p><strong>Next Step: Let's Encrypt를 이용한 자동 발급 절차, 와일드카드 인증서 개념, SSL 보안 등급 강화</strong></p>
-<hr />
-<p>웹 사이트 보안을 완성하기 위해서는 사용자가 <strong>HTTP(Hypertext Transfer Protocol, 하이퍼텍스트 전송 프로토콜)</strong>로 접속하더라도 자동으로 암호화된 <strong>HTTPS(Hypertext Transfer Protocol Secure, 보안 하이퍼텍스트 전송 프로토콜)</strong>로 전환해주는 <strong>강제 리다이렉션(Forced Redirection, 통신 경로 재지정)</strong> 설정이 필수적입니다.</p>
-<hr />
-<h2>1. Apache (아파치) 리다이렉션 설정</h2>
-<p><strong>Apache</strong>에서는 크게 두 가지 방법을 사용합니다. <code>VirtualHost</code> 설정을 직접 수정하거나 <code>.htaccess</code> 파일을 활용합니다.</p>
-<h3>① VirtualHost (가상 호스트) 설정을 이용한 방법 (권장)</h3>
-<p>80번 포트(HTTP)로 들어오는 모든 요청을 443번 포트(HTTPS)로 보냅니다.
-* <strong>파일 경로</strong>: <code>/etc/apache2/sites-available/000-default.conf</code></p>
-<pre><code class="language-apache">&lt;VirtualHost *:80&gt;
-    ServerName example.com
-    # [핵심] 모든 요청을 HTTPS로 영구 이동(301) 시킴
-    Redirect permanent / https://example.com/
-&lt;/VirtualHost&gt;
-</code></pre>
-<h3>② mod_rewrite (리라이트 모듈)를 이용한 방법</h3>
-<p>특정 조건에 따라 더 세밀한 제어가 필요할 때 사용합니다.</p>
-<pre><code class="language-apache">RewriteEngine On
-# HTTPS가 꺼져 있는(off) 경우에만 동작
-RewriteCond %{HTTPS} off
-# 모든 경로(.*)를 HTTPS 주소로 변경하여 전달
-RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
-</code></pre>
-<hr />
-<h2>2. Nginx (엔진엑스) 리다이렉션 설정</h2>
-<p><strong>Nginx</strong>는 구조가 단순하며, <code>return</code> 지시어를 사용하여 매우 빠르게 처리합니다.</p>
-<h3>① Server 블록 설정을 이용한 방법</h3>
-<p>80번 포트 전용 <code>server</code> 블록을 생성하여 리다이렉트합니다.
-* <strong>파일 경로</strong>: <code>/etc/nginx/sites-available/default</code></p>
-<pre><code class="language-nginx">server {
+                <!-- Redirection -->
+                <div class="space-y-6">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black italic">STEP 04</span>
+                        <h3 class="text-xl font-bold text-slate-100 uppercase tracking-tight">HTTP → HTTPS 강제 리다이렉션</h3>
+                    </div>
+                    <div class="pl-12 space-y-6">
+                        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6">
+                            <h4 class="text-xs font-black text-cyan-500 mb-4 uppercase tracking-widest">[Nginx Method]</h4>
+                            <pre class="text-[12px] text-slate-300 font-mono">
+server {
     listen 80;
     server_name example.com;
-
-    # [핵심] 301 상태 코드를 반환하며 HTTPS 주소로 연결
     return 301 https://$host$request_uri;
-}
-</code></pre>
-<blockquote>
-<p><strong>기술 보충 설명</strong>
-<strong>301 Moved Permanently (301 영구 이동)</strong>: 브라우저와 검색 엔진에 해당 페이지의 주소가 영구적으로 변경되었음을 알리는 <strong>HTTP Status Code (HTTP 상태 코드)</strong>입니다. SEO(Search Engine Optimization, 검색 엔진 최적화) 점수를 유지하는 데 유리합니다.</p>
-</blockquote>
-<hr />
-<h2>3. 보안 강화: HSTS (HTTP Strict Transport Security)</h2>
-<p>리다이렉션만으로는 첫 번째 HTTP 접속 시 발생하는 <strong>Man-in-the-Middle Attack (MITM, 중간자 공격)</strong>을 완벽히 막을 수 없습니다. 이를 보완하기 위해 <strong>HSTS (HTTP Strict Transport Security, HTTP 엄격한 전송 보안)</strong>를 설정합니다.</p>
-<ul>
-<li><strong>동작 원리</strong>: 브라우저에게 "이 사이트는 앞으로 일정 기간(max-age) 동안 무조건 HTTPS로만 접속하라"는 지시를 내립니다.</li>
-<li><strong>Apache 설정</strong>: <code>Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"</code></li>
-<li><strong>Nginx 설정</strong>: <code>add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;</code></li>
-</ul>
-<hr />
-<h2>4. 리다이렉션 동작 구조 도식화</h2>
-<p>사용자의 요청이 보안 연결로 전환되는 단계별 블록 구조입니다.</p>
-<blockquote>
-<p><strong>[1. 클라이언트 접속]</strong> (<a href="http://example.com">http://example.com</a>)
-      ↓
-<strong>[2. 웹 서버 수신]</strong> (80번 포트에서 요청 확인)
-      ↓
-<strong>[3. 리다이렉트 응답]</strong> (HTTP 301 응답 + https:// 주소 전달)
-      ↓
-<strong>[4. 클라이언트 재접속]</strong> (<a href="https://example.com">https://example.com</a>으로 자동 요청)
-      ↓
-<strong>[5. 보안 연결 확립]</strong> (TLS 핸드쉐이크 후 암호화 통신 시작)</p>
-</blockquote>
-<hr />
-<h2>5. 설정 확인 방법</h2>
-<p>명령행 도구인 <strong>curl (컬, 데이터 전송 도구)</strong>을 사용하여 정상적으로 리다이렉트되는지 확인합니다.</p>
-<pre><code class="language-bash"># -I 옵션은 헤더 정보만 출력함
-curl -I http://example.com
-</code></pre>
-<ul>
-<li><strong>확인 사항</strong>: 출력 결과의 첫 줄에 <code>HTTP/1.1 301 Moved Permanently</code>가 나타나고, <code>Location</code> 항목에 <code>https://...</code> 주소가 포함되어야 합니다.</li>
-</ul>
-<hr />
-<p><strong>Next Step: SSL 보안 등급 튜닝 (A+ 등급), 혼합 콘텐츠(Mixed Content) 해결 방법, 리버스 프록시 환경에서의 리다이렉션 주의사항</strong></p>
-<hr />
-<p>HTTP에서 HTTPS로의 강제 전환 설정을 아파치와 엔진엑스 각각의 사례로 정리했습니다. 보안을 위해 리다이렉션과 함께 <strong>HSTS</strong> 설정을 병행하는 것이 전문가 수준의 권장 사항입니다. 추가로 특정 서브도메인만 제외하거나, 로드 밸런서 뒷단에서의 특수한 리다이렉션 설정도 필요합니다. </p>
-<p>Next Step : HSTS 설정, 301 vs 302 리다이렉트 차이, SSL 성능 최적화</p>
+}</pre>
+                        </div>
+                        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6">
+                            <h4 class="text-xs font-black text-indigo-500 mb-4 uppercase tracking-widest">[Apache Method]</h4>
+                            <pre class="text-[12px] text-slate-300 font-mono">
+&lt;VirtualHost *:80&gt;
+    ServerName example.com
+    Redirect permanent / https://example.com/
+&lt;/VirtualHost&gt;</pre>
+                        </div>
+                    </div>
                 </div>
-                
+            </div>
+        </section>
+
+        <!-- Section 4: 전문가 분석 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
+                4. 아키텍트 인사이트 (Architect Insight)
+            </h2>
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-10">
+                <!-- AWS Billing Info -->
+                <div class="p-6 bg-red-500/5 border border-red-500/20 rounded-2xl mb-8">
+                    <h3 class="text-red-400 font-black flex items-center gap-2 mb-4">
+                        <i data-lucide="alert-circle" class="w-5 h-5"></i> AWS 환경 보안 가이드 및 과금 안내
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                        <div class="space-y-2">
+                            <div class="font-bold text-slate-200 italic">ACM (AWS Certificate Manager)</div>
+                            <p class="text-xs text-slate-400 leading-relaxed">Public SSL/TLS 인증서를 무료로 발급 및 갱신해 줍니다. 단, 사설 CA(Private CA) 구축 시 <strong>월별 고정 비용 및 발급 비용이 발생</strong>하므로 주의가 필요합니다.</p>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="font-bold text-slate-200 italic">ALB (Application Load Balancer)</div>
+                            <p class="text-xs text-slate-400 leading-relaxed">SSL Termination 기능을 통해 서버 부하를 절감합니다. ALB는 <strong>시간당 사용 요금과 LCU(Load Balancer Capacity Units) 소비량에 따라 과금</strong>됩니다.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col md:flex-row gap-8">
+                    <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                        <div class="text-cyan-400 mb-4"><i data-lucide="lightbulb" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2 italic">SSL Termination (SSL 종단)</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">로드 밸런서에서 SSL 복호화를 수행하고, 내부 서버와는 HTTP로 통신하여 서버 자원을 절약하는 방식입니다. 동일 VPC 내 신뢰할 수 있는 구간에서 주로 사용됩니다.</p>
+                    </div>
+                    <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                        <div class="text-blue-400 mb-4"><i data-lucide="shield-check" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2 italic">Forward Secrecy (전방 향후 보안)</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">서버의 개인키가 유출되더라도 과거에 통신했던 암호화된 데이터는 복구할 수 없도록 보장하는 성질입니다. 이를 위해 ECDHE와 같은 알고리즘 사용이 권장됩니다.</p>
+                    </div>
+                </div>
+
+                <div class="flex flex-col md:flex-row gap-8">
+                    <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                        <div class="text-indigo-400 mb-4"><i data-lucide="lock" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2 italic">HSTS Max-Age 설정</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">브라우저에 HTTPS 접속 강제 기간을 초 단위로 지정합니다. 일반적으로 1년(31536000초)을 권장하지만, 초기 설정 시에는 짧은 기간으로 테스트하는 것이 안전합니다.</p>
+                    </div>
+                    <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                        <div class="text-amber-400 mb-4"><i data-lucide="alert-triangle" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2 italic">Self-signed Certificate 주의사항</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">자가 서명 인증서는 기술적으로 암호화 강도는 동일하나, 공인 인증기관의 신뢰 확인이 없으므로 브라우저 경고창이 발생합니다. 운영 환경에서는 반드시 CA 인증서를 사용하십시오.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
     </main>
-    <footer class="border-t border-slate-800/80 py-8 text-center text-slate-400 text-sm bg-slate-950/90 backdrop-blur-md mt-auto">
-        <p class="font-mono">&copy; 2026 Putto's Lectures. All rights reserved. <span class="text-cyan-800 font-bold ml-2">| ACCESS SECURED.</span></p>
+
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+            © 2026 System Architect Pro. All rights reserved.
+        </div>
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic">
+            본 교재는 실습 목적으로 제작되었으며, 실제 운영 환경 적용 시 최신 보안 취약점 리포트를 반드시 확인하시기 바랍니다. SSL/TLS 설정 오류는 서비스 중단 및 데이터 유출로 이어질 수 있습니다.
+        </p>
     </footer>
 
     <script>
-        // 전역 상태 변수: 디폴트를 'false'로 변경하여 모든 폴더가 처음에는 접혀있도록 설정합니다.
-        let isAllExpanded = false;
-
-        // 개별 폴더를 펼치거나 접는 함수
-        function toggleFolder(element) {
-            // 클릭된 헤더의 부모 섹션(Section) 및 내부 리스트 컨테이너(Container) 탐색
-            const section = element.closest('.folder-section');
-            const listContainer = section.querySelector('.list-container');
-            const folderIcon = element.querySelector('.folder-icon');
-            const chevronIcon = element.querySelector('.chevron-icon');
-            
-            // 데이터 속성(Data Attributes)에 저장된 아이콘 클래스명 불러오기
-            const baseIcon = element.getAttribute('data-base-icon');
-            const closedIcon = element.getAttribute('data-closed-icon');
-
-            // 현재 리스트가 펼쳐진 상태인지 확인 (CSS Grid 속성 기준)
-            const isExpanded = listContainer.classList.contains('grid-rows-[1fr]');
-
-            if (isExpanded) {
-                // 접기(Collapse) 액션 수행
-                listContainer.classList.remove('grid-rows-[1fr]', 'opacity-100');
-                listContainer.classList.add('grid-rows-[0fr]', 'opacity-0');
-                
-                // 우측 화살표 아이콘 회전
-                chevronIcon.classList.add('rotate-180');
-                
-                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 닫힘 상태로 변경
-                if (baseIcon !== 'fa-server') {
-                    folderIcon.classList.remove('fa-folder-open');
-                    folderIcon.classList.add('fa-folder');
-                }
-            } else {
-                // 펼치기(Expand) 액션 수행
-                listContainer.classList.remove('grid-rows-[0fr]', 'opacity-0');
-                listContainer.classList.add('grid-rows-[1fr]', 'opacity-100');
-                
-                // 우측 화살표 아이콘 원상 복구
-                chevronIcon.classList.remove('rotate-180');
-                
-                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 열림 상태로 변경
-                if (baseIcon !== 'fa-server') {
-                    folderIcon.classList.remove('fa-folder');
-                    folderIcon.classList.add('fa-folder-open');
-                }
-            }
-        }
-
-        // 전체 폴더를 일괄적으로 펼치거나 접는 함수
-        function toggleAllFolders() {
-            // 전역 상태 반전
-            isAllExpanded = !isAllExpanded;
-            
-            // DOM(Document Object Model, 문서 객체 모델)에서 모든 폴더 헤더 요소 선택
-            const headers = document.querySelectorAll('.folder-header');
-            const globalBtnIcon = document.getElementById('global-toggle-icon');
-            const globalBtnText = document.getElementById('global-toggle-text');
-
-            headers.forEach(header => {
-                const section = header.closest('.folder-section');
-                const listContainer = section.querySelector('.list-container');
-                const isCurrentlyExpanded = listContainer.classList.contains('grid-rows-[1fr]');
-
-                // 현재 개별 폴더의 상태가 전역 상태 목표와 다를 경우에만 토글 함수 실행
-                if (isAllExpanded !== isCurrentlyExpanded) {
-                    toggleFolder(header);
-                }
-            });
-
-            // 전역 토글 버튼의 UI(User Interface, 사용자 인터페이스) 업데이트
-            if (isAllExpanded) {
-                globalBtnIcon.classList.remove('fa-folder');
-                globalBtnIcon.classList.add('fa-folder-open');
-                globalBtnText.innerText = 'COLLAPSE ALL';
-            } else {
-                globalBtnIcon.classList.remove('fa-folder-open');
-                globalBtnIcon.classList.add('fa-folder');
-                globalBtnText.innerText = 'EXPAND ALL';
-            }
-        }
+        lucide.createIcons();
     </script>
 </body>
 </html>
