@@ -3,325 +3,318 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Security & Cloud Hacking Lab</title>
+    <title>정보 노출 방지 및 배너 숨기기 실습</title>
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
-        
-        /* 기본 글꼴 및 다크 모드 배경색 설정 */
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
         body { 
             font-family: 'Noto Sans KR', sans-serif; 
             background-color: #020617; 
             color: #f8fafc; 
-            /* 전체 화면 배경 이미지 적용 및 투명도(Overlay) 설정: 텍스트 가시성을 위해 어두운 오버레이 강화 */
-            background-image: linear-gradient(to bottom, rgba(2, 6, 23, 0.75), rgba(2, 6, 23, 0.95)), 
-                              url('image_1a3201.jpg');
-            background-size: cover;
-            background-attachment: fixed;
-            background-position: center center;
+            margin: 0; padding: 0;
+            line-height: 1.8;
         }
-
-        /* 텍스트 리스트 호버 효과: 터미널 스타일 */
-        .list-hover {
-            transition: all 0.2s ease;
-        }
-        .list-hover:hover {
-            color: #22d3ee; 
-            padding-left: 0.75rem; 
-            background-color: rgba(15, 23, 42, 0.8); 
-            border-left-color: #0ea5e9;
-        }
-
-        /* 텍스트 가시성을 높이는 그림자 효과 클래스 */
-        .text-glow {
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
-        }
-        .neon-glow {
-            text-shadow: 0 0 8px rgba(34, 211, 238, 0.6);
-        }
-        
-        /* 커스텀 스크롤바 (선택적 시각 강화) */
+        .terminal-bg { background-color: #020617; border: 1px solid #1e293b; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-filter: blur(12px); }
+        .code-block { font-family: 'Fira Code', monospace; }
         ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
     </style>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-        }
-    </script>
 </head>
-<body class="min-h-screen flex flex-col">
-    <header class="py-24 px-6 relative overflow-hidden">
-        
-        <a href="https://putto4u.github.io/06.Hacking-Security" class="absolute top-6 left-6 md:left-10 z-20 group cursor-pointer block" target="_blank" rel="noopener noreferrer">
-            <div class="flex items-center space-x-2 bg-slate-900/80 py-2 px-4 rounded-xl border border-cyan-900/50 backdrop-blur-md shadow-[0_0_15px_rgba(8,145,178,0.2)] transition-all duration-300 group-hover:border-cyan-400/60 group-hover:shadow-[0_0_20px_rgba(34,211,238,0.4)]">
-                <div class="relative flex h-3 w-3 mr-1">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
-                </div>
-                <span class="font-mono text-[10px] md:text-xs text-slate-400 tracking-wider">CHIEF SYSTEM ARCHITECT <span class="text-cyan-500 ml-1">❯</span></span>
-                <span class="font-black text-cyan-300 tracking-widest font-mono text-sm md:text-base neon-glow ml-1">PUTTO</span>
-                <span class="font-bold text-slate-200 tracking-widest font-mono text-sm md:text-base">'S LECTURES</span>
-            </div>
-        </a>
+<body class="antialiased pb-20">
 
-        <div class="max-w-4xl mx-auto relative z-10 text-center mt-8">
-            <div class="inline-flex items-center justify-center space-x-3 mb-8 bg-slate-950/60 p-4 rounded-2xl backdrop-blur-md border border-slate-700/80 shadow-2xl">
-                <i class="fas fa-user-secret text-4xl text-cyan-400 drop-shadow-lg"></i>
-                <span class="text-slate-500">|</span>
-                <i class="fas fa-shield-halved text-4xl text-blue-500 drop-shadow-lg"></i>
+    <!-- Header: 기술 사양 및 타이틀 -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Cyber Security Lab</span>
+                    <span class="text-slate-500 font-mono text-[10px]">SEC-WEB-01 | System Architect Pro</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
+                    정보 노출 방지 및 배너 숨기기<br><span class="text-slate-100 text-2xl">(Information Exposure Prevention and Banner Hiding)</span>
+                </h1>
             </div>
-            
-            <h1 class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-2 pb-2 bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 via-blue-400 to-indigo-400 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">
-                Cloud Security & Hacking Lab
-            </h1>
-            
-            <p class="mt-8 text-slate-100 font-medium text-lg md:text-xl max-w-2xl mx-auto leading-relaxed text-glow">
-                실전 클라우드 인프라 보안 및 모의 해킹 시나리오 연구 자료 저장소
-            </p>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    SCORE: 9.7
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">Privacy Hardening</p>
+            </div>
         </div>
     </header>
 
-    <main class="flex-grow max-w-4xl mx-auto px-6 py-8 w-full">
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-24">
 
-                <div class="bg-slate-950/90 p-8 md:p-12 rounded-2xl shadow-2xl border border-slate-700/50 backdrop-blur-xl prose prose-invert prose-slate max-w-none prose-img:rounded-xl prose-a:text-cyan-400 hover:prose-a:text-cyan-300 prose-headings:text-slate-100 prose-strong:text-cyan-100">
-                    <h2>2.1 정보 노출 방지 및 배너 숨기기</h2>
-<hr />
-<h3><strong>1. Banner Grabbing (배너 그래빙)의 위험성</strong></h3>
-<p><strong>Banner Grabbing (배너 그래빙, 서비스 정보 수집)</strong>은 공격자가 대상 서버에 접속하여 서버 소프트웨어의 이름, 버전, 운영체제 정보를 알아내는 기법입니다. 공격자는 이 정보를 바탕으로 해당 버전의 알려진 취약점(Exploit)을 검색하여 공격 대상을 구체화합니다.</p>
-<ul>
-<li><strong>Footprinting (풋프린팅, 사전 조사)</strong>: 공격의 첫 번째 단계로, 시스템의 구조와 소프트웨어 정보를 수집하는 행위입니다.</li>
-<li><strong>보안 목표</strong>: 서버가 응답 헤더(Response Header)나 에러 페이지에서 자신의 정체를 드러내지 않도록 설정하여 공격자의 분석을 방해합니다.</li>
-</ul>
-<blockquote>
-<p><strong>설명</strong>: 웹 서버의 이름과 구체적인 버전(예: Nginx 1.18.0)이 노출되면, 해당 버전에만 존재하는 특정 취약점을 이용한 정밀 공격에 무방비로 노출될 수 있습니다.</p>
-</blockquote>
-<hr />
-<h3><strong>2. Nginx 서버 정보 은폐 설정</strong></h3>
-<p>Nginx는 기본적으로 응답 헤더의 <code>Server</code> 필드에 버전 정보를 포함합니다. 이를 비활성화하여 소프트웨어 이름만 노출되거나 아예 숨기도록 설정합니다.</p>
-<ul>
-<li><strong>Server Tokens 비활성화</strong>
-    <code>/etc/nginx/nginx.conf</code> 파일의 <code>http</code> 블록 내에서 설정합니다.</li>
-</ul>
-<pre><code class="language-bash"># Nginx 설정 파일 수정
-sudo vi /etc/nginx/nginx.conf
+        <!-- Section 1: Banner Grabbing 개요 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                1. Banner Grabbing (배너 그래빙)의 위험성
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <div class="bg-slate-800/40 p-8 rounded-2xl mb-10 border border-slate-700">
+                    <p class="text-slate-300 text-lg leading-relaxed">
+                        <span class="font-bold text-cyan-400 text-glow">Banner Grabbing (배너 그래빙, 서비스 정보 수집)</span>은 공격자가 대상 서버에 접속하여 서버 소프트웨어의 이름, 버전, 운영체제 정보를 알아내는 기법입니다. 공격자는 이 정보를 바탕으로 해당 버전의 알려진 취약점(Exploit)을 검색하여 공격 대상을 구체화합니다.
+                    </p>
+                </div>
 
-# http { ... } 블록 안에 아래 내용 추가 또는 수정
-server_tokens off;
-
-# 설정 적용 후 서비스 재시작
-sudo nginx -t
-sudo systemctl restart nginx
-</code></pre>
-<blockquote>
-<p><strong>설명</strong>: <code>server_tokens off;</code> 설정은 응답 헤더에서 버전 번호를 제거합니다. 더 나아가 <code>more_set_headers</code> 모듈(추가 설치 필요)을 사용하면 'Server' 필드 자체를 임의의 문자열로 변경할 수도 있습니다.</p>
-</blockquote>
-<hr />
-<h3><strong>3. Apache 서버 정보 은폐 설정</strong></h3>
-<p>Apache HTTP Server 역시 기본적으로 상세 정보를 노출합니다. <code>ServerTokens</code>와 <code>ServerSignature</code> 옵션을 조정하여 이를 차단합니다.</p>
-<ul>
-<li><strong>보안 강화 설정</strong>
-    주 설정 파일(예: <code>/etc/apache2/conf-enabled/security.conf</code>)에서 수정합니다.</li>
-</ul>
-<pre><code class="language-bash"># Apache 보안 설정 파일 수정
-sudo vi /etc/apache2/conf-enabled/security.conf
-
-# 서버 정보 노출 최소화 (Product 이름만 노출)
-ServerTokens Prod
-
-# 에러 페이지 하단의 서버 정보 서명 비활성화
-ServerSignature Off
-
-# 서비스 재시작
-sudo systemctl restart apache2
-</code></pre>
-<blockquote>
-<p><strong>설명</strong>: <strong>ServerSignature (서버 시그니처, 서버 서명)</strong>는 서버가 생성하는 에러 페이지 하단에 서버 버전과 호스트명을 자동으로 삽입하는 기능입니다. 이를 끄는 것은 정보 유출 방지의 기본입니다.</p>
-</blockquote>
-<hr />
-<h3><strong>4. 사용자 정의 에러 페이지 (Custom Error Pages) 적용</strong></h3>
-<p>서버 내부 오류(500)나 페이지 없음(404) 발생 시, 기본 에러 페이지 대신 관리자가 만든 페이지를 보여주어 시스템 내부 경로 정보나 서버 특성이 노출되는 것을 방지합니다.</p>
-<pre><code class="language-bash"># Nginx 예시: 404 에러 시 특정 HTML 파일로 대체
-error_page 404 /custom_404.html;
-location = /custom_404.html {
-    root /var/www/html/errors;
-    internal;
-}
-</code></pre>
-<hr />
-<h3><strong>[AWS 환경 보안 가이드 및 과금 안내]</strong></h3>
-<p>인프라 수준에서 정보를 숨기거나 헤더를 조작하려면 AWS의 엣지(Edge) 서비스를 활용하는 것이 매우 효과적입니다.</p>
-<ul>
-<li><strong>AWS WAF (웹 애플리케이션 방화벽) - Custom Response</strong><ul>
-<li>서버가 응답하기 전에 WAF에서 응답 헤더를 조작하여 <code>Server</code> 정보를 강제로 삭제하거나 변경할 수 있습니다.</li>
-<li><strong>과금 안내</strong>: AWS WAF는 웹 ACL당 <strong>월 $5.00</strong>, 규칙당 <strong>월 $1.00</strong>, 요청 100만 건당 <strong>$0.60</strong>의 비용이 발생합니다. <a href="https://aws.amazon.com/ko/waf/pricing/">공식 요금 페이지</a></li>
-</ul>
-</li>
-<li><strong>Amazon CloudFront (아마존 클라우드프론트, 콘텐츠 전송 네트워크)</strong><ul>
-<li><strong>CloudFront Function</strong> 또는 <strong>Lambda@Edge</strong>를 사용하여 원본 서버(Origin)의 헤더를 가공하고 보안 헤더를 추가할 수 있습니다.</li>
-<li><strong>과금 안내</strong>: CloudFront Function은 실행 100만 건당 약 <strong>$0.10</strong>의 저렴한 비용으로 헤더 조작이 가능합니다.</li>
-</ul>
-</li>
-</ul>
-<hr />
-<p>Next Step: 권한 관리 및 프로세스 격리</p>
-<hr />
-<p><strong>상세 설명 주석</strong>
-1. <strong>Banner Grabbing</strong>: 텔넷(Telnet)이나 넷캣(Netcat) 등을 이용해 웹 서버 포트(80, 443)에 연결하여 서버가 보내는 초기 응답 메시지를 가로채 정보를 얻는 행위입니다.
-2. <strong>Server Tokens</strong>: Nginx에서 서버의 버전 정보를 응답 헤더에 포함할지 여부를 결정하는 지시어입니다.
-3. <strong>Response Header</strong>: 웹 서버가 브라우저의 요청에 응답할 때 보내는 메타데이터로, 여기에 서버의 소프트웨어 정보가 포함됩니다.
-4. <strong>Internal 지시어</strong>: Nginx에서 외부 사용자가 직접 해당 경로(예: /custom_404.html)로 접속하는 것을 막고, 서버 내부적인 리다이렉션으로만 접근 가능하게 제한하는 설정입니다.</p>
-<ol>
-<li>웹 서버(Web Server)에서 발생하는 오류는 보안 관리 측면에서 매우 민감한 정보입니다. 기본적으로 제공되는 에러 페이지는 서버의 종류, 버전, 내부 경로 등을 노출할 수 있는 <strong>Information Leakage(정보 유출, 정보 누출)</strong>의 원인이 됩니다.</li>
-</ol>
-<hr />
-<h2>1. 웹 서버별 기본 에러 페이지 구성 및 경로</h2>
-<p>대부분의 웹 서버는 오류 발생 시 별도의 외부 파일을 불러오기보다, 서버 바이너리에 내장된 <strong>Hardcoded(하드코딩, 코드 내에 고정됨)</strong> 메시지를 먼저 출력하거나, 배포판에서 제공하는 기본 <strong>HTML(HyperText Markup Language, 하이퍼텍스트 마크업 언어)</strong> 파일을 참조합니다.</p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">웹 서버 종류</th>
-<th style="text-align: left;">기본 에러 페이지 처리 방식 및 경로</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><strong>Apache HTTP Server</strong> (아파치 HTTP 서버)</td>
-<td style="text-align: left;">별도 설정이 없으면 내장된 메시지를 출력합니다. 하지만 패키지 설치 시 <code>/usr/share/apache2/error/</code> (Ubuntu) 또는 <code>/var/www/error/</code> (CentOS) 경로의 다국어 지원 파일을 사용하기도 합니다.</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>Nginx</strong> (엔진엑스)</td>
-<td style="text-align: left;">기본적으로 <code>/usr/share/nginx/html/</code> 경로에 <code>50x.html</code> 파일을 생성하여 관리합니다. 파일이 없으면 서버 내부의 단순한 HTML 코드를 응답합니다.</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>IIS</strong> (Internet Information Services, 인터넷 정보 서비스)</td>
-<td style="text-align: left;">윈도우 서버의 경우 <code>C:\inetpub\custerr\</code> 디렉터리 하위에 상태 코드별(404, 500 등) 폴더를 만들어 관리합니다.</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h2>2. 보안 위협: 기본 에러 페이지를 숨겨야 하는 이유</h2>
-<p>기본 에러 페이지를 그대로 사용할 경우, 공격자는 다음과 같은 정보를 획득하여 <strong>Reconnaissance(정찰, 정보 수집)</strong> 단계에서 활용할 수 있습니다.</p>
-<ul>
-<li><strong>서버 소프트웨어 및 버전</strong>: "Apache/2.4.41 (Ubuntu)"와 같은 문구가 하단에 노출됩니다.</li>
-<li><strong>물리적 경로</strong>: 스택 트레이스(Stack Trace) 등이 노출될 경우 서버의 절대 경로가 드러납니다.</li>
-<li><strong>백엔드 기술 스택</strong>: 에러 메시지의 형식을 통해 <strong>PHP(Hypertext Preprocessor, PHP: 하이퍼텍스트 전처리기)</strong>나 <strong>Python(파이썬)</strong> 등의 사용 여부를 추측할 수 있습니다.</li>
-</ul>
-<hr />
-<h2>3. 에러 페이지 커스터마이징 구조</h2>
-<p>관리자가 정의한 페이지로 리다이렉트(Redirect)하는 과정은 웹 서버 설정 파일(예: <code>httpd.conf</code>, <code>nginx.conf</code>)에서 정의됩니다.</p>
-<blockquote>
-<p><strong>[클라이언트 요청]</strong> (잘못된 URL 접근)
-      ↓
-<strong>[웹 서버 판단]</strong> (404 Not Found 발생)
-      ↓
-<strong>[설정 확인]</strong> (ErrorDocument 또는 error_page 지시어 확인)
-      ↓
-<strong>[사용자 정의 페이지 응답]</strong> (관리자가 만든 <code>/errors/404.html</code> 출력)</p>
-</blockquote>
-<hr />
-<h2>4. 실전 가이드: 설정 파일 수정 예시</h2>
-<p>각 서버의 설정 파일에 다음과 같은 지시어를 추가하여 기본 페이지 대신 안전한 페이지를 보여주어야 합니다.</p>
-<h3>① Apache (아파치)</h3>
-<p><code>.htaccess</code> 또는 설정 파일(<code>sites-available/default</code>)에 작성합니다.
-* <code>ErrorDocument 404 /custom_404.html</code>
-* <code>ErrorDocument 500 /custom_500.html</code></p>
-<h3>② Nginx (엔진엑스)</h3>
-<p><code>server</code> 블록 내부에 작성합니다.
-* <code>error_page 404 /custom_404.html;</code>
-* <code>location = /custom_404.html { root /var/www/html; internal; }</code></p>
-<hr />
-<p><strong>Next Step: 특정 에러 코드별 리다이렉션 전략, 보안 헤더 설정을 통한 정보 은닉, WAF를 활용한 에러 페이지 제어</strong></p>
+                <!-- 도식화: Footprinting 흐름도 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner">
+                    <h4 class="text-center font-bold text-slate-400 mb-10 text-xs tracking-widest uppercase">
+                        [도식: Footprinting (풋프린팅, 사전 조사) 메커니즘]
+                    </h4>
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-red-900/30 shadow-lg">
+                            <i data-lucide="shield-alert" class="w-12 h-12 text-red-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">Attacker<br>(공격자 분석)</div>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <span class="text-[10px] text-red-500 font-mono mb-1">Request Header</span>
+                            <i data-lucide="arrow-right" class="w-8 h-8 text-slate-600 rotate-90 md:rotate-0"></i>
+                            <span class="text-[10px] text-cyan-500 font-mono mt-1">Response Header</span>
+                        </div>
+                        <div class="flex-1 text-center p-6 bg-slate-900 border border-cyan-900/50 rounded-xl shadow-lg">
+                            <i data-lucide="server" class="w-12 h-12 text-cyan-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">Target Server<br>(HTTP/1.1 200 OK)</div>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <i data-lucide="search" class="w-8 h-8 text-slate-600"></i>
+                        </div>
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-indigo-900/50 shadow-lg">
+                            <div class="text-[10px] text-slate-500 uppercase font-bold mb-2">Exposed Info</div>
+                            <div class="font-mono text-[10px] text-red-400 text-left bg-black/40 p-2 rounded">
+                                Server: nginx/1.18.0<br>
+                                OS: Ubuntu
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
+                <div class="mt-10 bg-slate-900/50 p-6 rounded-2xl border border-slate-800">
+                    <h4 class="font-bold text-slate-100 mb-4 flex items-center gap-2">
+                        <i data-lucide="target" class="w-5 h-5 text-cyan-500"></i> 보안 목표 (Security Objectives)
+                    </h4>
+                    <p class="text-sm text-slate-400 leading-relaxed">
+                        서버가 응답 헤더(Response Header)나 에러 페이지에서 자신의 정체를 드러내지 않도록 설정하여 공격자의 분석을 방해합니다. 웹 서버의 이름과 구체적인 버전(예: Nginx 1.18.0)이 노출되면, 해당 버전에만 존재하는 특정 취약점을 이용한 정밀 공격에 무방비로 노출될 수 있습니다.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Nginx 설정 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                2. Nginx 서버 정보 은폐 설정
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl relative overflow-hidden">
+                <div class="absolute top-0 right-0 bg-cyan-600 text-white text-[10px] font-black px-6 py-2 rounded-bl-3xl uppercase tracking-widest font-mono">NGINX HARDENING</div>
+                <div class="flex flex-col lg:flex-row gap-10">
+                    <div class="flex-1 space-y-6">
+                        <h3 class="text-xl font-bold text-slate-100 flex items-center gap-3">
+                            <i data-lucide="settings" class="w-6 h-6 text-cyan-400"></i> Server Tokens 비활성화
+                        </h3>
+                        <p class="text-sm text-slate-300 leading-relaxed">
+                            Nginx는 기본적으로 응답 헤더의 <span class="text-cyan-400 font-bold">Server</span> 필드에 버전 정보를 포함합니다. 이를 비활성화하여 소프트웨어 이름만 노출되거나 아예 숨기도록 설정합니다. <span class="text-slate-500 italic">`server_tokens off;`</span> 설정은 응답 헤더에서 버전 번호를 제거합니다.
+                        </p>
+                    </div>
+                    <div class="flex-1">
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                            <div class="absolute top-4 right-4 text-slate-700 uppercase font-black text-[10px]">nginx.conf</div>
+                            <div class="text-slate-500 mb-2"># http { ... } 블록 안에 내용 추가</div>
+                            <div class="text-cyan-400 font-bold">server_tokens off;</div>
+                            <div class="mt-4 text-slate-500"># 설정 적용 후 재시작</div>
+                            <div class="text-slate-200">$ sudo nginx -t</div>
+                            <div class="text-slate-200">$ sudo systemctl restart nginx</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-8 p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-xl flex items-start gap-4">
+                    <i data-lucide="info" class="w-5 h-5 text-indigo-400 mt-1"></i>
+                    <p class="text-xs text-slate-400 leading-relaxed italic">
+                        더 나아가 <span class="text-indigo-300 font-bold">more_set_headers</span> 모듈(추가 설치 필요)을 사용하면 'Server' 필드 자체를 임의의 문자열로 변경할 수도 있습니다.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Apache 설정 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                3. Apache 서버 정보 은폐 설정
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl relative overflow-hidden">
+                <div class="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-black px-6 py-2 rounded-bl-3xl uppercase tracking-widest font-mono">APACHE SECURITY</div>
+                <div class="flex flex-col lg:flex-row gap-10">
+                    <div class="flex-1 space-y-6">
+                        <h3 class="text-xl font-bold text-slate-100 flex items-center gap-3">
+                            <i data-lucide="shield-check" class="w-6 h-6 text-red-400"></i> 보안 강화 설정 (Security.conf)
+                        </h3>
+                        <p class="text-sm text-slate-300 leading-relaxed">
+                            Apache HTTP Server 역시 기본적으로 상세 정보를 노출합니다. <span class="text-red-400 font-bold">ServerTokens</span>와 <span class="text-red-400 font-bold">ServerSignature</span> 옵션을 조정하여 이를 차단합니다. <span class="text-slate-500 italic">ServerSignature (서버 시그니처, 서버 서명)</span>를 끄는 것은 정보 유출 방지의 기본입니다.
+                        </p>
+                    </div>
+                    <div class="flex-1">
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                            <div class="absolute top-4 right-4 text-slate-700 uppercase font-black text-[10px]">security.conf</div>
+                            <div class="text-slate-500 mb-2"># 서버 정보 노출 최소화 (Product 이름만)</div>
+                            <div class="text-red-400 font-bold">ServerTokens Prod</div>
+                            <div class="mt-4 text-slate-500"># 에러 페이지 하단 서명 비활성화</div>
+                            <div class="text-red-400 font-bold">ServerSignature Off</div>
+                            <div class="mt-4 text-slate-200">$ sudo systemctl restart apache2</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: 커스텀 에러 페이지 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                4. 사용자 정의 에러 페이지 (Custom Error Pages) 적용
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-10">
+                <div class="bg-slate-800/40 p-8 rounded-2xl border border-slate-700">
+                    <p class="text-slate-300 leading-relaxed">
+                        서버 내부 오류(500)나 페이지 없음(404) 발생 시, 기본 에러 페이지 대신 관리자가 만든 페이지를 보여주어 시스템 내부 경로 정보나 서버 특성이 노출되는 것을 방지합니다. <span class="text-blue-400 font-bold underline decoration-blue-900">Information Leakage(정보 유출, 정보 노출)</span>의 원인이 되는 기본 페이지를 교체하십시오.
+                    </p>
+                </div>
+
+                <!-- 웹 서버별 테이블 -->
+                <div class="overflow-hidden border border-slate-800 rounded-2xl">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-900">
+                                <th class="p-4 text-xs font-black text-slate-500 uppercase tracking-widest border-b border-slate-800">웹 서버 종류</th>
+                                <th class="p-4 text-xs font-black text-slate-500 uppercase tracking-widest border-b border-slate-800">기본 에러 페이지 처리 방식 및 경로</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm text-slate-400">
+                            <tr class="border-b border-slate-800 hover:bg-slate-800/30 transition-colors">
+                                <td class="p-4 font-bold text-slate-200">Apache HTTP Server</td>
+                                <td class="p-4">내장된 메시지 출력. <span class="text-[10px] font-mono">/usr/share/apache2/error/</span> 또는 <span class="text-[10px] font-mono">/var/www/error/</span> 참조 가능.</td>
+                            </tr>
+                            <tr class="border-b border-slate-800 hover:bg-slate-800/30 transition-colors">
+                                <td class="p-4 font-bold text-slate-200">Nginx</td>
+                                <td class="p-4">기본적으로 <span class="text-[10px] font-mono">/usr/share/nginx/html/</span>의 <span class="text-[10px] font-mono">50x.html</span> 관리.</td>
+                            </tr>
+                            <tr class="hover:bg-slate-800/30 transition-colors">
+                                <td class="p-4 font-bold text-slate-200">IIS</td>
+                                <td class="p-4"><span class="text-[10px] font-mono">C:\inetpub\custerr\</span> 디렉터리 하위 상태 코드별 폴더 관리.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="space-y-4">
+                        <h4 class="text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Nginx Implementation</h4>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner">
+                            <div class="text-cyan-400">error_page 404 /custom_404.html;</div>
+                            <div class="text-cyan-400">location = /custom_404.html {</div>
+                            <div class="pl-4 text-slate-400">root /var/www/html/errors;</div>
+                            <div class="pl-4 text-slate-400 font-bold">internal;</div>
+                            <div class="text-cyan-400">}</div>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <h4 class="text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Apache Implementation</h4>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner">
+                            <div class="text-red-400">ErrorDocument 404 /custom_404.html</div>
+                            <div class="text-red-400">ErrorDocument 500 /custom_500.html</div>
+                            <div class="mt-4 text-slate-600 italic"># .htaccess 또는 sites-available/default 적용</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: AWS 환경 보안 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-red-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
+                AWS 환경 보안 가이드 및 과금 안내
+            </h2>
+            <div class="bg-red-500/5 border border-red-500/20 rounded-3xl p-10 shadow-2xl space-y-10">
+                <p class="text-slate-300 text-lg leading-relaxed">
+                    인프라 수준에서 정보를 숨기거나 헤더를 조작하려면 AWS의 엣지(Edge) 서비스를 활용하는 것이 매우 효과적입니다.
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- AWS WAF -->
+                    <div class="bg-slate-800/40 p-8 rounded-2xl border border-red-900/30 relative">
+                        <div class="absolute top-4 right-4 bg-red-600 text-white text-[8px] font-black px-2 py-1 rounded uppercase">Billing</div>
+                        <h4 class="font-bold text-red-400 mb-4 text-lg italic">AWS WAF - Custom Response</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed mb-6">
+                            서버가 응답하기 전에 WAF에서 응답 헤더를 조작하여 <span class="text-red-400 font-bold">Server</span> 정보를 강제로 삭제하거나 변경할 수 있습니다.
+                        </p>
+                        <div class="bg-black/40 p-4 rounded-xl space-y-2">
+                            <div class="flex justify-between text-[10px]">
+                                <span class="text-slate-500 uppercase">Web ACL</span>
+                                <span class="text-slate-100 font-bold">월 $5.00</span>
+                            </div>
+                            <div class="flex justify-between text-[10px]">
+                                <span class="text-slate-500 uppercase">Rule</span>
+                                <span class="text-slate-100 font-bold">월 $1.00</span>
+                            </div>
+                            <div class="flex justify-between text-[10px]">
+                                <span class="text-slate-500 uppercase">Requests (1M)</span>
+                                <span class="text-slate-100 font-bold">$0.60</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Amazon CloudFront -->
+                    <div class="bg-slate-800/40 p-8 rounded-2xl border border-orange-900/30 relative">
+                        <div class="absolute top-4 right-4 bg-orange-600 text-white text-[8px] font-black px-2 py-1 rounded uppercase">Billing</div>
+                        <h4 class="font-bold text-orange-400 mb-4 text-lg italic">Amazon CloudFront</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed mb-6">
+                            <span class="text-orange-400 font-bold">CloudFront Function</span> 또는 <span class="text-orange-400 font-bold">Lambda@Edge</span>를 사용하여 원본 서버(Origin)의 헤더를 가공할 수 있습니다.
+                        </p>
+                        <div class="bg-black/40 p-4 rounded-xl flex items-center justify-between">
+                            <span class="text-[10px] text-slate-500 uppercase tracking-widest">Executions (1M)</span>
+                            <span class="text-slate-100 font-black text-sm">$0.10</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
     </main>
-    <footer class="border-t border-slate-800/80 py-8 text-center text-slate-400 text-sm bg-slate-950/90 backdrop-blur-md mt-auto">
-        <p class="font-mono">&copy; 2026 Putto's Lectures. All rights reserved. <span class="text-cyan-800 font-bold ml-2">| ACCESS SECURED.</span></p>
+
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-10">
+            © 2026 Gemini Pro System Architect. All rights reserved.
+        </div>
+        <!-- Annotations -->
+        <div class="max-w-3xl mx-auto text-left border-l-2 border-slate-800 pl-6 space-y-4">
+            <p class="text-slate-600 text-[10px] leading-relaxed italic">
+                <b>주석 01. Banner Grabbing:</b> 텔넷(Telnet)이나 넷캣(Netcat) 등을 이용해 웹 서버 포트(80, 443)에 연결하여 서버가 보내는 초기 응답 메시지를 가로채 정보를 얻는 행위입니다.
+            </p>
+            <p class="text-slate-600 text-[10px] leading-relaxed italic">
+                <b>주석 02. Server Tokens:</b> Nginx에서 서버의 버전 정보를 응답 헤더에 포함할지 여부를 결정하는 지시어입니다.
+            </p>
+            <p class="text-slate-600 text-[10px] leading-relaxed italic">
+                <b>주석 03. Response Header:</b> 웹 서버가 브라우저의 요청에 응답할 때 보내는 메타데이터로, 여기에 서버의 소프트웨어 정보가 포함됩니다.
+            </p>
+            <p class="text-slate-600 text-[10px] leading-relaxed italic">
+                <b>주석 04. Internal 지시어:</b> Nginx에서 외부 사용자가 직접 해당 경로(예: /custom_404.html)로 접속하는 것을 막고, 서버 내부적인 리다이렉션으로만 접근 가능하게 제한하는 설정입니다.
+            </p>
+            <p class="text-slate-600 text-[10px] leading-relaxed italic">
+                <b>주석 05. Information Leakage (정보 유출, 정보 노출):</b> 시스템의 종류, 버전, 내부 경로 등 민감한 정보가 에러 페이지 등을 통해 외부에 공개되는 취약점입니다.
+            </p>
+            <p class="text-slate-600 text-[10px] leading-relaxed italic">
+                <b>주석 06. Hardcoded (하드코딩, 코드 내에 고정됨):</b> 외부 파일이나 설정값을 참조하지 않고 프로그램 소스 코드 내에 데이터가 직접 기록된 상태를 의미합니다.
+            </p>
+        </div>
+        <div class="mt-16 text-cyan-600 font-black text-sm tracking-[0.3em] uppercase">
+            Next Step: 권한 관리 및 프로세스 격리
+        </div>
     </footer>
 
     <script>
-        // 전역 상태 변수: 디폴트를 'false'로 변경하여 모든 폴더가 처음에는 접혀있도록 설정합니다.
-        let isAllExpanded = false;
-
-        // 개별 폴더를 펼치거나 접는 함수
-        function toggleFolder(element) {
-            // 클릭된 헤더의 부모 섹션(Section) 및 내부 리스트 컨테이너(Container) 탐색
-            const section = element.closest('.folder-section');
-            const listContainer = section.querySelector('.list-container');
-            const folderIcon = element.querySelector('.folder-icon');
-            const chevronIcon = element.querySelector('.chevron-icon');
-            
-            // 데이터 속성(Data Attributes)에 저장된 아이콘 클래스명 불러오기
-            const baseIcon = element.getAttribute('data-base-icon');
-            const closedIcon = element.getAttribute('data-closed-icon');
-
-            // 현재 리스트가 펼쳐진 상태인지 확인 (CSS Grid 속성 기준)
-            const isExpanded = listContainer.classList.contains('grid-rows-[1fr]');
-
-            if (isExpanded) {
-                // 접기(Collapse) 액션 수행
-                listContainer.classList.remove('grid-rows-[1fr]', 'opacity-100');
-                listContainer.classList.add('grid-rows-[0fr]', 'opacity-0');
-                
-                // 우측 화살표 아이콘 회전
-                chevronIcon.classList.add('rotate-180');
-                
-                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 닫힘 상태로 변경
-                if (baseIcon !== 'fa-server') {
-                    folderIcon.classList.remove('fa-folder-open');
-                    folderIcon.classList.add('fa-folder');
-                }
-            } else {
-                // 펼치기(Expand) 액션 수행
-                listContainer.classList.remove('grid-rows-[0fr]', 'opacity-0');
-                listContainer.classList.add('grid-rows-[1fr]', 'opacity-100');
-                
-                // 우측 화살표 아이콘 원상 복구
-                chevronIcon.classList.remove('rotate-180');
-                
-                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 열림 상태로 변경
-                if (baseIcon !== 'fa-server') {
-                    folderIcon.classList.remove('fa-folder');
-                    folderIcon.classList.add('fa-folder-open');
-                }
-            }
-        }
-
-        // 전체 폴더를 일괄적으로 펼치거나 접는 함수
-        function toggleAllFolders() {
-            // 전역 상태 반전
-            isAllExpanded = !isAllExpanded;
-            
-            // DOM(Document Object Model, 문서 객체 모델)에서 모든 폴더 헤더 요소 선택
-            const headers = document.querySelectorAll('.folder-header');
-            const globalBtnIcon = document.getElementById('global-toggle-icon');
-            const globalBtnText = document.getElementById('global-toggle-text');
-
-            headers.forEach(header => {
-                const section = header.closest('.folder-section');
-                const listContainer = section.querySelector('.list-container');
-                const isCurrentlyExpanded = listContainer.classList.contains('grid-rows-[1fr]');
-
-                // 현재 개별 폴더의 상태가 전역 상태 목표와 다를 경우에만 토글 함수 실행
-                if (isAllExpanded !== isCurrentlyExpanded) {
-                    toggleFolder(header);
-                }
-            });
-
-            // 전역 토글 버튼의 UI(User Interface, 사용자 인터페이스) 업데이트
-            if (isAllExpanded) {
-                globalBtnIcon.classList.remove('fa-folder');
-                globalBtnIcon.classList.add('fa-folder-open');
-                globalBtnText.innerText = 'COLLAPSE ALL';
-            } else {
-                globalBtnIcon.classList.remove('fa-folder-open');
-                globalBtnIcon.classList.add('fa-folder');
-                globalBtnText.innerText = 'EXPAND ALL';
-            }
-        }
+        lucide.createIcons();
     </script>
 </body>
 </html>
