@@ -3,323 +3,325 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Security & Cloud Hacking Lab</title>
+    <title>3.2 보안 헤더 (Security Headers) 설정 및 클릭재킹 대응</title>
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
-        
-        /* 기본 글꼴 및 다크 모드 배경색 설정 */
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
         body { 
             font-family: 'Noto Sans KR', sans-serif; 
             background-color: #020617; 
             color: #f8fafc; 
-            /* 전체 화면 배경 이미지 적용 및 투명도(Overlay) 설정: 텍스트 가시성을 위해 어두운 오버레이 강화 */
-            background-image: linear-gradient(to bottom, rgba(2, 6, 23, 0.75), rgba(2, 6, 23, 0.95)), 
-                              url('image_1a3201.jpg');
-            background-size: cover;
-            background-attachment: fixed;
-            background-position: center center;
+            margin: 0; padding: 0;
+            line-height: 1.8;
         }
-
-        /* 텍스트 리스트 호버 효과: 터미널 스타일 */
-        .list-hover {
-            transition: all 0.2s ease;
-        }
-        .list-hover:hover {
-            color: #22d3ee; 
-            padding-left: 0.75rem; 
-            background-color: rgba(15, 23, 42, 0.8); 
-            border-left-color: #0ea5e9;
-        }
-
-        /* 텍스트 가시성을 높이는 그림자 효과 클래스 */
-        .text-glow {
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
-        }
-        .neon-glow {
-            text-shadow: 0 0 8px rgba(34, 211, 238, 0.6);
-        }
-        
-        /* 커스텀 스크롤바 (선택적 시각 강화) */
+        .terminal-bg { background-color: #020617; border: 1px solid #1e293b; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-blur: xl; }
+        .code-block { font-family: 'Fira Code', monospace; }
         ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
     </style>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-        }
-    </script>
 </head>
-<body class="min-h-screen flex flex-col">
-    <header class="py-24 px-6 relative overflow-hidden">
-        
-        <a href="https://putto4u.github.io/06.Hacking-Security" class="absolute top-6 left-6 md:left-10 z-20 group cursor-pointer block" target="_blank" rel="noopener noreferrer">
-            <div class="flex items-center space-x-2 bg-slate-900/80 py-2 px-4 rounded-xl border border-cyan-900/50 backdrop-blur-md shadow-[0_0_15px_rgba(8,145,178,0.2)] transition-all duration-300 group-hover:border-cyan-400/60 group-hover:shadow-[0_0_20px_rgba(34,211,238,0.4)]">
-                <div class="relative flex h-3 w-3 mr-1">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
-                </div>
-                <span class="font-mono text-[10px] md:text-xs text-slate-400 tracking-wider">CHIEF SYSTEM ARCHITECT <span class="text-cyan-500 ml-1">❯</span></span>
-                <span class="font-black text-cyan-300 tracking-widest font-mono text-sm md:text-base neon-glow ml-1">PUTTO</span>
-                <span class="font-bold text-slate-200 tracking-widest font-mono text-sm md:text-base">'S LECTURES</span>
-            </div>
-        </a>
+<body class="antialiased pb-20">
 
-        <div class="max-w-4xl mx-auto relative z-10 text-center mt-8">
-            <div class="inline-flex items-center justify-center space-x-3 mb-8 bg-slate-950/60 p-4 rounded-2xl backdrop-blur-md border border-slate-700/80 shadow-2xl">
-                <i class="fas fa-user-secret text-4xl text-cyan-400 drop-shadow-lg"></i>
-                <span class="text-slate-500">|</span>
-                <i class="fas fa-shield-halved text-4xl text-blue-500 drop-shadow-lg"></i>
+    <!-- Header: 기술 사양 및 타이틀 -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Cyber Security Lab</span>
+                    <span class="text-slate-500 font-mono text-[10px]">SEC-03-02 | Web Security</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
+                    보안 헤더 (Security Headers) 설정<br><span class="text-slate-100 text-2xl">클라이언트 측 공격 방어 및 클릭재킹 대응</span>
+                </h1>
             </div>
-            
-            <h1 class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-2 pb-2 bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 via-blue-400 to-indigo-400 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">
-                Cloud Security & Hacking Lab
-            </h1>
-            
-            <p class="mt-8 text-slate-100 font-medium text-lg md:text-xl max-w-2xl mx-auto leading-relaxed text-glow">
-                실전 클라우드 인프라 보안 및 모의 해킹 시나리오 연구 자료 저장소
-            </p>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    SCORE: 10.0
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">System Architect Pro</p>
+            </div>
         </div>
     </header>
 
-    <main class="flex-grow max-w-4xl mx-auto px-6 py-8 w-full">
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-24">
 
-                <div class="bg-slate-950/90 p-8 md:p-12 rounded-2xl shadow-2xl border border-slate-700/50 backdrop-blur-xl prose prose-invert prose-slate max-w-none prose-img:rounded-xl prose-a:text-cyan-400 hover:prose-a:text-cyan-300 prose-headings:text-slate-100 prose-strong:text-cyan-100">
-                    <h2>3.2 보안 헤더 (Security Headers) 설정</h2>
-<hr />
-<h3><strong>1. HTTP 보안 헤더의 정의와 방어 메커니즘</strong></h3>
-<p><strong>HTTP Security Headers (HTTP 보안 헤더)</strong>는 웹 서버가 브라우저에 보내는 응답 메시지에 포함되어, 브라우저가 페이지 콘텐츠를 처리하는 방식을 지시하는 설정입니다. 이를 통해 애플리케이션 코드 수정 없이도 <strong>XSS (Cross-Site Scripting, 교차 사이트 스크립팅)</strong>나 <strong>Clickjacking (클릭재킹, 사용자 클릭 유도 및 가로채기)</strong>과 같은 클라이언트 측 공격을 효과적으로 방어할 수 있습니다.</p>
-<ul>
-<li><strong>보안 목표</strong>: 브라우저의 보안 기능을 활성화하여 신뢰할 수 없는 스크립트 실행을 차단하고 데이터 유출을 방지합니다.</li>
-<li><strong>작동 원리</strong>: 웹 서버 응답 헤더에 특정 정책을 삽입하면, 브라우저는 해당 정책을 해석하여 위반되는 동작을 차단합니다.</li>
-</ul>
-<blockquote>
-<p><strong>설명</strong>: 웹 애플리케이션 자체의 취약점이 있더라도, 보안 헤더라는 '최후의 방어선'을 통해 공격자가 실질적인 피해를 입히는 것을 물리적으로 차단하는 전략입니다.</p>
-</blockquote>
-<hr />
-<h3><strong>2. 핵심 보안 헤더 및 설정값</strong></h3>
-<p>가장 필수적인 3가지 보안 헤더의 역할과 권장 설정값은 다음과 같습니다.</p>
-<ul>
-<li><strong>CSP (Content Security Policy, 콘텐츠 보안 정책)</strong><ul>
-<li><strong>역할</strong>: 브라우저가 로드할 수 있는 스크립트, 이미지, 스타일시트의 출처(Domain)를 제한합니다.</li>
-<li><strong>방어</strong>: <strong>XSS (Cross-Site Scripting)</strong> 공격을 방어하는 가장 강력한 수단입니다.</li>
-</ul>
-</li>
-<li><strong>X-Frame-Options</strong><ul>
-<li><strong>역할</strong>: 해당 웹 페이지가 <code>&lt;iframe&gt;</code> 등에 삽입되어 표시되는 것을 허용할지 결정합니다.</li>
-<li><strong>방어</strong>: 사용자 모르게 투명한 레이어를 클릭하게 만드는 <strong>Clickjacking (클릭재킹)</strong> 공격을 차단합니다.</li>
-</ul>
-</li>
-<li><strong>X-Content-Type-Options</strong><ul>
-<li><strong>역할</strong>: 서버가 보낸 <strong>MIME (Multipurpose Internet Mail Extensions, 파일 형식 식별 표준)</strong> 타입을 브라우저가 임의로 해석하지 못하도록 강제합니다.</li>
-<li><strong>방어</strong>: 텍스트 파일을 실행 파일로 오인하여 악성 코드가 실행되는 <strong>MIME Sniffing (MIME 스니핑)</strong> 공격을 방지합니다.</li>
-</ul>
-</li>
-</ul>
-<hr />
-<h3><strong>3. 웹 서버 적용 가이드 (Nginx 기준)</strong></h3>
-<p>Nginx 설정 파일의 <code>server</code> 블록에 아래 내용을 추가하여 보안 헤더를 일괄 적용합니다.</p>
-<pre><code class="language-bash"># Nginx 가상 호스트 설정 파일 수정
-sudo vi /etc/nginx/sites-available/default
+        <!-- Section 1: 이론 개요 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
+                1. 아키텍처 개요 (Architecture Overview)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-10 leading-relaxed">
+                    <strong>HTTP Security Headers (HTTP 보안 헤더)</strong>는 웹 서버가 브라우저에 보내는 응답 메시지에 포함되어, 브라우저가 페이지 콘텐츠를 처리하는 방식을 지시하는 설정입니다. 이를 통해 애플리케이션 코드 수정 없이도 <strong>XSS (Cross-Site Scripting, 교차 사이트 스크립팅)</strong>나 <strong>Clickjacking (클릭재킹, 사용자 클릭 유도 및 가로채기)</strong>과 같은 클라이언트 측 공격을 효과적으로 방어할 수 있습니다.
+                </p>
 
-# 보안 헤더 추가 설정 예시
-server {
-    # 1. 클릭재킹 방어 (동일 도메인 내에서만 프레임 허용)
-    add_header X-Frame-Options &quot;SAMEORIGIN&quot; always;
-
-    # 2. MIME 스니핑 방지
-    add_header X-Content-Type-Options &quot;nosniff&quot; always;
-
-    # 3. CSP 설정 (자신과 특정 도메인의 스크립트만 허용)
-    add_header Content-Security-Policy &quot;default-src 'self'; script-src 'self' https://trusted.com;&quot; always;
-
-    # 4. 리퍼러 정책 설정 (개인정보 보호를 위해 최소 정보만 전송)
-    add_header Referrer-Policy &quot;strict-origin-when-cross-origin&quot; always;
-}
-
-# 설정 문법 검사 및 서비스 재시작
-sudo nginx -t &amp;&amp; sudo systemctl restart nginx
-</code></pre>
-<blockquote>
-<p><strong>설명</strong>: <code>always</code> 옵션은 에러 페이지(404, 500 등)를 포함한 모든 응답에 해당 헤더를 누락 없이 포함하도록 보장합니다.</p>
-</blockquote>
-<hr />
-<h3><strong>4. 설정 결과 검증 방법</strong></h3>
-<p>명령행 도구인 <code>curl</code>을 사용하여 서버 응답 헤더가 정상적으로 포함되었는지 확인합니다.</p>
-<pre><code class="language-bash"># 특정 URL의 응답 헤더만 출력하여 확인
-curl -I https://example.com
-</code></pre>
-<hr />
-<h3><strong>[AWS 환경 보안 가이드 및 과금 안내]</strong></h3>
-<p>개별 웹 서버 설정 외에도 인프라 앞단에서 보안 헤더를 일괄 관리할 수 있습니다.</p>
-<ul>
-<li><strong>Amazon CloudFront (아마존 클라우드프론트 - 응답 헤더 정책)</strong><ul>
-<li><strong>Response Headers Policies</strong> 기능을 사용하면 오리진 서버의 수정 없이 엣지 로케이션에서 보안 헤더를 자동으로 추가할 수 있습니다.</li>
-<li><strong>과금 안내</strong>: 정책 설정 및 적용 자체는 <strong>무료</strong>이나, CloudFront를 통해 전송되는 데이터량(Data Transfer Out)에 따라 비용이 청구됩니다. <a href="https://aws.amazon.com/ko/cloudfront/pricing/">공식 요금 페이지</a></li>
-</ul>
-</li>
-<li><strong>AWS WAF (웹 애플리케이션 방화벽)</strong><ul>
-<li>특정 조건에 맞는 요청에 대해 보안 헤더를 조작하거나 비정상적인 헤더를 가진 요청을 차단할 수 있습니다.</li>
-<li><strong>과금 안내</strong>: 웹 ACL 및 규칙 수, 요청 건수에 따라 과금됩니다.</li>
-</ul>
-</li>
-</ul>
-<hr />
-<p>Next Step: 디렉터리 리스팅 및 불필요한 HTTP 메소드 차단</p>
-<hr />
-<p><strong>상세 설명 주석</strong>
-1. <strong>XSS (Cross-Site Scripting)</strong>: 웹 사이트에 악성 스크립트를 삽입하여 사용자의 쿠키를 탈취하거나 세션을 가로채는 공격 기법입니다.
-2. <strong>Clickjacking</strong>: 웹 사용자를 속여서 보이지 않는 버튼이나 링크를 클릭하게 하여 비정상적인 동작(비밀번호 변경, 송금 등)을 유도하는 공격입니다.
-3. <strong>MIME Sniffing</strong>: 브라우저가 파일의 확장자 대신 파일의 실제 내용을 분석하여 데이터 타입을 결정하는 기능으로, 이를 악용해 악성 코드가 포함된 파일을 실행시킬 수 있습니다.
-4. <strong>Referrer-Policy</strong>: 사용자가 다른 사이트로 이동할 때 이전 페이지의 주소(Referrer) 정보를 얼마나 보낼지 제어하여 개인정보 노출을 방지합니다.
-5. <strong>nosniff</strong>: 브라우저가 서버가 지정한 Content-Type을 따르도록 강제하여 MIME 스니핑을 허용하지 않겠다는 선언입니다.</p>
-<h2>_____</h2>
-<h2>클릭재킹 (Clickjacking: UI Redressing)</h2>
-<p><strong>클릭재킹 (Clickjacking)</strong>은 '클릭(Click)'과 '하이재킹(Hijacking, 납치)'의 합성어로, 사용자가 인지하는 웹 페이지 위에 투명한 레이어를 겹쳐서 사용자가 의도하지 않은 클릭을 유도하는 공격 기법입니다. 이를 <strong>UI Redressing (User Interface Redressing, 사용자 인터페이스 재구성)</strong>이라고도 부릅니다.</p>
-<hr />
-<h3>1. 클릭재킹의 작동 원리 (Mechanism)</h3>
-<p>공격자는 피해자를 속이기 위해 두 개의 레이어를 구성합니다.</p>
-<ul>
-<li><strong>가시적 레이어 (Visible Layer):</strong> 사용자의 눈에 보이는 가짜 웹 페이지입니다. (예: "경품 당첨! 확인을 위해 클릭하세요")</li>
-<li><strong>비가시적 레이어 (Invisible Layer):</strong> 사용자의 눈에는 보이지 않지만, 실제로 클릭이 발생하는 실제 타겟 웹 페이지입니다. (예: SNS의 '좋아요' 버튼, 계정 삭제 버튼)</li>
-</ul>
-<blockquote>
-<p><strong>핵심 기술: iframe (Inline Frame, 내장형 프레임)</strong>
-공격자는 <strong>iframe (Inline Frame)</strong> 태그를 사용하여 타겟 사이트를 불러온 뒤, <strong>CSS (Cascading Style Sheets)</strong>의 <strong>opacity (투명도)</strong> 속성을 '0'으로 설정하여 투명하게 만듭니다. 사용자는 가짜 버튼을 누른다고 생각하지만, 실제로는 투명한 iframe 속의 민감한 버튼을 클릭하게 됩니다.</p>
-</blockquote>
-<hr />
-<h3>2. 주요 공격 사례 (Attack Examples)</h3>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">구분</th>
-<th style="text-align: left;">공격 시나리오</th>
-<th style="text-align: left;">상세 설명</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><strong>SNS 좋아요 하이재킹</strong></td>
-<td style="text-align: left;">경품 당첨 페이지 구성</td>
-<td style="text-align: left;">"무료 쿠폰 받기" 버튼 위에 페이스북의 '좋아요' 버튼을 투명하게 겹쳐두어, 사용자가 모르는 사이에 특정 페이지의 팔로워를 늘립니다.</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>계정 삭제 및 정보 수정</strong></td>
-<td style="text-align: left;">동영상 재생 위장</td>
-<td style="text-align: left;">"동영상 재생" 버튼 위치에 웹 서비스의 '계정 탈퇴' 또는 '비밀번호 변경' 확인 버튼을 겹쳐두어 심각한 서비스 장애를 유발합니다.</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>이커머스 결제 유도</strong></td>
-<td style="text-align: left;">쇼핑몰 할인 광고</td>
-<td style="text-align: left;">투명한 레이어에 특정 상품의 '즉시 구매' 버튼을 배치하여 사용자가 원치 않는 결제를 진행하게 만듭니다.</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h3>3. 클릭재킹 방어 대책 (Countermeasures)</h3>
-<p>보안 전문가로서 시스템을 보호하기 위해 다음과 같은 서버 측 설정을 반드시 적용해야 합니다.</p>
-<ul>
-<li><strong>X-Frame-Options (HTTP 응답 헤더):</strong> 브라우저가 해당 페이지를 <code>&lt;iframe&gt;</code>, <code>&lt;frame&gt;</code>, <code>&lt;object&gt;</code> 태그 내에서 렌더링할 수 있는지 여부를 제어합니다.<ul>
-<li><code>DENY</code>: 어떠한 사이트에서도 프레임 표시를 허용하지 않음.</li>
-<li><code>SAMEORIGIN</code>: 동일한 도메인 내에서만 프레임 표시를 허용함.</li>
-</ul>
-</li>
-<li><strong>CSP (Content Security Policy, 콘텐츠 보안 정책):</strong> 웹 페이지에서 사용할 수 있는 자원의 출처를 제한하는 보안 계층입니다.<ul>
-<li><code>frame-ancestors 'none'</code>: <code>X-Frame-Options DENY</code>와 동일한 효과를 냅니다.</li>
-</ul>
-</li>
-</ul>
-<hr />
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+                    <div class="p-6 bg-slate-800/40 border border-slate-700 rounded-2xl">
+                        <div class="text-cyan-400 font-black mb-2 italic">보안 목표 (Security Goal)</div>
+                        <p class="text-xs text-slate-400">브라우저의 보안 기능을 활성화하여 신뢰할 수 없는 스크립트 실행을 차단하고 데이터 유출을 방지합니다.</p>
+                    </div>
+                    <div class="p-6 bg-slate-800/40 border border-slate-700 rounded-2xl">
+                        <div class="text-blue-400 font-black mb-2 italic">작동 원리 (Mechanism)</div>
+                        <p class="text-xs text-slate-400">웹 서버 응답 헤더에 특정 정책을 삽입하면, 브라우저는 해당 정책을 해석하여 위반되는 동작을 차단합니다.</p>
+                    </div>
                 </div>
+
+                <!-- 방어 메커니즘 도식 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner">
+                    <h4 class="text-center font-bold text-slate-400 mb-8 text-xs tracking-widest uppercase">
+                        [도식: 보안 헤더 방어 프로세스]
+                    </h4>
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-cyan-900/50 shadow-lg">
+                            <i data-lucide="server" class="w-12 h-12 text-cyan-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">Web Server</div>
+                            <div class="text-[10px] text-slate-500 mt-2">응답 헤더(Response Header) 주입</div>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <i data-lucide="shield-check" class="w-8 h-8 text-blue-500 animate-pulse"></i>
+                            <div class="text-[9px] text-blue-400 font-bold mt-2 uppercase">Security Policy</div>
+                        </div>
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-indigo-900/50 shadow-lg">
+                            <i data-lucide="monitor" class="w-12 h-12 text-indigo-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">Web Browser</div>
+                            <div class="text-[10px] text-slate-500 mt-2">정책 해석 및 위반 동작 차단</div>
+                        </div>
+                    </div>
+                    <p class="text-center text-[10px] text-slate-600 mt-8 italic">웹 애플리케이션 자체의 취약점이 있더라도, 보안 헤더라는 '최후의 방어선'을 통해 실질적인 피해를 물리적으로 차단합니다.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: 핵심 보안 헤더 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
+                2. 핵심 보안 헤더 및 설정 (Security Components)
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="section-card rounded-3xl p-8 border-cyan-900/30 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-cyan-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">CSP</div>
+                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                        <i data-lucide="file-code" class="w-6 h-6 text-cyan-400"></i> 콘텐츠 보안 정책
+                    </h3>
+                    <ul class="space-y-4 text-sm text-slate-300">
+                        <li class="flex items-start gap-2"><i data-lucide="shield" class="w-4 h-4 text-cyan-500 mt-1 shrink-0"></i> <span><strong>역할:</strong> 리소스(스크립트 등) 로드 출처 제한</span></li>
+                        <li class="flex items-start gap-2"><i data-lucide="alert-triangle" class="w-4 h-4 text-red-500 mt-1 shrink-0"></i> <span><strong>방어:</strong> XSS 공격의 가장 강력한 방어 수단</span></li>
+                    </ul>
+                </div>
+                <div class="section-card rounded-3xl p-8 border-indigo-900/30 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">XFO</div>
+                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                        <i data-lucide="layers" class="w-6 h-6 text-indigo-400"></i> 프레임 옵션 설정
+                    </h3>
+                    <ul class="space-y-4 text-sm text-slate-300">
+                        <li class="flex items-start gap-2"><i data-lucide="shield" class="w-4 h-4 text-indigo-500 mt-1 shrink-0"></i> <span><strong>역할:</strong> iframe 렌더링 허용 여부 결정</span></li>
+                        <li class="flex items-start gap-2"><i data-lucide="alert-triangle" class="w-4 h-4 text-red-500 mt-1 shrink-0"></i> <span><strong>방어:</strong> 클릭재킹 (Clickjacking) 공격 차단</span></li>
+                    </ul>
+                </div>
+                <div class="section-card rounded-3xl p-8 border-blue-900/30 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-blue-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">XCTO</div>
+                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                        <i data-lucide="file-type" class="w-6 h-6 text-blue-400"></i> MIME 타입 보호
+                    </h3>
+                    <ul class="space-y-4 text-sm text-slate-300">
+                        <li class="flex items-start gap-2"><i data-lucide="shield" class="w-4 h-4 text-blue-500 mt-1 shrink-0"></i> <span><strong>역할:</strong> 브라우저의 임의 형식 해석 금지</span></li>
+                        <li class="flex items-start gap-2"><i data-lucide="alert-triangle" class="w-4 h-4 text-red-500 mt-1 shrink-0"></i> <span><strong>방어:</strong> MIME Sniffing (MIME 스니핑) 공격 방지</span></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: 구현 및 절차 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
+                3. 실증 및 구현 (Implementation)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-12">
                 
+                <!-- Nginx Implementation -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black italic">STEP 01</span>
+                        <h3 class="text-xl font-bold text-slate-100 uppercase tracking-tight">Nginx 보안 헤더 일괄 적용</h3>
+                    </div>
+                    <div class="pl-12">
+                        <p class="text-sm text-slate-400 mb-4">Nginx 설정 파일의 <code>server</code> 블록에 아래 내용을 추가하여 보안 정책을 선언합니다.</p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">Nginx Config</div>
+                            <pre class="text-slate-300">
+# 1. 클릭재킹 방어 (동일 도메인 내에서만 프레임 허용)
+add_header X-Frame-Options "SAMEORIGIN" always;
+
+# 2. MIME 스니핑 방지 (nosniff 강제)
+add_header X-Content-Type-Options "nosniff" always;
+
+# 3. CSP 설정 (자신과 특정 도메인의 스크립트만 허용)
+add_header Content-Security-Policy "default-src 'self'; script-src 'self' https://trusted.com;" always;
+
+# 4. 리퍼러 정책 설정 (개인정보 보호 최적화)
+add_header Referrer-Policy "strict-origin-when-cross-origin" always;</pre>
+                        </div>
+                        <p class="text-[10px] text-slate-500 mt-3 italic">※ always 옵션은 에러 페이지(404, 500 등)를 포함한 모든 응답에 헤더를 강제 포함시킵니다.</p>
+                    </div>
+                </div>
+
+                <!-- Verification -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black italic">STEP 02</span>
+                        <h3 class="text-xl font-bold text-slate-100 uppercase tracking-tight">응답 헤더 검증 (Verification)</h3>
+                    </div>
+                    <div class="pl-12">
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">Console</div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">curl -I https://example.com</span></div>
+                            <div class="text-slate-500 mt-2">
+HTTP/1.1 200 OK<br>
+X-Frame-Options: SAMEORIGIN<br>
+X-Content-Type-Options: nosniff<br>
+Content-Security-Policy: default-src 'self';...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: 클릭재킹 상세 분석 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
+                4. 클릭재킹 심층 분석 (Clickjacking Deep Dive)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-10 leading-relaxed">
+                    <strong>클릭재킹 (Clickjacking)</strong>은 '클릭(Click)'과 '하이재킹(Hijacking, 납치)'의 합성어로, 사용자가 인지하는 웹 페이지 위에 투명한 레이어를 겹쳐서 사용자가 의도하지 않은 클릭을 유도하는 공격 기법입니다. 이를 <strong>UI Redressing (User Interface Redressing, 사용자 인터페이스 재구성)</strong>이라고도 부릅니다.
+                </p>
+
+                <!-- 클릭재킹 도식화 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner mb-12">
+                    <h4 class="text-center font-bold text-slate-400 mb-8 text-xs tracking-widest uppercase">
+                        [도식: 클릭재킹 작동 원리]
+                    </h4>
+                    <div class="relative w-full max-w-md mx-auto aspect-video border-2 border-dashed border-slate-700 rounded-xl flex items-center justify-center overflow-hidden">
+                        <!-- Visible Layer -->
+                        <div class="absolute inset-0 bg-slate-800 flex flex-col items-center justify-center p-4">
+                            <div class="text-xs text-cyan-400 font-black mb-2 uppercase">[가시적 레이어]</div>
+                            <button class="bg-cyan-600 px-6 py-2 rounded text-[10px] font-black">경품 당첨! 쿠폰 받기</button>
+                            <div class="text-[9px] text-slate-500 mt-2 italic">Visible to User</div>
+                        </div>
+                        <!-- Invisible Layer (iframe) -->
+                        <div class="absolute inset-0 bg-red-500/10 border-2 border-red-500/30 flex flex-col items-center justify-center p-4">
+                            <div class="text-xs text-red-500 font-black mb-2 uppercase">[비가시적 레이어 (iframe)]</div>
+                            <button class="bg-red-600/20 border border-red-500/50 px-6 py-2 rounded text-[10px] text-red-200 font-black">계정 삭제 확인</button>
+                            <div class="text-[9px] text-red-400/50 mt-2 italic">Opacity: 0 (Hidden)</div>
+                        </div>
+                    </div>
+                    <p class="text-center text-[10px] text-slate-600 mt-6">공격자는 <strong>CSS opacity: 0</strong> 속성을 사용하여 민감한 실제 페이지를 투명하게 겹칩니다.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                        <h4 class="font-bold text-slate-100 mb-4 flex items-center gap-2">
+                            <i data-lucide="crosshair" class="w-5 h-5 text-red-400"></i> 주요 공격 사례
+                        </h4>
+                        <table class="w-full text-xs text-left border-collapse">
+                            <thead>
+                                <tr class="text-slate-500 border-b border-slate-700">
+                                    <th class="pb-2 uppercase tracking-tighter">구분</th>
+                                    <th class="pb-2 uppercase tracking-tighter">시나리오</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-slate-400">
+                                <tr class="border-b border-slate-800">
+                                    <td class="py-3 font-bold text-slate-200">SNS 하이재킹</td>
+                                    <td class="py-3">쿠폰 버튼 위에 '좋아요' 버튼을 겹쳐 팔로워 조작</td>
+                                </tr>
+                                <tr class="border-b border-slate-800">
+                                    <td class="py-3 font-bold text-slate-200">계정 정보 수정</td>
+                                    <td class="py-3">재생 버튼 위에 '계정 탈퇴' 확인 버튼을 겹쳐 장애 유발</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 font-bold text-slate-200">이커머스 결제</td>
+                                    <td class="py-3">할인 광고 위에 '즉시 구매' 버튼 배치하여 오결제 유도</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                        <h4 class="font-bold text-slate-100 mb-4 flex items-center gap-2">
+                            <i data-lucide="shield-check" class="w-5 h-5 text-cyan-400"></i> 핵심 방어 대책
+                        </h4>
+                        <ul class="space-y-4 text-xs text-slate-400">
+                            <li class="p-3 bg-slate-900/50 rounded-lg border border-cyan-900/30">
+                                <div class="font-black text-cyan-500 mb-1">X-Frame-Options</div>
+                                <p><code>DENY</code>(전면 차단) 또는 <code>SAMEORIGIN</code>(자사 허용) 설정을 통해 렌더링 제어</p>
+                            </li>
+                            <li class="p-3 bg-slate-900/50 rounded-lg border border-blue-900/30">
+                                <div class="font-black text-blue-500 mb-1">CSP (frame-ancestors)</div>
+                                <p><code>'none'</code> 또는 특정 도메인 지정을 통해 부모 프레임의 권한을 정교하게 제한</p>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: 전문가 분석 및 AWS 과금 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
+                5. 아키텍트 인사이트 (Architect Insight)
+            </h2>
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-10">
+                
+                <!-- AWS Billing Info -->
+                <div class="p-6 bg-red-500/5 border border-red-500/20 rounded-2xl mb-8">
+                    <h3 class="text-red-400 font-black flex items-center gap-2 mb-4">
+                        <i data-lucide="alert-circle" class="w-5 h-5"></i> AWS 환경 인프라 기반 보안 관리 및 과금
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                        <div class="space-y-2">
+                            <div class="font-bold text-slate-200 italic">Amazon CloudFront (응답 헤더 정책)</div>
+                            <p class="text-xs text-slate-400 leading-relaxed">Response Headers Policies를 사용하면 오리진 수정 없이 엣지에서 보안 헤더를 추가합니다. 정책 적용은 <strong>무료</strong>이나, <strong>데이터 전송량(DTO)</strong>에 따른 비용이 발생합니다.</p>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="font-bold text-slate-200 italic">AWS WAF (웹 방화벽)</div>
+                            <p class="text-xs text-slate-400 leading-relaxed">특정 조건에 맞춰 보안 헤더를 조작하거나 차단합니다. <strong>Web ACL 및 규칙 수, 요청 건수에 따라 정교하게 과금</strong>됩니다.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                        <h4 class="font-bold text-slate-100 mb-2 italic">MIME Sniffing (MIME 스니핑) 주의</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">브라우저가 파일의 확장자 대신 실제 내용을 분석하여 데이터 타입을 결정하는 기능입니다. 이를 악용해 악성 코드가 포함된 텍스트 파일을 실행 파일로 오인하게 할 수 있으므로 <code>nosniff</code> 설정이 필수적입니다.</p>
+                    </div>
+                    <div class="bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                        <h4 class="font-bold text-slate-100 mb-2 italic">Referrer-Policy (개인정보 보호)</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">다른 사이트로 이동할 때 이전 페이지 주소(Referrer) 정보를 얼마나 보낼지 제어합니다. <code>strict-origin-when-cross-origin</code>은 보안과 편의성의 적절한 균형점입니다.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
     </main>
-    <footer class="border-t border-slate-800/80 py-8 text-center text-slate-400 text-sm bg-slate-950/90 backdrop-blur-md mt-auto">
-        <p class="font-mono">&copy; 2026 Putto's Lectures. All rights reserved. <span class="text-cyan-800 font-bold ml-2">| ACCESS SECURED.</span></p>
+
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+            © 2026 System Architect Pro. All rights reserved.
+        </div>
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic">
+            본 실습 교재의 내용은 브라우저의 최신 보안 정책 변화에 따라 주기적으로 업데이트가 필요합니다. 특히 CSP 설정은 애플리케이션의 복잡도에 따라 정교한 튜닝이 요구됩니다.
+        </p>
     </footer>
 
     <script>
-        // 전역 상태 변수: 디폴트를 'false'로 변경하여 모든 폴더가 처음에는 접혀있도록 설정합니다.
-        let isAllExpanded = false;
-
-        // 개별 폴더를 펼치거나 접는 함수
-        function toggleFolder(element) {
-            // 클릭된 헤더의 부모 섹션(Section) 및 내부 리스트 컨테이너(Container) 탐색
-            const section = element.closest('.folder-section');
-            const listContainer = section.querySelector('.list-container');
-            const folderIcon = element.querySelector('.folder-icon');
-            const chevronIcon = element.querySelector('.chevron-icon');
-            
-            // 데이터 속성(Data Attributes)에 저장된 아이콘 클래스명 불러오기
-            const baseIcon = element.getAttribute('data-base-icon');
-            const closedIcon = element.getAttribute('data-closed-icon');
-
-            // 현재 리스트가 펼쳐진 상태인지 확인 (CSS Grid 속성 기준)
-            const isExpanded = listContainer.classList.contains('grid-rows-[1fr]');
-
-            if (isExpanded) {
-                // 접기(Collapse) 액션 수행
-                listContainer.classList.remove('grid-rows-[1fr]', 'opacity-100');
-                listContainer.classList.add('grid-rows-[0fr]', 'opacity-0');
-                
-                // 우측 화살표 아이콘 회전
-                chevronIcon.classList.add('rotate-180');
-                
-                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 닫힘 상태로 변경
-                if (baseIcon !== 'fa-server') {
-                    folderIcon.classList.remove('fa-folder-open');
-                    folderIcon.classList.add('fa-folder');
-                }
-            } else {
-                // 펼치기(Expand) 액션 수행
-                listContainer.classList.remove('grid-rows-[0fr]', 'opacity-0');
-                listContainer.classList.add('grid-rows-[1fr]', 'opacity-100');
-                
-                // 우측 화살표 아이콘 원상 복구
-                chevronIcon.classList.remove('rotate-180');
-                
-                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 열림 상태로 변경
-                if (baseIcon !== 'fa-server') {
-                    folderIcon.classList.remove('fa-folder');
-                    folderIcon.classList.add('fa-folder-open');
-                }
-            }
-        }
-
-        // 전체 폴더를 일괄적으로 펼치거나 접는 함수
-        function toggleAllFolders() {
-            // 전역 상태 반전
-            isAllExpanded = !isAllExpanded;
-            
-            // DOM(Document Object Model, 문서 객체 모델)에서 모든 폴더 헤더 요소 선택
-            const headers = document.querySelectorAll('.folder-header');
-            const globalBtnIcon = document.getElementById('global-toggle-icon');
-            const globalBtnText = document.getElementById('global-toggle-text');
-
-            headers.forEach(header => {
-                const section = header.closest('.folder-section');
-                const listContainer = section.querySelector('.list-container');
-                const isCurrentlyExpanded = listContainer.classList.contains('grid-rows-[1fr]');
-
-                // 현재 개별 폴더의 상태가 전역 상태 목표와 다를 경우에만 토글 함수 실행
-                if (isAllExpanded !== isCurrentlyExpanded) {
-                    toggleFolder(header);
-                }
-            });
-
-            // 전역 토글 버튼의 UI(User Interface, 사용자 인터페이스) 업데이트
-            if (isAllExpanded) {
-                globalBtnIcon.classList.remove('fa-folder');
-                globalBtnIcon.classList.add('fa-folder-open');
-                globalBtnText.innerText = 'COLLAPSE ALL';
-            } else {
-                globalBtnIcon.classList.remove('fa-folder-open');
-                globalBtnIcon.classList.add('fa-folder');
-                globalBtnText.innerText = 'EXPAND ALL';
-            }
-        }
+        lucide.createIcons();
     </script>
 </body>
 </html>
