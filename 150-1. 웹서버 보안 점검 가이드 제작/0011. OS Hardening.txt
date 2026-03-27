@@ -75,7 +75,10 @@ sudo dpkg-reconfigure -plow unattended-upgrades
 
 ```bash
 # SSH 설정에서 Root 로그인 금지 (PermitRootLogin no 확인)
+## 우분투 20.04 에서는 해당 라인이 없음. 검색 안됨. 직접 코딩 필요.
 sudo sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin no/' /etc/ssh/sshd_config
+
+
 sudo systemctl restart ssh
 ```
 
