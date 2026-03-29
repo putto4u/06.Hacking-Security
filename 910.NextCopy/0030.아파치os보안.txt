@@ -24,4 +24,27 @@ vi /etc/apache2/apache2.conf
 systemctl restart apache2
 
 
+-----------------------
+## ip 차단
+vi /etc/apache2/apache2.conf
+<Directory /var/www/>
+        #Options Indexes  FollowSymLinks
+        #Options Indexes
+        Options None
+        AllowOverride None
+        Require all granted
+        ## 블랙리스트 파일 추가
+        Include /etc/apache2/ipblacklist.conf  
+</Directory>
+
+
+vi /etc/apache2/apache2.conf
+Require not ip  192.168.0.0/16 
+Require not ip  192.100.10.0/24
+
+systemctl restart apache2
+
+크롬 접속 차단 확인
+
+
   
