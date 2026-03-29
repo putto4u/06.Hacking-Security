@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apache HTTPS 보안 강화: AES-256 개인키 보안 실습</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+        }
+        .terminal-bg { background-color: #010409; border: 1px solid #1e293b; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-filter: blur(12px); }
+        .code-block { font-family: 'Fira Code', monospace; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+        .highlight-cyan { color: #22d3ee; font-weight: 700; }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <!-- Header: 기술 사양 및 타이틀 -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Cyber Security Lab</span>
+                    <span class="text-slate-500 font-mono text-[10px]">SEC-AP-2026 | Infrastructure Security</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
+                    Apache HTTPS 보안 강화 구축 실무<br>
+                    <span class="text-slate-100 text-2xl font-bold">AES-256 개인키 보안 및 마스터 키 분리 관리 모델</span>
+                </h1>
+            </div>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    SCORE: 9.8 / 10.0
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">System Architect Pro</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-24">
+
+        <!-- Section 1: 이론 및 아키텍처 도식 -->
+        <section>
+            <div class="flex items-center gap-4 mb-8">
+                <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 tracking-tight">
+                    1. 아키텍처 개요 (Architecture Overview)
+                </h2>
+            </div>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-10 leading-relaxed">
+                    본 실습은 <span class="highlight-cyan">AES-256 (Advanced Encryption Standard 256-bit, 고급 암호화 표준 256비트)</span>으로 암호화된 마스터 키를 생성하고, 이를 기반으로 <span class="highlight-cyan">HTTPS (HyperText Transfer Protocol Secure, 보안 하이퍼텍스트 전송 프로토콜)</span> 환경을 구축합니다. 보안 사고에 대비하여 마스터 키(Master Key)와 서비스 키(Service Key)를 물리적으로 분리하고, <span class="highlight-cyan">At-Rest (저장 시 암호화)</span> 전략을 통해 서버 내 자산을 보호하는 계층적 방어 체계를 구현합니다.
+                </p>
+
+                <!-- 도식화 인포그래픽 영역 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner">
+                    <h4 class="text-center font-bold text-slate-400 mb-8 text-xs tracking-widest uppercase italic">
+                        [도식: 하이브리드 암호 시스템 및 키 관리 아키텍처]
+                    </h4>
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                        <!-- Component A: Master Key -->
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-red-900/30 shadow-lg group hover:border-red-500/50 transition-all">
+                            <i data-lucide="key-round" class="w-12 h-12 text-red-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm mb-1">마스터 키 (AES-256 암호화)</div>
+                            <div class="text-[10px] text-slate-500 uppercase">Master Key (Cold Storage)</div>
+                        </div>
+                        <!-- Arrow 1 -->
+                        <div class="flex flex-col items-center">
+                            <i data-lucide="chevrons-right" class="w-8 h-8 text-slate-600 rotate-90 md:rotate-0"></i>
+                            <span class="text-[9px] text-slate-500 font-bold mt-1">백업 및 추출</span>
+                        </div>
+                        <!-- Component B: Service Key -->
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-cyan-900/30 shadow-lg group hover:border-cyan-500/50 transition-all">
+                            <i data-lucide="lock" class="w-12 h-12 text-cyan-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm mb-1">서비스 키 (평문+ACL 적용)</div>
+                            <div class="text-[10px] text-slate-500 uppercase">Service Key (Live Web)</div>
+                        </div>
+                        <!-- Arrow 2 -->
+                        <div class="flex flex-col items-center">
+                            <i data-lucide="chevrons-right" class="w-8 h-8 text-slate-600 rotate-90 md:rotate-0"></i>
+                            <span class="text-[9px] text-slate-500 font-bold mt-1">인증서 바인딩</span>
+                        </div>
+                        <!-- Component C: Certificate -->
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-indigo-900/30 shadow-lg group hover:border-indigo-500/50 transition-all">
+                            <i data-lucide="file-check" class="w-12 h-12 text-indigo-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm mb-1">인증서 (CRT)</div>
+                            <div class="text-[10px] text-slate-500 uppercase">Public Key Certificate</div>
+                        </div>
+                    </div>
+                    <div class="mt-8 text-center text-[11px] text-slate-500 italic">
+                                            </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: 실습 구성 요소 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                2. 실습 구성 요소 (Components)
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Node 01 -->
+                <div class="section-card rounded-3xl p-8 border-cyan-900/30 shadow-xl relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 bg-cyan-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">WEB ENGINE</div>
+                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                        <i data-lucide="terminal" class="w-6 h-6 text-cyan-400"></i> Apache 2.4 (아파치 웹 서버)
+                    </h3>
+                    <ul class="space-y-4 text-sm text-slate-300">
+                        <li class="flex items-start gap-3">
+                            <i data-lucide="check-circle-2" class="w-5 h-5 text-cyan-500 shrink-0"></i>
+                            <span><strong class="text-cyan-400">mod_ssl:</strong> 암호화 엔진 활성화 및 TLS 프로토콜 처리</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i data-lucide="check-circle-2" class="w-5 h-5 text-cyan-500 shrink-0"></i>
+                            <span><strong class="text-cyan-400">mod_headers:</strong> HSTS 정책 및 보안 헤더 제어</span>
+                        </li>
+                    </ul>
+                </div>
+                <!-- Node 02 -->
+                <div class="section-card rounded-3xl p-8 border-indigo-900/30 shadow-xl relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">CRYPTO ENGINE</div>
+                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                        <i data-lucide="shield-check" class="w-6 h-6 text-indigo-400"></i> OpenSSL (오픈 SSL 도구)
+                    </h3>
+                    <ul class="space-y-4 text-sm text-slate-300">
+                        <li class="flex items-start gap-3">
+                            <i data-lucide="check-circle-2" class="w-5 h-5 text-indigo-500 shrink-0"></i>
+                            <span><strong class="text-indigo-400">AES-256:</strong> 개인키 자체를 저장 시점에 암호화하는 알고리즘</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i data-lucide="check-circle-2" class="w-5 h-5 text-indigo-500 shrink-0"></i>
+                            <span><strong class="text-indigo-400">X.509:</strong> 공개키 인증서 및 CSR 생성을 위한 표준 규격</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: 명령어 및 절차 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                3. 실증 및 구현 (Implementation)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-16">
+                
+                <!-- Step 01 -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-10 h-10 rounded-full flex items-center justify-center text-xs font-black italic shadow-[0_0_15px_rgba(34,211,238,0.4)]">STEP 01</span>
+                        <h3 class="text-xl font-bold text-slate-100">마스터 키 생성 및 AES-256 보안 적용</h3>
+                    </div>
+                    <div class="pl-14">
+                        <p class="text-sm text-slate-400 mb-4 leading-relaxed">보안 저장을 위해 디렉토리를 생성하고, 2048비트 RSA 키를 생성하되 <span class="text-red-400 font-bold">AES-256</span> 옵션을 통해 키 자체를 패스프라이즈로 보호합니다.</p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black tracking-widest">Root Console</div>
+                            <div class="text-slate-500 italic mb-2"># 보안 디렉토리 생성 및 권한 설정</div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">sudo mkdir -p /etc/ssl/private /etc/ssl/backup /etc/ssl/archive</span></div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">sudo chmod 700 /etc/ssl/private /etc/ssl/backup /etc/ssl/archive</span></div>
+                            <div class="text-slate-500 italic mt-4 mb-2"># AES-256 암호화 마스터 키 생성</div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">sudo openssl genrsa -aes256 -out /etc/ssl/private/server.key.master 2048</span></div>
+                            <div class="text-slate-400 mt-2">Enter pass phrase for server.key.master: <span class="text-yellow-500">********</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 02 -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-10 h-10 rounded-full flex items-center justify-center text-xs font-black italic shadow-[0_0_15px_rgba(34,211,238,0.4)]">STEP 02</span>
+                        <h3 class="text-xl font-bold text-slate-100">마스터 키 즉각 백업 (Master Key Backup)</h3>
+                    </div>
+                    <div class="pl-14">
+                        <p class="text-sm text-slate-400 mb-4">운영 중 발생할 수 있는 키 손상이나 실수에 대비하여 날짜별 백업본을 생성하여 격리 보관합니다.</p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black tracking-widest">Backup Process</div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">sudo cp /etc/ssl/private/server.key.master /etc/ssl/backup/server.key.master.$(date +%Y%m%d).bak</span></div>
+                            <div class="text-slate-500 mt-2">File copied to /etc/ssl/backup/server.key.master.20260330.bak</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 03 -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-10 h-10 rounded-full flex items-center justify-center text-xs font-black italic shadow-[0_0_15px_rgba(34,211,238,0.4)]">STEP 03</span>
+                        <h3 class="text-xl font-bold text-slate-100">CSR 생성 및 식별 정보 입력</h3>
+                    </div>
+                    <div class="pl-14">
+                        <p class="text-sm text-slate-400 mb-4">인증 기관(CA)에 제출할 <span class="text-indigo-400 font-bold">CSR (Certificate Signing Request, 인증서 서명 요청서)</span>을 작성합니다. 이 과정에서 공개키가 추출됩니다.</p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black tracking-widest">Interactive Shell</div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">sudo openssl req -new -key /etc/ssl/private/server.key.master -out /etc/ssl/archive/server.csr</span></div>
+                            <div class="text-slate-400 mt-4 space-y-1 text-xs">
+                                <div>Country Name (2 letter code) [AU]: <span class="text-white">KR</span></div>
+                                <div>State or Province Name (full name) [Some-State]: <span class="text-white">Gyeonggi-do</span></div>
+                                <div>Locality Name (eg, city) []: <span class="text-white">Yongin-si</span></div>
+                                <div>Organization Name (eg, company) [Internet Widgits Pty Ltd]: <span class="text-white">Megastudy IT</span></div>
+                                <div>Common Name (e.g. server FQDN or YOUR name) []: <span class="text-white font-bold">www.example.com</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 04 -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-10 h-10 rounded-full flex items-center justify-center text-xs font-black italic shadow-[0_0_15px_rgba(34,211,238,0.4)]">STEP 04</span>
+                        <h3 class="text-xl font-bold text-slate-100">서비스용 키(Service Key) 추출 및 권한 최적화</h3>
+                    </div>
+                    <div class="pl-14">
+                        <p class="text-sm text-slate-400 mb-4">서버 재시작 시 자동화를 위해 마스터 키로부터 비밀번호가 없는 키를 추출하고, <span class="text-red-400 font-bold">ACL(Access Control List, 접근 제어 목록)</span> 권한을 400으로 엄격히 제한합니다.</p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black tracking-widest">Security Hardening</div>
+                            <div class="text-slate-500 italic mb-2"># 비밀번호 제거된 구동용 키 추출</div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">sudo openssl rsa -in /etc/ssl/private/server.key.master -out /etc/ssl/private/server.key.service</span></div>
+                            <div class="text-slate-500 italic mt-4 mb-2"># 소유자만 읽기 가능하도록 권한 설정</div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">sudo chown root:root /etc/ssl/private/server.key.service</span></div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">sudo chmod 400 /etc/ssl/private/server.key.service</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 05 -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-10 h-10 rounded-full flex items-center justify-center text-xs font-black italic shadow-[0_0_15px_rgba(34,211,238,0.4)]">STEP 05</span>
+                        <h3 class="text-xl font-bold text-slate-100">인증서 발급 및 아파치 무결성 검증 (configtest)</h3>
+                    </div>
+                    <div class="pl-14">
+                        <p class="text-sm text-slate-400 mb-4">인증서를 발급하고 아파치 설정을 적용합니다. 기존 서비스 중단을 방지하기 위해 <span class="text-cyan-400 font-bold">configtest</span>를 반드시 먼저 수행합니다.</p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative">
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black tracking-widest">Final Validation</div>
+                            <div class="text-slate-500 italic mb-2"># 자가 서명 인증서 생성</div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">sudo openssl x509 -req -days 365 -in /etc/ssl/archive/server.csr -signkey /etc/ssl/private/server.key.master -out /etc/ssl/certs/server.crt</span></div>
+                            <div class="text-slate-500 italic mt-4 mb-2"># 설정 무결성 검사 (Downtime 방지 필수 단계)</div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">sudo apache2ctl configtest</span></div>
+                            <div class="text-green-400 mt-2 font-black">Syntax OK</div>
+                            <div class="text-slate-500 italic mt-4 mb-2"># 안전하게 서비스 적용</div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">sudo a2ensite default-ssl && sudo systemctl restart apache2</span></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Section 4: 전문가 분석 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                4. 아키텍트 인사이트 (Expert Insight)
+            </h2>
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-10">
+                <div class="flex flex-col md:flex-row gap-8">
+                    <!-- Insight Box 1 -->
+                    <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700 hover:border-cyan-500/50 transition-colors">
+                        <div class="text-cyan-400 mb-4"><i data-lucide="lightbulb" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2">Zero-Downtime(무중단 운영) 전략</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">사이트 활성화(<code class="text-cyan-500">a2ensite</code>)를 구성 요소 준비 전에 실행하면, 아파치 재시작 시 인증서 경로 오류로 인해 기존 HTTP(80) 서비스까지 중단됩니다. 반드시 <strong>인증서 준비 → 설정 수정 → configtest → restart</strong> 순서를 엄수해야 합니다.</p>
+                    </div>
+                    <!-- Insight Box 2 -->
+                    <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700 hover:border-red-500/50 transition-colors">
+                        <div class="text-red-400 mb-4"><i data-lucide="shield-alert" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2">보안 비용 및 과금 유의사항</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">실제 클라우드 환경(AWS 등)에서 <span class="text-indigo-400 font-bold">ALB (Application Load Balancer)</span>를 통해 HTTPS를 운영할 경우, 시간당 약 <strong>$0.0225</strong>의 비용과 데이터 처리량에 따른 추가 과금이 발생합니다. <span class="text-green-400 font-bold">ACM (AWS Certificate Manager)</span> 공인 인증서 자체는 무료로 제공됩니다.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+            © 2026 System Architect Pro. All rights reserved.
+        </div>
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic">
+            본 교재에 포함된 기술 사양 및 아키텍처는 국제 보안 표준을 준수하며, 운영 환경에서의 실습 시 시스템 백업을 권장합니다.
+        </p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
