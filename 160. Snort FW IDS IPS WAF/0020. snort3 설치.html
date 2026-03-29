@@ -122,6 +122,9 @@ sudo apt update # 시스템의 패키지 저장소 목록을 최신으로 업데
 sudo apt install -y libdumbnet-dev # dnet 기능을 제공하는 dumbnet 개발 라이브러리를 설치합니다.
 sudo ln -sf /usr/include/dumbnet.h /usr/include/dnet.h # dumbnet 헤더를 dnet 헤더로 인식하도록 심볼릭 링크를 생성합니다.
 sudo ln -sf /usr/lib/x86_64-linux-gnu/libdumbnet.so /usr/lib/x86_64-linux-gnu/libdnet.so # 라이브러리 파일도 dnet 이름으로 링크를 생성합니다.
+
+sudo apt update # 시스템 패키지 저장소 정보를 최신으로 갱신합니다.
+sudo apt install -y libpcre2-dev # PCRE2 개발용 라이브러리 및 헤더 파일을 설치합니다.
 </code></pre>
 <blockquote>
 <p><strong>설명:</strong> <strong>LibDAQ</strong> (Data Acquisition Library, 데이터 수집 라이브러리)는 Snort가 하드웨어 네트워크 인터페이스와 통신하여 패킷을 가로채는 중간 계층 역할을 합니다. <code>ldconfig</code> 명령은 설치된 공유 라이브러리를 시스템이 즉시 인식할 수 있도록 캐시를 갱신하는 역할을 수행합니다.</p>
