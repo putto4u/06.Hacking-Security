@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snort 보안 전문가: 커리큘럼 로드맵</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+        }
+        .terminal-bg { background-color: #020617; border: 1px solid #1e293b; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-blur: xl; }
+        .code-block { font-family: 'Fira Code', monospace; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <!-- Header: 기술 사양 및 타이틀 -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Cyber Security Lab</span>
+                    <span class="text-slate-500 font-mono text-[10px]">SE-SNORT-2026 | Network Security</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
+                    Snort 보안 전문가 과정<br><span class="text-slate-100 text-2xl">침입 탐지 시스템(IDS) 및 방어 체계 구축 실무</span>
+                </h1>
+            </div>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-blue-500/10 text-blue-400 border border-blue-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    COURSE LEVEL: ADVANCED
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">System Architect Pro</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-24">
+
+        <!-- Section 1: 아키텍처 개요 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                1. 학습 로드맵 개요 (Curriculum Roadmap)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-10 leading-relaxed">
+                    본 과정은 오픈 소스 기반의 강력한 침입 탐지 및 방어 시스템인 **Snort 3.0**을 중심으로, 네트워크 패킷의 심층 분석(Deep Packet Inspection)과 정교한 룰(Rule) 작성을 통해 고도화된 보안 위협을 탐지하고 차단하는 전문가 육성을 목표로 합니다.
+                </p>
+
+                <!-- 도식화 인포그래픽 영역 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner">
+                    <h4 class="text-center font-bold text-slate-400 mb-8 text-xs tracking-widest uppercase">
+                        [도식: Snort 전문가 역량 강화 프로세스]
+                    </h4>
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                        <!-- Component A -->
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-cyan-900/50 shadow-lg">
+                            <i data-lucide="shield-check" class="w-12 h-12 text-cyan-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">환경 구축 및 최적화<br>(Environment Setup)</div>
+                        </div>
+                        <!-- Arrow -->
+                        <div class="flex flex-col items-center">
+                            <i data-lucide="arrow-right" class="w-8 h-8 text-slate-600 rotate-90 md:rotate-0"></i>
+                        </div>
+                        <!-- Component B -->
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-blue-900/50 shadow-lg">
+                            <i data-lucide="code" class="w-12 h-12 text-blue-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">정교한 룰 설계<br>(Advanced Rule Writing)</div>
+                        </div>
+                        <!-- Arrow -->
+                        <div class="flex flex-col items-center">
+                            <i data-lucide="arrow-right" class="w-8 h-8 text-slate-600 rotate-90 md:rotate-0"></i>
+                        </div>
+                        <!-- Component C -->
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-indigo-900/50 shadow-lg">
+                            <i data-lucide="activity" class="w-12 h-12 text-indigo-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">로그 통합 및 관제<br>(Log & SIEM Analysis)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: 핵심 모듈 구성 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                2. 주요 모듈 및 실습 환경 (Core Modules)
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="section-card rounded-3xl p-8 border-cyan-900/30 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-cyan-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">MODULE 01-03</div>
+                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                        <i data-lucide="terminal" class="w-6 h-6 text-cyan-400"></i> 기초 및 인프라 구축
+                    </h3>
+                    <ul class="space-y-4 text-sm text-slate-300">
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-cyan-500"></i> IDS/IPS 이론 및 Snort 히스토리</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-cyan-500"></i> Snort 3.0 컴파일 및 설치 최적화</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-cyan-500"></i> DAQ(Data Acquisition, 데이터 획득) 라이브러리</li>
+                    </ul>
+                </div>
+                <div class="section-card rounded-3xl p-8 border-indigo-900/30 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">MODULE 04-06</div>
+                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                        <i data-lucide="server" class="w-6 h-6 text-indigo-400"></i> 탐지 메커니즘 및 분석
+                    </h3>
+                    <ul class="space-y-4 text-sm text-slate-300">
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-indigo-500"></i> 고급 룰 작성 기술 (Advanced Rule)</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-indigo-500"></i> 전처리기(Preprocessor) 상세 설정</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-indigo-500"></i> SIEM 연동 및 위협 헌팅 (Threat Hunting)</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: 상세 커리큘럼 절차 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                3. 상세 교육 과정 (Detailed Implementation)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-12">
+                
+                <!-- Step 01 -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black italic">STEP 01</span>
+                        <h3 class="text-xl font-bold text-slate-100">네트워크 보안 기초 및 Snort 아키텍처</h3>
+                    </div>
+                    <div class="pl-12">
+                        <p class="text-sm text-slate-400 mb-4">침입 탐지 시스템의 동작 원리와 Snort의 내부 구조를 파악합니다.</p>
+                        <ul class="list-disc pl-5 text-sm text-slate-300 space-y-2">
+                            <li>오픈 소스 IDS/IPS 시장의 흐름과 Snort 2.x vs 3.x 차이점</li>
+                            <li>Snort의 핵심 4단계 아키텍처 분석: Packet Sniffer → Preprocessor → Detection Engine → Alerting</li>
+                            <li>실습: Kali Linux 환경에서 Snort 기본 모드(Sniffer, Logger) 실행</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Step 02 -->
+                <div class="space-y-4 border-t border-slate-800 pt-8">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black italic">STEP 02</span>
+                        <h3 class="text-xl font-bold text-slate-100">Snort 룰(Rule) 마스터링</h3>
+                    </div>
+                    <div class="pl-12">
+                        <p class="text-sm text-slate-400 mb-4">사용자 정의 룰을 통해 특정 공격 패턴을 탐지하는 기법을 습득합니다.</p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative mb-4">
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">Rule Example</div>
+                            <div class="text-slate-200">alert tcp $EXTERNAL_NET any -> $HTTP_SERVERS 80 (<br>
+                                &nbsp;&nbsp;msg:"EXPLOIT Web Shell Upload Attempt";<br>
+                                &nbsp;&nbsp;content:"/var/www/html/shell.php"; nocase; sid:1000001; rev:1;)</div>
+                        </div>
+                        <ul class="list-disc pl-5 text-sm text-slate-300 space-y-2">
+                            <li>Rule Header 및 Rule Options(General, Payload, Non-Payload) 구조</li>
+                            <li>정규표현식(PCRE)을 이용한 정교한 페이로드 매칭 기술</li>
+                            <li>Sticky Buffers 및 HTTP 서비스별 특화된 키워드 활용법</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Step 03 -->
+                <div class="space-y-4 border-t border-slate-800 pt-8">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black italic">STEP 03</span>
+                        <h3 class="text-xl font-bold text-slate-100">전처리기 및 플러그인 고도화</h3>
+                    </div>
+                    <div class="pl-12">
+                        <p class="text-sm text-slate-400 mb-4">단순 패턴 매칭을 넘어선 이상 징후 탐지 기법을 학습합니다.</p>
+                        <ul class="list-disc pl-5 text-sm text-slate-300 space-y-2">
+                            <li>Frag3(IP Defragmentation, IP 파편화 재조합) 및 Stream6(TCP Stream Reassembly) 설정</li>
+                            <li>Portscan 및 App-ID(애플리케이션 식별) 탐지 엔진 활용</li>
+                            <li>Snort 3.0 전용 루아(Lua) 설정 파일을 통한 유연한 인프라 관리</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Step 04 -->
+                <div class="space-y-4 border-t border-slate-800 pt-8">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black italic">STEP 04</span>
+                        <h3 class="text-xl font-bold text-slate-100">관제 인프라 구축 및 실무 분석</h3>
+                    </div>
+                    <div class="pl-12">
+                        <p class="text-sm text-slate-400 mb-4">탐지된 이벤트를 통합 관리하고 대응하는 실무 프로세스를 구축합니다.</p>
+                        <ul class="list-disc pl-5 text-sm text-slate-300 space-y-2">
+                            <li>Barnyard2 또는 Splunk를 활용한 로그 데이터베이스(Unified2) 처리</li>
+                            <li>ELK Stack(Elasticsearch, Logstash, Kibana) 기반의 보안 대시보드 구축</li>
+                            <li>실무 프로젝트: 대규모 DDoS 공격 및 웹 취약점 공격 탐지 실전 시나리오</li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Section 4: 전문가 분석 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                4. 아키텍트 인사이트 (Expert Insight)
+            </h2>
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-10">
+                <div class="flex flex-col md:flex-row gap-8">
+                    <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                        <div class="text-cyan-400 mb-4"><i data-lucide="lightbulb" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2">성능 최적화 팁</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            운영 환경에서는 과도한 룰 사용이 성능 저하(Packet Drop)를 유발할 수 있습니다. `fast_pattern` 옵션을 통해 검색 효율을 높이고, 불필요한 HTTP 전처리기 호출을 최소화하는 전략이 필수적입니다.
+                        </p>
+                    </div>
+                    <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                        <div class="text-red-400 mb-4"><i data-lucide="shield-alert" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2">오탐(False Positive) 관리</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            정상적인 비즈니스 트래픽이 공격으로 탐지되지 않도록 `threshold` 및 `suppress` 설정을 정밀하게 조정해야 합니다. 정기적인 룰 튜닝(Tuning)은 보안 운영자의 핵심 역량입니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+            © 2026 Cyber Security Education. All rights reserved.
+        </div>
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic">
+            본 교육 과정의 모든 내용은 최신 Snort 3.0 공식 문서를 기준으로 작성되었습니다. 실습 시 타인의 시스템에 대한 공격 시도는 법적 책임을 물을 수 있습니다.
+        </p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
