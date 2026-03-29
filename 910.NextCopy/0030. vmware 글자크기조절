@@ -1,0 +1,28 @@
+1. 설정 도구 실행
+터미널에서 아래 명령어를 입력합니다.
+
+Bash
+sudo dpkg-reconfigure console-setup
+2. 설정 단계 진행
+UTF-8: 기본값인 UTF-8을 선택합니다.
+
+Combined - Latin; Slavic Cyrillic; Greek: 기본값(Guess optimal character set)을 선택합니다.
+
+Font: Terminus 혹은 TerminusBold를 선택합니다(가독성이 매우 뛰어납니다).
+
+Size: 16x32 또는 12x24 중 본인의 화면에 적합한 큰 크기를 선택합니다.
+
+3. 부팅 시 해상도 고정 (Grub 설정)
+설정 후에도 해상도가 작게 유지된다면, 부팅 시 로드되는 해상도를 직접 지정할 수 있습니다.
+
+파일 열기: sudo vi /etc/default/grub
+
+GRUB_GFXPAYLOAD_LINUX 항목을 찾아 주석(#)을 해제하고 다음과 같이 수정합니다.
+
+Bash
+GRUB_GFXPAYLOAD_LINUX=1024x768
+설정 적용 및 재부팅:
+
+Bash
+sudo update-grub
+sudo reboot
