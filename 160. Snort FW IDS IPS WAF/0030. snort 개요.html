@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3강: 네트워크 보안 기초 및 Snort 아키텍처</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+        }
+        .terminal-bg { background-color: #0b1120; border: 1px solid #1e293b; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-blur: xl; }
+        .code-block { font-family: 'Fira Code', monospace; }
+        .note-box { border-left: 4px solid #0ea5e9; background: rgba(14, 165, 233, 0.1); padding: 1.5rem; border-radius: 0.5rem; }
+        .output-box { background-color: #000; color: #adbac7; font-family: 'Fira Code', monospace; font-size: 0.8rem; line-height: 1.4; }
+        .param-detail { border-bottom: 1px dashed #334155; padding: 4px 0; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <!-- Header -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm">Cyber Security Lab</span>
+                    <span class="text-slate-500 font-mono text-[10px]">MODULE 03 | Fundamentals & Architecture</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
+                    3강. 네트워크 보안 기초 및 Snort 아키텍처
+                </h1>
+            </div>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    PROFESSIONAL COURSE
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">System Architect Pro</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-32">
+
+        <!-- 1. 네트워크 보안과 IDS 이해 -->
+        <section>
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-6 text-slate-100 mb-10 tracking-tight">
+                1. 네트워크 보안과 침입 탐지 시스템(IDS)의 이해
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-8">
+                <p class="text-slate-300 text-lg leading-relaxed">
+                    네트워크 보안의 핵심은 외부 또는 내부의 비정상적인 활동을 실시간으로 감지하고 대응하는 것입니다. 이를 위해 가장 중추적인 역할을 하는 솔루션이 **IDS (Intrusion Detection System, 침입 탐지 시스템)**와 **IPS (Intrusion Prevention System, 침입 방지 시스템)**입니다.
+                </p>
+
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 mb-10 shadow-inner">
+                    <h4 class="text-center font-bold text-slate-400 mb-8 text-xs tracking-widest uppercase">[도식: 보안 시스템 분류(Security System Classification)]</h4>
+                    <div class="flex flex-col md:flex-row items-center justify-center gap-8">
+                        <div class="w-full md:w-64 text-center p-6 bg-slate-800 rounded-xl border border-cyan-900/50 shadow-lg">
+                            <i data-lucide="shield" class=\"w-10 h-10 text-cyan-400 mx-auto mb-4\"></i>
+                            <div class="font-black text-slate-100 text-sm">NIDS</div>
+                            <p class="text-[10px] text-slate-500 mt-2">Network-based (네트워크 기반)</p>
+                        </div>
+                        <i data-lucide="plus" class="text-slate-700 w-6 h-6"></i>
+                        <div class="w-full md:w-64 text-center p-6 bg-slate-800 rounded-xl border border-blue-900/50 shadow-lg">
+                            <i data-lucide="server" class="w-10 h-10 text-blue-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">HIDS</div>
+                            <p class="text-[10px] text-slate-500 mt-2">Host-based (호스트 기반)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="p-6 bg-slate-800/30 rounded-2xl border border-slate-700">
+                        <h3 class="font-bold text-slate-100 mb-3 flex items-center gap-2">
+                            <i data-lucide="network" class="w-5 h-5 text-cyan-500"></i> NIDS
+                        </h3>
+                        <p class="text-sm text-slate-400">네트워크 세그먼트 전체의 트래픽을 모니터링하며, 패킷의 헤더와 페이로드를 분석합니다.</p>
+                    </div>
+                    <div class="p-6 bg-slate-800/30 rounded-2xl border border-slate-700">
+                        <h3 class="font-bold text-slate-100 mb-3 flex items-center gap-2">
+                            <i data-lucide="monitor" class="w-5 h-5 text-indigo-500"></i> HIDS
+                        </h3>
+                        <p class="text-sm text-slate-400">개별 서버나 워크스테이션에 설치되어 시스템 호출, 로그 파일, 파일 시스템의 변경 사항을 감시합니다.</p>
+                    </div>
+                </div>
+
+                <div class="note-box">
+                    <h4 class="font-bold text-cyan-400 mb-2 flex items-center gap-2">
+                        <i data-lucide="info" class="w-4 h-4"></i> 주석: 패킷 페이로드 (Packet Payload)
+                    </h4>
+                    <p class="text-sm text-slate-300 italic">
+                        네트워크를 통해 전송되는 데이터 패킷에서 헤더 정보를 제외한 실제 전송 데이터를 의미합니다. 공격자는 주로 이 페이로드에 악성 코드를 삽입합니다.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. 탐지 방법론 -->
+        <section>
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-6 text-slate-100 mb-10 tracking-tight">
+                2. 탐지 방법론: 시그니처 기반 vs 이상 탐지
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-12">
+                <p class="text-slate-300 text-lg">보안 관제에서 가장 중요한 것은 '어떻게 공격을 정의하느냐'입니다. Snort를 포함한 대부분의 IDS는 다음 두 가지 방식을 혼합하여 사용합니다.</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div class="flex flex-col bg-slate-900/60 rounded-2xl border border-cyan-900/30 overflow-hidden">
+                        <div class="bg-cyan-900/20 p-6 border-b border-cyan-900/30">
+                            <h4 class="font-black text-cyan-400">시그니처 기반 탐지 (Knowledge-based Detection)</h4>
+                        </div>
+                        <div class="p-8 space-y-4">
+                            <p class="text-sm text-slate-300">기존에 알려진 공격 패턴(Signature)을 데이터베이스화하여 유입되는 트래픽과 비교하는 방식입니다.</p>
+                            <ul class="text-xs space-y-2">
+                                <li class="flex items-center gap-2 text-green-400"><i data-lucide="check-circle" class="w-3 h-3"></i> 장점: 오탐률(False Positive)이 매우 낮음</li>
+                                <li class="flex items-center gap-2 text-red-400"><i data-lucide="x-circle" class="w-3 h-3"></i> 단점: Zero-day Attack(제로 데이 공격)에 취약</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="flex flex-col bg-slate-900/60 rounded-2xl border border-indigo-900/30 overflow-hidden">
+                        <div class="bg-indigo-900/20 p-6 border-b border-indigo-900/30">
+                            <h4 class="font-black text-indigo-400">이상 탐지 (Behavior-based Detection)</h4>
+                        </div>
+                        <div class="p-8 space-y-4">
+                            <p class="text-sm text-slate-300">정상적인 네트워크의 상태를 학습(Baseline)한 후, 이를 벗어나는 과도한 트래픽이나 비정상적인 연결 시도를 탐지하는 방식입니다.</p>
+                            <ul class="text-xs space-y-2">
+                                <li class="flex items-center gap-2 text-green-400"><i data-lucide="check-circle" class="w-3 h-3"></i> 장점: 새로운 유형의 공격 탐지 가능성</li>
+                                <li class="flex items-center gap-2 text-red-400"><i data-lucide="x-circle" class="w-3 h-3"></i> 단점: 정상 활동 오인으로 오탐률이 높음</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. 오픈 소스 시장 흐름 -->
+        <section>
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-6 text-slate-100 mb-10 tracking-tight">
+                3. 오픈 소스 IDS/IPS 시장의 흐름
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl overflow-hidden">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-slate-700 bg-slate-800/30">
+                            <th class="py-4 px-6 text-cyan-400 font-black uppercase text-xs tracking-widest">솔루션 명칭</th>
+                            <th class="py-4 px-6 text-cyan-400 font-black uppercase text-xs tracking-widest">주요 특징</th>
+                            <th class="py-4 px-6 text-cyan-400 font-black uppercase text-xs tracking-widest">운영 주체</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-slate-300 text-sm">
+                        <tr class="border-b border-slate-800 hover:bg-slate-800/20 transition-colors">
+                            <td class="py-6 px-6 font-bold text-slate-100">Snort (스노트)</td>
+                            <td class="py-6 px-6">사실상의 표준(De Facto Standard), 방대한 시그니처 보유</td>
+                            <td class="py-6 px-6">Cisco (시스코)</td>
+                        </tr>
+                        <tr class="border-b border-slate-800 hover:bg-slate-800/20 transition-colors">
+                            <td class="py-6 px-6 font-bold text-slate-100">Suricata (수리카타)</td>
+                            <td class="py-6 px-6">멀티스레딩 지원, 고속 네트워크 환경 최적화</td>
+                            <td class="py-6 px-6">OISF</td>
+                        </tr>
+                        <tr class="hover:bg-slate-800/20 transition-colors">
+                            <td class="py-6 px-6 font-bold text-slate-100">Zeek (지크, 구 Bro)</td>
+                            <td class="py-6 px-6">네트워크 트래픽 분석 및 로깅에 특화된 프레임워크</td>
+                            <td class="py-6 px-6">Corelight</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="mt-8 bg-blue-500/10 p-6 rounded-xl border border-blue-500/20 shadow-inner">
+                    <h4 class="font-bold text-blue-400 mb-2">Snort의 위상</h4>
+                    <p class="text-sm text-slate-400 leading-relaxed">
+                        Snort는 1998년 마틴 로슈(Martin Roesch)에 의해 개발된 이후, 전 세계에서 가장 널리 사용되는 침입 탐지 및 방지 시스템입니다. 단순한 패킷 스니퍼에서 시작하여 현재는 복잡한 차세대 방화벽의 핵심 엔진으로 활용되고 있습니다.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. Snort 2.x vs 3.x -->
+        <section>
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-6 text-slate-100 mb-10 tracking-tight">
+                4. Snort 2.x vs Snort 3.x 비교 분석
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                    <div class="space-y-6">
+                        <p class="text-slate-300">최근 Snort는 아키텍처의 근본적인 변화를 겪으며 **Snort 3.0(Snort++)**으로 진화했습니다. 이는 현대의 고속 네트워크 환경에 대응하기 위한 필수적인 변화입니다.</p>
+                        <div class="note-box bg-purple-500/5 border-purple-500/30">
+                            <h4 class="font-bold text-purple-400 mb-1">주석: Lua (루아)</h4>
+                            <p class="text-xs text-slate-400">가볍고 확장성이 뛰어난 스크립트 언어로, Snort 3에서는 설정의 유연성을 높이기 위해 채택되었습니다.</p>
+                        </div>
+                    </div>
+                    <div class="bg-slate-900 p-8 rounded-2xl border border-slate-700 shadow-inner">
+                        <h5 class="text-xs font-black text-slate-500 mb-6 uppercase tracking-widest">[주요 차이점 요약(Key Differences)]</h5>
+                        <div class="space-y-4">
+                            <div class="flex justify-between border-b border-slate-800 pb-2">
+                                <span class="text-xs font-bold text-slate-400">Architecture (아키텍처)</span>
+                                <div class="flex gap-4 text-[10px] font-mono">
+                                    <span class="text-slate-500">2.x: Single-thread</span>
+                                    <span class="text-cyan-400">3.x: Multi-thread</span>
+                                </div>
+                            </div>
+                            <div class="flex justify-between border-b border-slate-800 pb-2">
+                                <span class="text-xs font-bold text-slate-400">Configuration (설정 방식)</span>
+                                <div class="flex gap-4 text-[10px] font-mono">
+                                    <span class="text-slate-500">snort.conf</span>
+                                    <span class="text-cyan-400">snort.lua</span>
+                                </div>
+                            </div>
+                            <div class="flex justify-between border-b border-slate-800 pb-2">
+                                <span class="text-xs font-bold text-slate-400">Rule Loading (규칙 로딩)</span>
+                                <div class="flex gap-4 text-[10px] font-mono">
+                                    <span class="text-slate-500">Slow (Text)</span>
+                                    <span class="text-cyan-400">Fast (Shared Memory)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5-8. Snort 핵심 4단계 아키텍처 -->
+        <section>
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-6 text-slate-100 mb-10 tracking-tight">
+                5-8. Snort 핵심 4단계 아키텍처 (The 4-Layer Architecture)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                
+                <!-- Pipeline Diagram -->
+                <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-20 relative">
+                    <div class="z-10 w-full md:w-48 text-center p-6 bg-slate-800 rounded-2xl border border-cyan-500/50 shadow-lg">
+                        <i data-lucide="scan-eye" class="w-10 h-10 text-cyan-400 mx-auto mb-4"></i>
+                        <h5 class="font-black text-slate-100 text-sm">01. Sniffer</h5>
+                    </div>
+                    <i data-lucide="chevrons-right" class="hidden md:block w-6 h-6 text-slate-700"></i>
+                    <div class="z-10 w-full md:w-48 text-center p-6 bg-slate-800 rounded-2xl border border-blue-500/50 shadow-lg">
+                        <i data-lucide="filter" class="w-10 h-10 text-blue-400 mx-auto mb-4"></i>
+                        <h5 class="font-black text-slate-100 text-sm">02. Preprocessor</h5>
+                    </div>
+                    <i data-lucide="chevrons-right" class="hidden md:block w-6 h-6 text-slate-700"></i>
+                    <div class="z-10 w-full md:w-48 text-center p-6 bg-slate-800 rounded-2xl border border-indigo-500/50 shadow-lg">
+                        <i data-lucide="shield-search" class="w-10 h-10 text-indigo-400 mx-auto mb-4"></i>
+                        <h5 class="font-black text-slate-100 text-sm">03. Detection</h5>
+                    </div>
+                    <i data-lucide="chevrons-right" class="hidden md:block w-6 h-6 text-slate-700"></i>
+                    <div class="z-10 w-full md:w-48 text-center p-6 bg-slate-800 rounded-2xl border border-pink-500/50 shadow-lg">
+                        <i data-lucide="megaphone" class="w-10 h-10 text-pink-400 mx-auto mb-4"></i>
+                        <h5 class="font-black text-slate-100 text-sm">04. Alerting</h5>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div class="space-y-6">
+                        <div class="p-6 bg-slate-800/40 rounded-xl border border-slate-700">
+                            <h4 class="font-bold text-cyan-400 mb-2">01. Packet Sniffer (패킷 스니퍼)</h4>
+                            <p class="text-xs text-slate-400">네트워크 인터페이스(NIC, Network Interface Card)를 Promiscuous Mode (무차별 모드)로 설정하여 패킷을 가로챕니다. DAQ (Data Acquisition Library, 데이터 수집 라이브러리)를 사용하여 로우 레벨 패킷을 수집합니다.</p>
+                        </div>
+                        <div class="p-6 bg-slate-800/40 rounded-xl border border-slate-700">
+                            <h4 class="font-bold text-blue-400 mb-2">02. Preprocessor (전처리기)</h4>
+                            <p class="text-xs text-slate-400">IP Defragmentation (IP 파편화 재조합), TCP Stream Reassembly (TCP 스트림 재구성) 등을 통해 공격의 우회를 차단하고 데이터를 Normalization (정규화)합니다.</p>
+                        </div>
+                    </div>
+                    <div class="space-y-6">
+                        <div class="p-6 bg-slate-800/40 rounded-xl border border-slate-700">
+                            <h4 class="font-bold text-indigo-400 mb-2">03. Detection Engine (탐지 엔진)</h4>
+                            <p class="text-xs text-slate-400">스노트의 심장부로 Snort Rules(스노트 규칙)와 패킷 데이터를 대조합니다. 애플리케이션 계층(L7) 분석이 가능합니다.</p>
+                        </div>
+                        <div class="p-6 bg-slate-800/40 rounded-xl border border-slate-700">
+                            <h4 class="font-bold text-pink-400 mb-2">04. Alerting/Logging (경고 및 로그)</h4>
+                            <p class="text-xs text-slate-400">탐지 결과를 Unified2 바이너리 포맷이나 데이터베이스(MySQL, Syslog)에 기록하고 사용자에게 Alert (경고)를 전달합니다.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8 note-box bg-cyan-900/10 border-cyan-500/30">
+                    <h4 class="font-bold text-cyan-400 mb-2 flex items-center gap-2"><i data-lucide="info" class="w-4 h-4"></i> 주석: 정규화 (Normalization)</h4>
+                    <p class="text-xs text-slate-300">다양한 형태로 변형된 데이터를 일관된 형식으로 변환하여 분석의 정확도를 높이는 과정입니다.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 9. 설치 환경 준비 -->
+        <section>
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-6 text-slate-100 mb-10 tracking-tight">
+                9. 실습 환경 준비: Kali Linux에서 Snort 설치
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-8">
+                <p class="text-slate-300">실습은 침투 테스트 및 보안 분석 전문 배포판인 **Kali Linux (칼리 리눅스)** 환경에서 진행합니다.</p>
+                
+                <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner">
+                    <div class="text-slate-500 mb-2"># 패키지 목록 업데이트 및 Snort 설치(Update & Install)</div>
+                    <div class="text-slate-200 mb-2">$ sudo apt-get update</div>
+                    <div class="text-slate-200 mb-4">$ sudo apt-get install snort -y</div>
+                    
+                    <div class="text-slate-500 mb-2"># 설치 버전 확인(Version Check)</div>
+                    <div class="text-slate-200">$ snort -V</div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+                    <div class="p-4 bg-slate-800/40 rounded-xl border border-slate-700">
+                        <span class="text-[10px] text-cyan-500 font-black block mb-2">CONFIG (설정)</span>
+                        <code class="text-xs text-slate-300">/etc/snort</code>
+                    </div>
+                    <div class="p-4 bg-slate-800/40 rounded-xl border border-slate-700">
+                        <span class="text-[10px] text-blue-500 font-black block mb-2">LOG (로그)</span>
+                        <code class="text-xs text-slate-300">/var/log/snort</code>
+                    </div>
+                    <div class="p-4 bg-slate-800/40 rounded-xl border border-slate-700">
+                        <span class="text-[10px] text-indigo-500 font-black block mb-2">BINARY (실행파일)</span>
+                        <code class="text-xs text-slate-300">/usr/sbin/snort</code>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 10. 실습: Snort 기본 모드 실행 -->
+        <section>
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-6 text-slate-100 mb-10 tracking-tight">
+                10. 실습: Snort 기본 모드 실행 (Sniffer & Logger)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-24">
+                
+                <!-- 1단계: Sniffer Mode -->
+                <div class="space-y-10">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-10 h-10 rounded-full flex items-center justify-center text-lg font-black italic">01</span>
+                        <h3 class="text-2xl font-bold text-slate-100">Sniffer Mode (스니퍼 모드)</h3>
+                    </div>
+                    
+                    <div class="pl-14 space-y-12">
+                        <p class="text-slate-300 leading-relaxed">네트워크 인터페이스를 통과하는 트래픽을 실시간으로 화면(Console)에 출력합니다. 다음은 페이로드까지 확인하는 가장 대표적인 실행 예제입니다.</p>
+                        
+                        <!-- Command -->
+                        <div class="terminal-bg p-8 rounded-2xl border border-cyan-900/50 shadow-lg relative overflow-hidden">
+                            <div class="absolute top-0 right-0 bg-cyan-500/20 px-4 py-1 text-[10px] font-black text-cyan-400 uppercase">Command Prompt</div>
+                            <div class="text-slate-400 font-mono text-sm mb-2"># 페이로드 데이터까지 포함하여 실시간 출력</div>
+                            <div class="text-2xl font-mono text-slate-100 tracking-tight">$ <span class="text-cyan-400">snort -vd</span></div>
+                        </div>
+
+                        <!-- Output Example -->
+                        <div class="space-y-4">
+                            <h4 class="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                                <i data-lucide="terminal" class="w-4 h-4"></i> 터미널 출력 예시 (Execution Output)
+                            </h4>
+                            <div class="output-box p-8 rounded-2xl border border-slate-800 shadow-2xl">
+                                <div class="text-slate-400 mb-2">03/30-07:35:10.123456 <span class="text-cyan-400">192.168.1.10:443</span> -> <span class="text-indigo-400">192.168.1.100:54321</span></div>
+                                <div class="mb-2">TCP TTL:64 TOS:0x0 ID:1234 IpLen:20 DgmLen:1500 DF</div>
+                                <div class="mb-4">***A**** Seq: 0x12345678  Ack: 0x87654321  Win: 0xFFAF  TcpLen: 32</div>
+                                <div class="text-slate-700 border-t border-slate-900 pt-4 mb-2">Payload (HEX & ASCII):</div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="text-cyan-600">47 45 54 20 2f 20 48 54 54 50 2f 31 2e 31</div>
+                                    <div class="text-cyan-300 font-bold">GET / HTTP/1.1</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Word Detail Explanation -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4 mt-8">
+                            <div class="param-detail flex justify-between">
+                                <span class="text-cyan-400 font-mono font-bold">-v (Verbose)</span>
+                                <span class="text-xs text-slate-400 text-right">상세 정보 모드. 패킷의 TCP/IP 헤더를 화면에 출력합니다.</span>
+                            </div>
+                            <div class="param-detail flex justify-between">
+                                <span class="text-cyan-400 font-mono font-bold">-d (Dump)</span>
+                                <span class="text-xs text-slate-400 text-right">데이터 덤프. 페이로드(Application Layer) 내용을 보여줍니다.</span>
+                            </div>
+                            <div class="param-detail flex justify-between">
+                                <span class="text-slate-100 font-mono text-[11px]">03/30-07:35:10</span>
+                                <span class="text-xs text-slate-400 text-right">패킷이 탐지된 날짜(월/일)와 시간(시:분:초)입니다.</span>
+                            </div>
+                            <div class="param-detail flex justify-between">
+                                <span class="text-slate-100 font-mono text-[11px]">TTL (Time to Live)</span>
+                                <span class="text-xs text-slate-400 text-right">패킷이 네트워크에서 생존할 수 있는 홉(Hop) 수입니다.</span>
+                            </div>
+                            <div class="param-detail flex justify-between">
+                                <span class="text-slate-100 font-mono text-[11px]">DF (Don't Fragment)</span>
+                                <span class="text-xs text-slate-400 text-right">패킷을 더 이상 쪼개지 말라는 설정 플래그입니다.</span>
+                            </div>
+                            <div class="param-detail flex justify-between">
+                                <span class="text-slate-100 font-mono text-[11px]">Win (Window Size)</span>
+                                <span class="text-xs text-slate-400 text-right">한 번에 받을 수 있는 데이터의 양을 나타냅니다.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2단계: Logger Mode -->
+                <div class="space-y-10 border-t border-slate-800 pt-20">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-10 h-10 rounded-full flex items-center justify-center text-lg font-black italic">02</span>
+                        <h3 class="text-2xl font-bold text-slate-100">Logger Mode (로거 모드)</h3>
+                    </div>
+                    
+                    <div class="pl-14 space-y-12">
+                        <p class="text-slate-300 leading-relaxed">화면 출력을 넘어, 사후 분석을 위해 수집된 패킷을 디스크에 저장하는 모드입니다. <code class="text-cyan-400">-l</code> 옵션으로 경로를 지정합니다.</p>
+                        
+                        <div class="terminal-bg p-8 rounded-2xl border border-blue-900/50 shadow-lg relative overflow-hidden">
+                            <div class="absolute top-0 right-0 bg-blue-500/20 px-4 py-1 text-[10px] font-black text-blue-400 uppercase">Command Prompt</div>
+                            <div class="text-slate-400 font-mono text-sm mb-2"># 모든 정보(-dev)를 포함하여 ./log 디렉토리에 저장</div>
+                            <div class="text-2xl font-mono text-slate-100 tracking-tight">$ <span class="text-cyan-400">snort -dev -l ./log</span></div>
+                        </div>
+
+                        <!-- Detail Explanation -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
+                            <div class="param-detail flex justify-between">
+                                <span class="text-cyan-400 font-mono font-bold">-e (Ethernet)</span>
+                                <span class="text-xs text-slate-400 text-right">L2 헤더 정보(MAC 주소 등)까지 포함하여 기록합니다.</span>
+                            </div>
+                            <div class="param-detail flex justify-between">
+                                <span class="text-cyan-400 font-mono font-bold">-l [dir] (Log)</span>
+                                <span class="text-xs text-slate-400 text-right">로그 파일이 저장될 '폴더 경로'를 지정합니다.</span>
+                            </div>
+                        </div>
+
+                        <div class="note-box bg-blue-500/5 border-blue-500/20">
+                            <h4 class="font-bold text-blue-400 mb-2 flex items-center gap-2">
+                                <i data-lucide="folder-tree" class="w-4 h-4"></i> 생성되는 로그 파일 구조
+                            </h4>
+                            <div class="text-xs font-mono text-slate-400 space-y-1">
+                                <div>./log/</div>
+                                <div>├── <span class="text-slate-100">snort.log.1712345678</span> (바이너리 패킷 데이터)</div>
+                                <div>└── <span class="text-slate-100">alert</span> (텍스트 형태의 경고 메시지 요약)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3단계: Reading Mode -->
+                <div class="space-y-10 border-t border-slate-800 pt-20">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-10 h-10 rounded-full flex items-center justify-center text-lg font-black italic">03</span>
+                        <h3 class="text-2xl font-bold text-slate-100">로그 확인 및 리딩 모드 (Reading Mode)</h3>
+                    </div>
+                    
+                    <div class="pl-14 space-y-12">
+                        <p class="text-slate-300 leading-relaxed">바이너리(Binary) 형식으로 저장된 로그는 일반 텍스트 편집기(vi, cat)로 읽을 수 없습니다. Snort 엔진을 통해 다시 해석해야 합니다.</p>
+                        
+                        <div class="terminal-bg p-8 rounded-2xl border border-indigo-900/50 shadow-lg relative overflow-hidden">
+                            <div class="absolute top-0 right-0 bg-indigo-500/20 px-4 py-1 text-[10px] font-black text-indigo-400 uppercase">Command Prompt</div>
+                            <div class="text-slate-400 font-mono text-sm mb-2"># 저장된 로그 파일을 읽어 들여 분석 결과 출력</div>
+                            <div class="text-2xl font-mono text-slate-100 tracking-tight">$ <span class="text-cyan-400">snort -r ./log/snort.log.1712345678</span></div>
+                        </div>
+
+                        <!-- Output Analysis Example -->
+                        <div class="space-y-4">
+                            <h4 class="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                                <i data-lucide="pie-chart" class="w-4 h-4"></i> 분석 결과 요약 (Packet Statistics)
+                            </h4>
+                            <div class="output-box p-8 rounded-2xl border border-slate-800 shadow-2xl">
+                                <div class="text-indigo-400 font-bold mb-4">Snort Packet Analyzer Summary:</div>
+                                <div class="grid grid-cols-2 gap-2 text-xs">
+                                    <div class="text-slate-500">Total Packets:</div><div class="text-slate-100">10,240</div>
+                                    <div class="text-slate-500">TCP Breakdown:</div><div class="text-slate-100">9,800 (95.7%)</div>
+                                    <div class="text-slate-500">UDP Breakdown:</div><div class="text-slate-100">400 (3.9%)</div>
+                                    <div class="text-slate-500">ICMP Breakdown:</div><div class="text-slate-100">40 (0.4%)</div>
+                                </div>
+                                <div class="mt-4 border-t border-slate-900 pt-4 text-[10px] text-slate-500 italic leading-relaxed">
+                                    * 위 통계는 -r 옵션 실행 종료 시 Snort가 자동으로 생성하는 패킷 분석 보고서입니다.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Param Explanations -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
+                            <div class="param-detail flex justify-between">
+                                <span class="text-cyan-400 font-mono font-bold">-r (Read)</span>
+                                <span class="text-xs text-slate-400 text-right">Tcpdump/Wireshark 형식의 바이너리 로그 파일을 읽어 들입니다.</span>
+                            </div>
+                            <div class="param-detail flex justify-between">
+                                <span class="text-slate-100 font-mono text-[11px]">snort.log.[timestamp]</span>
+                                <span class="text-xs text-slate-400 text-right">로그 파일 뒤의 숫자는 유닉스 타임스탬프(Unix Timestamp)입니다.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 11. 명령행 옵션 레퍼런스 표 -->
+        <section>
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-6 text-slate-100 mb-10 tracking-tight">
+                11. Snort 주요 명령행 옵션 요약 (Summary of Snort Command-line Options)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl overflow-hidden">
+                <p class="text-slate-300 mb-8">Snort의 동작 방식을 결정하는 주요 옵션들을 범주별로 정리한 요약 레퍼런스입니다.</p>
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-slate-700 bg-slate-800/30">
+                            <th class="py-4 px-6 text-cyan-400 font-black uppercase text-xs tracking-widest w-1/4">옵션 (Option)</th>
+                            <th class="py-4 px-6 text-cyan-400 font-black uppercase text-xs tracking-widest">설명 및 용도 (Description & Usage)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-slate-300 text-sm">
+                        <tr class="border-b border-slate-800 hover:bg-slate-800/20 transition-colors">
+                            <td class="py-4 px-6 font-mono text-cyan-400 font-bold">-v</td>
+                            <td class="py-4 px-6">**Verbose (상세 정보):** 패킷의 TCP/IP 헤더 정보를 표준 출력(화면)에 표시합니다.</td>
+                        </tr>
+                        <tr class="border-b border-slate-800 hover:bg-slate-800/20 transition-colors">
+                            <td class="py-4 px-6 font-mono text-cyan-400 font-bold">-d</td>
+                            <td class="py-4 px-6">**Dump (덤프):** 응용 계층의 데이터(페이로드)까지 포함하여 출력합니다.</td>
+                        </tr>
+                        <tr class="border-b border-slate-800 hover:bg-slate-800/20 transition-colors">
+                            <td class="py-4 px-6 font-mono text-cyan-400 font-bold">-e</td>
+                            <td class="py-4 px-6">**Ethernet (이더넷):** 데이터 링크 계층(Layer 2)의 헤더 정보를 함께 보여줍니다.</td>
+                        </tr>
+                        <tr class="border-b border-slate-800 hover:bg-slate-800/20 transition-colors">
+                            <td class="py-4 px-6 font-mono text-cyan-400 font-bold">-l [dir]</td>
+                            <td class="py-4 px-6">**Log (로그 디렉토리):** 패킷 데이터를 기록할 로그 디렉토리 경로를 지정합니다.</td>
+                        </tr>
+                        <tr class="border-b border-slate-800 hover:bg-slate-800/20 transition-colors">
+                            <td class="py-4 px-6 font-mono text-cyan-400 font-bold">-c [file]</td>
+                            <td class="py-4 px-6">**Config (설정 파일):** 특정 설정 파일(snort.conf)을 읽어 IDS 모드로 실행합니다.</td>
+                        </tr>
+                        <tr class="border-b border-slate-800 hover:bg-slate-800/20 transition-colors">
+                            <td class="py-4 px-6 font-mono text-cyan-400 font-bold">-r [file]</td>
+                            <td class="py-4 px-6">**Read (읽기):** 바이너리 포맷(tcpdump 형식)의 로그 파일을 읽어 분석합니다.</td>
+                        </tr>
+                        <tr class="border-b border-slate-800 hover:bg-slate-800/20 transition-colors">
+                            <td class="py-4 px-6 font-mono text-cyan-400 font-bold">-i [dev]</td>
+                            <td class="py-4 px-6">**Interface (인터페이스):** 감시할 네트워크 인터페이스(eth0 등)를 직접 지정합니다.</td>
+                        </tr>
+                        <tr class="border-b border-slate-800 hover:bg-slate-800/20 transition-colors">
+                            <td class="py-4 px-6 font-mono text-cyan-400 font-bold">-A [mode]</td>
+                            <td class="py-4 px-6">**Alert (경고 모드):** 경고 출력 방식(fast, full, none, console 등)을 설정합니다.</td>
+                        </tr>
+                        <tr class="border-b border-slate-800 hover:bg-slate-800/20 transition-colors">
+                            <td class="py-4 px-6 font-mono text-cyan-400 font-bold">-T</td>
+                            <td class="py-4 px-6">**Test (테스트):** 설정 파일의 문법적 오류 및 시스템 구성 요소의 자가 진단을 수행합니다.</td>
+                        </tr>
+                        <tr class="border-b border-slate-800 hover:bg-slate-800/20 transition-colors">
+                            <td class="py-4 px-6 font-mono text-cyan-400 font-bold">-q</td>
+                            <td class="py-4 px-6">**Quiet (정적 모드):** 실행 시 초기 배너 정보나 종료 시 통계 데이터를 출력하지 않습니다.</td>
+                        </tr>
+                        <tr class="hover:bg-slate-800/20 transition-colors">
+                            <td class="py-4 px-6 font-mono text-cyan-400 font-bold">-V</td>
+                            <td class="py-4 px-6">**Version (버전 확인):** 현재 설치된 Snort의 버전 및 엔진 정보를 확인합니다.</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="mt-8 note-box bg-slate-900/50 border-slate-700">
+                    <h4 class="font-bold text-slate-100 mb-2">실무 팁: 옵션 조합 활용</h4>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        대부분의 보안 전문가는 실시간 분석 시 **`snort -vde`** (헤더+데이터+L2 정보) 조합을 선호하며, 운영 환경에서 IDS 모드로 구동할 때는 **`snort -c /etc/snort/snort.conf -A fast -D`** (설정 파일 적용, 빠른 경고, 데몬 모드) 형태를 주로 사용합니다.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Final Notice -->
+        <section class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl">
+            <div class="flex items-center gap-3 mb-6">
+                <i data-lucide="shield-alert" class="text-red-400 w-10 h-10"></i>
+                <h2 class="text-2xl font-black text-slate-100 uppercase tracking-tighter">Security & Admin Notice</h2>
+            </div>
+            <p class="text-sm text-slate-300 leading-relaxed italic">
+                보안 공지: 실습 중 생성되는 로그 데이터는 시스템 자원을 소모할 수 있으므로, 주기적인 정리가 필요합니다. 
+                Unified2 포맷 사용 시 별도의 파서가 필요할 수 있음에 유의하십시오. 
+                (참조: <a href="https://www.snort.org/documents" class="text-cyan-400 underline" target="_blank">Snort Official Documentation v2.9.x</a> 및 Snort 3 User Manual)
+            </p>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+            © 2026 Cyber Security Expert Course. All rights reserved.
+        </div>
+        <p class="text-slate-600 text-[11px] font-bold">
+            Next Step: Snort Rule 설정 및 시그니처 기반 탐지 실습
+        </p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
