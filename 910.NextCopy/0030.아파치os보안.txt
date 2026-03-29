@@ -1,0 +1,27 @@
+## 아파치 보안설정
+
+## 심복릭 링크 비활성화
+cd /var/www/html  
+ln -s / sym.html
+크롬 접속  http://주소/sym.html  => 디렉토리 구조가 모두 표시됨, 보안 위협
+vi /etc/apache2/apache2.conf
+  Options Index # FollowSymLinks 삭제. 같은 줄 # 주석 처리 안됨. 완전 삭제 처리할 것.
+systemctl restart apache2
+  
+크롬 확인 => forbidden 처리 됨
+
+  -------------------------
+
+ 디렉토리 비활성화, 아파치 정보노출 차단
+
+vi /etc/apache2/apache2.conf
+  Options Indexes => Options None 수정
+   :
+## 마지막 줄 추가
+  ServerTokens Prod
+  ServerSignature Off  
+  
+systemctl restart apache2
+
+
+  
