@@ -1,0 +1,169 @@
+# 아파치(Apache) HTTPS 보안 강화 구축 실무 가이드 (2026 최신판)
+
+본 교재는 **Ubuntu 24.04/26.04 LTS** 환경에서 **Apache 2.4** 웹 서버에 **SSL/TLS (Secure Sockets Layer / Transport Layer Security, 보안 소켓 계층 / 전송 계층 보안)**를 적용하여 보안이 강화된 웹 서비스를 구축하는 전 과정을 다룹니다. 특히, **Private Key (개인키, 암호화 통신 해독용 비밀키)**를 **AES-256 (Advanced Encryption Standard 256-bit, 고급 암호화 표준 256비트)**으로 암호화하여 관리하는 실무 보안 아키텍처를 구현합니다.
+
+---
+
+## 1. 마스터 키(Master Key) 생성 및 AES-256 보안 적용
+
+HTTPS 구축의 가장 기초이자 핵심은 서버의 신원을 증명할 키 쌍을 생성하는 것입니다. 보안 사고에 대비하여 키 자체를 암호화하여 저장하는 **At-Rest (저장 시 암호화)** 전략을 최우선으로 시행합니다.
+
+### 1.1 보안 저장소 및 백업 디렉토리 구성
+```bash
+# 보안 저장소 및 백업용 디렉토리 생성
+sudo mkdir -p /etc/ssl/private /etc/ssl/backup /etc/ssl/archive
+sudo chmod 700 /etc/ssl/private /etc/ssl/backup /etc/ssl/archive
+```
+
+### 1.2 AES-256 암호화 기반 RSA 개인키 생성
+```bash
+# AES-256으로 보호된 2048비트 RSA 마스터 키 생성
+sudo openssl genrsa -aes256 -out /etc/ssl/private/server.key.master 2048
+```
+> **핵심 포인트:** 명령 실행 시 설정하는 **Passphrase (패스프라이즈, 통과 암호)**는 서버의 생명줄과 같습니다. 분실 시 복구가 불가능하므로 안전하게 관리해야 합니다.
+
+### 1.3 마스터 키(Master Key)의 즉각적인 백업
+```bash
+# 생성 직후 날짜별 백업본 생성
+sudo cp /etc/ssl/private/server.key.master /etc/ssl/backup/server.key.master.$(date +%Y%m%d).bak
+```
+
+
+
+---
+
+## 2. CSR (Certificate Signing Request) 생성 및 식별 정보 입력
+
+**CSR (Certificate Signing Request, 인증서 서명 요청서)**은 인증 기관에 제출할 '신분증 발급 신청서'입니다. 여기에는 서버의 **Public Key (공개키, 누구나 가질 수 있는 암호화용 키)**가 포함됩니다.
+
+### 2.1 CSR 생성 명령어 실행
+```bash
+# 마스터 키를 기반으로 신청서 작성
+sudo openssl req -new -key /etc/ssl/private/server.key.master -out /etc/ssl/archive/server.csr
+```
+
+### 2.2 상세 입력 항목 가이드
+| 항목 (Field Name) | 설명 (Description) | 입력 예시 |
+| :--- | :--- | :--- |
+| **Country Name** | 국가 코드 (ISO 표준 2글자) | **KR** (대한민국) |
+| **State or Province** | 시/도 (영문 전체 명칭) | **Gyeonggi-do** |
+| **Locality Name** | 구/군/시 (영문 명칭) | **Yongin-si** |
+| **Organization Name** | 회사 또는 단체명 | **Megastudy IT** |
+| **Organizational Unit** | 부서명 (생략 가능) | **Cloud Security Team** |
+| **Common Name (CN)** | **실제 접속 도메인 또는 IP** | **[www.example.com](https://www.example.com)** |
+| **Email Address** | 관리자 이메일 주소 | **admin@example.com** |
+
+> **주의 사항:** **Common Name (CN)**은 브라우저 접속 주소와 반드시 일치해야 합니다. 불일치 시 "안전하지 않은 사이트" 경고가 발생합니다.
+
+---
+
+## 3. 서비스 키(Service Key) 추출 및 권한 관리
+
+운영 효율성을 위해 마스터 키로부터 비밀번호가 제거된 **Service Key (서비스 키, 구동용 키)**를 추출합니다. 이 과정은 보안과 가용성의 균형을 맞추기 위한 실무적 선택입니다.
+
+### 3.1 비밀번호 제거 및 서비스 키 생성
+```bash
+# 마스터 키에서 비밀번호를 해제하여 서비스용 키로 저장
+sudo openssl rsa -in /etc/ssl/private/server.key.master -out /etc/ssl/private/server.key.service
+```
+
+### 3.2 보안 강화: 파일 접근 권한 최소화
+```bash
+# 루트(root) 사용자 외 접근 원천 차단
+sudo chown root:root /etc/ssl/private/server.key.service
+sudo chmod 400 /etc/ssl/private/server.key.service
+```
+
+
+
+---
+
+## 4. 인증서(CRT) 발급 및 전체 자산 아카이브
+
+최종 결과물인 **CRT (Certificate, 인증서)**를 발급하고 모든 보안 자산을 일괄 백업합니다.
+
+### 4.1 자가 서명 인증서(Self-Signed CRT) 발급
+```bash
+# 365일 유효한 테스트용 인증서 생성
+sudo openssl x509 -req -days 365 -in /etc/ssl/archive/server.csr \
+  -signkey /etc/ssl/private/server.key.master -out /etc/ssl/certs/server.crt
+```
+
+### 4.2 전체 자산 통합 백업 (Master Key, CSR, CRT)
+```bash
+# 모든 파일을 세트로 묶어 백업 디렉토리에 보관
+sudo cp /etc/ssl/certs/server.crt /etc/ssl/backup/ssl_archive_$(date +%Y%m%d).crt
+sudo cp /etc/ssl/archive/server.csr /etc/ssl/backup/ssl_archive_$(date +%Y%m%d).csr
+```
+
+---
+
+## 5. 아파치(Apache) 모듈 활성화 및 가상 호스트 설정
+
+이제 준비된 키와 인증서를 웹 서버에 적용합니다. 기존 **HTTP (HyperText Transfer Protocol, 하이퍼텍스트 전송 프로토콜)** 서비스에 지장을 주지 않도록 신중하게 진행합니다.
+
+### 5.1 보안 모듈 및 엔진 활성화
+```bash
+# SSL 엔진 및 보안 헤더 제어 모듈 로드
+sudo a2enmod ssl headers
+```
+
+### 5.2 가상 호스트(Virtual Host) 설정 수정
+`/etc/apache2/sites-available/default-ssl.conf` 파일을 열어 아래 경로를 수정합니다.
+
+```apache
+<IfModule mod_ssl.c>
+    <VirtualHost _default_:443>
+        ServerAdmin admin@example.com
+        DocumentRoot /var/www/html
+
+        # 인증서 및 서비스 키 경로 지정
+        SSLEngine on
+        SSLCertificateFile    /etc/ssl/certs/server.crt
+        SSLCertificateKeyFile /etc/ssl/private/server.key.service
+
+        # 보안 강화 프로토콜 설정 (TLS 1.2 미만 차단)
+        SSLProtocol             all -SSLv3 -TLSv1 -TLSv1.1
+        Header always set Strict-Transport-Security "max-age=63072000"
+    </VirtualHost>
+</IfModule>
+```
+
+---
+
+## 6. 무결성 검증 및 서비스 가동 (Safety-First)
+
+설정 오류로 인한 서비스 중단(Downtime)을 방지하기 위해 반드시 검증 과정을 거칩니다.
+
+### 6.1 설정 파일 문법 검사 (Syntax Check)
+```bash
+# 아파치를 재시작하기 전 설정의 이상 유무 확인
+sudo apache2ctl configtest
+```
+
+### 6.2 사이트 활성화 및 서비스 재시작
+```bash
+# 검증 완료 후 HTTPS 사이트 활성화 및 최종 적용
+sudo a2ensite default-ssl
+sudo systemctl restart apache2
+```
+
+
+
+---
+
+> **주석 (Footnote)**
+> * **RSA (Rivest-Shamir-Adleman):** 소인수분해의 난해함을 이용한 비대칭키 암호화 알고리즘입니다.
+> * **AES-256 (Advanced Encryption Standard 256-bit):** 현존하는 가장 강력한 대칭키 암호화 표준 중 하나입니다.
+> * **CSR (Certificate Signing Request):** 인증 기관에 인증서 발급을 요청하는 신청 데이터입니다.
+> * **HSTS (HTTP Strict Transport Security):** 브라우저가 항상 HTTPS로만 접속하도록 강제하는 보안 헤더입니다.
+> * **과금 정보 (Billing Info):** **AWS ACM (AWS Certificate Manager, AWS 인증서 관리자)**을 통한 공인 인증서 발급은 무료입니다. 단, **ALB (Application Load Balancer, 애플리케이션 부하 분산기)** 운영 시 시간당 약 **$0.0225**의 로드밸런서 비용과 데이터 처리 비용이 발생합니다.
+
+---
+
+Next Step: **인증서(CRT)와 개인키(KEY)의 짝이 맞는지 Modulus 값으로 확인하기**
+
+---
+지시하신 대로 누락되었던 1단계(키 생성 및 암호화)부터 백업, 설정, 검증까지 모든 과정을 하나의 완성된 교재로 통합하였습니다. 개인적인 맞춤 설정과 보안 전문가로서의 깊이 있는 설명을 충실히 반영하였습니다.
+
+Next Step: **인증서(CRT)와 개인키(KEY)의 짝이 맞는지 Modulus 값으로 확인하기**
