@@ -1,0 +1,135 @@
+먼저 질문하신 운영체제(OS) 관련 사항에 대해 답변드립니다. **Snort(침입 탐지 시스템)**와 **Splunk(데이터 분석 및 시각화 플랫폼)**를 연결할 때 반드시 둘 다 리눅스일 필요는 없습니다. Snort는 센서로서 데이터를 수집하는 역할이므로 리눅스 환경이 권장되지만, Splunk는 윈도우(Windows)나 맥(macOS)에서도 구동 가능합니다. 다만, 실무 환경에서는 성능과 안정성을 위해 두 솔루션 모두 **리눅스(Linux, 주로 Ubuntu 또는 CentOS)** 환경에서 구축하는 것이 표준입니다.
+
+---
+
+## Snort와 Splunk를 활용한 보안 모니터링 체계 구축
+
+### 1. 운영 환경 및 아키텍처 개요
+
+본 교재에서는 가장 안정적인 **Ubuntu 22.04 LTS** 환경을 기준으로 실습을 진행합니다. Snort에서 발생하는 탐지 로그를 Splunk가 실시간으로 수집하여 시각화하는 구조를 학습합니다.
+
+
+
+---
+
+### 2. Snort (Intrusion Detection System, 침입 탐지 시스템) 설치 및 설정
+
+Snort는 네트워크 트래픽을 실시간으로 감시하고 규칙에 따라 공격을 탐지합니다.
+
+#### **2.1. 필수 패키지 설치 및 Snort 3 설치**
+```bash
+# 시스템 업데이트 및 종속성 패키지 설치
+sudo apt update && sudo apt upgrade -y
+sudo apt install build-essential libpcap-dev libpcre3-dev libdumbnet-dev zlib1g-dev liblzma-dev openssl libssl-dev -y
+
+# Snort 3(최신 버전) 설치 (소스 설치 또는 리포지토리 이용)
+sudo apt install snort -y
+```
+
+#### **2.2. Snort 출력 설정 (splunk 연동 핵심)**
+Snort의 탐지 로그를 Splunk가 읽기 쉬운 **JSON(JavaScript Object Notation, 자바스크립트 객체 표기법)** 형식으로 출력하도록 설정해야 합니다.
+
+* **설정 파일 위치:** `/etc/snort/snort.lua` (또는 `snort.conf`)
+* **수정 사항:** `outputs` 섹션에서 `alert_json` 활성화
+
+> **설정 블록화**
+> ```lua
+> alert_json = { 
+>     file = true, 
+>     limit = 100, 
+>     fields = 'timestamp pkt_num proto src_addr src_port dst_addr dst_port action msg' 
+> }
+> ```
+> *주석: `file = true` 설정을 통해 로그를 파일로 저장하며, Splunk가 이 파일을 실시간으로 추적(Tail)하게 됩니다.*
+
+---
+
+### 3. Splunk (Search and Reporting, 검색 및 보고 플랫폼) 설치 및 설정
+
+Splunk는 수집된 로그를 인덱싱(Indexing, 데이터 색인)하여 사용자가 쿼리를 통해 분석할 수 있게 합니다.
+
+#### **3.1. Splunk Enterprise 설치**
+1.  **Splunk 공식 홈페이지**에서 `.deb` 파일을 다운로드합니다.
+2.  **설치 명령어 실행:**
+    ```bash
+    sudo dpkg -i splunk-9.x.x-xxxx-linux-2.6-amd64.deb
+    sudo /opt/splunk/bin/splunk start --accept-license
+    ```
+    *(주의: Splunk Enterprise는 60일간의 무료 체험판을 제공하며, 이후 무료 버전으로 전환 시 일일 데이터 수집량에 제한이 생길 수 있습니다.)*
+
+
+
+---
+
+### 4. Snort와 Splunk 연동 (데이터 입력 설정)
+
+Splunk 웹 UI에 접속하여 Snort의 로그 파일을 실시간으로 읽어오도록 설정합니다.
+
+#### **4.1. 데이터 입력 메뉴 이동**
+1.  브라우저에서 `http://[서버IP]:8000` 접속 후 로그인합니다.
+2.  상단 메뉴: **Settings (설정)** -> **Data (데이터)** 섹션 -> **Data inputs (데이터 입력)** 클릭.
+3.  **Files & Directories (파일 및 디렉터리)** 선택 -> **New Local File & Directory (새 로컬 파일 및 디렉터리)** 클릭.
+
+#### **4.2. 상세 입력 사항**
+* **File or Directory (파일 또는 디렉터리):** `/var/log/snort/alert_json.txt` 입력.
+* **Browse (찾아보기):** 위 경로를 직접 선택해도 됩니다.
+* **Next (다음)** 클릭 후 **Set Source Type (소스 유형 설정)**:
+    * `_json` 선택 (Snort에서 JSON으로 출력했기 때문입니다).
+* **App Context (앱 컨텍스트):** `Search & Reporting` 선택.
+* **Review (검토)** 후 **Submit (제출)**.
+
+---
+
+### 5. 실시간 모니터링 및 대시보드 제작
+
+수집된 보안 데이터를 한눈에 확인하기 위한 시각화 단계를 진행합니다.
+
+#### **5.1. 실시간 검색 (Search)**
+1.  **Search & Reporting** 앱을 실행합니다.
+2.  검색창에 다음 쿼리 입력:
+    ```spl
+    index=* sourcetype="_json" | table _time, src_addr, dst_addr, msg, proto
+    ```
+3.  우측 상단의 시간 범위를 **Real-time (실시간)** -> **30 second window**로 설정합니다.
+
+#### **5.2. 대시보드 만들기 (Step-by-Step)**
+1.  **시각화 선택:** 검색 결과 하단의 **Visualization (시각화)** 탭 클릭.
+2.  **차트 종류:** 왼쪽 메뉴에서 **Pie Chart (파이 차트)** 또는 **Bar Chart (막대 차트)** 선택.
+3.  **저장:** 우측 상단 **Save As (다른 이름으로 저장)** -> **Dashboard Panel (대시보드 패널)** 클릭.
+4.  **대시보드 설정 입력:**
+    * **Dashboard Title (대시보드 제목):** `Security Threat Monitoring`
+    * **Dashboard ID:** `security_monitor`
+    * **Panel Title (패널 제목):** `Top Attacker IPs (주요 공격 IP 순위)`
+5.  **Save (저장)** 클릭.
+
+
+
+---
+
+### 6. 편의 환경 설정 (Add-on 활용)
+
+더 전문적인 분석을 위해 **Splunk Add-on for Snort**를 설치하는 것이 좋습니다.
+
+1.  **Splunkbase**에서 'Snort Add-on'을 검색하여 설치합니다.
+2.  이 애드온은 Snort의 복잡한 로그 필드를 자동으로 구분(Parsing, 파싱)해주어 사용자가 별도의 쿼리를 길게 작성하지 않아도 됩니다.
+3.  **Apps (앱)** -> **Find More Apps (앱 추가 찾기)** -> **Snort** 검색 및 설치.
+
+---
+
+### 7. 실행 및 최종 점검
+
+1.  **Snort 실행:**
+    ```bash
+    # 탐지 모드로 실행
+    sudo snort -c /etc/snort/snort.lua -i eth0 -A alert_json
+    ```
+2.  **공격 테스트:** 외부에서 해당 서버로 `nmap` 스캔 등을 수행하여 로그가 발생하는지 확인합니다.
+3.  **Splunk 확인:** 대시보드에 그래프가 실시간으로 변하는지 확인합니다.
+
+---
+
+**Next Step: IDS/IPS 탐지 규칙(Rule) 최적화 및 탐지 예외 처리 방법**
+
+---
+* **안내 사항:** 본 과정에서 사용된 Splunk Enterprise 버전은 일정 용량 초과 시 유료 라이선스가 필요할 수 있으므로, 실습 시에는 일일 데이터 처리량을 확인하시기 바랍니다.
+* **참조 문서:** [Snort 공식 문서](https://www.snort.org/documents), [Splunk 공식 가이드](https://docs.splunk.com/)
