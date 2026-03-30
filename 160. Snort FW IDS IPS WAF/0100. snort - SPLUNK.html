@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snort & Splunk: 실시간 보안 모니터링 실습</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+        }
+        .terminal-bg { background-color: #020617; border: 1px solid #1e293b; transition: all 0.3s ease; }
+        .terminal-bg:hover { border-color: #334155; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-filter: blur(12px); }
+        .code-block { font-family: 'Fira Code', monospace; }
+        .term-box { background: rgba(34, 211, 238, 0.05); border-left: 4px solid #22d3ee; padding: 1.25rem; margin-top: 1.5rem; border-radius: 0 0.75rem 0.75rem 0; }
+        .terminal-header-label { 
+            font-size: 0.875rem; 
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            color: #64748b; 
+        }
+        .action-btn {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+        .action-btn:hover {
+            color: #22d3ee;
+            transform: translateY(-1px);
+        }
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: #22d3ee;
+            color: #020617;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 900;
+            font-size: 0.875rem;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 0 20px rgba(34, 211, 238, 0.4);
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <div id="toast" class="toast">COPIED TO CLIPBOARD</div>
+
+    <!-- Header: 기술 사양 및 타이틀 -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Security Operations Center</span>
+                    <span class="text-slate-500 font-mono text-[10px]">CS-IDS-301 | SIEM Integration Architecture</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
+                    Snort & Splunk Security Pipeline<br><span class="text-slate-100 text-2xl">차세대 실시간 침입 탐지 및 통합 보안 분석 체계 구축</span>
+                </h1>
+            </div>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    INTEGRITY: 100.0%
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">System Architect Pro</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-32">
+
+        <!-- Section 1: 아키텍처 개요 -->
+        <section>
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-10 tracking-tight text-glow">
+                1. 아키텍처 심층 개요 (Architecture In-depth Overview)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-10 leading-relaxed">
+                    현대의 사이버 보안 위협은 고도로 지능화되고 있으며, 이를 탐지하고 대응하기 위해서는 단순히 로그를 남기는 것을 넘어 실시간으로 분석하고 시각화할 수 있는 인프라가 필수적입니다. 본 실습에서는 업계 표준인 <strong>Snort (Intrusion Detection System, 침입 탐지 시스템)</strong>와 강력한 빅데이터 분석 솔루션인 <strong>Splunk (Security Information and Event Management, 보안 정보 및 이벤트 관리)</strong>를 결합합니다. <strong>Snort</strong>가 수집한 네트워크 원시 데이터(Raw Data)를 <strong>JSON (JavaScript Object Notation, 자바스크립트 객체 표기법)</strong> 형식으로 변환하여 <strong>Splunk</strong>에 파이프라인 방식으로 전송함으로써, 보안 관리자는 위협 발생 즉시 대시보드를 통해 상황을 직관적으로 파악할 수 있습니다.
+                </p>
+
+                <div class="term-box mb-12">
+                    <h5 class="text-cyan-400 font-bold text-xs mb-2 uppercase tracking-tighter">Terminology Insight</h5>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        <strong>IDS (Intrusion Detection System, 침입 탐지 시스템):</strong> 네트워크 트래픽을 실시간으로 감시하여 비정상적이거나 악의적인 활동을 탐지하고 보고하는 시스템입니다. 공격 시그니처와 대조하는 방식과 비정상 행위를 탐지하는 방식을 혼용합니다.<br>
+                        <strong>SIEM (Security Information and Event Management, 보안 정보 및 이벤트 관리):</strong> 기업 내 산재한 보안 장비의 로그를 중앙에서 수집하여 연관 분석(Correlation Analysis)을 수행하고, 위협에 대한 가시성을 제공하는 통합 보안 관제 플랫폼입니다.<br>
+                        <strong>JSON (JavaScript Object Notation, 자바스크립트 객체 표기법):</strong> 사람이 읽기 쉽고 기계가 파싱하기 용이한 데이터 교환 표준 형식입니다. 키-값(Key-Value) 구조로 되어 있어 Splunk와 같은 빅데이터 엔진에서 매우 효율적으로 색인됩니다.
+                    </p>
+                </div>
+
+                <!-- 도식화 인포그래픽 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-10 shadow-inner relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent"></div>
+                    <h4 class="text-center font-bold text-slate-400 mb-12 text-[10px] tracking-widest uppercase">
+                        [도식: 차세대 통합 보안 모니터링 시스템 아키텍처]
+                    </h4>
+                    <div class="flex flex-col md:flex-row items-center justify-around gap-8">
+                        <div class="text-center p-8 bg-slate-800 rounded-2xl border border-cyan-900/50 shadow-lg group hover:scale-105 transition-all">
+                            <i data-lucide="activity" class="w-12 h-12 text-cyan-400 mx-auto mb-4 animate-pulse"></i>
+                            <div class="font-black text-slate-100 text-sm">Network Traffic</div>
+                            <div class="text-[10px] text-slate-500 mt-2 font-mono uppercase">Promiscuous Interface</div>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <i data-lucide="chevrons-right" class="w-10 h-10 text-slate-700"></i>
+                        </div>
+                        <div class="text-center p-8 bg-slate-800 rounded-2xl border border-cyan-500/50 shadow-lg group hover:scale-105 transition-all">
+                            <i data-lucide="shield-alert" class="w-12 h-12 text-cyan-500 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">Snort Sensor</div>
+                            <div class="text-[10px] text-slate-500 mt-2 font-mono uppercase tracking-widest">JSON Processor</div>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <span class="text-[10px] text-cyan-400 font-black mb-2 animate-bounce">REAL-TIME</span>
+                            <i data-lucide="chevrons-right" class="w-10 h-10 text-slate-700"></i>
+                        </div>
+                        <div class="text-center p-8 bg-slate-800 rounded-2xl border border-indigo-500/50 shadow-lg group hover:scale-105 transition-all">
+                            <i data-lucide="layout-dashboard" class="w-12 h-12 text-indigo-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">Splunk SIEM</div>
+                            <div class="text-[10px] text-slate-500 mt-2 font-mono uppercase tracking-widest">Intelligence Hub</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: 실습 구성 요소 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight text-glow">
+                2. 핵심 구성 요소 상세 정의 (Detailed Components Definition)
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="section-card rounded-3xl p-10 border-cyan-900/30 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-cyan-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">NODE 01: SENSOR</div>
+                    <h3 class="text-2xl font-bold text-slate-100 mb-8 flex items-center gap-3">
+                        <i data-lucide="terminal" class="w-8 h-8 text-cyan-400"></i> Snort 3 IDS
+                    </h3>
+                    <ul class="space-y-6 text-sm text-slate-300">
+                        <li class="flex items-start gap-3">
+                            <i data-lucide="check-circle" class="w-5 h-5 text-cyan-500 mt-1"></i>
+                            <div>
+                                <span class="font-black text-slate-100">Ubuntu 22.04 LTS:</span>
+                                <p class="text-xs text-slate-500 mt-1">안정성이 검증된 오픈소스 운영체제 환경을 제공합니다.</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i data-lucide="check-circle" class="w-5 h-5 text-cyan-500 mt-1"></i>
+                            <div>
+                                <span class="font-black text-slate-100">Snort 3 Engine:</span>
+                                <p class="text-xs text-slate-500 mt-1">멀티스레딩(Multi-threading)을 지원하여 대규모 트래픽 처리가 가능합니다.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="section-card rounded-3xl p-10 border-indigo-900/30 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">NODE 02: SIEM</div>
+                    <h3 class="text-2xl font-bold text-slate-100 mb-8 flex items-center gap-3">
+                        <i data-lucide="server" class="w-8 h-8 text-indigo-400"></i> Splunk Enterprise
+                    </h3>
+                    <ul class="space-y-6 text-sm text-slate-300">
+                        <li class="flex items-start gap-3">
+                            <i data-lucide="check-circle" class="w-5 h-5 text-indigo-500 mt-1"></i>
+                            <div>
+                                <span class="font-black text-slate-100">Real-time Indexing:</span>
+                                <p class="text-xs text-slate-500 mt-1">유입되는 데이터를 실시간으로 인덱싱하여 검색 즉시 결과를 반환합니다.</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i data-lucide="check-circle" class="w-5 h-5 text-indigo-500 mt-1"></i>
+                            <div>
+                                <span class="font-black text-slate-100">Dashboard Visualizer:</span>
+                                <p class="text-xs text-slate-500 mt-1">복잡한 데이터를 그래프와 차트로 변환하여 상황 인지 능력을 극대화합니다.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="term-box mt-10">
+                <h5 class="text-cyan-400 font-bold text-xs mb-2 uppercase tracking-tighter">Terminology Expert</h5>
+                <p class="text-xs text-slate-400 italic leading-relaxed">
+                    <strong>Promiscuous Mode (무차별 모드):</strong> 네트워크 인터페이스가 자신에게 할당된 MAC 주소가 아닌 다른 패킷들도 모두 수신하도록 설정하는 모드입니다. 전체 네트워크 모니터링을 위해서는 반드시 이 모드가 활성화되어야 합니다.<br>
+                    <strong>LTS (Long Term Support, 장기 지원 버전):</strong> 오픈소스 소프트웨어에서 보안 패치 및 기술 지원을 최장 기간 보장하는 안정적인 배포판을 의미합니다.
+                </p>
+            </div>
+        </section>
+
+        <!-- Section 3: 구현 및 절차 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight text-glow">
+                3. 단계별 실증 및 구현 (Step-by-Step Implementation)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-20">
+                
+                <!-- Step 01 -->
+                <div class="space-y-6">
+                    <div class="flex items-center gap-4">
+                        <span class="bg-cyan-500 text-slate-900 w-10 h-10 rounded-full flex items-center justify-center text-sm font-black italic shadow-lg">01</span>
+                        <h3 class="text-2xl font-bold text-slate-100">Snort 3 및 종속성 패키지 설치</h3>
+                    </div>
+                    <div class="pl-14">
+                        <p class="text-sm text-slate-400 mb-6 leading-relaxed">Snort는 실시간 패킷 처리를 위해 고도로 최적화된 라이브러리들을 필요로 합니다. <strong>libpcap (Packet Capture Library)</strong> 및 <strong>pcre (Perl Compatible Regular Expressions)</strong> 등을 포함한 필수 요소들을 먼저 구성합니다.</p>
+                        <div class="terminal-bg rounded-2xl p-8 font-mono text-sm shadow-inner relative group border-slate-800">
+                            <div class="flex justify-between items-center mb-6">
+                                <span class="terminal-header-label">Ubuntu 22.04 Shell Console</span>
+                                <button onclick="copyCode('step1-code')" class="action-btn flex items-center gap-2 text-slate-500 hover:text-cyan-400 text-xs font-black uppercase tracking-widest">
+                                    <i data-lucide="copy" class="w-4 h-4"></i> Copy Code
+                                </button>
+                            </div>
+                            <div id="step1-code" class="text-slate-200">
+                                <span class="text-slate-500"># 최신 패키지 인덱스 업데이트</span><br>
+                                $ <span class="text-cyan-400">sudo apt update</span><br><br>
+                                <span class="text-slate-500"># 필수 개발 도구 및 라이브러리 통합 설치</span><br>
+                                $ <span class="text-cyan-400">sudo apt install -y build-essential libpcap-dev libpcre3-dev libdumbnet-dev zlib1g-dev liblzma-dev openssl libssl-dev snort</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 02 -->
+                <div class="space-y-6">
+                    <div class="flex items-center gap-4">
+                        <span class="bg-cyan-500 text-slate-900 w-10 h-10 rounded-full flex items-center justify-center text-sm font-black italic shadow-lg">02</span>
+                        <h3 class="text-2xl font-bold text-slate-100">JSON 로그 출력 인터페이스 구성</h3>
+                    </div>
+                    <div class="pl-14">
+                        <p class="text-sm text-slate-400 mb-6 leading-relaxed"><strong>Snort</strong>의 탐지 결과를 <strong>Splunk</strong>가 즉시 이해할 수 있는 <strong>JSON</strong> 구조로 출력하도록 환경 설정 파일을 수정합니다.</p>
+                        <div class="terminal-bg rounded-2xl p-8 font-mono text-sm shadow-inner relative border-slate-800">
+                            <div class="flex justify-between items-center mb-6">
+                                <span class="terminal-header-label">/etc/snort/snort.lua</span>
+                                <button onclick="copyCode('step2-code')" class="action-btn flex items-center gap-2 text-slate-500 hover:text-cyan-400 text-xs font-black uppercase tracking-widest">
+                                    <i data-lucide="copy" class="w-4 h-4"></i> Copy Config
+                                </button>
+                            </div>
+                            <div id="step2-code" class="text-slate-300 leading-loose">
+<span class="text-slate-500">-- Snort 3 SIEM Integration Plugin Configuration --</span><br>
+alert_json = {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;file = true,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;limit = 100, <span class="text-slate-500">-- MB 단위 로그 제한</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;fields = 'timestamp pkt_num proto src_addr src_port dst_addr dst_port action msg'<br>
+}</div>
+                        </div>
+
+                        <div class="mt-8 p-8 bg-slate-900/40 border-l-4 border-cyan-600 rounded-r-2xl">
+                            <h4 class="text-base font-black text-slate-100 mb-4 flex items-center gap-2">
+                                <i data-lucide="info" class="w-5 h-5 text-cyan-400"></i> 아키텍트 해설: 데이터 보존 및 동시성 (Data Persistence & Concurrency)
+                            </h4>
+                            <p class="text-xs text-slate-400 leading-relaxed mb-4">
+                                <strong>JSON 출력 플러그인의 특성:</strong> <strong>Snort 3</strong>는 모듈형 아키텍처를 채택하고 있어 여러 개의 출력 플러그인을 동시에 가동할 수 있습니다. <code class="text-cyan-500">alert_json</code>을 활성화하더라도 기존의 텍스트 기반 로그(<code class="text-slate-300">alert_fast</code> 등)는 파일 경로와 형식을 그대로 유지하며 병렬로 기록됩니다. 이는 <strong>SIEM (Splunk)</strong>을 통한 원격 분석과 로컬에서의 직접적인 분석을 동시에 수행할 수 있게 하여 보안 운영의 유연성을 보장합니다.
+                            </p>
+                            <div class="text-[10px] text-slate-600 font-mono tracking-widest uppercase">출처: <a href="https://www.snort.org/documents" target="_blank" class="hover:text-cyan-400 transition-colors">Snort Official Documentation</a></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 03 -->
+                <div class="space-y-6">
+                    <div class="flex items-center gap-4">
+                        <span class="bg-cyan-500 text-slate-900 w-10 h-10 rounded-full flex items-center justify-center text-sm font-black italic shadow-lg">03</span>
+                        <h3 class="text-2xl font-bold text-slate-100">Splunk 데이터 인렛(Data Inlet) 설정</h3>
+                    </div>
+                    <div class="pl-14">
+                        <p class="text-sm text-slate-400 mb-8 leading-relaxed"><strong>Splunk</strong>가 리눅스 파일 시스템에 생성되는 <strong>Snort</strong> 로그 파일을 실시간으로 추적(Monitoring)하도록 설정합니다.</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-slate-800/80 p-8 rounded-2xl border border-slate-700 relative hover:border-cyan-500 transition-all group">
+                                <div class="terminal-header-label mb-4">Splunk Web GUI Path</div>
+                                <div class="text-sm font-black text-slate-100 group-hover:text-cyan-400 transition-colors">Settings > Data > Data inputs > Files & Directories</div>
+                            </div>
+                            <div class="bg-slate-800/80 p-8 rounded-2xl border border-slate-700">
+                                <div class="terminal-header-label mb-4" style="color: #6366f1;">Input Specification</div>
+                                <div class="text-xs text-slate-300 leading-relaxed space-y-2">
+                                    <div class="flex justify-between border-b border-slate-700 pb-1"><span>Path</span> <span class="text-indigo-400 font-mono">/var/log/snort/alert_json.txt</span></div>
+                                    <div class="flex justify-between border-b border-slate-700 pb-1"><span>Sourcetype</span> <span class="text-indigo-400 font-mono">_json</span></div>
+                                    <div class="flex justify-between"><span>App Context</span> <span class="text-indigo-400 font-mono">Search & Reporting</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-6 text-[10px] text-slate-600 font-mono tracking-widest uppercase">출처: <a href="https://docs.splunk.com/Documentation/Splunk" target="_blank" class="hover:text-indigo-400 transition-colors">Splunk Documentation Portal</a></div>
+                    </div>
+                </div>
+
+                <!-- Step 04 -->
+                <div class="space-y-6">
+                    <div class="flex items-center gap-4">
+                        <span class="bg-cyan-500 text-slate-900 w-10 h-10 rounded-full flex items-center justify-center text-sm font-black italic shadow-lg">04</span>
+                        <h3 class="text-2xl font-bold text-slate-100">보안 관제 대시보드 및 SPL 쿼리 구현</h3>
+                    </div>
+                    <div class="pl-14">
+                        <p class="text-sm text-slate-400 mb-6 leading-relaxed">수집된 데이터를 유의미한 정보로 가공하기 위해 <strong>SPL (Search Processing Language)</strong>을 사용하여 주요 위협 근원지를 시각화합니다.</p>
+                        <div class="terminal-bg rounded-2xl p-8 font-mono text-sm shadow-inner relative border-slate-800">
+                            <div class="flex justify-between items-center mb-6">
+                                <span class="terminal-header-label">Splunk Search Bar (SPL Editor)</span>
+                                <button onclick="copyCode('step4-code')" class="action-btn flex items-center gap-2 text-slate-500 hover:text-cyan-400 text-xs font-black uppercase tracking-widest">
+                                    <i data-lucide="copy" class="w-4 h-4"></i> Copy Query
+                                </button>
+                            </div>
+                            <div id="step4-code" class="text-slate-300 leading-relaxed">
+<span class="text-cyan-400 font-black">index=* sourcetype="_json"</span><br>
+| stats count by src_addr<br>
+| sort -count<br>
+| rename src_addr as "Attacker IP Address", count as "Detection Frequency"</div>
+                        </div>
+                        <div class="mt-8 flex flex-wrap gap-4 text-xs font-black uppercase tracking-tighter">
+                            <div class="px-4 py-2 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-lg">1. Select 'Visualization' Tab</div>
+                            <div class="px-4 py-2 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-lg">2. Choose 'Bar Chart'</div>
+                            <div class="px-4 py-2 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-lg">3. Save As > Dashboard Panel</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="term-box mt-12">
+                <h5 class="text-cyan-400 font-bold text-xs mb-2 uppercase tracking-tighter">Expert Glossary</h5>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    <strong>SPL (Search Processing Language, 검색 처리 언어):</strong> <strong>Splunk</strong> 플랫폼에서 데이터를 검색, 분석 및 시각화하기 위해 사용되는 전용 언어입니다. 파이프(|)를 통해 명령어를 전달하는 구조로 설계되었습니다.<br>
+                    <strong>Parsing (구문 분석):</strong> 비정형 데이터를 정형화된 데이터 필드로 변환하는 과정입니다. JSON은 필드 이름과 값이 명확히 정의되어 있어 별도의 복잡한 파싱 과정 없이 SIEM에서 즉시 활용 가능합니다.
+                </p>
+            </div>
+        </section>
+
+        <!-- Section 4: 전문가 분석 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight text-glow">
+                4. 아키텍트 심층 분석 및 최적화 (Architect's Insight)
+            </h2>
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-12">
+                <div class="flex flex-col md:flex-row gap-8">
+                    <div class="flex-1 bg-slate-800/50 p-8 rounded-2xl border border-slate-700 hover:border-cyan-500 transition-all shadow-xl">
+                        <div class="text-cyan-400 mb-6"><i data-lucide="zap" class="w-10 h-10"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-4">성능 최적화 및 확장성</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            대규모 엔터프라이즈 환경에서 <strong>Snort</strong>의 로그 발생량이 하루 수백 기가바이트에 달할 수 있습니다. 이때 <strong>Splunk</strong> 인덱서의 부하를 줄이기 위해 <strong>Splunk Universal Forwarder (전용 데이터 송신 도구)</strong>를 <strong>Snort</strong> 센서 노드에 설치하여 압축 및 암호화 전송을 수행하는 구조를 권장합니다.
+                        </p>
+                    </div>
+                    <div class="flex-1 bg-slate-800/50 p-8 rounded-2xl border border-slate-700 hover:border-red-500 transition-all shadow-xl">
+                        <div class="text-red-400 mb-6"><i data-lucide="shield-check" class="w-10 h-10"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-4">보안 권한 체계 설계</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            <strong>Splunk</strong> 서비스 계정이 <strong>Snort</strong> 로그 디렉터리에 접근할 때 최소 권한 원칙(Principle of Least Privilege)을 준수해야 합니다. <strong>Splunk</strong> 유저를 별도의 보안 그룹에 추가하고 로그 파일에 읽기 전용 ACL을 부여하여 시스템 권한 탈취를 방지하십시오.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="bg-slate-900/60 p-10 rounded-3xl border border-slate-800 flex flex-col md:flex-row items-center gap-10">
+                    <div class="p-6 bg-amber-500/10 rounded-2xl border border-amber-500/30">
+                        <i data-lucide="alert-triangle" class="w-10 h-10 text-amber-500"></i>
+                    </div>
+                    <div>
+                        <h5 class="text-slate-100 font-black mb-2 uppercase tracking-widest text-sm">Licensing & Compliance Notice</h5>
+                        <p class="text-xs text-slate-500 leading-relaxed">
+                            <strong>Splunk Enterprise</strong> 프리 버전은 일일 수집 한도가 500MB로 제한되어 있습니다. 한도를 초과할 경우 데이터 색인이 중단될 수 있으므로, 실습망에서는 <strong>Snort</strong> 규칙을 최적화하여 불필요한 노이즈 로그(False Positive)가 과도하게 발생하지 않도록 규칙 튜닝 작업을 선행해야 합니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto px-6 py-16 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-6">
+            © 2026 Security Architect Pro. All rights reserved.
+        </div>
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-3xl mx-auto italic">
+            본 교육 자료는 전문적인 보안 관제 역량 강화를 위해 <strong>Snort 3</strong>와 <strong>Splunk Enterprise</strong>의 기술적 통합을 다루고 있습니다. 허가되지 않은 시스템에 대한 패킷 감시 및 공격 테스트는 정보통신망 이용촉진 및 정보보호 등에 관한 법률에 의거하여 엄격히 금지되며, 반드시 실습 전용 격리망 환경을 구축한 후 실습에 임해주시기 바랍니다.
+        </p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+
+        // 클립보드 복사 기능 (iFrame 환경 호환)
+        function copyCode(elementId) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            
+            const text = element.innerText || element.textContent;
+            const textArea = document.createElement("textarea");
+            textArea.value = text.trim();
+            
+            // 시야에서 숨김 처리
+            textArea.style.position = "fixed";
+            textArea.style.left = "-9999px";
+            textArea.style.top = "0";
+            document.body.appendChild(textArea);
+            
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                if(successful) {
+                    showToast();
+                }
+            } catch (err) {
+                console.error('Copy failed:', err);
+            }
+            
+            document.body.removeChild(textArea);
+        }
+
+        function showToast() {
+            const toast = document.getElementById('toast');
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
