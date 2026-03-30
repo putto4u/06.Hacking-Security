@@ -151,8 +151,8 @@
                         <li class="flex items-start gap-3">
                             <i data-lucide="check-circle" class="w-5 h-5 text-cyan-500 mt-1"></i>
                             <div>
-                                <span class="font-black text-slate-100">Ubuntu 22.04 LTS:</span>
-                                <p class="text-xs text-slate-500 mt-1">안정성이 검증된 오픈소스 운영체제 환경을 제공합니다.</p>
+                                <span class="font-black text-slate-100">Ubuntu 22.04 LTS (우분투 22.04 장기 지원 버전):</span>
+                                <p class="text-xs text-slate-500 mt-1">최신 보안 패치와 안정성이 보장된 우분투 서버 환경을 사용합니다.</p>
                             </div>
                         </li>
                         <li class="flex items-start gap-3">
@@ -210,18 +210,17 @@
                         <h3 class="text-2xl font-bold text-slate-100">Snort 3 및 종속성 패키지 설치</h3>
                     </div>
                     <div class="pl-14">
-                        <p class="text-sm text-slate-400 mb-6 leading-relaxed">Snort는 실시간 패킷 처리를 위해 고도로 최적화된 라이브러리들을 필요로 합니다. <strong>libpcap (Packet Capture Library)</strong> 및 <strong>pcre (Perl Compatible Regular Expressions)</strong> 등을 포함한 필수 요소들을 먼저 구성합니다.</p>
+                        <p class="text-sm text-slate-400 mb-6 leading-relaxed">Snort는 실시간 패킷 처리를 위해 고도로 최적화된 라이브러리들을 필요로 합니다. <strong>libpcap (Packet Capture Library, 패킷 캡처 라이브러리)</strong> 및 <strong>pcre (Perl Compatible Regular Expressions, 펄 호환 정규식)</strong> 등을 포함한 필수 요소들을 먼저 구성합니다.</p>
                         <div class="terminal-bg rounded-2xl p-8 font-mono text-sm shadow-inner relative group border-slate-800">
                             <div class="flex justify-between items-center mb-6">
-                                <span class="terminal-header-label">Ubuntu 22.04 Shell Console</span>
+                                <span class="terminal-header-label">Ubuntu 22.04 LTS Shell Console</span>
                                 <button onclick="copyCode('step1-code')" class="action-btn flex items-center gap-2 text-slate-500 hover:text-cyan-400 text-xs font-black uppercase tracking-widest">
                                     <i data-lucide="copy" class="w-4 h-4"></i> Copy Code
                                 </button>
                             </div>
                             <div id="step1-code" class="text-slate-200">
-                                <span class="text-slate-500"># 최신 패키지 인덱스 업데이트</span><br>
+                                <span class="text-slate-500"># Ubuntu 패키지 저장소 업데이트 및 필수 라이브러리 설치</span><br>
                                 $ <span class="text-cyan-400">sudo apt update</span><br><br>
-                                <span class="text-slate-500"># 필수 개발 도구 및 라이브러리 통합 설치</span><br>
                                 $ <span class="text-cyan-400">sudo apt install -y build-essential libpcap-dev libpcre3-dev libdumbnet-dev zlib1g-dev liblzma-dev openssl libssl-dev snort</span>
                             </div>
                         </div>
@@ -257,28 +256,81 @@ alert_json = {<br>
                                 <i data-lucide="info" class="w-5 h-5 text-cyan-400"></i> 아키텍트 해설: 데이터 보존 및 동시성 (Data Persistence & Concurrency)
                             </h4>
                             <p class="text-xs text-slate-400 leading-relaxed mb-4">
-                                <strong>JSON 출력 플러그인의 특성:</strong> <strong>Snort 3</strong>는 모듈형 아키텍처를 채택하고 있어 여러 개의 출력 플러그인을 동시에 가동할 수 있습니다. <code class="text-cyan-500">alert_json</code>을 활성화하더라도 기존의 텍스트 기반 로그(<code class="text-slate-300">alert_fast</code> 등)는 파일 경로와 형식을 그대로 유지하며 병렬로 기록됩니다. 이는 <strong>SIEM (Splunk)</strong>을 통한 원격 분석과 로컬에서의 직접적인 분석을 동시에 수행할 수 있게 하여 보안 운영의 유연성을 보장합니다.
+                                <strong>JSON 출력 플러그인의 특성:</strong> <strong>Snort 3</strong>는 모듈형 아키텍처를 채택하고 있어 여러 개의 출력 플러그인을 동시에 가동할 수 있습니다. <code class="text-cyan-500">alert_json</code>을 활성화하더라도 기존의 텍스트 기반 로그(<code class="text-slate-300">alert_fast</code> 등)는 파일 경로와 형식을 그대로 유지하며 병렬로 기록됩니다. 이는 <strong>SIEM (Security Information and Event Management, 보안 정보 및 이벤트 관리)</strong>을 통한 원격 분석과 로컬에서의 직접적인 분석을 동시에 수행할 수 있게 하여 보안 운영의 유연성을 보장합니다.
                             </p>
                             <div class="text-[10px] text-slate-600 font-mono tracking-widest uppercase">출처: <a href="https://www.snort.org/documents" target="_blank" class="hover:text-cyan-400 transition-colors">Snort Official Documentation</a></div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Step 03 -->
+                <!-- Step 03: Splunk Installation (Ubuntu Optimized) -->
                 <div class="space-y-6">
                     <div class="flex items-center gap-4">
                         <span class="bg-cyan-500 text-slate-900 w-10 h-10 rounded-full flex items-center justify-center text-sm font-black italic shadow-lg">03</span>
+                        <h3 class="text-2xl font-bold text-slate-100">Splunk Enterprise 서버 구축 (Ubuntu Optimized Installation)</h3>
+                    </div>
+                    <div class="pl-14">
+                        <p class="text-sm text-slate-400 mb-6 leading-relaxed"><strong>Splunk Enterprise (스플렁크 엔터프라이즈)</strong> 우분투 전용 <strong>.deb</strong> 패키지를 사용하여 설치합니다. 우분투 환경에서는 방화벽(ufw) 설정과 사용자 권한 관리가 중요합니다.</p>
+                        
+                        <!-- 도식: Splunk 설치 프로세스 -->
+                        <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 mb-8">
+                            <h5 class="text-center text-[10px] text-slate-500 font-bold uppercase mb-6 tracking-widest">[도식: Ubuntu 기반 Splunk 배포 및 초기화 워크플로우]</h5>
+                            <div class="flex items-center justify-center gap-4 text-[10px] font-bold">
+                                <div class="px-3 py-2 bg-slate-800 border border-slate-700 rounded text-slate-300">DEB 패키지 확보</div>
+                                <i data-lucide="arrow-right" class="w-4 h-4 text-slate-600"></i>
+                                <div class="px-3 py-2 bg-slate-800 border border-slate-700 rounded text-slate-300">dpkg 설치</div>
+                                <i data-lucide="arrow-right" class="w-4 h-4 text-slate-600"></i>
+                                <div class="px-3 py-2 bg-slate-800 border border-cyan-900 rounded text-cyan-400">ufw 방화벽 개방</div>
+                                <i data-lucide="arrow-right" class="w-4 h-4 text-slate-600"></i>
+                                <div class="px-3 py-2 bg-slate-800 border border-indigo-900 rounded text-indigo-400">Web UI 접속</div>
+                            </div>
+                        </div>
+
+                        <div class="terminal-bg rounded-2xl p-8 font-mono text-sm shadow-inner relative group border-slate-800">
+                            <div class="flex justify-between items-center mb-6">
+                                <span class="terminal-header-label">Ubuntu Server Terminal</span>
+                                <button onclick="copyCode('step3-code')" class="action-btn flex items-center gap-2 text-slate-500 hover:text-cyan-400 text-xs font-black uppercase tracking-widest">
+                                    <i data-lucide="copy" class="w-4 h-4"></i> Copy Installation
+                                </button>
+                            </div>
+                            <div id="step3-code" class="text-slate-200">
+                                <span class="text-slate-500"># 우분투용 Splunk .deb 패키지 설치</span><br>
+                                $ <span class="text-cyan-400">sudo dpkg -i splunk-9.x.x-linux-2.6-amd64.deb</span><br><br>
+                                <span class="text-slate-500"># Splunk 서비스 초기 실행 및 라이선스 수락 (ID/PW 설정 필수)</span><br>
+                                $ <span class="text-cyan-400">sudo /opt/splunk/bin/splunk start --accept-license</span><br><br>
+                                <span class="text-slate-500"># Ubuntu ufw 방화벽 설정 (Web UI 포트 8000 개방)</span><br>
+                                $ <span class="text-cyan-400">sudo ufw allow 8000/tcp</span><br><br>
+                                <span class="text-slate-500"># 부팅 시 자동 시작 설정</span><br>
+                                $ <span class="text-cyan-400">sudo /opt/splunk/bin/splunk enable boot-start</span>
+                            </div>
+                        </div>
+
+                        <div class="term-box mt-6">
+                            <h5 class="text-cyan-400 font-bold text-xs mb-2 uppercase tracking-tighter">Ubuntu Specific Terminology</h5>
+                            <p class="text-xs text-slate-400 leading-relaxed">
+                                <strong>dpkg (Debian Package Manager, 데비안 패키지 관리자):</strong> 우분투를 포함한 데비안 계열 리눅스에서 소프트웨어를 설치, 삭제, 관리하는 기초 도구입니다.<br>
+                                <strong>ufw (Uncomplicated Firewall, 간편한 방화벽):</strong> 우분투의 기본 방화벽 관리 도구로, 복잡한 iptables 설정을 쉽게 처리할 수 있게 도와줍니다.<br>
+                                <strong>boot-start (부트 스타트):</strong> 시스템이 재부팅될 때 서비스가 자동으로 시작되도록 등록하는 설정입니다.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 04 -->
+                <div class="space-y-6">
+                    <div class="flex items-center gap-4">
+                        <span class="bg-cyan-500 text-slate-900 w-10 h-10 rounded-full flex items-center justify-center text-sm font-black italic shadow-lg">04</span>
                         <h3 class="text-2xl font-bold text-slate-100">Splunk 데이터 인렛(Data Inlet) 설정</h3>
                     </div>
                     <div class="pl-14">
                         <p class="text-sm text-slate-400 mb-8 leading-relaxed"><strong>Splunk</strong>가 리눅스 파일 시스템에 생성되는 <strong>Snort</strong> 로그 파일을 실시간으로 추적(Monitoring)하도록 설정합니다.</p>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="bg-slate-800/80 p-8 rounded-2xl border border-slate-700 relative hover:border-cyan-500 transition-all group">
+                            <div class="bg-slate-800/80 p-8 rounded-2xl border border-slate-700 relative hover:border-cyan-500 transition-all group shadow-lg">
                                 <div class="terminal-header-label mb-4">Splunk Web GUI Path</div>
-                                <div class="text-sm font-black text-slate-100 group-hover:text-cyan-400 transition-colors">Settings > Data > Data inputs > Files & Directories</div>
+                                <div class="text-sm font-black text-slate-100 group-hover:text-cyan-400 transition-colors leading-relaxed">Settings > Data > Data inputs > Files & Directories</div>
                             </div>
-                            <div class="bg-slate-800/80 p-8 rounded-2xl border border-slate-700">
+                            <div class="bg-slate-800/80 p-8 rounded-2xl border border-slate-700 shadow-lg">
                                 <div class="terminal-header-label mb-4" style="color: #6366f1;">Input Specification</div>
                                 <div class="text-xs text-slate-300 leading-relaxed space-y-2">
                                     <div class="flex justify-between border-b border-slate-700 pb-1"><span>Path</span> <span class="text-indigo-400 font-mono">/var/log/snort/alert_json.txt</span></div>
@@ -291,31 +343,31 @@ alert_json = {<br>
                     </div>
                 </div>
 
-                <!-- Step 04 -->
+                <!-- Step 05 -->
                 <div class="space-y-6">
                     <div class="flex items-center gap-4">
-                        <span class="bg-cyan-500 text-slate-900 w-10 h-10 rounded-full flex items-center justify-center text-sm font-black italic shadow-lg">04</span>
+                        <span class="bg-cyan-500 text-slate-900 w-10 h-10 rounded-full flex items-center justify-center text-sm font-black italic shadow-lg">05</span>
                         <h3 class="text-2xl font-bold text-slate-100">보안 관제 대시보드 및 SPL 쿼리 구현</h3>
                     </div>
                     <div class="pl-14">
-                        <p class="text-sm text-slate-400 mb-6 leading-relaxed">수집된 데이터를 유의미한 정보로 가공하기 위해 <strong>SPL (Search Processing Language)</strong>을 사용하여 주요 위협 근원지를 시각화합니다.</p>
+                        <p class="text-sm text-slate-400 mb-6 leading-relaxed">수집된 데이터를 유의미한 정보로 가공하기 위해 <strong>SPL (Search Processing Language, 검색 처리 언어)</strong>을 사용하여 주요 위협 근원지를 시각화합니다.</p>
                         <div class="terminal-bg rounded-2xl p-8 font-mono text-sm shadow-inner relative border-slate-800">
                             <div class="flex justify-between items-center mb-6">
                                 <span class="terminal-header-label">Splunk Search Bar (SPL Editor)</span>
-                                <button onclick="copyCode('step4-code')" class="action-btn flex items-center gap-2 text-slate-500 hover:text-cyan-400 text-xs font-black uppercase tracking-widest">
+                                <button onclick="copyCode('step5-code')" class="action-btn flex items-center gap-2 text-slate-500 hover:text-cyan-400 text-xs font-black uppercase tracking-widest">
                                     <i data-lucide="copy" class="w-4 h-4"></i> Copy Query
                                 </button>
                             </div>
-                            <div id="step4-code" class="text-slate-300 leading-relaxed">
+                            <div id="step5-code" class="text-slate-300 leading-relaxed">
 <span class="text-cyan-400 font-black">index=* sourcetype="_json"</span><br>
 | stats count by src_addr<br>
 | sort -count<br>
 | rename src_addr as "Attacker IP Address", count as "Detection Frequency"</div>
                         </div>
                         <div class="mt-8 flex flex-wrap gap-4 text-xs font-black uppercase tracking-tighter">
-                            <div class="px-4 py-2 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-lg">1. Select 'Visualization' Tab</div>
-                            <div class="px-4 py-2 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-lg">2. Choose 'Bar Chart'</div>
-                            <div class="px-4 py-2 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-lg">3. Save As > Dashboard Panel</div>
+                            <div class="px-4 py-2 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-lg shadow-md">1. Select 'Visualization' Tab</div>
+                            <div class="px-4 py-2 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-lg shadow-md">2. Choose 'Bar Chart'</div>
+                            <div class="px-4 py-2 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-lg shadow-md">3. Save As > Dashboard Panel</div>
                         </div>
                     </div>
                 </div>
@@ -335,7 +387,7 @@ alert_json = {<br>
             <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight text-glow">
                 4. 아키텍트 심층 분석 및 최적화 (Architect's Insight)
             </h2>
-            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-12">
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-12 text-glow">
                 <div class="flex flex-col md:flex-row gap-8">
                     <div class="flex-1 bg-slate-800/50 p-8 rounded-2xl border border-slate-700 hover:border-cyan-500 transition-all shadow-xl">
                         <div class="text-cyan-400 mb-6"><i data-lucide="zap" class="w-10 h-10"></i></div>
@@ -348,19 +400,19 @@ alert_json = {<br>
                         <div class="text-red-400 mb-6"><i data-lucide="shield-check" class="w-10 h-10"></i></div>
                         <h4 class="font-bold text-slate-100 mb-4">보안 권한 체계 설계</h4>
                         <p class="text-xs text-slate-400 leading-relaxed">
-                            <strong>Splunk</strong> 서비스 계정이 <strong>Snort</strong> 로그 디렉터리에 접근할 때 최소 권한 원칙(Principle of Least Privilege)을 준수해야 합니다. <strong>Splunk</strong> 유저를 별도의 보안 그룹에 추가하고 로그 파일에 읽기 전용 ACL을 부여하여 시스템 권한 탈취를 방지하십시오.
+                            <strong>Splunk</strong> 서비스 계정이 <strong>Snort</strong> 로그 디렉터리에 접근할 때 최소 권한 원칙(Principle of Least Privilege)을 준수해야 합니다. <strong>Splunk</strong> 유저를 별도의 보안 그룹에 추가하고 로그 파일에 읽기 전용 ACL(Access Control List, 액세스 제어 목록)을 부여하여 시스템 권한 탈취를 방지하십시오.
                         </p>
                     </div>
                 </div>
                 
-                <div class="bg-slate-900/60 p-10 rounded-3xl border border-slate-800 flex flex-col md:flex-row items-center gap-10">
+                <div class="bg-slate-900/60 p-10 rounded-3xl border border-slate-800 flex flex-col md:flex-row items-center gap-10 shadow-2xl">
                     <div class="p-6 bg-amber-500/10 rounded-2xl border border-amber-500/30">
                         <i data-lucide="alert-triangle" class="w-10 h-10 text-amber-500"></i>
                     </div>
                     <div>
                         <h5 class="text-slate-100 font-black mb-2 uppercase tracking-widest text-sm">Licensing & Compliance Notice</h5>
                         <p class="text-xs text-slate-500 leading-relaxed">
-                            <strong>Splunk Enterprise</strong> 프리 버전은 일일 수집 한도가 500MB로 제한되어 있습니다. 한도를 초과할 경우 데이터 색인이 중단될 수 있으므로, 실습망에서는 <strong>Snort</strong> 규칙을 최적화하여 불필요한 노이즈 로그(False Positive)가 과도하게 발생하지 않도록 규칙 튜닝 작업을 선행해야 합니다.
+                            <strong>Splunk Enterprise</strong> 프리 버전은 일일 수집 한도가 500MB로 제한되어 있습니다. 한도를 초과할 경우 데이터 색인이 중단될 수 있으므로, 실습망에서는 <strong>Snort</strong> 규칙을 최적화하여 불필요한 노이즈 로그(False Positive, 오탐)가 과도하게 발생하지 않도록 규칙 튜닝 작업을 선행해야 합니다.
                         </p>
                     </div>
                 </div>
@@ -390,7 +442,6 @@ alert_json = {<br>
             const textArea = document.createElement("textarea");
             textArea.value = text.trim();
             
-            // 시야에서 숨김 처리
             textArea.style.position = "fixed";
             textArea.style.left = "-9999px";
             textArea.style.top = "0";
