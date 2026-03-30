@@ -1,0 +1,305 @@
+## Snort 3 실전 규칙(Rules) 설계 및 로그 기반 공격 실증 분석
+
+네트워크 보안 아키텍처 관점에서 **IDS**(Intrusion Detection System, 침입 탐지 시스템)의 핵심은 정확한 규칙 설계와 발생한 로그에 대한 정밀한 분석입니다. 본 섹션에서는 8가지 위협 시나리오를 바탕으로 **Snort**(스노트) 규칙 작성, 공격 수행, 그리고 `/var/log/snort/alert_fast.txt` 로그 파일에 기록되는 탐지 데이터 분석 과정을 상세히 다룹니다.
+
+---
+
+### 1. ICMP 정찰 공격 탐지 (ICMP Echo Request Detection)
+
+공격자가 네트워크 내 시스템의 활성화 여부를 확인하기 위해 수행하는 **Reconnaissance**(정찰) 활동을 탐지합니다.
+
+* **탐지 규칙 정의 (`/etc/snort/rules/local.rules`)**
+    ```bash
+    alert icmp any any -> $HOME_NET any (msg:"ICMP Ping Detected"; sid:1000001; rev:1;)
+    ```
+
+* **Snort 실시간 구동 및 로그 기록 (Victim Node)**
+    ```bash
+    # 로그를 /var/log/snort/alert_fast.txt 파일에 기록하며 실행
+    $ sudo snort -c /etc/snort/snort.conf -R /etc/snort/rules/local.rules -A fast
+    ```
+
+* **공격 수행 (Kali Linux)**
+    ```bash
+    $ ping -c 4 192.168.1.10  # 대상 Snort 서버 IP
+    ```
+
+* **탐지 결과 분석 및 로그 확인**
+    ```bash
+    [로그 파일 경로: /var/log/snort/alert_fast.txt]
+    03/31-08:35:12.450123 [**] [1:1000001:1] "ICMP Ping Detected" [**] [Priority: 0] {ICMP} 192.168.1.5 -> 192.168.1.10
+
+    [분석 결과]
+    1. 출발지(Source IP): 192.168.1.5 (Kali Linux 공격자)
+    2. 목적지(Destination IP): 192.168.1.10 (보안 타겟 시스템)
+    3. 탐지 기제: ICMP 프로토콜의 Echo Request(에코 요청) 패킷이 유입됨에 따라 
+       설정된 sid:1000001 규칙이 트리거되어 실시간 경고 로그를 생성함.
+    ```
+
+> **전문 용어 해설**
+> * **ICMP**(Internet Control Message Protocol, 인터넷 제어 메시지 프로토콜): 네트워크 장치 간의 상태 확인 및 에러 보고를 위해 사용되는 프로토콜입니다.
+> * **Reconnaissance**(레콘네상스, 정찰): 공격자가 목표 시스템의 취약점을 찾기 위해 수행하는 정보 수집 단계입니다.
+
+---
+
+### 2. TCP SYN 스텔스 포트 스캔 탐지 (Nmap Stealth Scan)
+
+**3-Way Handshake**(3방향 핸드셰이크)를 완전히 맺지 않아 서버에 로그를 남기지 않으려는 포트 스캔 시도를 탐지합니다.
+
+* **탐지 규칙 정의 (`/etc/snort/rules/local.rules`)**
+    ```bash
+    alert tcp any any -> $HOME_NET any (msg:"Nmap SYN Scan Detected"; flags:S; threshold:type both, track by_src, count 10, seconds 1; sid:1000002; rev:1;)
+    ```
+
+* **Snort 실시간 구동 및 로그 기록 (Victim Node)**
+    ```bash
+    $ sudo snort -c /etc/snort/snort.conf -R /etc/snort/rules/local.rules -A fast
+    ```
+
+* **공격 수행 (Kali Linux)**
+    ```bash
+    $ sudo nmap -sS 192.168.1.10
+    ```
+
+* **탐지 결과 분석 및 로그 확인**
+    ```bash
+    [로그 파일 경로: /var/log/snort/alert_fast.txt]
+    03/31-08:37:05.112984 [**] [1:1000002:1] "Nmap SYN Scan Detected" [**] {TCP} 192.168.1.5:45231 -> 192.168.1.10:80
+
+    [분석 결과]
+    1. 탐지 플래그: flags:S (SYN 플래그가 설정된 패킷만 선별)
+    2. 임계치 분석: 1초(seconds 1) 내에 동일 IP(track by_src)로부터 10회(count 10) 이상의 
+       연결 요청이 발생하여 단순 접속이 아닌 자동화된 스캐닝 행위로 판별됨.
+    3. 타겟 포트: 80(HTTP)번 포트를 포함한 다수 포트에 대한 순차적 접근 확인.
+    ```
+
+
+
+> **전문 용어 해설**
+> * **3-Way Handshake**(3방향 핸드셰이크): TCP 통신 시작 전 양방향 연결을 확립하는 3단계 과정(SYN → SYN/ACK → ACK)입니다.
+> * **Threshold**(트레시홀드, 임계값): 특정 조건이 일정 수준 이상 발생할 때만 동작하도록 설정하는 기준치입니다.
+
+---
+
+### 3. 민감 설정 파일 접근(LFI) 탐지 (Local File Inclusion)
+
+웹 취약점을 통해 시스템 계정 정보 파일(`/etc/passwd`)을 탈취하려는 시도를 탐지합니다.
+
+* **탐지 규칙 정의 (`/etc/snort/rules/local.rules`)**
+    ```bash
+    alert tcp any any -> $HOME_NET 80 (msg:"Possible LFI - /etc/passwd access"; content:"/etc/passwd"; http_uri; sid:1000003; rev:1;)
+    ```
+
+* **Snort 실시간 구동 및 로그 기록 (Victim Node)**
+    ```bash
+    $ sudo snort -c /etc/snort/snort.conf -R /etc/snort/rules/local.rules -A fast
+    ```
+
+* **공격 수행 (Kali Linux)**
+    ```bash
+    $ curl "http://192.168.1.10/index.php?page=/etc/passwd"
+    ```
+
+* **탐지 결과 분석 및 로그 확인**
+    ```bash
+    [로그 파일 경로: /var/log/snort/alert_fast.txt]
+    03/31-08:40:22.776341 [**] [1:1000003:1] "Possible LFI - /etc/passwd access" [**] {TCP} 192.168.1.5:54322 -> 192.168.1.10:80
+
+    [분석 결과]
+    1. 페이로드 검사: http_uri 키워드를 통해 HTTP 요청 주소 파라미터 내의 "/etc/passwd" 문자열 매칭.
+    2. 위험도: 시스템 사용자 명단 및 셸 설정 정보가 노출될 수 있는 고위험군 공격 시도임.
+    3. 목적지 포트: 웹 서비스 포트인 80(HTTP)번을 대상으로 수행됨.
+    ```
+
+> **전문 용어 해설**
+> * **LFI**(Local File Inclusion, 로컬 파일 포함): 웹 애플리케이션의 검증 미흡을 이용해 서버 내부 파일을 외부로 노출시키는 공격입니다.
+> * **HTTP URI**(Uniform Resource Identifier, 통합 자원 식별자): 인터넷상에서 특정 자원의 위치를 나타내는 주소 체계입니다.
+
+---
+
+### 4. SSH 무차별 대입 공격 탐지 (SSH Brute Force)
+
+비밀번호를 무작위로 대입하여 서버 권한을 획득하려는 **Brute Force**(무차별 대입) 공격을 탐지합니다.
+
+* **탐지 규칙 정의 (`/etc/snort/rules/local.rules`)**
+    ```bash
+    alert tcp any any -> $HOME_NET 22 (msg:"SSH Brute Force Attempt"; flow:to_server,established; detection_filter:track by_src, count 5, seconds 30; sid:1000004; rev:1;)
+    ```
+
+* **Snort 실시간 구동 및 로그 기록 (Victim Node)**
+    ```bash
+    $ sudo snort -c /etc/snort/snort.conf -R /etc/snort/rules/local.rules -A fast
+    ```
+
+* **공격 수행 (Kali Linux)**
+    ```bash
+    $ hydra -l root -p 1234 ssh://192.168.1.10 -t 4
+    ```
+
+* **탐지 결과 분석 및 로그 확인**
+    ```bash
+    [로그 파일 경로: /var/log/snort/alert_fast.txt]
+    03/31-08:42:15.901234 [**] [1:1000004:1] "SSH Brute Force Attempt" [**] {TCP} 192.168.1.5:38210 -> 192.168.1.10:22
+
+    [분석 결과]
+    1. 연결 상태 분석: flow:established를 통해 정상적으로 연결이 시도된 세션만 선별.
+    2. 빈도 분석: 30초 내에 5회 이상의 SSH 연결 확립(Established) 시도가 발생함.
+    3. 탐지 의도: 정상적인 로그인 속도를 초과하는 자동화된 툴(Hydra 등)의 행위를 식별하여 차단 근거 마련.
+    ```
+
+
+
+> **전문 용어 해설**
+> * **SSH**(Secure Shell, 시큐어 셸): 원격 시스템 접속을 위한 암호화 네트워크 프로토콜(포트 22)입니다.
+> * **Established**(에스터블리시드, 연결 확립): 통신을 위한 상호 연결 수립이 완료된 상태입니다.
+
+---
+
+### 5. SQL 인젝션 공격 탐지 (SQL Injection 우회 시도)
+
+데이터베이스 쿼리 논리 구조를 조작하는 `' OR 1=1` 패턴을 탐지하여 인증 우회 시도를 감시합니다.
+
+* **탐지 규칙 정의 (`/etc/snort/rules/local.rules`)**
+    ```bash
+    alert tcp any any -> $HOME_NET 80 (msg:"SQL Injection Attempt - OR 1=1"; content:"or 1=1"; nocase; http_uri; sid:1000005; rev:1;)
+    ```
+
+* **Snort 실시간 구동 및 로그 기록 (Victim Node)**
+    ```bash
+    $ sudo snort -c /etc/snort/snort.conf -R /etc/snort/rules/local.rules -A fast
+    ```
+
+* **공격 수행 (Kali Linux)**
+    ```bash
+    $ curl "http://192.168.1.10/login.php?user=' or 1=1 --"
+    ```
+
+* **탐지 결과 분석 및 로그 확인**
+    ```bash
+    [로그 파일 경로: /var/log/snort/alert_fast.txt]
+    03/31-08:45:01.332145 [**] [1:1000005:1] "SQL Injection Attempt - OR 1=1" [**] {TCP} 192.168.1.5:59881 -> 192.168.1.10:80
+
+    [분석 결과]
+    1. 대소문자 무시: nocase 옵션으로 'OR 1=1', 'or 1=1' 등 모든 변형 패턴 탐지 가능.
+    2. 공격 원리: SQL 쿼리를 항상 참(True)으로 만들어 비밀번호 없이 로그인을 시도하는 전형적인 인젝션 패턴.
+    3. 탐지 위치: HTTP 요청의 파라미터 값이 포함된 URI 영역임.
+    ```
+
+> **전문 용어 해설**
+> * **SQL Injection**(SQL 인젝션): 입력값 검증 미흡을 악용해 임의의 데이터베이스 명령어를 실행시키는 공격입니다.
+> * **nocase**(노케이스, 대소문자 무시): 문자열 매칭 시 대소문자를 구별하지 않도록 설정하는 옵션입니다.
+
+---
+
+### 6. FTP 익명 로그인 및 비인가 접근 탐지 (FTP Anonymous)
+
+내부 자료 유출의 경로가 될 수 있는 익명 사용자의 **FTP**(파일 전송 프로토콜) 접속 시도를 감지합니다.
+
+* **탐지 규칙 정의 (`/etc/snort/rules/local.rules`)**
+    ```bash
+    alert tcp any any -> $HOME_NET 21 (msg:"FTP Anonymous Login Attempt"; content:"USER anonymous"; nocase; sid:1000006; rev:1;)
+    ```
+
+* **Snort 실시간 구동 및 로그 기록 (Victim Node)**
+    ```bash
+    $ sudo snort -c /etc/snort/snort.conf -R /etc/snort/rules/local.rules -A fast
+    ```
+
+* **공격 수행 (Kali Linux)**
+    ```bash
+    $ ftp 192.168.1.10
+    # 연결 후 Name: anonymous 입력
+    ```
+
+* **탐지 결과 분석 및 로그 확인**
+    ```bash
+    [로그 파일 경로: /var/log/snort/alert_fast.txt]
+    03/31-08:48:44.210987 [**] [1:1000006:1] "FTP Anonymous Login Attempt" [**] {TCP} 192.168.1.5:41223 -> 192.168.1.10:21
+
+    [분석 결과]
+    1. 프로토콜 분석: FTP 제어 포트인 21번을 모니터링함.
+    2. 시그니처 매칭: FTP 프로토콜 규격상 사용자명을 전송하는 "USER" 명령어와 "anonymous" 문자열의 조합을 확인.
+    3. 보안 정책 반영: 인가되지 않은 익명 접속 시도를 실시간으로 파악하여 내부 보안 정책 위반 여부 확인 가능.
+    ```
+
+> **전문 용어 해설**
+> * **FTP**(File Transfer Protocol, 파일 전송 프로토콜): 네트워크상에서 파일을 전송하기 위한 표준 프로토콜입니다.
+> * **Signature**(시그니처, 공격 특징점): 특정 공격 시 발생하는 고유한 특징이나 패턴을 의미합니다.
+
+---
+
+### 7. 웹 취약점 스캐너 활동 탐지 (Nikto Scanner Activity)
+
+자동화된 취약점 진단 도구인 **Nikto**(니토)의 헤더 정보를 식별하여 정밀 공격 전 단계를 포착합니다.
+
+* **탐지 규칙 정의 (`/etc/snort/rules/local.rules`)**
+    ```bash
+    alert tcp any any -> $HOME_NET 80 (msg:"Nikto Web Scanner Activity"; content:"Nikto"; http_header; sid:1000007; rev:1;)
+    ```
+
+* **Snort 실시간 구동 및 로그 기록 (Victim Node)**
+    ```bash
+    $ sudo snort -c /etc/snort/snort.conf -R /etc/snort/rules/local.rules -A fast
+    ```
+
+* **공격 수행 (Kali Linux)**
+    ```bash
+    $ nikto -h http://192.168.1.10
+    ```
+
+* **탐지 결과 분석 및 로그 확인**
+    ```bash
+    [로그 파일 경로: /var/log/snort/alert_fast.txt]
+    03/31-08:52:10.554321 [**] [1:1000007:1] "Nikto Web Scanner Activity" [**] {TCP} 192.168.1.5:44321 -> 192.168.1.10:80
+
+    [분석 결과]
+    1. 헤더 정밀 검사: http_header 옵션을 통해 HTTP 요청 패킷 내의 User-Agent 필드 분석.
+    2. 도구 식별: Nikto 스캐너가 전송하는 고유 식별 문자열을 감지하여 자동화된 공격임을 확신함.
+    3. 대응 전략: 해당 공격자 IP를 방화벽 차단 목록에 즉시 등록할 수 있는 근거 로그가 됨.
+    ```
+
+
+
+> **전문 용어 해설**
+> * **User-Agent**(사용자 에이전트): HTTP 요청 헤더에 포함되는 브라우저 및 클라이언트 도구의 정보입니다.
+> * **Vulnerability Scanner**(취약점 스캐너): 시스템의 보안 취약점을 자동으로 검색하고 보고하는 도구입니다.
+
+---
+
+### 8. 비보안 텔넷 접속 시도 탐지 (Insecure Telnet Access)
+
+평문 전송으로 인해 스니핑 공격에 노출된 **Telnet**(텔넷) 서비스 사용을 탐지합니다.
+
+* **탐지 규칙 정의 (`/etc/snort/rules/local.rules`)**
+    ```bash
+    alert tcp any any -> $HOME_NET 23 (msg:"Insecure Telnet Access Detected"; flow:to_server,established; sid:1000008; rev:1;)
+    ```
+
+* **Snort 실시간 구동 및 로그 기록 (Victim Node)**
+    ```bash
+    $ sudo snort -c /etc/snort/snort.conf -R /etc/snort/rules/local.rules -A fast
+    ```
+
+* **공격 수행 (Kali Linux)**
+    ```bash
+    $ telnet 192.168.1.10
+    ```
+
+* **탐지 결과 분석 및 로그 확인**
+    ```bash
+    [로그 파일 경로: /var/log/snort/alert_fast.txt]
+    03/31-08:55:33.123456 [**] [1:1000008:1] "Insecure Telnet Access Detected" [**] {TCP} 192.168.1.5:51221 -> 192.168.1.10:23
+
+    [분석 결과]
+    1. 포트 모니터링: 텔넷의 기본 포트인 23번(TCP) 접근을 감시.
+    2. 세션 상태 확인: flow 옵션을 통해 실제 연결이 성립된(Established) 케이스만 로그로 남겨 분석 정확도 향상.
+    3. 보안 권장사항: 평문 전송 기반의 텔넷 대신 암호화된 SSH 사용을 강제하기 위한 정책 준수 모니터링용임.
+    ```
+
+> **전문 용어 해설**
+> * **Telnet**(텔넷): 원격 접속용 프로토콜이지만, 암호화를 지원하지 않아 데이터 탈취에 취약합니다.
+> * **Sniffing**(스니핑): 네트워크상에서 전송되는 데이터를 중간에서 가로채는 도청 행위입니다.
+
+---
+
+Next Step: Snort 3 로그의 Splunk 연동을 위한 JSON 포맷 변환 및 가시화 심화 실습
