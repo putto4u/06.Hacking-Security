@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snort 3: 룰 설계, 권한 관리 및 로그 정밀 분석 통합 가이드</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+        }
+        .terminal-bg { background-color: #020617; border: 1px solid #1e293b; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-blur: xl; }
+        .code-block { font-family: 'Fira Code', monospace; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <!-- Header: 기술 사양 및 타이틀 -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Cyber Security Lab</span>
+                    <span class="text-slate-500 font-mono text-[10px]">SN-03-FULL | IDS/IPS Comprehensive Guide</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
+                    Snort 3 탐지 엔지니어링<br><span class="text-slate-100 text-2xl">사용자 정의 룰 구현 및 보안 로그 정밀 분석</span>
+                </h1>
+            </div>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    SECURITY SCORE: 100.0
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">Lead Security Architect</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-24">
+
+        <!-- Section 1: 아키텍처 및 권한 체계 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                1. 운영 환경 및 권한 아키텍처 (Environment & Permissions)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-10 leading-relaxed">
+                    Snort 3는 차세대 침입 방지 시스템(IPS: Intrusion Prevention System)으로, 고속 패킷 처리를 위해 멀티스레딩 아키텍처를 채택하고 있습니다. 안정적인 운영을 위해서는 <strong>최소 권한 원칙(Principle of Least Privilege)</strong>에 따른 디렉토리 및 실행 권한 설정이 필수적입니다.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                    <div class="bg-slate-900/80 p-6 rounded-2xl border border-slate-800 shadow-inner">
+                        <h4 class="text-cyan-400 font-bold mb-4 flex items-center gap-2"><i data-lucide="folder-tree"></i> 경로 (Path)</h4>
+                        <ul class="text-xs space-y-2 text-slate-400 font-mono">
+                            <li><span class="text-slate-200">/usr/local/etc/snort/</span> (설정)</li>
+                            <li><span class="text-slate-200">/usr/local/etc/snort/rules/</span> (룰)</li>
+                            <li><span class="text-slate-200">/usr/local/var/log/snort/</span> (로그)</li>
+                        </ul>
+                    </div>
+                    <div class="bg-slate-900/80 p-6 rounded-2xl border border-slate-800 shadow-inner">
+                        <h4 class="text-indigo-400 font-bold mb-4 flex items-center gap-2"><i data-lucide="user-cog"></i> 계정 (User)</h4>
+                        <ul class="text-xs space-y-2 text-slate-400 font-mono">
+                            <li><span class="text-slate-200">파일 소유자:</span> root</li>
+                            <li><span class="text-slate-200">서비스 계정:</span> snort (1001)</li>
+                            <li><span class="text-slate-200">실행 주체:</span> sudo -u snort</li>
+                        </ul>
+                    </div>
+                    <div class="bg-slate-900/80 p-6 rounded-2xl border border-slate-800 shadow-inner">
+                        <h4 class="text-purple-400 font-bold mb-4 flex items-center gap-2"><i data-lucide="file-key"></i> 모드 (Mode)</h4>
+                        <ul class="text-xs space-y-2 text-slate-400 font-mono">
+                            <li><span class="text-slate-200">룰 파일:</span> 644 (-rw-r--r--)</li>
+                            <li><span class="text-slate-200">설정 파일:</span> 640 (-rw-r-----)</li>
+                            <li><span class="text-slate-200">로그 폴더:</span> 755 (drwxr-xr-x)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- 도식화 영역 -->
+                <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-8">
+                    <h4 class="text-center font-bold text-slate-500 mb-8 text-[10px] tracking-widest uppercase">
+                        [도식: Snort 3 탐지 및 로깅 워크플로우]
+                    </h4>
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div class="flex-1 text-center p-4 bg-slate-800 rounded-xl border border-cyan-900/30">
+                            <i data-lucide="shield" class="w-8 h-8 text-cyan-400 mx-auto mb-2"></i>
+                            <div class="font-black text-slate-200 text-[11px]">인터페이스 감시<br>(eth0)</div>
+                        </div>
+                        <i data-lucide="arrow-right" class="w-6 h-6 text-slate-600 rotate-90 md:rotate-0"></i>
+                        <div class="flex-1 text-center p-4 bg-slate-800 rounded-xl border border-blue-900/30">
+                            <i data-lucide="cpu" class="w-8 h-8 text-blue-400 mx-auto mb-2"></i>
+                            <div class="font-black text-slate-200 text-[11px]">룰 매칭 엔진<br>(Detection Engine)</div>
+                        </div>
+                        <i data-lucide="arrow-right" class="w-6 h-6 text-slate-600 rotate-90 md:rotate-0"></i>
+                        <div class="flex-1 text-center p-4 bg-slate-800 rounded-xl border border-red-900/30">
+                            <i data-lucide="file-text" class="w-8 h-8 text-red-400 mx-auto mb-2"></i>
+                            <div class="font-black text-slate-200 text-[11px]">로그 파일 기록<br>(alert_fast)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: 룰 실증 및 구현 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                2. 룰 실증 및 구현 (Implementation & Step-by-Step)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-16">
+                
+                <!-- Step 01 -->
+                <div class="space-y-6">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black italic">STEP 01</span>
+                        <h3 class="text-xl font-bold text-slate-100">사용자 정의 룰(Local Rules) 작성</h3>
+                    </div>
+                    <div class="pl-12">
+                        <p class="text-sm text-slate-400 mb-6">다음은 네트워크 위협 및 활동을 탐지하기 위한 기초 5대 룰입니다. <code>root</code> 권한으로 파일을 편집합니다.</p>
+                        <div class="terminal-bg rounded-xl p-8 font-mono text-xs shadow-inner border border-slate-700 relative">
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] font-black">/usr/local/etc/snort/rules/local.rules</div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">sudo vi local.rules</span></div>
+                            <div class="mt-4 space-y-2">
+                                <div class="text-slate-500"># 1. ICMP 탐지 (Ping 체크)</div>
+                                <div class="text-slate-300">alert icmp any any -> any any ( msg:"ICMP Packet Detected"; sid:1000001; rev:1; )</div>
+                                <div class="text-slate-500 mt-2"># 2. HTTP GET 요청 탐지</div>
+                                <div class="text-slate-300">alert tcp any any -> any 80 ( msg:"HTTP GET Request Detected"; content:"GET"; http_method; sid:1000002; rev:1; )</div>
+                                <div class="text-slate-500 mt-2"># 3. SSH 접속 시도 (Syn 패킷)</div>
+                                <div class="text-slate-300">alert tcp any any -> any 22 ( msg:"SSH Connection Attempt"; flags:S; sid:1000003; rev:1; )</div>
+                                <div class="text-slate-500 mt-2"># 4. 악성 문자열 탐지</div>
+                                <div class="text-slate-300">alert tcp any any -> any any ( msg:"Malicious String Found"; content:"malware_test"; nocase; sid:1000004; rev:1; )</div>
+                                <div class="text-slate-500 mt-2"># 5. DNS 질의 탐지</div>
+                                <div class="text-slate-300">alert udp any any -> any 53 ( msg:"DNS Query Detected"; sid:1000005; rev:1; )</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 02 -->
+                <div class="space-y-6">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center text-xs font-black italic">STEP 02</span>
+                        <h3 class="text-xl font-bold text-slate-100">파일 권한 설정 및 엔진 기동</h3>
+                    </div>
+                    <div class="pl-12">
+                        <p class="text-sm text-slate-400 mb-4">파일 모드를 변경하고 <code>snort</code> 유저 권한으로 엔진을 실행합니다.</p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner border border-slate-800">
+                            <div class="text-slate-500"># 권한 부여 (Read for Others)</div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">sudo chmod 644 /usr/local/etc/snort/rules/local.rules</span></div>
+                            <div class="text-slate-500 mt-4"># 탐지 엔진 기동 (User: snort)</div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">sudo -u snort snort -c /usr/local/etc/snort/snort.lua -R /usr/local/etc/snort/rules/local.rules -i eth0 -A alert_fast</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: 로그 필드 정밀 분석 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                3. 로그 데이터 정밀 분석 (Alert Log Deep Dive)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                
+                <!-- 로그 출력 화면 예시 -->
+                <div class="bg-slate-900/90 rounded-2xl p-8 border border-slate-800 mb-12 shadow-inner overflow-x-auto">
+                    <h4 class="text-red-400 font-bold mb-6 flex items-center gap-2"><i data-lucide="terminal"></i> 실시간 탐지 로그 출력 화면 (Console Output)</h4>
+                    <div class="space-y-4 font-mono text-[11px] leading-relaxed">
+                        <div class="p-3 bg-black/40 rounded border-l-2 border-cyan-500">
+                            <span class="text-slate-500">03/30-09:15:22.112</span> <span class="text-yellow-500">[**]</span> <span class="text-slate-200">[1:1000001:1]</span> <span class="text-cyan-400">"ICMP Packet Detected"</span> <span class="text-yellow-500">[**]</span> <span class="text-indigo-400">{ICMP}</span> <span class="text-slate-300">10.0.2.15 -> 192.168.1.1</span>
+                        </div>
+                        <div class="p-3 bg-black/40 rounded border-l-2 border-red-500">
+                            <span class="text-slate-500">03/30-09:16:45.991</span> <span class="text-yellow-500">[**]</span> <span class="text-slate-200">[1:1000004:1]</span> <span class="text-cyan-400">"Malicious String Found"</span> <span class="text-yellow-500">[**]</span> <span class="text-indigo-400">{TCP}</span> <span class="text-slate-300">10.0.2.5:44321 -> 192.168.1.10:80</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 필드별 상세 해석 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-slate-800/40 p-6 rounded-2xl border border-slate-700">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-[10px] text-cyan-500 font-mono uppercase tracking-widest font-black">Field 01: Timestamp</span>
+                            <i data-lucide="clock" class="w-4 h-4 text-slate-500"></i>
+                        </div>
+                        <div class="text-sm font-bold text-slate-100 mb-2">03/30-09:15:22.112</div>
+                        <p class="text-[11px] text-slate-400 leading-relaxed">
+                            패킷이 탐지 엔진에 의해 분석된 시각(월/일-시:분:초.밀리초)을 의미합니다. 침해 사고 대응(Incident Response) 시 타임라인을 구축하는 결정적 근거가 됩니다.
+                        </p>
+                    </div>
+                    <div class="bg-slate-800/40 p-6 rounded-2xl border border-slate-700">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-[10px] text-indigo-500 font-mono uppercase tracking-widest font-black">Field 02: SID (Signature ID)</span>
+                            <i data-lucide="tag" class="w-4 h-4 text-slate-500"></i>
+                        </div>
+                        <div class="text-sm font-bold text-slate-100 mb-2">[1:1000001:1]</div>
+                        <p class="text-[11px] text-slate-400 leading-relaxed">
+                            룰의 고유 식별자입니다. <strong>[GID:SID:REV]</strong> 형식으로 구성되며, 여기서는 1,000,001번 룰의 첫 번째 버전이 매칭되었음을 나타냅니다.
+                        </p>
+                    </div>
+                    <div class="bg-slate-800/40 p-6 rounded-2xl border border-slate-700">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-[10px] text-red-500 font-mono uppercase tracking-widest font-black">Field 03: Message</span>
+                            <i data-lucide="alert-circle" class="w-4 h-4 text-slate-500"></i>
+                        </div>
+                        <div class="text-sm font-bold text-slate-100 mb-2">"Malicious String Found"</div>
+                        <p class="text-[11px] text-slate-400 leading-relaxed">
+                            룰 정의 시 <code>msg</code> 옵션에 기록한 내용입니다. 탐지된 트래픽의 성격(공격 유형, 정책 위반 등)을 관리자가 직관적으로 파악하게 합니다.
+                        </p>
+                    </div>
+                    <div class="bg-slate-800/40 p-6 rounded-2xl border border-slate-700">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-[10px] text-yellow-500 font-mono uppercase tracking-widest font-black">Field 04: Flow & Protocol</span>
+                            <i data-lucide="move-right" class="w-4 h-4 text-slate-500"></i>
+                        </div>
+                        <div class="text-sm font-bold text-slate-100 mb-2">10.0.2.5:44321 -> 192.168.1.10:80</div>
+                        <p class="text-[11px] text-slate-400 leading-relaxed">
+                            패킷의 <strong>출발지 IP:포트</strong>에서 <strong>목적지 IP:포트</strong>로의 흐름을 보여줍니다. 서비스(80 포트 등)에 대한 공격 여부와 공격자의 위치를 파악할 수 있습니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: 아키텍트 인사이트 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                4. 아키텍트 인사이트 (Expert Insight)
+            </h2>
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-10">
+                <div class="flex flex-col md:flex-row gap-8">
+                    <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                        <div class="text-cyan-400 mb-4"><i data-lucide="monitor-dot" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2">실시간 로그 모니터링 기법</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            로그가 파일로 저장될 경우 <code>tail -f /usr/local/var/log/snort/alert_fast</code> 명령어를 활용하십시오. 특정 공격 IP만 실시간으로 모니터링하려면 <code>grep "10.0.2.5"</code>와 파이프를 조합하는 것이 효율적입니다.
+                        </p>
+                    </div>
+                    <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                        <div class="text-red-400 mb-4"><i data-lucide="shield-x" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2">권한 에러(Permission Denied) 대응</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            <code>snort</code> 유저로 기동 시 로그 파일 작성이 실패한다면 디렉토리 소유권을 확인하십시오. <code>sudo chown -R snort:snort /usr/local/var/log/snort</code> 명령을 통해 로그 저장 권한을 명확히 부여해야 합니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+            © 2026 System Architect Pro. All rights reserved.
+        </div>
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic">
+            본 교안은 Snort 3의 실제 운영 가이드를 통합하여 제작되었습니다. 모든 실습은 허가된 네트워크 환경에서 수행되어야 하며, 불법적인 사용에 대한 책임은 사용자에게 있습니다.
+        </p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
