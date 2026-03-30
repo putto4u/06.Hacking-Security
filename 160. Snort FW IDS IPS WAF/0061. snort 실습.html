@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snort 3 & Splunk: 차세대 IDS/SIEM 통합 보안 모니터링 실습</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+        }
+        .terminal-bg { background-color: #020617; border: 1px solid #1e293b; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-filter: blur(20px); }
+        .code-block { font-family: 'Fira Code', monospace; }
+        .term-box { background: rgba(34, 211, 238, 0.05); border-left: 4px solid #22d3ee; padding: 1rem; margin-top: 1rem; border-radius: 0 0.5rem 0.5rem 0; font-size: 0.8rem; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <!-- Header: 기술 사양 및 타이틀 -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Cyber Security Lab</span>
+                    <span class="text-slate-500 font-mono text-[10px]">CS-IDS-301 | SIEM Integration Architecture</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
+                    Snort 3 & Splunk Security Pipeline<br><span class="text-slate-100 text-2xl">차세대 실시간 침입 탐지 및 통합 보안 분석 체계 구축</span>
+                </h1>
+            </div>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    INTEGRITY: 100.0%
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">System Architect Pro</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-24">
+
+        <!-- Section 1: 아키텍처 개요 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                1. 아키텍처 개요 (Architecture Overview)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-6 leading-relaxed">
+                    현대의 보안 위협은 지능형 지속 위협(APT, Advanced Persistent Threat, 특정 대상을 목표로 장기간 공격)의 형태로 진화하고 있습니다. 본 실습에서는 업계 표준인 Snort 3(스노트 3, 오픈소스 침입 탐지 시스템)와 Splunk(스플렁크, 데이터 분석 플랫폼)를 통합하여 실시간 탐지 파이프라인(Pipeline, 데이터 흐름 구조)을 구축합니다. Snort 3는 전통적인 텍스트 기반 규칙(Rule, 탐지 정책)과 유연한 Lua(루아, 경량 스크립팅 언어)를 결합하여 탐지 로직을 처리하며, 이를 JSON(JavaScript Object Notation, 데이터 교환 표준 형식)으로 출력하여 Splunk SIEM(Security Information and Event Management, 보안 정보 및 이벤트 관리)으로 전송함으로써 강력한 가시성(Visibility, 데이터 시각화 능력)을 확보합니다.
+                </p>
+
+                <div class="term-box mb-10">
+                    <strong>APT (Advanced Persistent Threat, 지능형 지속 위협):</strong> 특정한 대상을 목표로 하여 장기간에 걸쳐 다양한 수단을 동원해 지속적으로 공격하는 형태입니다.<br>
+                    <strong>SIEM (Security Information and Event Management, 보안 정보 및 이벤트 관리):</strong> 기업 내 산재한 보안 장비의 로그를 중앙에서 수집하여 분석하는 통합 보안 관제 플랫폼입니다.<br>
+                    <strong>JSON (JavaScript Object Notation, 자바스크립트 객체 표기법):</strong> 사람이 읽기 쉽고 기계가 파싱하기 용이한 데이터 전송 표준 형식입니다.
+                </div>
+
+                <!-- 도식화 인포그래픽 영역 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner">
+                    <h4 class="text-center font-bold text-slate-400 mb-8 text-xs tracking-widest uppercase">
+                        [도식: 차세대 통합 보안 모니터링 시스템 아키텍처]
+                    </h4>
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-cyan-900/50 shadow-lg">
+                            <i data-lucide="shield-check" class="w-12 h-12 text-cyan-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">Snort 3 Sensor Node</div>
+                            <div class="text-[10px] text-slate-500 mt-2">Packet Inspection & JSON Output</div>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <i data-lucide="chevrons-right" class="w-8 h-8 text-slate-600 rotate-90 md:rotate-0"></i>
+                            <span class="text-[10px] text-cyan-500 font-mono">Stream Data</span>
+                        </div>
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-blue-900/50 shadow-lg">
+                            <i data-lucide="layout-dashboard" class="w-12 h-12 text-blue-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">Splunk Indexer & Search Head</div>
+                            <div class="text-[10px] text-slate-500 mt-2">Correlation Analysis & Dashboard</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: 실습 환경 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                2. 실습 구성 요소 (Components)
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="section-card rounded-3xl p-8 border-cyan-900/30 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-cyan-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">NODE 01</div>
+                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                        <i data-lucide="terminal" class="w-6 h-6 text-cyan-400"></i> Snort 3 IDS Sensor
+                    </h3>
+                    <ul class="space-y-4 text-sm text-slate-300">
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-cyan-500"></i> OS: Ubuntu 22.04 LTS (롱텀 서포트 버전)</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-cyan-500"></i> Snort 3: Multi-threading (멀티스레딩 지원 엔진)</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-cyan-500"></i> Promiscuous Mode (무차별 모드 인터페이스)</li>
+                    </ul>
+                    <div class="term-box">
+                        <strong>Multi-threading (멀티스레딩):</strong> 하나의 프로세스 내에서 여러 작업을 동시에 수행하여 성능을 높이는 기술입니다.<br>
+                        <strong>Promiscuous Mode (무차별 모드):</strong> 네트워크 카드가 자신에게 할당되지 않은 패킷까지 모두 수신하도록 설정하는 모드입니다.
+                    </div>
+                </div>
+                <div class="section-card rounded-3xl p-8 border-indigo-900/30 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">NODE 02</div>
+                    <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                        <i data-lucide="server" class="w-6 h-6 text-indigo-400"></i> Splunk Enterprise
+                    </h3>
+                    <ul class="space-y-4 text-sm text-slate-300">
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-indigo-500"></i> Splunk Enterprise (유료 라이선스 및 프리 한도 확인 필요)</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-indigo-500"></i> HTTP Event Collector (데이터 수신 프로토콜)</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-indigo-500"></i> SPL (Search Processing Language, 전용 검색 언어)</li>
+                    </ul>
+                    <div class="term-box">
+                        <strong>SPL (Search Processing Language, 검색 처리 언어):</strong> 스플렁크에서 데이터를 검색하고 시각화하기 위해 사용하는 전용 명령형 언어입니다.<br>
+                        <span class="text-amber-500 font-bold">주의:</span> Splunk Enterprise는 일일 무료 수집 한도(500MB) 초과 시 유료 라이선스가 필요할 수 있습니다.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: 구현 단계 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                3. 실증 및 구현 (Implementation)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-16">
+                
+                <!-- Step 01: Splunk Install -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black italic">STEP 01</span>
+                        <h3 class="text-xl font-bold text-slate-100">Splunk Enterprise 인프라 구축</h3>
+                    </div>
+                    <div class="pl-12">
+                        <p class="text-sm text-slate-400 mb-4">분석 서버인 Splunk를 설치하고 시스템 데몬(Daemon, 백그라운드 서비스)으로 등록합니다.</p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative space-y-4">
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">Shell Console</div>
+                            <div class="text-slate-200"># 패키지 설치 및 초기화</div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">sudo dpkg -i splunk_package.deb</span></div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">sudo /opt/splunk/bin/splunk enable boot-start --accept-license</span></div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">sudo service splunk start</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 02: Snort Rule Example 1 -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black italic">STEP 02</span>
+                        <h3 class="text-xl font-bold text-slate-100">ICMP 정찰 공격 탐지 실습 (ICMP Echo Request)</h3>
+                    </div>
+                    <div class="pl-12">
+                        <p class="text-sm text-slate-400 mb-4">네트워크 생존 여부를 확인하는 핑(Ping) 패킷을 탐지하고 분석합니다.</p>
+                        
+                        <!-- Snort Rule -->
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner relative mb-4">
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">Rule Config (/etc/snort/rules/local.rules)</div>
+                            <div class="text-cyan-400">alert icmp any any -> $HOME_NET any (msg:"ICMP Ping Detected"; sid:1000001; rev:1;)</div>
+                        </div>
+
+                        <!-- Execution -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner relative">
+                                <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">Victim: Snort Execution</div>
+                                <div class="text-slate-200">$ <span class="text-cyan-400">sudo snort -c /etc/snort/snort.conf -R /etc/snort/rules/local.rules -A fast</span></div>
+                            </div>
+                            <div class="terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner relative">
+                                <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">Attacker: Kali Linux</div>
+                                <div class="text-slate-200">$ <span class="text-red-400">ping -c 4 192.168.1.10</span></div>
+                            </div>
+                        </div>
+
+                        <!-- Log Analysis -->
+                        <div class="mt-4 terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner border-l-4 border-cyan-500">
+                            <div class="text-slate-500 mb-2">[로그 파일: /var/log/snort/alert_fast.txt]</div>
+                            <div class="text-slate-100">03/31-08:35:12.450123 [**] [1:1000001:1] "ICMP Ping Detected" [**] [Priority: 0] {ICMP} 192.168.1.5 -> 192.168.1.10</div>
+                            <div class="text-emerald-400 mt-2 font-black italic">분석: 출발지 1.5(공격자)에서 목적지 1.10(센서)으로 ICMP 패킷이 유입되어 sid 1000001 규칙이 정상 발동됨.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 03: Snort Rule Example 2 -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black italic">STEP 03</span>
+                        <h3 class="text-xl font-bold text-slate-100">TCP SYN 포트 스캔 탐지 (Nmap Stealth Scan)</h3>
+                    </div>
+                    <div class="pl-12">
+                        <p class="text-sm text-slate-400 mb-4">로그를 남기지 않으려는 SYN 스텔스(Stealth, 잠행) 스캔을 임계값(Threshold) 설정을 통해 탐지합니다.</p>
+                        
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner relative mb-4">
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">Rule Config</div>
+                            <div class="text-cyan-400">alert tcp any any -> $HOME_NET any (msg:"Nmap SYN Scan Detected"; flags:S; threshold:type both, track by_src, count 10, seconds 1; sid:1000002; rev:1;)</div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner relative">
+                                <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">Victim: Snort</div>
+                                <div class="text-slate-200">$ <span class="text-cyan-400">sudo snort -c /etc/snort/snort.conf -A fast</span></div>
+                            </div>
+                            <div class="terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner relative">
+                                <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">Attacker: Nmap Scan</div>
+                                <div class="text-slate-200">$ <span class="text-red-400">sudo nmap -sS 192.168.1.10</span></div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner border-l-4 border-cyan-500">
+                            <div class="text-slate-500 mb-2">[로그 파일: /var/log/snort/alert_fast.txt]</div>
+                            <div class="text-slate-100">03/31-08:37:05.112 [**] [1:1000002:1] "Nmap SYN Scan Detected" [**] {TCP} 192.168.1.5:45231 -> 192.168.1.10:80</div>
+                            <div class="text-emerald-400 mt-2 font-black italic">분석: 1초 내에 10개 이상의 SYN 패킷이 유입됨을 감지하여 단순 접속이 아닌 자동화 스캔 행위로 판별함.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 04: Snort Rule Example 3 (LFI) -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black italic">STEP 04</span>
+                        <h3 class="text-xl font-bold text-slate-100">로컬 파일 포함 공격(LFI) 탐지</h3>
+                    </div>
+                    <div class="pl-12">
+                        <p class="text-sm text-slate-400 mb-4">웹 취약점을 통해 시스템 민감 파일(/etc/passwd)에 접근하려는 시도를 차단합니다.</p>
+                        
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner relative mb-4">
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">Rule Config</div>
+                            <div class="text-cyan-400">alert tcp any any -> $HOME_NET 80 (msg:"Possible LFI - /etc/passwd access"; content:"/etc/passwd"; http_uri; sid:1000003; rev:1;)</div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner relative">
+                                <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">Victim Node</div>
+                                <div class="text-slate-200">$ <span class="text-cyan-400">sudo snort -c /etc/snort/snort.conf -A fast</span></div>
+                            </div>
+                            <div class="terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner relative">
+                                <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">Attacker: cURL</div>
+                                <div class="text-slate-200">$ <span class="text-red-400">curl "http://192.168.1.10/index.php?file=/etc/passwd"</span></div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner border-l-4 border-cyan-500">
+                            <div class="text-slate-500 mb-2">[로그 파일: /var/log/snort/alert_fast.txt]</div>
+                            <div class="text-slate-100">03/31-08:40:22.776 [**] [1:1000003:1] "Possible LFI - /etc/passwd access" [**] {TCP} 192.168.1.5:54322 -> 192.168.1.10:80</div>
+                            <div class="text-emerald-400 mt-2 font-black italic">분석: HTTP URI 페이로드(Payload, 데이터 본체) 내에 시스템 핵심 경로가 포함되어 정책 위반으로 탐지됨.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 05: Snort Rule Example 4 (SQLi) -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black italic">STEP 05</span>
+                        <h3 class="text-xl font-bold text-slate-100">SQL 인젝션 인증 우회 탐지</h3>
+                    </div>
+                    <div class="pl-12">
+                        <p class="text-sm text-slate-400 mb-4">공격자가 데이터베이스 쿼리를 조작하여 관리자 권한을 탈취하려는 행위를 감시합니다.</p>
+                        
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner relative mb-4">
+                            <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">Rule Config</div>
+                            <div class="text-cyan-400">alert tcp any any -> $HOME_NET 80 (msg:"SQL Injection Attempt - OR 1=1"; content:"or 1=1"; nocase; http_uri; sid:1000005; rev:1;)</div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner relative">
+                                <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">Victim Node</div>
+                                <div class="text-slate-200">$ <span class="text-cyan-400">sudo snort -c /etc/snort/snort.conf -A fast</span></div>
+                            </div>
+                            <div class="terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner relative">
+                                <div class="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black">Attacker: SQLi</div>
+                                <div class="text-slate-200">$ <span class="text-red-400">curl "http://192.168.1.10/login.php?user=' or 1=1 --"</span></div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 terminal-bg rounded-xl p-6 font-mono text-xs shadow-inner border-l-4 border-cyan-500">
+                            <div class="text-slate-500 mb-2">[로그 파일: /var/log/snort/alert_fast.txt]</div>
+                            <div class="text-slate-100">03/31-08:45:01.332 [**] [1:1000005:1] "SQL Injection Attempt - OR 1=1" [**] {TCP} 192.168.1.5 -> 192.168.1.10:80</div>
+                            <div class="text-emerald-400 mt-2 font-black italic">분석: nocase(대소문자 무시) 옵션을 사용하여 'OR 1=1' 구문의 변형된 시도까지 모두 탐지 성공.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 06: Splunk Dashboard Visualization -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="bg-cyan-500 text-slate-900 w-6 h-6 rounded-full flex items-center justify-center text-xs font-black italic">STEP 06</span>
+                        <h3 class="text-xl font-bold text-slate-100">Splunk 실시간 대시보드 시각화</h3>
+                    </div>
+                    <div class="pl-12">
+                        <p class="text-sm text-slate-400 mb-4">수집된 JSON 데이터를 SPL(검색 처리 언어)을 통해 통계 분석하고 시각화합니다.</p>
+                        <div class="terminal-bg rounded-xl p-6 font-mono text-sm shadow-inner relative space-y-4">
+                            <div class="absolute top-4 right-4 text-indigo-400 text-[10px] uppercase font-black">Splunk SPL Editor</div>
+                            <div class="text-slate-200"><span class="text-cyan-400">index="snort_logs" sourcetype="_json"</span></div>
+                            <div class="text-slate-200">| stats count by msg</div>
+                            <div class="text-slate-200">| rename msg as "Threat Type", count as "Frequency"</div>
+                            <div class="text-slate-200">| sort - Frequency</div>
+                        </div>
+                        <div class="mt-4 p-4 bg-indigo-900/20 border border-indigo-500/30 rounded-xl">
+                            <h5 class="text-indigo-400 font-bold text-xs mb-2 italic">시각화 팁:</h5>
+                            <p class="text-xs text-slate-400 leading-relaxed">우측 'Visualization' 탭에서 'Pie Chart(원형 차트)'를 선택하면 전체 위협 대비 공격 유형별 비중을 직관적으로 파악할 수 있습니다.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Section 4: 전문가 분석 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+                4. 아키텍트 인사이트 (Expert Insight)
+            </h2>
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-10">
+                <div class="flex flex-col md:flex-row gap-8">
+                    <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700 hover:border-cyan-500 transition-all">
+                        <div class="text-cyan-400 mb-4"><i data-lucide="zap" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2">탐지 성능 및 오탐 관리</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">대규모 트래픽 환경에서는 무분별한 Rules 적용이 패킷 손실(Packet Drop)을 유발할 수 있습니다. 이를 방지하기 위해 Snort 3의 Inspector(인스펙터, 프로토콜 검사기) 설정을 최적화하고, 오탐(False Positive, 정상 행위를 공격으로 오인) 발생 시 제외 규칙(Exclusion Rule)을 적용하여 SIEM의 분석 품질을 높여야 합니다.</p>
+                    </div>
+                    <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700 hover:border-red-500 transition-all">
+                        <div class="text-red-400 mb-4"><i data-lucide="shield-alert" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2">보안 운영 체계의 보안(Security for SecOps)</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">보안 장비 자체에 대한 공격도 고려해야 합니다. Snort 센서가 설치된 노드는 반드시 최소 권한(Least Privilege) 원칙에 따라 루트 권한 실행을 지양하고, Splunk와 통신 시 전용 암호화 프로토콜(TLS, Transport Layer Security)을 적용하여 로그 무결성(Integrity)을 보호하십시오.</p>
+                    </div>
+                </div>
+                
+                <div class="bg-slate-900/60 p-8 rounded-2xl border border-slate-800 flex flex-col md:flex-row items-center gap-8">
+                    <div class="p-4 bg-amber-500/10 rounded-xl border border-amber-500/30">
+                        <i data-lucide="alert-triangle" class="w-10 h-10 text-amber-500"></i>
+                    </div>
+                    <div>
+                        <h5 class="text-slate-100 font-black mb-2 uppercase tracking-widest text-sm">라이선스 및 규정 준수 알림 (Licensing & Compliance)</h5>
+                        <p class="text-xs text-slate-500 leading-relaxed">
+                            Splunk Enterprise Free 라이선스는 하루 수집 한도(500MB) 초과 시 색인이 중단됩니다. 대량의 로그 발생이 예상되는 실습 환경에서는 Snort의 로그 수준을 최적화하거나, 한도가 없는 오픈소스 대안(ELK Stack 등)을 검토할 수도 있습니다. 단, 엔터프라이즈 환경에서는 Splunk의 강력한 상관 분석(Correlation Analysis) 기능이 더 선호됩니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+            © 2026 System Architect Pro. All rights reserved.
+        </div>
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-3xl mx-auto italic">
+            본 교육용 실습 가이드는 승인된 내부 망 내에서의 교육 목적으로만 사용되어야 합니다. 허가받지 않은 네트워크에 대한 침입 탐지 시스템 우회 및 공격 시도는 정보통신망 이용촉진 및 정보보호 등에 관한 법률에 의거하여 형사 처벌의 대상이 될 수 있습니다. 
+            모든 실습은 격리된 샌드박스(Sandbox, 가상 격리 환경)에서 수행하십시오.
+        </p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
