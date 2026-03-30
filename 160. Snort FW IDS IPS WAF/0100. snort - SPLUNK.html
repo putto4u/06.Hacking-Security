@@ -263,14 +263,14 @@ alert_json = {<br>
                     </div>
                 </div>
 
-                <!-- Step 03: Splunk Installation (Ubuntu Optimized) -->
+                <!-- Step 03: Splunk Installation (Ubuntu Optimized & Dependency Resolved) -->
                 <div class="space-y-6">
                     <div class="flex items-center gap-4">
                         <span class="bg-cyan-500 text-slate-900 w-10 h-10 rounded-full flex items-center justify-center text-sm font-black italic shadow-lg">03</span>
                         <h3 class="text-2xl font-bold text-slate-100">Splunk Enterprise 서버 구축 (Ubuntu Optimized Installation)</h3>
                     </div>
                     <div class="pl-14">
-                        <p class="text-sm text-slate-400 mb-6 leading-relaxed"><strong>Splunk Enterprise (스플렁크 엔터프라이즈)</strong> 우분투 전용 <strong>.deb</strong> 패키지를 사용하여 설치합니다. 우분투 환경에서는 방화벽(ufw) 설정과 사용자 권한 관리가 중요합니다.</p>
+                        <p class="text-sm text-slate-400 mb-6 leading-relaxed"><strong>Splunk Enterprise (스플렁크 엔터프라이즈)</strong> 우분투 전용 <strong>.deb</strong> 패키지를 사용하여 설치합니다. 우분투 환경에서는 <strong>dpkg</strong>의 종속성 문제를 방지하기 위해 <strong>apt install</strong> 명령어를 사용하여 로컬 패키지를 설치하는 것이 표준입니다.</p>
                         
                         <!-- 도식: Splunk 설치 프로세스 -->
                         <div class="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 mb-8">
@@ -278,7 +278,7 @@ alert_json = {<br>
                             <div class="flex items-center justify-center gap-4 text-[10px] font-bold">
                                 <div class="px-3 py-2 bg-slate-800 border border-slate-700 rounded text-slate-300">DEB 패키지 확보</div>
                                 <i data-lucide="arrow-right" class="w-4 h-4 text-slate-600"></i>
-                                <div class="px-3 py-2 bg-slate-800 border border-slate-700 rounded text-slate-300">dpkg 설치</div>
+                                <div class="px-3 py-2 bg-slate-800 border border-slate-700 rounded text-slate-300">apt 로컬 설치</div>
                                 <i data-lucide="arrow-right" class="w-4 h-4 text-slate-600"></i>
                                 <div class="px-3 py-2 bg-slate-800 border border-cyan-900 rounded text-cyan-400">ufw 방화벽 개방</div>
                                 <i data-lucide="arrow-right" class="w-4 h-4 text-slate-600"></i>
@@ -294,8 +294,8 @@ alert_json = {<br>
                                 </button>
                             </div>
                             <div id="step3-code" class="text-slate-200">
-                                <span class="text-slate-500"># 우분투용 Splunk .deb 패키지 설치</span><br>
-                                $ <span class="text-cyan-400">sudo dpkg -i splunk-9.x.x-linux-2.6-amd64.deb</span><br><br>
+                                <span class="text-slate-500"># 우분투 환경에서 의존성 해결을 포함한 패키지 설치 (추천 방식)</span><br>
+                                $ <span class="text-cyan-400">sudo apt install ./splunk-9.x.x-linux-2.6-amd64.deb</span><br><br>
                                 <span class="text-slate-500"># Splunk 서비스 초기 실행 및 라이선스 수락 (ID/PW 설정 필수)</span><br>
                                 $ <span class="text-cyan-400">sudo /opt/splunk/bin/splunk start --accept-license</span><br><br>
                                 <span class="text-slate-500"># Ubuntu ufw 방화벽 설정 (Web UI 포트 8000 개방)</span><br>
@@ -308,9 +308,9 @@ alert_json = {<br>
                         <div class="term-box mt-6">
                             <h5 class="text-cyan-400 font-bold text-xs mb-2 uppercase tracking-tighter">Ubuntu Specific Terminology</h5>
                             <p class="text-xs text-slate-400 leading-relaxed">
-                                <strong>dpkg (Debian Package Manager, 데비안 패키지 관리자):</strong> 우분투를 포함한 데비안 계열 리눅스에서 소프트웨어를 설치, 삭제, 관리하는 기초 도구입니다.<br>
-                                <strong>ufw (Uncomplicated Firewall, 간편한 방화벽):</strong> 우분투의 기본 방화벽 관리 도구로, 복잡한 iptables 설정을 쉽게 처리할 수 있게 도와줍니다.<br>
-                                <strong>boot-start (부트 스타트):</strong> 시스템이 재부팅될 때 서비스가 자동으로 시작되도록 등록하는 설정입니다.
+                                <strong>apt install ./ (고급 패키지 도구 설치):</strong> 단순한 dpkg와 달리, 설치하려는 패키지가 필요로 하는 추가 라이브러리(Dependencies)를 우분투 저장소에서 자동으로 찾아 함께 설치해주는 방식입니다.<br>
+                                <strong>ufw (Uncomplicated Firewall, 간편한 방화벽):</strong> 우분투의 기본 방화벽 관리 도구로, 보안을 위해 필요한 포트만을 선택적으로 개방할 때 사용합니다.<br>
+                                <strong>boot-start (부트 스타트):</strong> 시스템 전원이 켜질 때 수동 조작 없이 서비스가 자동으로 실행되도록 환경을 구성하는 기능입니다.
                             </p>
                         </div>
                     </div>
