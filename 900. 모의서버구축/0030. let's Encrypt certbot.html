@@ -1,0 +1,224 @@
+import React from 'react';
+
+const App = () => {
+  return (
+    <div className="min-h-screen bg-[#020617] text-[#f8fafc] font-sans antialiased pb-20">
+      {/* Header: 기술 사양 및 타이틀 */}
+      <header className="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div className="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">
+                Cyber Security Lab
+              </span>
+              <span className="text-slate-500 font-mono text-[10px]">WEB-SEC-HTTPS | Infrastructure</span>
+            </div>
+            <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
+              Apache2 웹 서버 보안 강화<br />
+              <span className="text-slate-100 text-2xl">Let's Encrypt를 활용한 HTTPS(HyperText Transfer Protocol Secure) 인프라 구축</span>
+            </h1>
+          </div>
+          <div className="text-right hidden md:block border-l border-slate-800 pl-6">
+            <div className="bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+              SCORE: 100.0
+            </div>
+            <p className="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">System Architect Pro</p>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-6xl mx-auto px-6 py-16 space-y-24">
+        
+        {/* Section 1: 아키텍처 개요 */}
+        <section>
+          <h2 className="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+            1. 아키텍처 개요 (Architecture Overview)
+          </h2>
+          <div className="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl">
+            <p className="text-slate-300 text-lg mb-10 leading-relaxed">
+              HTTPS(HyperText Transfer Protocol Secure, 보안 하이퍼텍스트 전송 프로토콜)는 SSL(Secure Sockets Layer, 보안 소켓 계층) 또는 TLS(Transport Layer Security, 전송 계층 보안) 프로토콜을 사용하여 클라이언트와 서버 간의 데이터를 암호화합니다. 
+              Let's Encrypt는 ACME(Automated Certificate Management Environment, 자동화된 인증서 관리 환경) 프로토콜을 사용하여 무료로 신뢰할 수 있는 SSL/TLS 인증서를 발급하는 비영리 CA(Certificate Authority, 인증 기관)입니다.
+            </p>
+
+            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner">
+              <h4 className="text-center font-bold text-slate-400 mb-8 text-xs tracking-widest uppercase">
+                [도식: ACME 프로토콜 기반 인증서 발급 메커니즘]
+              </h4>
+              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-cyan-900/50 shadow-lg">
+                  <svg className="w-12 h-12 text-cyan-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                  <div className="font-black text-slate-100 text-sm">Apache2 Server<br /><span className="text-[10px] text-slate-400">(Certbot Client)</span></div>
+                </div>
+                <div className="flex flex-col items-center">
+                  <span className="text-[10px] text-cyan-500 font-mono mb-2 font-bold">CSR 요청 & 검증</span>
+                  <svg className="w-8 h-8 text-slate-600 rotate-90 md:rotate-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                  </svg>
+                </div>
+                <div className="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-blue-900/50 shadow-lg">
+                  <svg className="w-12 h-12 text-blue-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                  <div className="font-black text-slate-100 text-sm">Let's Encrypt CA<br /><span className="text-[10px] text-slate-400">(인증 기관)</span></div>
+                </div>
+              </div>
+            </div>
+            <p className="mt-6 text-xs text-slate-500 italic leading-relaxed">
+              * CSR(Certificate Signing Request, 인증서 서명 요청): 인증서 발급을 위해 CA에 제출하는 신청서 형식의 데이터입니다.
+            </p>
+          </div>
+        </section>
+
+        {/* Section 2: 실습 구성 요소 */}
+        <section>
+          <h2 className="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+            2. 실습 구성 요소 (Components)
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="bg-slate-900/40 border border-slate-800 rounded-3xl p-8 border-cyan-900/30 shadow-xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 bg-cyan-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">NODE 01</div>
+              <h3 className="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                <svg className="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+                서버 환경 (Server Environment)
+              </h3>
+              <ul className="space-y-4 text-sm text-slate-300">
+                <li className="flex items-start gap-2">
+                  <svg className="w-4 h-4 text-cyan-500 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
+                  <span>Ubuntu 22.04 LTS (Debian 계열 리눅스 배포판)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <svg className="w-4 h-4 text-cyan-500 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
+                  <span>Apache2(HTTP Web Server, 웹 서버 소프트웨어)</span>
+                </li>
+              </ul>
+            </div>
+            <div className="bg-slate-900/40 border border-slate-800 rounded-3xl p-8 border-indigo-900/30 shadow-xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">DNS</div>
+              <h3 className="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
+                <svg className="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9h18" /></svg>
+                네트워크 요구사항 (Requirements)
+              </h3>
+              <ul className="space-y-4 text-sm text-slate-300">
+                <li className="flex items-start gap-2">
+                  <svg className="w-4 h-4 text-indigo-500 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
+                  <span>Fira(Fully Qualified Domain Name, 전체 주소 도메인 네임) - A 레코드 설정 필수</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <svg className="w-4 h-4 text-indigo-500 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
+                  <span>Inbound(인바운드, 들어오는 트래픽) 포트 80(HTTP) 및 443(HTTPS) 개방</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <p className="mt-8 text-xs text-slate-500 bg-red-500/5 border border-red-500/20 p-4 rounded-xl">
+            <strong>[비용 고지]:</strong> Let's Encrypt 인증서 발급 자체는 무료입니다. 하지만 도메인 등록 비용(AWS Route 53 기준 년 약 $13~15) 및 서버 인스턴스(EC2 등) 운영 비용은 AWS 계정 정책에 따라 과금될 수 있습니다.
+          </p>
+        </section>
+
+        {/* Section 3: 명령어 및 절차 */}
+        <section>
+          <h2 className="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+            3. 실증 및 구현 (Implementation)
+          </h2>
+          <div className="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-12">
+            
+            {/* Step 01 */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <span className="bg-cyan-500 text-slate-900 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black italic shadow-lg">01</span>
+                <h3 className="text-xl font-bold text-slate-100 italic">패키지 업데이트 및 Apache2 설치</h3>
+              </div>
+              <div className="pl-12">
+                <p className="text-sm text-slate-400 mb-4 font-medium">최신 보안 패치를 위해 레포지토리를 업데이트한 후 아파치 서버를 설치합니다.</p>
+                <div className="bg-[#020617] rounded-xl p-6 font-mono text-sm shadow-inner relative border border-slate-800">
+                  <div className="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black tracking-tighter">Terminal</div>
+                  <div className="text-slate-200">$ <span className="text-cyan-400">sudo apt update && sudo apt install apache2 -y</span></div>
+                  <div className="text-slate-500 mt-2">Reading package lists... Done</div>
+                  <div className="text-slate-500">apache2 is already the newest version.</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 02 */}
+            <div className="space-y-4 border-t border-slate-800/50 pt-10">
+              <div className="flex items-center gap-3">
+                <span className="bg-cyan-500 text-slate-900 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black italic shadow-lg">02</span>
+                <h3 className="text-xl font-bold text-slate-100 italic">Certbot 및 Apache 플러그인 설치</h3>
+              </div>
+              <div className="pl-12">
+                <p className="text-sm text-slate-400 mb-4 font-medium">인증서 자동 발급 도구인 Certbot(써트봇)을 설치합니다.</p>
+                <div className="bg-[#020617] rounded-xl p-6 font-mono text-sm shadow-inner relative border border-slate-800">
+                  <div className="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black tracking-tighter">Terminal</div>
+                  <div className="text-slate-200">$ <span className="text-cyan-400">sudo apt install certbot python3-certbot-apache -y</span></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 03 */}
+            <div className="space-y-4 border-t border-slate-800/50 pt-10">
+              <div className="flex items-center gap-3">
+                <span className="bg-cyan-500 text-slate-900 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black italic shadow-lg">03</span>
+                <h3 className="text-xl font-bold text-slate-100 italic">SSL 인증서 발급 및 자동 설정</h3>
+              </div>
+              <div className="pl-12">
+                <p className="text-sm text-slate-400 mb-4 font-medium">실제 도메인을 사용하여 인증서를 요청합니다. (도메인 주소로 변경 필수)</p>
+                <div className="bg-[#020617] rounded-xl p-6 font-mono text-sm shadow-inner relative border border-slate-800">
+                  <div className="absolute top-4 right-4 text-slate-600 text-[10px] uppercase font-black tracking-tighter">Interactive Console</div>
+                  <div className="text-slate-200">$ <span className="text-cyan-400">sudo certbot --apache -d yourdomain.com</span></div>
+                  <div className="text-slate-500 mt-4 italic font-sans text-xs">
+                    * 이메일 입력, 서비스 약관 동의(A), 이메일 수신 동의(Y/N) 절차 진행<br />
+                    * 성공 시: /etc/letsencrypt/live/yourdomain.com/ 경로에 인증서 저장
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        {/* Section 4: 전문가 분석 */}
+        <section>
+          <h2 className="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight">
+            4. 아키텍트 인사이트 (Expert Insight)
+          </h2>
+          <div className="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-10">
+            <div className="flex flex-col md:flex-row gap-8">
+              <div className="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700 hover:border-cyan-500/50 transition-colors">
+                <div className="text-cyan-400 mb-4">
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                </div>
+                <h4 className="font-bold text-slate-100 mb-2">인증서 자동 갱신 (Auto-Renewal)</h4>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Let's Encrypt 인증서는 유효기간이 90일입니다. Certbot은 설치 시 `systemd` 타이머나 `cron` 작업을 자동으로 등록하여 만료 전 인증서를 갱신합니다. `sudo certbot renew --dry-run` 명령어로 갱신 프로세스가 정상인지 미리 시뮬레이션할 수 있습니다.
+                </p>
+              </div>
+              <div className="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700 hover:border-red-500/50 transition-colors">
+                <div className="text-red-400 mb-4">
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+                </div>
+                <h4 className="font-bold text-slate-100 mb-2">HSTS(HTTP Strict Transport Security) 보안</h4>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  인증서 적용 후에는 브라우저가 항상 HTTPS로만 접속하도록 강제하는 HSTS(보안 전송 강제 설정) 옵션을 활성화하는 것이 좋습니다. Apache 설정 파일 내 `Header always set Strict-Transport-Security` 구문을 추가하여 중간자 공격(MITM)을 방어하십시오.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+
+      <footer className="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div className="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+          © 2026 System Architect Pro. All rights reserved.
+        </div>
+        <p className="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic">
+          본 기술 교안은 정보 보안 실습을 목적으로 제작되었습니다. 실운영 환경에 적용 시에는 반드시 정기적인 백업과 보안 정책 검토를 선행하시기 바랍니다.
+        </p>
+      </footer>
+    </div>
+  );
+};
+
+export default App;
