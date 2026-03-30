@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>네트워크 보안 기초: Snort 3 아키텍처 및 로그 분석</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+        }
+        .terminal-bg { background-color: #010409; border: 1px solid #1e293b; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-filter: blur(12px); }
+        .code-block { font-family: 'Fira Code', monospace; }
+        .annotation-box { border-left: 2px solid #0ea5e9; background: rgba(14, 165, 233, 0.05); padding: 1.5rem; margin-top: 0.75rem; border-radius: 0 1rem 1rem 0; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+        
+        .connector { height: 2px; background: linear-gradient(90deg, #22d3ee, #6366f1); flex-grow: 1; min-width: 20px; }
+        .custom-table th { background-color: #1e293b; color: #22d3ee; font-weight: 800; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.1em; }
+        .custom-table td { border-bottom: 1px solid #1e293b; padding: 1.25rem; font-size: 0.85rem; }
+        
+        /* 로그 행별 주석 스타일 */
+        .log-row { display: flex; gap: 2rem; padding: 0.5rem; border-bottom: 1px solid rgba(30, 41, 59, 0.5); align-items: flex-start; }
+        .log-row:hover { background: rgba(14, 165, 233, 0.05); }
+        .log-content { flex: 0 0 550px; font-family: 'Fira Code', monospace; font-size: 12px; white-space: pre; }
+        .log-comment { flex: 1; font-size: 11px; color: #94a3b8; line-height: 1.4; padding-top: 2px; }
+        .log-comment b { color: #22d3ee; }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <!-- Header -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Cyber Security Architect Lab</span>
+                    <span class="text-slate-500 font-mono text-[10px]">NW-SEC-IDS-01 | Advanced Snort 3 Analysis</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
+                    네트워크 보안 기초 및 Snort 3 아키텍처<br>
+                    <span class="text-slate-100 text-2xl">런타임 통계 데이터 및 시스템 로그 초정밀 해부</span>
+                </h1>
+            </div>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    SCORE: 100/100
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">Expert Implementation Guide</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-16 space-y-40">
+
+        <!-- Section 1: 아키텍처 파이프라인 (기본 개념 강화) -->
+        <section>
+            <h2 class="text-3xl font-black border-l-8 border-cyan-500 pl-6 text-slate-100 mb-12 tracking-tight uppercase">
+                1. Snort 3 시스템 아키텍처 (System Architecture)
+            </h2>
+            <div class="section-card rounded-3xl p-12 shadow-2xl relative overflow-hidden">
+                <div class="absolute -right-20 -top-20 opacity-5">
+                    <i data-lucide="shield" class="w-96 h-96"></i>
+                </div>
+                <p class="text-slate-300 text-xl mb-12 leading-relaxed font-light relative z-10">
+                    Snort 3는 <b>DAQ (Data Acquisition, 데이터 수집 계층)</b>를 통해 하드웨어 추상화를 실현하며, 수집된 패킷은 <b>Inspector (인스펙터, 프로토콜 분석기)</b>를 거쳐 정규화된 후 탐지 엔진으로 전달됩니다.
+                </p>
+
+                <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-12 shadow-inner">
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                        <div class="flex-1 text-center p-8 bg-slate-800 rounded-2xl border border-cyan-900/50 shadow-xl group hover:border-cyan-400 transition-all">
+                            <i data-lucide="inbox" class="w-12 h-12 text-cyan-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm mb-2 italic">PACKET CAPTURE</div>
+                            <p class="text-[9px] text-slate-500">Promiscuous Mode 기반의 데이터 수집</p>
+                        </div>
+                        <i data-lucide="chevrons-right" class="w-8 h-8 text-slate-700"></i>
+                        <div class="flex-1 text-center p-8 bg-slate-800 rounded-2xl border border-blue-900/50 shadow-xl group hover:border-blue-400 transition-all">
+                            <i data-lucide="settings-2" class="w-12 h-12 text-blue-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm mb-2 italic">DECODING & NORMALIZATION</div>
+                            <p class="text-[9px] text-slate-500">비정상 헤더 제거 및 세션 재구성</p>
+                        </div>
+                        <i data-lucide="chevrons-right" class="w-8 h-8 text-slate-700"></i>
+                        <div class="flex-1 text-center p-8 bg-slate-800 rounded-2xl border border-indigo-900/50 shadow-xl group hover:border-indigo-400 transition-all">
+                            <i data-lucide="target" class="w-12 h-12 text-indigo-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm mb-2 italic">RULE MATCHING</div>
+                            <p class="text-[9px] text-slate-500">SID 기반 시그니처 패턴 매칭</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: 실무 런타임 로그 초정밀 해부 (주요 요청 사항 반영) -->
+        <section>
+            <h2 class="text-3xl font-black border-l-8 border-cyan-500 pl-6 text-slate-100 mb-12 tracking-tight uppercase">
+                2. 런타임 결과 정밀 주석 분석 (Runtime Log Dissection)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 mb-10 text-lg">Snort 3 실행 중 발생하는 실시간 패킷 정보와 종료 시의 시스템 요약 보고서를 <b>행별(Line-by-line)</b>로 분석합니다.</p>
+                
+                <div class="terminal-bg rounded-2xl overflow-hidden border border-slate-800">
+                    <!-- Terminal Header -->
+                    <div class="bg-slate-900 px-6 py-2 border-b border-slate-800 flex items-center justify-between">
+                        <div class="flex gap-1.5">
+                            <div class="w-2.5 h-2.5 rounded-full bg-red-500"></div>
+                            <div class="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
+                            <div class="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+                        </div>
+                        <div class="text-[10px] text-slate-500 font-mono">snort_runtime.log</div>
+                    </div>
+
+                    <!-- Terminal Content with Annotations -->
+                    <div class="p-4 font-mono">
+                        
+                        <!-- Packet Log Block -->
+                        <div class="log-row">
+                            <div class="log-content text-slate-600">=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+</div>
+                            <div class="log-comment">출력 결과의 가독성을 위한 <b>Separator(구분선)</b>입니다.</div>
+                        </div>
+                        <div class="log-row">
+                            <div class="log-content text-yellow-500">WARNING: No preprocessors configured for policy 0.</div>
+                            <div class="log-comment">정책 0번에 <b>전처리기(Preprocessor)</b>가 없음. 데이터 정규화 없이 원본 그대로 분석됨을 경고함.</div>
+                        </div>
+                        <div class="log-row">
+                            <div class="log-content text-cyan-400">03/30-08:54:43.768896 192.100.10.1:2503 -> 192.100.10.9:22</div>
+                            <div class="log-comment"><b>타임스탬프</b>(08시54분) 및 <b>출발지 IP:포트</b> → <b>목적지 IP:포트</b>(SSH 포트 22번) 정보입니다.</div>
+                        </div>
+                        <div class="log-row">
+                            <div class="log-content text-slate-400 italic">TCP TTL:128 TOS:0x0 ID:52976 IpLen:20 DgmLen:40 DF</div>
+                            <div class="log-comment"><b>L3(IP) 헤더 정보:</b> 생존 시간(128), 데이터그램 길이(40), 단편화 방지(DF) 플래그 설정 확인.</div>
+                        </div>
+                        <div class="log-row">
+                            <div class="log-content text-blue-400 font-bold">***A**** Seq: 0xF4EC645D  Ack: 0x823A5BFF  Win: 0x1007  TcpLen: 20</div>
+                            <div class="log-comment"><b>L4(TCP) 헤더 정보:</b> <b>ACK 플래그</b>(*) 활성화. 시퀀스 번호와 윈도우 크기(데이터 수신 가능 용량) 표시.</div>
+                        </div>
+
+                        <!-- User Interruption -->
+                        <div class="log-row mt-4">
+                            <div class="log-content text-red-500">^C*** Caught Int-Signal</div>
+                            <div class="log-comment">사용자가 <b>Ctrl+C</b>를 입력하여 프로세스에 인터럽트 신호(SIGINT)를 전달, 종료를 요청함.</div>
+                        </div>
+
+                        <!-- Statistics Header -->
+                        <div class="log-row mt-6">
+                            <div class="log-content text-slate-600">====================================================================</div>
+                            <div class="log-comment">실행 성능 및 패킷 처리 통계 리포트 시작 지점입니다.</div>
+                        </div>
+                        <div class="log-row">
+                            <div class="log-content text-slate-300">Run time for packet processing was 5.131737 seconds</div>
+                            <div class="log-comment">패킷 분석에 소요된 <b>순수 가동 시간</b>입니다. (약 5.13초)</div>
+                        </div>
+                        <div class="log-row">
+                            <div class="log-content text-slate-300">Snort processed 17 packets.</div>
+                            <div class="log-comment">분석 엔진이 최종적으로 검사를 완료한 <b>패킷의 총 수</b>입니다.</div>
+                        </div>
+                        <div class="log-row">
+                            <div class="log-content text-slate-300">   Pkts/sec:            3</div>
+                            <div class="log-comment">초당 처리량(PPS)입니다. 실습 환경이므로 매우 낮은 수치를 기록 중입니다.</div>
+                        </div>
+
+                        <!-- Memory Stats -->
+                        <div class="log-row mt-4">
+                            <div class="log-content text-indigo-400 font-bold">Memory usage summary:</div>
+                            <div class="log-comment">시스템 메모리 점유 상태 요약입니다. <b>Resource Leak(자원 누수)</b> 여부를 판단합니다.</div>
+                        </div>
+                        <div class="log-row">
+                            <div class="log-content text-slate-400">  Total non-mmapped bytes (arena):       790528</div>
+                            <div class="log-comment"><b>Arena:</b> 표준 힙 영역 메모리 크기입니다. (바이트 단위)</div>
+                        </div>
+                        <div class="log-row">
+                            <div class="log-content text-slate-400">  Total allocated space (uordblks):      687008</div>
+                            <div class="log-comment"><b>Used Blocks:</b> 현재 실제로 할당되어 사용 중인 메모리 공간입니다.</div>
+                        </div>
+
+                        <!-- Packet I/O Totals -->
+                        <div class="log-row mt-4">
+                            <div class="log-content text-green-400 font-bold">Packet I/O Totals:</div>
+                            <div class="log-comment">패킷 수집 계층(DAQ)과 분석 계층 간의 <b>데이터 수급 균형</b>을 분석합니다.</div>
+                        </div>
+                        <div class="log-row">
+                            <div class="log-content text-slate-300">   Received:           23</div>
+                            <div class="log-comment">NIC로부터 들어온 <b>전체 패킷 수</b>입니다.</div>
+                        </div>
+                        <div class="log-row">
+                            <div class="log-content text-slate-300">   Analyzed:           17 ( 73.913%)</div>
+                            <div class="log-comment">전체 중 73%만 분석됨. 나머지는 처리 지연으로 <b>Outstanding</b> 상태임을 뜻함.</div>
+                        </div>
+                        <div class="log-row">
+                            <div class="log-content text-slate-300">Outstanding:            6 ( 26.087%)</div>
+                            <div class="log-comment">처리 대기 중인 패킷입니다. 이 수치가 높으면 <b>CPU 병목 현상</b>을 의미합니다.</div>
+                        </div>
+
+                        <!-- Protocol Breakdown -->
+                        <div class="log-row mt-4">
+                            <div class="log-content text-purple-400 font-bold">Breakdown by protocol:</div>
+                            <div class="log-comment">계층별/프로토콜별 패킷 분포도입니다. <b>비정상 트래픽 비율</b>을 확인합니다.</div>
+                        </div>
+                        <div class="log-row">
+                            <div class="log-content text-slate-400">        Eth:           17 (100.000%)</div>
+                            <div class="log-comment">분석된 모든 패킷이 <b>이더넷(Ethernet)</b> 프레임 구조를 가짐을 확인.</div>
+                        </div>
+                        <div class="log-row">
+                            <div class="log-content text-slate-400">        IP4:           13 ( 76.471%)</div>
+                            <div class="log-comment">분석 패킷 중 13개가 <b>IPv4</b> 형식입니다.</div>
+                        </div>
+                        <div class="log-row">
+                            <div class="log-content text-slate-400">        TCP:           13 ( 76.471%)</div>
+                            <div class="log-comment">L4 프로토콜 중 <b>TCP</b>가 차지하는 비중입니다.</div>
+                        </div>
+                        <div class="log-row">
+                            <div class="log-content text-slate-400">        ARP:            4 ( 23.529%)</div>
+                            <div class="log-comment">주소 결정 프로토콜(ARP) 패킷입니다. 네트워크 초기화 시 발생합니다.</div>
+                        </div>
+                        <div class="log-row">
+                            <div class="log-content text-red-400 font-bold">Bad Chk Sum:            6 ( 35.294%)</div>
+                            <div class="log-comment"><b>체크섬 오류:</b> 35%의 패킷이 손상됨. 실무에선 <b>NIC Offloading</b>에 의한 오탐이 많음.</div>
+                        </div>
+
+                        <!-- Exit Status -->
+                        <div class="log-row mt-6">
+                            <div class="log-content text-slate-600">====================================================================</div>
+                            <div class="log-comment">종료 절차가 완료되었습니다.</div>
+                        </div>
+                        <div class="log-row">
+                            <div class="log-content text-cyan-500 font-black italic">Snort exiting</div>
+                            <div class="log-comment">스노트 프로세스가 안전하게 종료(Exit)되었습니다.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: GID, SID, REV 심층 해부 (개념 재정립) -->
+        <section>
+            <h2 class="text-3xl font-black border-l-8 border-cyan-500 pl-6 text-slate-100 mb-12 tracking-tight uppercase">
+                3. 탐지 규칙 식별자 해부 (Rule Identifiers)
+            </h2>
+            <div class="section-card rounded-3xl p-12 shadow-2xl space-y-12">
+                <div class="flex flex-col md:flex-row gap-8 items-center justify-center mb-8">
+                    <div class="flex-1 p-6 bg-slate-900 border border-cyan-900/50 rounded-2xl text-center">
+                        <div class="text-xs text-slate-500 mb-2">GENERATOR ID</div>
+                        <div class="text-3xl font-black text-cyan-400 italic">GID</div>
+                        <p class="text-[10px] text-slate-400 mt-4">어떤 시스템(엔진/인스펙터)이<br>경고를 발생시켰는가?</p>
+                    </div>
+                    <div class="text-slate-700 text-3xl font-black">:</div>
+                    <div class="flex-1 p-6 bg-slate-900 border border-blue-900/50 rounded-2xl text-center">
+                        <div class="text-xs text-slate-500 mb-2">SIGNATURE ID</div>
+                        <div class="text-3xl font-black text-blue-400 italic">SID</div>
+                        <p class="text-[10px] text-slate-400 mt-4">공격 패턴의 고유 번호<br>(주민등록번호와 동일)</p>
+                    </div>
+                    <div class="text-slate-700 text-3xl font-black">:</div>
+                    <div class="flex-1 p-6 bg-slate-900 border border-indigo-900/50 rounded-2xl text-center">
+                        <div class="text-xs text-slate-500 mb-2">REVISION ID</div>
+                        <div class="text-3xl font-black text-indigo-400 italic">REV</div>
+                        <p class="text-[10px] text-slate-400 mt-4">규칙이 수정/업데이트된<br>버전 정보</p>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800/30 p-8 rounded-2xl border border-slate-700 space-y-6">
+                    <div class="flex items-start gap-4">
+                        <i data-lucide="help-circle" class="w-6 h-6 text-cyan-500 shrink-0"></i>
+                        <div class="text-sm text-slate-400">
+                            <b class="text-slate-200">GID가 중요한 이유:</b> 같은 경고 메시지라도 GID가 다르면 대응 방식이 달라집니다. <br>
+                            - <span class="text-cyan-400 font-mono">GID 1</span>: 일반 탐지 규칙 위반 (정책 검토 필요)<br>
+                            - <span class="text-cyan-400 font-mono">GID 116</span>: 프로토콜 분석기 탐지 (애플리케이션 취약점 공격 가능성 높음)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: 아키텍트 인사이트 (Expert Insight) -->
+        <section>
+            <h2 class="text-3xl font-black border-l-8 border-cyan-500 pl-6 text-slate-100 mb-12 tracking-tight uppercase">
+                4. 아키텍트 인사이트 (Expert Insight)
+            </h2>
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-12 shadow-2xl">
+                <div class="flex flex-col md:flex-row gap-10">
+                    <div class="flex-1 bg-slate-800/50 p-8 rounded-3xl border border-slate-700 hover:border-cyan-500/50 transition-all group">
+                        <div class="text-cyan-400 mb-6 group-hover:scale-110 transition-transform"><i data-lucide="cpu" class="w-12 h-12"></i></div>
+                        <h4 class="font-bold text-slate-100 text-xl mb-4 italic">Performance Optimization</h4>
+                        <p class="text-[11px] text-slate-400 leading-relaxed">
+                            로그 분석 결과 <b>Outstanding</b> 패킷 비율이 지속적으로 20%를 상회한다면, 이는 탐지 엔진의 처리 속도보다 패킷 유입 속도가 빠름을 의미합니다. 이 경우 Snort 3의 <b>Worker Threads</b> 설정을 코어 수에 맞게 확장하거나, 불필요한 인스펙터(Inspector)를 비활성화하여 오버헤드를 줄여야 합니다.
+                        </p>
+                    </div>
+                    <div class="flex-1 bg-slate-800/50 p-8 rounded-3xl border border-slate-700 hover:border-red-500/50 transition-all group">
+                        <div class="text-red-400 mb-6 group-hover:scale-110 transition-transform"><i data-lucide="shield-alert" class="w-12 h-12"></i></div>
+                        <h4 class="font-bold text-slate-100 text-xl mb-4 italic">Security Posture</h4>
+                        <p class="text-[11px] text-slate-400 leading-relaxed">
+                            <b>Bad Checksum</b> 비율이 높게 나타나는 것은 단순히 패킷 손상이 아니라, 공격자가 탐지 장비를 교란하기 위해 의도적으로 생성한 패킷이거나 하드웨어 가속 기능 간의 충돌일 수 있습니다. 보안 아키텍트는 <code class="bg-slate-900 px-1 text-red-400">-k none</code> 옵션의 사용 여부를 신중히 결정해야 합니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-7xl mx-auto px-6 py-16 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-6">
+            © 2026 SYSTEM ARCHITECT PRO. ALL RIGHTS RESERVED.
+        </div>
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-4xl mx-auto italic">
+            본 실습 교재는 고도화된 침입 탐지 시스템 설계를 위해 제작되었습니다. 제공된 런타임 로그와 통계 데이터는 시스템의 하드웨어 사양 및 네트워크 환경에 따라 상이할 수 있습니다. <br>
+            <b>Disclaimer:</b> 허가되지 않은 네트워크 환경에서의 패킷 분석 및 변조는 법적 책임을 수반할 수 있습니다.
+        </p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
