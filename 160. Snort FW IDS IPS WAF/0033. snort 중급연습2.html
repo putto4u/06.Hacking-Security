@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snort NIDS 심화: 고급 규칙 설계 및 실전 위협 탐지</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+        }
+        .terminal-bg { background-color: #010409; border: 1px solid #1e293b; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-filter: blur(12px); }
+        .code-block { font-family: 'Fira Code', monospace; }
+        .copy-btn { cursor: pointer; transition: all 0.2s; }
+        .copy-btn:hover { color: #22d3ee; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <!-- Header -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-indigo-600 text-white px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(79,70,229,0.5)]">Advanced Security Lab</span>
+                    <span class="text-slate-500 font-mono text-[10px]">SNORT-L02 | Advanced Rule Engineering</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 tracking-tight leading-tight">
+                    Snort NIDS 심화 분석<br><span class="text-slate-100 text-2xl">고급 페이로드 검사와 위협 인텔리전스 구현</span>
+                </h1>
+            </div>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    SCORE: 100.0
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">Intrusion Analysis Specialist</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-24">
+
+        <!-- Section 1: Advanced Rule Engine Architecture -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-indigo-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
+                1. 고급 규칙 엔진 아키텍처 (Advanced Engine Architecture)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-10 leading-relaxed">
+                    단순한 문자열 매칭을 넘어, <strong class="text-indigo-400">Snort의 고급 옵션</strong>은 프로토콜의 특정 필드를 정확히 타겟팅합니다. 현대의 사이버 공격은 정상 트래픽 속에 교묘히 숨어들기 때문에, <span class="text-purple-400 font-bold">비정규화된 HTTP 데이터 분석(Normalization)</span>과 <span class="text-pink-400 font-bold">정규 표현식(PCRE)</span>을 활용한 정밀 검사가 필수적입니다. 본 실습에서는 위협 행위자의 정찰 활동부터 데이터 유출(Exfiltration) 시도까지 탐지하는 20가지 심화 시나리오를 구축합니다.
+                </p>
+
+                <!-- 도식화 인포그래픽 영역 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 shadow-inner">
+                    <h4 class="text-center font-bold text-slate-400 mb-8 text-xs tracking-widest uppercase">
+                        [도식: Snort 심층 패킷 검증(DPI) 프로세스]
+                    </h4>
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                        <!-- Preprocessor -->
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-indigo-900/50 shadow-lg">
+                            <i data-lucide="layers" class="w-12 h-12 text-indigo-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">전처리기<br><span class="text-[10px] text-slate-500">(Preprocessors)</span></div>
+                        </div>
+                        <i data-lucide="arrow-right" class="w-8 h-8 text-slate-600 rotate-90 md:rotate-0"></i>
+                        <!-- Content Matcher -->
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-purple-900/50 shadow-lg">
+                            <i data-lucide="target" class="w-12 h-12 text-purple-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">필드 특정 매칭<br><span class="text-[10px] text-slate-500">(Field Specific)</span></div>
+                        </div>
+                        <i data-lucide="arrow-right" class="w-8 h-8 text-slate-600 rotate-90 md:rotate-0"></i>
+                        <!-- PCRE Engine -->
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-pink-900/50 shadow-lg">
+                            <i data-lucide="regex" class="w-12 h-12 text-pink-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">정규표현식 엔진<br><span class="text-[10px] text-slate-500">(PCRE Engine)</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8 pt-8 border-t border-slate-800">
+                    <h5 class="text-indigo-500 font-bold text-xs mb-4 uppercase flex items-center gap-2">
+                        <i data-lucide="info" class="w-4 h-4"></i> Advanced Terminology
+                    </h5>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                        <div class="text-slate-400"><strong class="text-slate-200">PCRE (Perl Compatible Regular Expressions):</strong> 복잡한 문자열 패턴을 표현하기 위한 표준 정규 표현식 라이브러리.</div>
+                        <div class="text-slate-400"><strong class="text-slate-200">DPI (Deep Packet Inspection):</strong> 패킷의 헤더뿐만 아니라 페이로드 내부의 콘텐츠까지 검사하는 기술.</div>
+                        <div class="text-slate-400"><strong class="text-slate-200">Exfiltration (데이터 유출):</strong> 조직 내부의 민감 데이터를 외부로 무단 전송하는 행위.</div>
+                        <div class="text-slate-400"><strong class="text-slate-200">Normalization (정규화):</strong> IDS 우회를 위해 인코딩된 문자열을 원본 형태로 복원하여 검사하는 과정.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: HTTP & Application Layer Inspection -->
+        <section>
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-2xl font-black border-l-4 border-indigo-500 pl-4 text-slate-100 tracking-tight">
+                    2. HTTP 및 애플리케이션 계층 정밀 분석 (21~30)
+                </h2>
+                <span class="text-slate-500 font-mono text-xs uppercase tracking-widest">Part D: Protocol Deep Dive</span>
+            </div>
+
+            <div class="space-y-8">
+                <!-- 21. User-Agent Detection -->
+                <div class="section-card rounded-3xl p-8 border-l-4 border-l-indigo-600">
+                    <div class="flex items-center gap-2 mb-4">
+                        <span class="bg-indigo-900 text-indigo-200 px-2 py-1 rounded text-[10px] font-bold">Example 21</span>
+                        <h4 class="font-bold text-slate-100">공격 도구(Nmap) User-Agent 탐지</h4>
+                    </div>
+                    <div class="terminal-bg rounded-lg p-6 font-mono text-xs text-slate-300 mb-4 overflow-x-auto">
+                        alert tcp any any -> any 80 (msg:"Nmap Scripting Engine Detected"; <span class="text-pink-400">content:"Nmap Scripting Engine"</span>; <span class="text-cyan-400">http_header;</span> sid:1000014;)
+                    </div>
+                    <div class="text-xs text-slate-400 space-y-2">
+                        <p><i data-lucide="chevron-right" class="w-3 h-3 inline"></i> <strong class="text-slate-200">http_header:</strong> 전체 페이로드가 아닌 HTTP 헤더 영역에서만 문자열을 검색하여 성능을 최적화합니다.</p>
+                        <p><i data-lucide="chevron-right" class="w-3 h-3 inline"></i> <strong class="text-slate-200">분석:</strong> 위협 행위자가 도구를 숨기지 않았을 때 가장 빠르게 정찰 활동을 탐지하는 방법입니다.</p>
+                    </div>
+                </div>
+
+                <!-- 22. Host Header Mismatch -->
+                <div class="section-card rounded-3xl p-8 border-l-4 border-l-indigo-600">
+                    <div class="flex items-center gap-2 mb-4">
+                        <span class="bg-indigo-900 text-indigo-200 px-2 py-1 rounded text-[10px] font-bold">Example 22</span>
+                        <h4 class="font-bold text-slate-100">Host 헤더 불일치(Proxy 시도) 탐지</h4>
+                    </div>
+                    <div class="terminal-bg rounded-lg p-6 font-mono text-xs text-slate-300 mb-4 overflow-x-auto">
+                        alert tcp any any -> any 80 (msg:"Suspicious HTTP Host Header"; <span class="text-pink-400">pcre:"/Host\x3a\s*\d+\.\d+\.\d+\.\d+/i"</span>; sid:1000015;)
+                    </div>
+                    <div class="text-xs text-slate-400">
+                        <p><i data-lucide="chevron-right" class="w-3 h-3 inline"></i> <strong class="text-slate-200">pcre:</strong> 정규표현식을 사용하여 Host 헤더가 도메인 명이 아닌 직접적인 IP 주소 형식인 경우를 식별합니다.</p>
+                    </div>
+                </div>
+
+                <!-- 23. DNS Query Exfiltration -->
+                <div class="section-card rounded-3xl p-8 border-l-4 border-l-indigo-600">
+                    <div class="flex items-center gap-2 mb-4">
+                        <span class="bg-indigo-900 text-indigo-200 px-2 py-1 rounded text-[10px] font-bold">Example 23</span>
+                        <h4 class="font-bold text-slate-100">DNS 쿼리를 통한 데이터 유출 시도 탐지</h4>
+                    </div>
+                    <div class="terminal-bg rounded-lg p-6 font-mono text-xs text-slate-300 mb-4 overflow-x-auto">
+                        alert udp any any -> any 53 (msg:"DNS Data Exfiltration Attempt"; <span class="text-pink-400">content:"|00 01 00 00 00 00 00 00 00 00|"</span>; <span class="text-cyan-400">dsize:>100</span>; sid:1000016;)
+                    </div>
+                    <p class="text-[11px] text-slate-500 italic"># DNS 질의 패킷의 크기가 비정상적으로 크고 특정 바이너리 패턴이 포함된 경우를 추적합니다.</p>
+                </div>
+
+                <!-- 24~30 Items Table -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 text-xs">
+                        <div class="text-indigo-400 font-bold mb-1">24. HTTP POST 대량 데이터</div>
+                        <code class="block bg-black p-2 rounded mt-1">alert tcp any any -> any 80 (msg:"Large HTTP POST"; content:"POST"; http_method; dsize:>5000; sid:1000017;)</code>
+                    </div>
+                    <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 text-xs">
+                        <div class="text-indigo-400 font-bold mb-1">25. ICMP Tunneling (Payload)</div>
+                        <code class="block bg-black p-2 rounded mt-1">alert icmp any any -> any any (msg:"ICMP Tunneling"; itype:8; content:!"|00|"; sid:1000018;)</code>
+                    </div>
+                    <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 text-xs">
+                        <div class="text-indigo-400 font-bold mb-1">26. Nmap XMAS Scan 탐지</div>
+                        <code class="block bg-black p-2 rounded mt-1">alert tcp any any -> any any (msg:"XMAS Scan Detected"; flags:FPU; sid:1000019;)</code>
+                    </div>
+                    <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 text-xs">
+                        <div class="text-indigo-400 font-bold mb-1">27. Nmap NULL Scan 탐지</div>
+                        <code class="block bg-black p-2 rounded mt-1">alert tcp any any -> any any (msg:"NULL Scan Detected"; flags:0; sid:1000020;)</code>
+                    </div>
+                    <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 text-xs">
+                        <div class="text-indigo-400 font-bold mb-1">28. Nikto Scanner 탐지</div>
+                        <code class="block bg-black p-2 rounded mt-1">alert tcp any any -> any 80 (msg:"Nikto Scan"; content:"Nikto"; http_header; sid:1000021;)</code>
+                    </div>
+                    <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 text-xs">
+                        <div class="text-indigo-400 font-bold mb-1">29. Shellshock (CVE-2014-6271)</div>
+                        <code class="block bg-black p-2 rounded mt-1">alert tcp any any -> any 80 (msg:"Shellshock Attempt"; content:"() {"; sid:1000022;)</code>
+                    </div>
+                    <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 text-xs md:col-span-2">
+                        <div class="text-indigo-400 font-bold mb-1">30. Brute Force (로그인 시도 임계치)</div>
+                        <code class="block bg-black p-2 rounded mt-1">alert tcp any any -> any 21 (msg:"FTP Brute Force"; content:"USER"; <span class="text-pink-400">detection_filter:track by_src, count 10, seconds 60;</span> sid:1000023;)</code>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Advanced Pattern Matching & Recon -->
+        <section>
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-2xl font-black border-l-4 border-indigo-500 pl-4 text-slate-100 tracking-tight">
+                    3. 심층 패턴 매칭 및 정찰 활동 탐지 (31~40)
+                </h2>
+                <span class="text-slate-500 font-mono text-xs uppercase tracking-widest">Part E: Threat Intelligence Integration</span>
+            </div>
+
+            <div class="space-y-12">
+                <!-- 31. PCRE Email -->
+                <div class="section-card rounded-3xl p-10 shadow-2xl border-l-4 border-l-slate-700 hover:border-l-pink-500 transition-all">
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="bg-pink-500 text-white w-8 h-8 rounded-full flex items-center justify-center text-xs font-black italic">31</span>
+                        <h3 class="text-xl font-bold text-slate-100">이메일 주소 유출 패턴 탐지</h3>
+                    </div>
+                    <div class="terminal-bg rounded-xl p-6 font-mono text-sm mb-4">
+                        alert tcp any any -> any any (msg:"Email Address Pattern Found"; <span class="text-pink-400">pcre:"/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}/"</span>; sid:1000024;)
+                    </div>
+                    <p class="text-xs text-slate-400">페이로드 내부에 포함된 이메일 형식의 문자열을 정규표현식으로 정밀하게 찾아내어 개인정보 유출을 감시합니다.</p>
+                </div>
+
+                <!-- 32. Credit Card -->
+                <div class="section-card rounded-3xl p-10 shadow-2xl border-l-4 border-l-slate-700 hover:border-l-amber-500 transition-all">
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="bg-amber-500 text-white w-8 h-8 rounded-full flex items-center justify-center text-xs font-black italic">32</span>
+                        <h3 class="text-xl font-bold text-slate-100">신용카드 번호(DLP) 탐지</h3>
+                    </div>
+                    <div class="terminal-bg rounded-xl p-6 font-mono text-sm mb-4">
+                        alert tcp any any -> any any (msg:"Credit Card Number Detected"; <span class="text-pink-400">pcre:"/\d{4}-\d{4}-\d{4}-\d{4}/"</span>; sid:1000025;)
+                    </div>
+                    <p class="text-xs text-slate-400">데이터 손실 방지(DLP, Data Loss Prevention) 관점에서 카드 번호 형식을 탐지합니다.</p>
+                </div>
+
+                <!-- 33~40 Quick List -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl">
+                        <div class="text-xs font-black text-indigo-400 mb-2">33. SMB EternalBlue 패턴</div>
+                        <div class="text-[10px] font-mono bg-black p-2 rounded text-slate-300">alert tcp any any -> any 445 (msg:"EternalBlue Attempt"; content:"|ff 53 4d 42 72 00 00 00 00|"; sid:1000026;)</div>
+                    </div>
+                    <div class="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl">
+                        <div class="text-xs font-black text-indigo-400 mb-2">34. SMTP VRFY(사용자 조사)</div>
+                        <div class="text-[10px] font-mono bg-black p-2 rounded text-slate-300">alert tcp any any -> any 25 (msg:"SMTP VRFY Attempt"; content:"VRFY"; sid:1000027;)</div>
+                    </div>
+                    <div class="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl">
+                        <div class="text-xs font-black text-indigo-400 mb-2">35. Reverse Shell (Bash)</div>
+                        <div class="text-[10px] font-mono bg-black p-2 rounded text-slate-300">alert tcp any any -> any any (msg:"Reverse Shell"; content:"/bin/bash -i"; sid:1000028;)</div>
+                    </div>
+                    <div class="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl">
+                        <div class="text-xs font-black text-indigo-400 mb-2">36. MZ 헤더(실행 파일 다운로드)</div>
+                        <div class="text-[10px] font-mono bg-black p-2 rounded text-slate-300">alert tcp any 80 -> any any (msg:"EXE Download"; content:"MZ"; sid:1000029;)</div>
+                    </div>
+                    <div class="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl">
+                        <div class="text-xs font-black text-indigo-400 mb-2">37. Base64 인코딩 페이로드</div>
+                        <div class="text-[10px] font-mono bg-black p-2 rounded text-slate-300">alert tcp any any -> any 80 (msg:"Base64 Pattern"; pcre:"/[A-Za-z0-9+\/]{40,}/"; sid:1000030;)</div>
+                    </div>
+                    <div class="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl">
+                        <div class="text-xs font-black text-indigo-400 mb-2">38. Port Knocking 시도</div>
+                        <div class="text-[10px] font-mono bg-black p-2 rounded text-slate-300">alert tcp any any -> any 1000:2000 (msg:"Port Knocking Attempt"; sid:1000031;)</div>
+                    </div>
+                    <div class="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl">
+                        <div class="text-xs font-black text-indigo-400 mb-2">39. Local Rules 관리 체계</div>
+                        <div class="text-[11px] text-slate-400 italic font-sans leading-relaxed">/etc/snort/rules/local.rules 파일을 구조화하여 기업 특화 룰셋을 관리하는 아키텍처를 설계합니다.</div>
+                    </div>
+                    <div class="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl">
+                        <div class="text-xs font-black text-indigo-400 mb-2">40. Unified2 로그 분석</div>
+                        <div class="text-[11px] text-slate-400 italic font-sans leading-relaxed">Barnyard2 등을 활용해 Snort의 바이너리 로그를 DB로 연동하고 시각화하는 파이프라인을 구축합니다.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: 아키텍트 인사이트 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-indigo-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
+                4. 아키텍트 인사이트 (Expert Insight)
+            </h2>
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-10">
+                <div class="flex flex-col md:flex-row gap-8">
+                    <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                        <div class="text-indigo-400 mb-4"><i data-lucide="zap" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2">성능(Performance) vs 탐지율</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            심화 규칙에서 사용하는 <strong class="text-slate-200">PCRE</strong>는 강력하지만 CPU 자원을 많이 소모합니다. 항상 <code class="text-indigo-400">content</code> 매칭을 먼저 사용하여 1차 필터링을 수행한 뒤, 필요한 경우에만 정규표현식을 타도록 설계하는 것이 대규모 트래픽 환경에서의 핵심 전략입니다.
+                        </p>
+                    </div>
+                    <div class="flex-1 bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                        <div class="text-pink-400 mb-4"><i data-lucide="microscope" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2">위협 우회(Evasion) 기법 대응</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            공격자는 인코딩(%xx), 대소문자 혼합 등을 통해 탐지를 피하려 합니다. <code class="text-pink-400">nocase</code>, <code class="text-pink-400">http_uri</code>, <code class="text-pink-400">http_client_body</code>와 같은 한정자(Modifiers)를 적극 활용하여 탐지 사각지대를 제거하십시오.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+            © 2026 System Architect Pro. All rights reserved.
+        </div>
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic">
+            본 심화 실습 자료는 인프라 보안 강화 및 전문 분석 역량 함양을 위해 설계되었습니다.
+        </p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+        function copyCode(btn) {
+            const code = btn.nextElementSibling.innerText;
+            const textarea = document.createElement('textarea');
+            textarea.value = code.replace('$ ', '');
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            
+            const originalIcon = btn.innerHTML;
+            btn.innerHTML = '<i data-lucide="check" class="w-4 h-4 text-indigo-400"></i>';
+            lucide.createIcons();
+            setTimeout(() => {
+                btn.innerHTML = originalIcon;
+                lucide.createIcons();
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
