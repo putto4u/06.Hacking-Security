@@ -221,6 +221,8 @@
                             <div class="text-green-400 font-bold mt-1">nginx: configuration file /etc/nginx/nginx.conf test is successful</div>
                             <div class="text-slate-500 mt-4 italic mb-2"># 안전한 리로드 또는 재시작</div>
                             <div class="text-slate-200">$ <span class="text-cyan-400">sudo systemctl reload nginx</span></div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400">------------ 추가 보안 설정 /etc/nginx/nginx.conf ----- </span></div>
+                            <div class="text-slate-200">$ <span class="text-cyan-400"> add_header X-Content-Type-Options "nosniff" always;    </span></div>
                         </div>
                     </div>
                 </div>
