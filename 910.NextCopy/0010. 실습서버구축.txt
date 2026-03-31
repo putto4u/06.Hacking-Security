@@ -4,16 +4,16 @@
 주의사항 : 1. 모든 vm 설치 완료후(편의 설정 직후) 스냅샷 필수.
            2. 중요서버 및 대형툴 설치직전 스냅샷(롤백용)
 
-1. 쿠버네티스용 우분투 24.04  
+1. 쿠버네티스용 우분투 24.04     -------->    NIC : 브리지 모드, 팀 IP 정책 설계 중요
    - server  1대  : k8s 마스터                앤서블, 도커설치후->K8s설치,칼리코 설치
    - server  1대  : K8s 노드1                 칼리코 배포
    - desktop 1대  : K8s 노드2                 칼리코 배포, 프로메테우스+그라파나
    - 호스트PC 1대  : 테라폼, 테라그런트
 
-2. 모의 해킹 서버 구축
+2. 모의 해킹 서버 구축           -------->      NIC : Nat 모드, 포트포워드              
    - 칼리서버 1대 : 해킹 툴                     postgreSQL 가동 및 init
    - 메타서버 1대 : 취약 서버1                  VM 제작시 Open vmx(vmdk) 으로 설치
-   - 우분투 20.04 server 1대 : 취약서버2        snort 2.9,   FTP서버,    아파치 + php + MariaDB
-   - 우분투 24.04 desktop 1대 : 보안구축 서버   snort 3.12,  스노비,     Nginx + MySQL + NFS
+   - 우분투 20.04 server 1대 : 취약서버2        snort 2.9,   FTP서버,    아파치(80,443 https) + php + MariaDB
+   - 우분투 24.04 desktop 1대 : 보안구축 서버   snort 3.12,  스노비,     Nginx(8080) + MySQL + NFS
 
 3. VM-ware(vm workstation pro) 구축
