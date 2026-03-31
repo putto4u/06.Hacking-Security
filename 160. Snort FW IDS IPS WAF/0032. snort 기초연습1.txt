@@ -1,0 +1,119 @@
+네트워크 침입 탐지 시스템(NIDS)인 **Snort**(스노트)의 기초 사용법과 규칙(Rule) 설정을 익히기 위한 실습 예제 20가지를 정리하였습니다. 본 내용은 실제 보안 관제 및 트래픽 분석 역량을 강화하는 데 초점을 맞추었습니다.
+
+---
+
+## 1. Snort 기본 실행 및 모드 연습 (1~5)
+
+1.  **스니퍼 모드(Sniffer Mode) 실행:** 네트워크 인터페이스의 패킷 헤더 정보만 실시간으로 출력합니다.
+    ```bash
+    sudo snort -v
+    ```
+2.  **데이터 링크 계층 포함 출력:** 패킷의 페이로드뿐만 아니라 데이터 링크(Ethernet) 헤더까지 출력합니다.
+    ```bash
+    sudo snort -vd
+    ```
+3.  **애플리케이션 계층 포함 상세 출력:** 가장 상세한 정보를 확인하는 모드입니다.
+    ```bash
+    sudo snort -vde
+    ```
+4.  **패킷 로그 저장:** 탐지된 패킷을 특정 디렉터리에 바이너리 파일(pcap)로 저장합니다.
+    ```bash
+    sudo snort -vde -l ./log
+    ```
+5.  **저장된 로그 읽기:** 저장된 `snort.log.xxxx` 파일을 다시 읽어서 분석합니다.
+    ```bash
+    sudo snort -r ./log/snort.log.123456789
+    ```
+
+---
+
+## 2. Snort 규칙(Rule) 작성 기초 (6~10)
+
+규칙은 주로 `/etc/snort/rules/local.rules` 파일에 작성하여 테스트합니다.
+
+6.  **ICMP(Ping) 탐지:** 외부에서 내부로 들어오는 모든 Ping 패킷을 탐지합니다.
+    ```text
+    alert icmp any any -> any any (msg:"ICMP Packet Detected"; sid:1000001; rev:1;)
+    ```
+7.  **TCP 접속 시도 탐지:** 특정 서버(192.168.1.50)의 80번 포트로 들어오는 TCP 연결을 탐지합니다.
+    ```text
+    alert tcp any any -> 192.168.1.50 80 (msg:"HTTP Access Attempt"; sid:1000002;)
+    ```
+8.  **SSH 접속 시도 탐지:** 외부에서 내부 서버로의 SSH(22번 포트) 접근을 탐지합니다.
+    ```text
+    alert tcp any any -> any 22 (msg:"SSH Connection Attempt"; sid:1000003;)
+    ```
+9.  **UDP 패킷 탐지:** 모든 UDP 트래픽을 감시합니다.
+    ```text
+    alert udp any any -> any any (msg:"UDP Traffic Detected"; sid:1000004;)
+    ```
+10. **특정 IP 대역 차단(경고):** 특정 유해 IP 대역(`211.x.x.x`)에서의 접근을 탐지합니다.
+    ```text
+    alert ip 211.0.0.0/8 any -> any any (msg:"Malicious IP Block Warning"; sid:1000005;)
+    ```
+
+
+
+---
+
+## 3. 콘텐츠 매칭 및 고급 탐지 (11~15)
+
+11. **문자열 매칭(HTTP GET):** 패킷 페이로드 내에 "GET" 문구가 포함된 경우를 탐지합니다.
+    ```text
+    alert tcp any any -> any 80 (msg:"HTTP GET Method Detected"; content:"GET"; sid:1000006;)
+    ```
+12. **민감한 파일 접근 탐지:** URL에 `/etc/passwd` 문자열이 포함된 공격 시도를 탐지합니다.
+    ```text
+    alert tcp any any -> any 80 (msg:"Password File Access Attempt"; content:"/etc/passwd"; sid:1000007;)
+    ```
+13. **특정 포트 범위 탐지:** 1번부터 1024번까지의 잘 알려진 포트(Well-known ports)로의 접근을 탐지합니다.
+    ```text
+    alert tcp any any -> any 1:1024 (msg:"Well-known Port Scan"; sid:1000008;)
+    ```
+14. **페이로드 크기 기반 탐지:** 패킷의 데이터 크기가 1000바이트 이상인 경우를 탐지합니다.
+    ```text
+    alert icmp any any -> any any (msg:"Large ICMP Packet"; dsize:>1000; sid:1000009;)
+    ```
+15. **TCP Flag 탐지(SYN Scan):** TCP 연결의 시작인 SYN 플래그만 설정된 패킷을 탐지합니다.
+    ```text
+    alert tcp any any -> any any (msg:"TCP SYN Detected"; flags:S; sid:1000010;)
+    ```
+
+---
+
+## 4. 실전 대응 및 설정 확인 (16~20)
+
+16. **설정 파일 문법 검사:** Snort를 실행하기 전 설정 파일(`snort.conf`)에 오류가 없는지 확인합니다.
+    ```bash
+    sudo snort -T -c /etc/snort/snort.conf
+    ```
+17. **탐지 모드(IDS 모드) 실행:** 설정 파일을 로드하여 실시간으로 경고(Alert)를 발생시킵니다.
+    ```bash
+    sudo snort -A console -q -c /etc/snort/snort.conf
+    ```
+18. **FTP 익명 로그인 탐지:** FTP 서비스에 `anonymous` 계정으로 로그인을 시도하는 패킷을 탐지합니다.
+    ```text
+    alert tcp any any -> any 21 (msg:"FTP Anonymous Login Attempt"; content:"anonymous"; sid:1000011;)
+    ```
+19. **SQL Injection 기초 탐지:** HTTP 요청 중 `' OR '1'='1`과 같은 구문을 탐지합니다.
+    ```text
+    alert tcp any any -> any 80 (msg:"SQL Injection Attempt"; content:"' or '1'='1"; nocase; sid:1000012;)
+    ```
+20. **상태 기반 탐지(Established):** 이미 연결이 수립된(Established) 세션의 트래픽만 탐지합니다.
+    ```text
+    alert tcp any any -> any any (msg:"Established TCP Session"; flow:established,to_server; sid:1000013;)
+    ```
+
+---
+
+## 전문 용어 및 주석 해설
+
+* **Snort(스노트):** 소스파이어(현 시스코)에서 개발한 오픈소스 네트워크 침입 탐지 및 차단 시스템입니다.
+* **NIDS(Network Intrusion Detection System, 네트워크 침입 탐지 시스템):** 네트워크 트래픽을 감시하여 비정상적인 활동이나 공격을 탐지하는 시스템입니다.
+* **Payload(페이로드):** 전송되는 데이터 자체를 의미하며, 헤더 정보를 제외한 실제 핵심 정보를 말합니다.
+* **SID(Snort ID, 스노트 식별자):** 각 규칙에 부여되는 고유 번호입니다. 사용자 정의 규칙은 보통 1,000,000번 이후부터 할당합니다.
+* **PCAP(Packet Capture, 패킷 캡처):** 네트워크 트래픽 데이터를 저장하는 파일 형식으로, Wireshark(와이어샤크) 등에서 분석 가능합니다.
+
+---
+
+**Next Step:** Snort 규칙(Rule)의 상세 옵션 및 PCAP 분석 실습
