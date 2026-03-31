@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snort & Snorby: 지능형 침입 탐지 및 시각화 실습</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+        }
+        .terminal-bg { background-color: #020617; border: 1px solid #1e293b; transition: all 0.3s ease; }
+        .terminal-bg:hover { border-color: #334155; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-filter: blur(12px); }
+        .code-block { font-family: 'Fira Code', monospace; }
+        .term-box { background: rgba(34, 211, 238, 0.05); border-left: 4px solid #22d3ee; padding: 1.25rem; margin-top: 1.5rem; border-radius: 0 0.75rem 0.75rem 0; }
+        .terminal-header-label { 
+            font-size: 0.875rem; 
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            color: #64748b; 
+        }
+        .action-btn {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+        .action-btn:hover {
+            color: #22d3ee;
+            transform: translateY(-1px);
+        }
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: #22d3ee;
+            color: #020617;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 900;
+            font-size: 0.875rem;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 0 20px rgba(34, 211, 238, 0.4);
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <div id="toast" class="toast">COPIED TO CLIPBOARD</div>
+
+    <!-- Header: 기술 사양 및 타이틀 -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Security Operations Center</span>
+                    <span class="text-slate-500 font-mono text-[10px]">CS-IDS-402 | Snorby Integration Architecture</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
+                    Snort & Snorby Security Dashboarding<br><span class="text-slate-100 text-2xl">오픈소스 기반 실시간 침입 탐지 및 모니터링 시각화</span>
+                </h1>
+            </div>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    INTEGRITY: 100.0%
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">System Architect Pro</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-32">
+
+        <!-- Section 1: 아키텍처 개요 -->
+        <section>
+            <h2 class="text-3xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-10 tracking-tight text-glow">
+                1. 아키텍처 심층 개요 (Architecture In-depth Overview)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-10 leading-relaxed">
+                    네트워크 위협은 단순히 텍스트 로그를 확인하는 것만으로는 완벽히 대응할 수 없습니다. 대량의 트래픽 중에서 유의미한 위협을 골라내고 이를 시각적으로 인지하기 위해서는 강력한 분석 도구가 필요합니다. 본 실습에서는 업계 표준인 **Snort(Intrusion Detection System, 침입 탐지 시스템)**와 이를 현대적인 웹 인터페이스로 시각화해주는 **Snorby(스노비)**를 결합합니다. **Snort**가 패킷을 분석하여 탐지 이벤트를 생성하면, **Barnyard2(반야드2)**가 이 로그를 해석하여 **MySQL(마이에스큐엘)** 데이터베이스에 기록하고, 최종적으로 **Snorby** 대시보드가 이를 세련된 그래프와 통계로 변환하여 실시간 보안 가시성을 제공합니다.
+                </p>
+
+                <div class="term-box mb-12">
+                    <h5 class="text-cyan-400 font-bold text-xs mb-2 uppercase tracking-tighter">Terminology Insight</h5>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        <strong>IDS (Intrusion Detection System, 침입 탐지 시스템):</strong> 네트워크 트래픽을 감시하여 악의적인 활동이나 정책 위반을 탐지하고 보고하는 보안 시스템입니다.<br>
+                        <strong>Snorby (스노비):</strong> 루비 온 레일즈(Ruby on Rails) 기반의 오픈소스 웹 애플리케이션으로, Snort의 탐지 로그를 시각화하고 관리할 수 있게 돕는 보안 대시보드입니다.<br>
+                        <strong>Barnyard2 (반야드2):</strong> Snort의 출력 데이터를 해석하여 데이터베이스(MySQL 등)에 효율적으로 저장해주는 오픈소스 해석기(Interpreter)이자 스풀러(Spooler)입니다.
+                    </p>
+                </div>
+
+                <!-- 도식화 인포그래픽 -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-10 shadow-inner relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent"></div>
+                    <h4 class="text-center font-bold text-slate-400 mb-12 text-[10px] tracking-widest uppercase">
+                        [도식: Snort-Barnyard2-MySQL-Snorby 통합 보안 파이프라인]
+                    </h4>
+                    <div class="flex flex-col md:flex-row items-center justify-around gap-8">
+                        <div class="text-center p-8 bg-slate-800 rounded-2xl border border-cyan-900/50 shadow-lg group hover:scale-105 transition-all">
+                            <i data-lucide="shield-alert" class="w-12 h-12 text-cyan-400 mx-auto mb-4 animate-pulse"></i>
+                            <div class="font-black text-slate-100 text-sm">Snort Sensor</div>
+                            <div class="text-[10px] text-slate-500 mt-2 font-mono uppercase">Unified2 Output</div>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <i data-lucide="chevrons-right" class="w-10 h-10 text-slate-700"></i>
+                        </div>
+                        <div class="text-center p-8 bg-slate-800 rounded-2xl border border-cyan-500/50 shadow-lg group hover:scale-105 transition-all">
+                            <i data-lucide="database" class="w-12 h-12 text-cyan-500 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">Barnyard2 & MySQL</div>
+                            <div class="text-[10px] text-slate-500 mt-2 font-mono uppercase tracking-widest">Data Storage</div>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <span class="text-[10px] text-cyan-400 font-black mb-2 animate-bounce">VISUALIZE</span>
+                            <i data-lucide="chevrons-right" class="w-10 h-10 text-slate-700"></i>
+                        </div>
+                        <div class="text-center p-8 bg-slate-800 rounded-2xl border border-indigo-500/50 shadow-lg group hover:scale-105 transition-all">
+                            <i data-lucide="layout-dashboard" class="w-12 h-12 text-indigo-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm">Snorby UI</div>
+                            <div class="text-[10px] text-slate-500 mt-2 font-mono uppercase tracking-widest">SOC Dashboard</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: 핵심 구성 요소 상세 정의 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight text-glow">
+                2. 핵심 구성 요소 상세 정의 (Detailed Components Definition)
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="section-card rounded-3xl p-10 border-cyan-900/30 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-cyan-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">BACKEND: SNORT & BY2</div>
+                    <h3 class="text-2xl font-bold text-slate-100 mb-8 flex items-center gap-3">
+                        <i data-lucide="terminal" class="w-8 h-8 text-cyan-400"></i> Snort 2.9 Engine
+                    </h3>
+                    <ul class="space-y-6 text-sm text-slate-300">
+                        <li class="flex items-start gap-3">
+                            <i data-lucide="check-circle" class="w-5 h-5 text-cyan-500 mt-1"></i>
+                            <div>
+                                <span class="font-black text-slate-100">Unified2 Binary Output:</span>
+                                <p class="text-xs text-slate-500 mt-1">Snorby와의 연동을 위해 고속의 이진 로그 포맷인 Unified2를 사용합니다.</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i data-lucide="check-circle" class="w-5 h-5 text-cyan-500 mt-1"></i>
+                            <div>
+                                <span class="font-black text-slate-100">Barnyard2 Spooler:</span>
+                                <p class="text-xs text-slate-500 mt-1">Snort의 성능 저하를 방지하기 위해 별도의 프로세스로 DB에 데이터를 입력합니다.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="section-card rounded-3xl p-10 border-indigo-900/30 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">FRONTEND: SNORBY UI</div>
+                    <h3 class="text-2xl font-bold text-slate-100 mb-8 flex items-center gap-3">
+                        <i data-lucide="server" class="w-8 h-8 text-indigo-400"></i> Snorby Web Application
+                    </h3>
+                    <ul class="space-y-6 text-sm text-slate-300">
+                        <li class="flex items-start gap-3">
+                            <i data-lucide="check-circle" class="w-5 h-5 text-indigo-500 mt-1"></i>
+                            <div>
+                                <span class="font-black text-slate-100">Ruby on Rails Framework:</span>
+                                <p class="text-xs text-slate-500 mt-1">Snorby는 루비 기반으로 작동하며, 세련된 대시보드와 이벤트 분류 기능을 제공합니다.</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i data-lucide="check-circle" class="w-5 h-5 text-indigo-500 mt-1"></i>
+                            <div>
+                                <span class="font-black text-slate-100">MySQL Database:</span>
+                                <p class="text-xs text-slate-500 mt-1">탐지된 모든 보안 이벤트와 패킷 페이로드(Payload)를 구조화하여 저장합니다.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="term-box mt-10">
+                <h5 class="text-cyan-400 font-bold text-xs mb-2 uppercase tracking-tighter">Terminology Expert</h5>
+                <p class="text-xs text-slate-400 italic leading-relaxed">
+                    <strong>Unified2 (유니파이드2):</strong> Snort에서 패킷 탐지 결과를 저장하기 위해 설계된 전용 이진 포맷입니다. 성능 오버헤드가 매우 적어 실무 환경에서 권장됩니다.<br>
+                    <strong>Ruby on Rails (루비 온 레일즈):</strong> 루비 프로그래밍 언어로 작성된 오픈소스 웹 애플리케이션 프레임워크입니다. Snorby의 핵심 엔진으로 사용됩니다.
+                </p>
+            </div>
+        </section>
+
+        <!-- Section 3: 단계별 구현 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight text-glow">
+                3. 단계별 실증 및 구현 (Step-by-Step Implementation)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-20">
+                
+                <!-- Step 01: Snort 2.9 & DAQ Install -->
+                <div class="space-y-6">
+                    <div class="flex items-center gap-4">
+                        <span class="bg-cyan-500 text-slate-900 w-10 h-10 rounded-full flex items-center justify-center text-sm font-black italic shadow-lg">01</span>
+                        <h3 class="text-2xl font-bold text-slate-100">Snort 2.9 및 DAQ 라이브러리 설치</h3>
+                    </div>
+                    <div class="pl-14">
+                        <p class="text-sm text-slate-400 mb-6 leading-relaxed">Snorby와 가장 안정적으로 호환되는 <strong>Snort 2.9</strong> 버전을 소스 컴파일 방식으로 설치합니다. 패킷 캡처 추상화 레이어인 <strong>DAQ (Data Acquisition, 데이터 수집 라이브러리)</strong> 설치가 선행되어야 합니다.</p>
+                        <div class="terminal-bg rounded-2xl p-8 font-mono text-sm shadow-inner relative group border-slate-800">
+                            <div class="flex justify-between items-center mb-6">
+                                <span class="terminal-header-label">Snort Source Compilation Console</span>
+                                <button onclick="copyCode('step1-code')" class="action-btn flex items-center gap-2 text-slate-500 hover:text-cyan-400 text-xs font-black uppercase tracking-widest">
+                                    <i data-lucide="copy" class="w-4 h-4"></i> Copy Script
+                                </button>
+                            </div>
+                            <div id="step1-code" class="text-slate-200">
+                                <span class="text-slate-500"># DAQ 라이브러리 컴파일 및 설치</span><br>
+                                $ <span class="text-cyan-400">wget https://www.snort.org/downloads/snort/daq-2.0.7.tar.gz</span><br>
+                                $ <span class="text-cyan-400">tar -xvzf daq-2.0.7.tar.gz && cd daq-2.0.7</span><br>
+                                $ <span class="text-cyan-400">./configure && make && sudo make install</span><br><br>
+                                <span class="text-slate-500"># Snort 2.9 설치 (Snorby 호환 최적화)</span><br>
+                                $ <span class="text-cyan-400">./configure --enable-sourcefire --enable-gre --enable-mpls --enable-targetbased</span><br>
+                                $ <span class="text-cyan-400">make && sudo make install</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 02: MySQL DB Setup -->
+                <div class="space-y-6">
+                    <div class="flex items-center gap-4">
+                        <span class="bg-cyan-500 text-slate-900 w-10 h-10 rounded-full flex items-center justify-center text-sm font-black italic shadow-lg">02</span>
+                        <h3 class="text-2xl font-bold text-slate-100">MySQL 데이터베이스 보안 스키마 구축</h3>
+                    </div>
+                    <div class="pl-14">
+                        <p class="text-sm text-slate-400 mb-6 leading-relaxed">Snorby가 사용할 데이터베이스 공간을 생성하고, Barnyard2가 데이터를 입력할 수 있도록 권한을 설정합니다.</p>
+                        <div class="terminal-bg rounded-2xl p-8 font-mono text-sm shadow-inner relative border-slate-800">
+                            <div class="flex justify-between items-center mb-6">
+                                <span class="terminal-header-label">MySQL Root Console</span>
+                                <button onclick="copyCode('step2-code')" class="action-btn flex items-center gap-2 text-slate-500 hover:text-cyan-400 text-xs font-black uppercase tracking-widest">
+                                    <i data-lucide="copy" class="w-4 h-4"></i> Copy SQL
+                                </button>
+                            </div>
+                            <div id="step2-code" class="text-slate-300 leading-loose">
+<span class="text-slate-500">-- Snorby 전용 데이터베이스 및 사용자 생성 --</span><br>
+CREATE DATABASE snort;<br>
+CREATE USER 'snorbyuser'@'localhost' IDENTIFIED BY 'password123';<br>
+GRANT ALL PRIVILEGES ON snort.* TO 'snorbyuser'@'localhost';<br>
+FLUSH PRIVILEGES;</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 03: Barnyard2 Installation & Configuration -->
+                <div class="space-y-6">
+                    <div class="flex items-center gap-4">
+                        <span class="bg-cyan-500 text-slate-900 w-10 h-10 rounded-full flex items-center justify-center text-sm font-black italic shadow-lg">03</span>
+                        <h3 class="text-2xl font-bold text-slate-100">Barnyard2 소스 설치 및 브릿지 구성</h3>
+                    </div>
+                    <div class="pl-14">
+                        <p class="text-sm text-slate-400 mb-6 leading-relaxed"><strong>Barnyard2(반야드2)</strong>는 Snort가 생성한 이진 로그 파일을 실시간으로 모니터링하여 MySQL 데이터베이스에 최적화된 형태로 입력하는 역할을 수행합니다. 이를 위해 MySQL 개발 라이브러리와 연동하여 직접 소스 컴파일을 진행해야 합니다.</p>
+                        
+                        <div class="terminal-bg rounded-2xl p-8 font-mono text-sm shadow-inner relative group border-slate-800">
+                            <div class="flex justify-between items-center mb-6">
+                                <span class="terminal-header-label">Barnyard2 Installation & Configuration Console</span>
+                                <button onclick="copyCode('step3-code')" class="action-btn flex items-center gap-2 text-slate-500 hover:text-cyan-400 text-xs font-black uppercase tracking-widest">
+                                    <i data-lucide="copy" class="w-4 h-4"></i> Copy Scripts
+                                </button>
+                            </div>
+                            <div id="step3-code" class="text-slate-200 leading-loose">
+                                <span class="text-slate-500"># 1. 필수 의존성 패키지 및 MySQL 라이브러리 설치</span><br>
+                                $ <span class="text-cyan-400">sudo apt-get install -y libmysqlclient-dev libpcap-dev autoconf libtool</span><br><br>
+                                <span class="text-slate-500"># 2. Barnyard2 소스 다운로드 및 컴파일</span><br>
+                                $ <span class="text-cyan-400">git clone https://github.com/firnsy/barnyard2.git && cd barnyard2</span><br>
+                                $ <span class="text-cyan-400">./autogen.sh && ./configure --with-mysql --with-mysql-libraries=/usr/lib/x86_64-linux-gnu</span><br>
+                                $ <span class="text-cyan-400">make && sudo make install</span><br><br>
+                                <span class="text-slate-500"># 3. 설정 파일 및 데이터베이스 연동 구성</span><br>
+                                $ <span class="text-cyan-400">sudo cp etc/barnyard2.conf /etc/snort/</span><br>
+                                <span class="text-slate-500"># /etc/snort/barnyard2.conf 파일 하단에 다음 내용 추가</span><br>
+                                output database: log, mysql, user=snorbyuser password=password123 dbname=snort host=localhost<br><br>
+                                <span class="text-slate-500"># 4. Barnyard2 데몬 실행 (Spool 모드)</span><br>
+                                $ <span class="text-cyan-400">barnyard2 -c /etc/snort/barnyard2.conf -d /var/log/snort -f snort.log -w /etc/snort/bylog.wal</span>
+                            </div>
+                        </div>
+
+                        <div class="term-box mt-8">
+                            <h5 class="text-cyan-400 font-bold text-xs mb-2 uppercase tracking-tighter">Barnyard2 Key Options</h5>
+                            <p class="text-xs text-slate-400 leading-relaxed">
+                                <strong>-c [Config]:</strong> Barnyard2의 설정 파일 경로를 지정합니다.<br>
+                                <strong>-d [Directory]:</strong> Snort가 생성하는 Unified2 로그 파일이 저장된 디렉토리를 지정합니다.<br>
+                                <strong>-f [File]:</strong> 모니터링할 기본 로그 파일 명칭(Prefix)을 지정합니다.<br>
+                                <strong>-w [Wal File]:</strong> "Write Ahead Log" 파일로, Barnyard2가 마지막으로 읽은 로그 위치를 기록하여 재시작 시 중복 입력을 방지합니다.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 04: Snorby Ruby App Deployment -->
+                <div class="space-y-6">
+                    <div class="flex items-center gap-4">
+                        <span class="bg-cyan-500 text-slate-900 w-10 h-10 rounded-full flex items-center justify-center text-sm font-black italic shadow-lg">04</span>
+                        <h3 class="text-2xl font-bold text-slate-100">Snorby 웹 애플리케이션 배포 및 초기화</h3>
+                    </div>
+                    <div class="pl-14">
+                        <p class="text-sm text-slate-400 mb-8 leading-relaxed"><strong>Ruby (루비)</strong> 환경에서 Snorby 소스를 내려받고 필요한 **Gem(젬)**들을 설치합니다. 이후 데이터베이스 마이그레이션을 통해 Snorby의 UI 테이블을 생성합니다.</p>
+                        
+                        <div class="terminal-bg rounded-2xl p-8 font-mono text-sm shadow-inner relative border-slate-800">
+                            <div class="flex justify-between items-center mb-6">
+                                <span class="terminal-header-label">Snorby App Deployment Terminal</span>
+                                <button onclick="copyCode('step4-code')" class="action-btn flex items-center gap-2 text-slate-500 hover:text-cyan-400 text-xs font-black uppercase tracking-widest">
+                                    <i data-lucide="copy" class="w-4 h-4"></i> Copy Deployment
+                                </button>
+                            </div>
+                            <div id="step4-code" class="text-slate-200 leading-loose">
+<span class="text-slate-500"># 루비 번들러를 통한 의존성 설치</span><br>
+$ <span class="text-cyan-400">bundle install</span><br><br>
+<span class="text-slate-500"># Snorby 데이터베이스 설정 및 초기화 (Rake 작업)</span><br>
+$ <span class="text-cyan-400">bundle exec rake snorby:setup</span><br><br>
+<span class="text-slate-500"># Snorby 서버 실행 (포트 3000)</span><br>
+$ <span class="text-cyan-400">bundle exec rails server -e production</span></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Section 4: 모니터링 실습 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight text-glow">
+                4. 실시간 보안 모니터링 실습 (Live Monitoring Practice)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-10 leading-relaxed">
+                    구축된 파이프라인이 정상적으로 작동하는지 확인하기 위해 가상의 공격을 발생시키고 Snorby 대시보드에 실시간으로 반영되는지 확인합니다.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+                    <div class="bg-slate-800/50 p-8 rounded-2xl border border-slate-700">
+                        <h4 class="font-bold text-cyan-400 mb-4 flex items-center gap-2"><i data-lucide="zap"></i> 공격 시나리오 (Nmap Scan)</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            공격자 PC에서 Snort 센서가 설치된 IP를 대상으로 **Nmap(앤맵)** 스캔을 수행합니다. Snort는 이를 포트 스캐닝 시도로 탐지하여 로그를 생성합니다.
+                        </p>
+                        <div class="bg-slate-900 p-4 rounded-xl font-mono text-[10px] text-slate-300 mt-4 border border-slate-700">
+                            $ nmap -sS -A [SNORT_IP]
+                        </div>
+                    </div>
+                    <div class="bg-slate-800/50 p-8 rounded-2xl border border-indigo-700">
+                        <h4 class="font-bold text-indigo-400 mb-4 flex items-center gap-2"><i data-lucide="eye"></i> Snorby 분석</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Snorby 대시보드에서 **"NMAP Scan Detected"** 또는 관련 시그니처 로그가 상단에 배치되는지 확인합니다. 발생 빈도와 심각도(Severity)가 색상별로 구분되어 출력됩니다.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-10 text-center">
+                    <h4 class="text-[10px] text-slate-500 font-bold uppercase mb-6 tracking-widest">[도식: Snorby 대시보드 실시간 탐지 화면 예시]</h4>
+                    
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: 전문가 분석 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight text-glow">
+                5. 아키텍트 심층 분석 (Architect's Insight)
+            </h2>
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-12">
+                <div class="flex flex-col md:flex-row gap-8">
+                    <div class="flex-1 bg-slate-800/50 p-8 rounded-2xl border border-slate-700 hover:border-cyan-500 transition-all">
+                        <div class="text-cyan-400 mb-6"><i data-lucide="zap" class="w-10 h-10"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-4">Barnyard2의 중요성</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Snort가 직접 DB에 데이터를 입력하게 되면, 트래픽이 몰릴 때 DB 처리 지연으로 인해 Snort의 패킷 분석이 멈출 수 있습니다. Barnyard2는 이를 비동기적으로 처리하여 Snort의 탐지 성능을 100% 보장하는 역할을 합니다.
+                        </p>
+                    </div>
+                    <div class="flex-1 bg-slate-800/50 p-8 rounded-2xl border border-slate-700 hover:border-red-500 transition-all">
+                        <div class="text-red-400 mb-6"><i data-lucide="shield-check" class="w-10 h-10"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-4">보안 및 로그 최적화</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Snorby는 모든 패킷의 원시 데이터(Raw Payload)를 DB에 저장할 수 있습니다. 하지만 이는 저장 공간을 급격히 소모하므로, 실무에서는 주요 탐지 이벤트에 대해서만 페이로드를 기록하도록 Snort 룰의 `threshold(임계값)`을 튜닝해야 합니다.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="bg-slate-900/60 p-10 rounded-3xl border border-slate-800 flex flex-col md:flex-row items-center gap-10">
+                    <div class="p-6 bg-amber-500/10 rounded-2xl border border-amber-500/30">
+                        <i data-lucide="alert-triangle" class="w-10 h-10 text-amber-500"></i>
+                    </div>
+                    <div>
+                        <h5 class="text-slate-100 font-black mb-2 uppercase tracking-widest text-sm">AWS Environment & Billing Notice</h5>
+                        <p class="text-xs text-slate-500 leading-relaxed">
+                            **AWS (Amazon Web Services, 아마존 웹 서비스)**에서 IDS 환경을 구축할 경우, 패킷 미러링을 위해 **VPC Traffic Mirroring (브이피씨 트래픽 미러링)** 기능을 사용하게 됩니다. 이 서비스는 시간당 및 미러링되는 트래픽 용량당 과금이 발생하므로, 실습 종료 후에는 반드시 Mirror Filter와 Session을 삭제해야 불필요한 과금을 방지할 수 있습니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto px-6 py-16 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-6">
+            © 2026 Security Architect Pro. All rights reserved.
+        </div>
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-3xl mx-auto italic">
+            본 교육 자료는 전문적인 보안 관제 역량 강화를 위해 **Snort 2.9**와 **Snorby**의 기술적 통합을 다루고 있습니다. 허가되지 않은 시스템에 대한 패킷 감시는 법률에 의거하여 엄격히 금지되며, 반드시 실습 전용 격리망 환경을 구축한 후 실습에 임해주시기 바랍니다.
+        </p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+
+        function copyCode(elementId) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            const text = element.innerText || element.textContent;
+            const textArea = document.createElement("textarea");
+            textArea.value = text.trim();
+            textArea.style.position = "fixed";
+            textArea.style.left = "-9999px";
+            textArea.style.top = "0";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                const successful = document.execCommand('copy');
+                if(successful) {
+                    showToast();
+                }
+            } catch (err) {
+                console.error('Copy failed:', err);
+            }
+            document.body.removeChild(textArea);
+        }
+
+        function showToast() {
+            const toast = document.getElementById('toast');
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
