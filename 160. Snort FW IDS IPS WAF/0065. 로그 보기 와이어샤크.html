@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security & Cloud Hacking Lab</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+        
+        /* 기본 글꼴 및 다크 모드 배경색 설정 */
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            /* 전체 화면 배경 이미지 적용 및 투명도(Overlay) 설정: 텍스트 가시성을 위해 어두운 오버레이 강화 */
+            background-image: linear-gradient(to bottom, rgba(2, 6, 23, 0.75), rgba(2, 6, 23, 0.95)), 
+                              url('image_1a3201.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center center;
+        }
+
+        /* 텍스트 리스트 호버 효과: 터미널 스타일 */
+        .list-hover {
+            transition: all 0.2s ease;
+        }
+        .list-hover:hover {
+            color: #22d3ee; 
+            padding-left: 0.75rem; 
+            background-color: rgba(15, 23, 42, 0.8); 
+            border-left-color: #0ea5e9;
+        }
+
+        /* 텍스트 가시성을 높이는 그림자 효과 클래스 */
+        .text-glow {
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+        }
+        .neon-glow {
+            text-shadow: 0 0 8px rgba(34, 211, 238, 0.6);
+        }
+        
+        /* 커스텀 스크롤바 (선택적 시각 강화) */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+    </style>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+</head>
+<body class="min-h-screen flex flex-col">
+    <header class="py-24 px-6 relative overflow-hidden">
+        
+        <a href="https://putto4u.github.io/06.Hacking-Security" class="absolute top-6 left-6 md:left-10 z-20 group cursor-pointer block" target="_blank" rel="noopener noreferrer">
+            <div class="flex items-center space-x-2 bg-slate-900/80 py-2 px-4 rounded-xl border border-cyan-900/50 backdrop-blur-md shadow-[0_0_15px_rgba(8,145,178,0.2)] transition-all duration-300 group-hover:border-cyan-400/60 group-hover:shadow-[0_0_20px_rgba(34,211,238,0.4)]">
+                <div class="relative flex h-3 w-3 mr-1">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
+                </div>
+                <span class="font-mono text-[10px] md:text-xs text-slate-400 tracking-wider">CHIEF SYSTEM ARCHITECT <span class="text-cyan-500 ml-1">❯</span></span>
+                <span class="font-black text-cyan-300 tracking-widest font-mono text-sm md:text-base neon-glow ml-1">PUTTO</span>
+                <span class="font-bold text-slate-200 tracking-widest font-mono text-sm md:text-base">'S LECTURES</span>
+            </div>
+        </a>
+
+        <div class="max-w-4xl mx-auto relative z-10 text-center mt-8">
+            <div class="inline-flex items-center justify-center space-x-3 mb-8 bg-slate-950/60 p-4 rounded-2xl backdrop-blur-md border border-slate-700/80 shadow-2xl">
+                <i class="fas fa-user-secret text-4xl text-cyan-400 drop-shadow-lg"></i>
+                <span class="text-slate-500">|</span>
+                <i class="fas fa-shield-halved text-4xl text-blue-500 drop-shadow-lg"></i>
+            </div>
+            
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-2 pb-2 bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 via-blue-400 to-indigo-400 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">
+                Cloud Security & Hacking Lab
+            </h1>
+            
+            <p class="mt-8 text-slate-100 font-medium text-lg md:text-xl max-w-2xl mx-auto leading-relaxed text-glow">
+                실전 클라우드 인프라 보안 및 모의 해킹 시나리오 연구 자료 저장소
+            </p>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-4xl mx-auto px-6 py-8 w-full">
+
+                <div class="bg-slate-950/90 p-8 md:p-12 rounded-2xl shadow-2xl border border-slate-700/50 backdrop-blur-xl prose prose-invert prose-slate max-w-none prose-img:rounded-xl prose-a:text-cyan-400 hover:prose-a:text-cyan-300 prose-headings:text-slate-100 prose-strong:text-cyan-100">
+                    <h1>네트워크 전수 패킷 캡처 및 단계별 심층 분석 가이드</h1>
+<p>네트워크 보안 관제 및 <strong>Troubleshooting (트러블슈팅, 문제 해결)</strong> 과정에서 가시성을 확보하기 위해, 특정 탐지 규칙(Rule)에 매칭되는 패킷뿐만 아니라 인터페이스를 통과하는 모든 트래픽을 실시간으로 확인하고 기록하는 과정은 필수적입니다. 특히 바이너리 형태로 저장된 로그를 <strong>Wireshark (와이어샤크, 네트워크 패킷 분석 도구)</strong>로 넘기기 전, <strong>Snort (Open Source Network Intrusion Detection System, 오픈 소스 네트워크 침입 탐지 시스템)</strong> 자체의 읽기 모드를 통해 빠르게 1차 검증을 수행하는 아키텍처는 분석의 효율성을 극대화합니다.</p>
+<hr />
+<h2>1. 실시간 패킷 로깅(Logging) 및 전수 캡처 실행</h2>
+<p>네트워크상의 모든 데이터를 가로채어 실시간으로 출력하고 파일로 저장하기 위해서는 Snort 실행 시 상세 출력 옵션과 저장 경로 지정을 병행해야 합니다.</p>
+<h3>1.1. 로그 저장 디렉토리(Directory) 준비</h3>
+<p>로그가 저장될 공간을 미리 생성하고, 권한 문제로 인해 기록이 중단되지 않도록 소유권과 권한을 설정합니다.</p>
+<pre><code class="language-bash"># 로그 디렉토리 생성 및 권한 설정
+mkdir -p ./sntlog
+chmod 755 ./sntlog
+</code></pre>
+<h3>1.2. 실시간 전수 캡처 및 바이너리(Binary) 저장</h3>
+<p>다음 명령어를 통해 네트워크의 모든 패킷을 실시간으로 화면에 출력함과 동시에 <code>./sntlog</code> 경로에 업계 표준 형식으로 저장합니다.</p>
+<pre><code class="language-bash"># 실시간 상세 출력 및 pcap 저장 명령어
+sudo snort -vde -l ./sntlog -K pcap
+</code></pre>
+<ul>
+<li><strong>-v (Verbose, 상세 정보 출력)</strong>: 패킷의 기본 헤더 정보를 터미널에 표시합니다.</li>
+<li><strong>-d (Dump Application Layer, 응용 계층 데이터 덤프)</strong>: 패킷 내의 실제 데이터 본문(Payload)을 16진수 및 ASCII 형태로 화면에 출력합니다.</li>
+<li><strong>-e (Display Link Layer, 데이터 링크 계층 정보 표시)</strong>: 계층 2(L2)인 이더넷 헤더 정보(MAC 주소 등)까지 상세히 보여줍니다.</li>
+<li><strong>-l (Log Directory, 로그 저장 경로)</strong>: 생성된 로그 파일이 저장될 위치를 <code>./sntlog</code>로 지정합니다.</li>
+<li><strong>-K pcap (Packet Capture Format, 패킷 캡처 형식)</strong>: 로그를 텍스트가 아닌 바이너리 형태인 <strong>PCAP (Packet Capture, 패킷 캡처)</strong> 파일로 강제 저장하여 호환성을 확보합니다.</li>
+</ul>
+<blockquote>
+<p><strong>Troubleshooting (트러블슈팅, 문제 해결)</strong>: 시스템이나 네트워크에서 발생한 결함이나 문제를 논리적으로 찾아내어 해결하는 과정입니다.</p>
+<p><strong>Payload (페이로드, 데이터 본문)</strong>: 전송되는 데이터 패킷에서 헤더 정보를 제외하고 실제 전달하고자 하는 핵심 정보입니다.</p>
+<p><strong>PCAP (Packet Capture, 패킷 캡처)</strong>: 네트워크 트래픽을 가로채어 파일로 저장하기 위한 API이자 파일 데이터 형식입니다.</p>
+</blockquote>
+<hr />
+<h2>2. Snort 읽기 모드를 이용한 1차 로그 분석</h2>
+<p>와이어샤크와 같은 무거운 <strong>GUI (Graphical User Interface, 그래픽 사용자 인터페이스)</strong> 도구를 실행하기 전, 텍스트 기반의 터미널 환경에서 Snort를 사용하여 저장된 바이너리 로그를 빠르게 훑어볼 수 있습니다. 이는 특정 시간대의 패킷 존재 여부나 대략적인 공격 패턴을 즉시 파악하는 데 유리합니다.</p>
+<h3>2.1. 저장된 바이너리 로그 읽기</h3>
+<p>Snort의 <code>-r</code> 옵션을 사용하면 이미 저장된 <strong>PCAP (Packet Capture, 패킷 캡처)</strong> 파일을 읽어 들여 화면에 출력할 수 있습니다.</p>
+<pre><code class="language-bash"># 특정 로그 파일 읽기 (파일명은 생성된 타임스탬프 확인 필요)
+snort -vde -r ./sntlog/snort.log.1711930000
+</code></pre>
+<h3>2.2. 조건부 로그 읽기 (BPF 필터 활용)</h3>
+<p>모든 패킷을 보는 대신, 특정 조건에 맞는 패킷만 골라서 읽을 수 있습니다. 이는 <strong>BPF (Berkeley Packet Filter, 버클리 패킷 필터)</strong> 표현식을 사용합니다.</p>
+<pre><code class="language-bash"># 로그 파일 내에서 TCP 80번 포트(HTTP) 트래픽만 골라 보기
+snort -vde -r ./sntlog/snort.log.1711930000 tcp and port 80
+</code></pre>
+<blockquote>
+<p><strong>GUI (Graphical User Interface, 그래픽 사용자 인터페이스)</strong>: 사용자가 그래픽 아이콘과 시각적 지표를 통해 컴퓨터와 상호작용할 수 있게 해주는 환경입니다.</p>
+<p><strong>BPF (Berkeley Packet Filter, 버클리 패킷 필터)</strong>: 데이터 링크 계층의 패킷을 필터링하기 위한 기술로, 대부분의 네트워크 분석 도구에서 필터링 문법의 표준으로 사용됩니다.</p>
+<p><strong>Binary Log (바이너리 로그, 이진 로그)</strong>: 텍스트가 아닌 0과 1의 이진 데이터로 기록된 파일로, 직접 편집은 불가능하지만 데이터 보존율이 높습니다.</p>
+</blockquote>
+<hr />
+<h2>3. 프로세스(Process) 정지 및 데이터 검증</h2>
+<p>패킷 수집이 완료되었거나 분석에 충분한 데이터가 확보되었다면, 안전하게 프로세스를 종료하고 생성된 파일의 무결성을 확인해야 합니다.</p>
+<h3>3.1. 캡처 중단 (Interrupt)</h3>
+<p>실행 중인 Snort 프로세스를 중단하려면 키보드의 <strong>Ctrl + C</strong> 조합키를 입력합니다. 이는 운영체제에 <strong>SIGINT (Signal Interrupt, 시그널 인터럽트)</strong>를 전달하여 프로세스가 현재까지 기록된 데이터를 파일에 안전하게 저장하고 종료되도록 유도합니다.</p>
+<h3>3.2. 생성된 로그 파일 리스트 확인</h3>
+<p>종료 후 <code>./sntlog</code> 디렉토리를 확인하여 파일의 용량과 생성 시간을 체크합니다.</p>
+<pre><code class="language-bash"># 생성된 로그 파일 상세 리스트 확인
+ls -lh ./sntlog
+</code></pre>
+<blockquote>
+<p><strong>SIGINT (Signal Interrupt, 시그널 인터럽트)</strong>: 실행 중인 프로세스에 중단 신호를 보내어 작업을 멈추게 하는 유닉스 계열 시스템의 제어 신호입니다.</p>
+<p><strong>Timestamp (타임스탬프, 시간 정보)</strong>: 데이터가 생성되거나 기록된 시점의 정확한 날짜와 시각을 숫자로 표현한 값입니다.</p>
+</blockquote>
+<hr />
+<h2>4. 와이어샤크(Wireshark)를 이용한 최종 정밀 분석</h2>
+<p>Snort를 통해 1차적으로 확인된 의심 패킷을 시각화하여 정밀하게 해부(Dissecting)하는 단계입니다. 와이어샤크의 강력한 프로토콜 디코딩 능력을 활용합니다.</p>
+<h3>4.1. 파일 로드(Load) 및 필터링</h3>
+<ol>
+<li><strong>와이어샤크 실행</strong>: GUI 환경에서 와이어샤크 프로그램을 구동합니다.</li>
+<li><strong>파일 열기 (Open)</strong>: <code>File -&gt; Open</code> 메뉴를 통해 <code>./sntlog</code>에 저장된 로그 파일을 불러옵니다.</li>
+<li><strong>Display Filter (디스플레이 필터, 표시 필터)</strong>: 상단 필터창에 <code>ip.src == [공격자IP]</code> 또는 <code>http.request.method == "POST"</code> 등을 입력하여 심층 분석 대상을 선별합니다.</li>
+</ol>
+<h3>4.2. 스트림 분석 (Stream Analysis)</h3>
+<p>단일 패킷 분석에서 나아가, 세션 전체의 흐름을 파악하기 위해 <code>Follow -&gt; TCP Stream</code> 기능을 사용합니다. 이를 통해 공격자가 전송한 실제 데이터와 서버의 응답을 인간이 읽을 수 있는 텍스트 형태로 재구성하여 확인할 수 있습니다.</p>
+<blockquote>
+<p><strong>Dissecting (디섹팅, 패킷 해부)</strong>: 캡처된 원시 바이너리 데이터를 각 프로토콜의 표준 규격에 맞춰 필드별로 쪼개어 분석하는 과정입니다.</p>
+<p><strong>Display Filter (디스플레이 필터, 표시 필터)</strong>: 수집된 전체 데이터 중 분석가가 설정한 특정 조건에 맞는 데이터만 화면에 노출하는 기능입니다.</p>
+<p><strong>TCP Stream (TCP 스트림, TCP 흐름)</strong>: 두 종단 간의 연속적인 데이터 교환 과정을 하나의 논리적인 흐름으로 묶어 보여주는 기능입니다.</p>
+</blockquote>
+<hr />
+<p>Next Step: 패킷 필터링(BPF)을 활용한 선별적 로그 기록 및 성능 최적화 (Selective Logging and Performance Optimization with BPF)</p>
+                </div>
+                
+    </main>
+    <footer class="border-t border-slate-800/80 py-8 text-center text-slate-400 text-sm bg-slate-950/90 backdrop-blur-md mt-auto">
+        <p class="font-mono">&copy; 2026 Putto's Lectures. All rights reserved. <span class="text-cyan-800 font-bold ml-2">| ACCESS SECURED.</span></p>
+    </footer>
+
+    <script>
+        // 전역 상태 변수: 디폴트를 'false'로 변경하여 모든 폴더가 처음에는 접혀있도록 설정합니다.
+        let isAllExpanded = false;
+
+        // 개별 폴더를 펼치거나 접는 함수
+        function toggleFolder(element) {
+            // 클릭된 헤더의 부모 섹션(Section) 및 내부 리스트 컨테이너(Container) 탐색
+            const section = element.closest('.folder-section');
+            const listContainer = section.querySelector('.list-container');
+            const folderIcon = element.querySelector('.folder-icon');
+            const chevronIcon = element.querySelector('.chevron-icon');
+            
+            // 데이터 속성(Data Attributes)에 저장된 아이콘 클래스명 불러오기
+            const baseIcon = element.getAttribute('data-base-icon');
+            const closedIcon = element.getAttribute('data-closed-icon');
+
+            // 현재 리스트가 펼쳐진 상태인지 확인 (CSS Grid 속성 기준)
+            const isExpanded = listContainer.classList.contains('grid-rows-[1fr]');
+
+            if (isExpanded) {
+                // 접기(Collapse) 액션 수행
+                listContainer.classList.remove('grid-rows-[1fr]', 'opacity-100');
+                listContainer.classList.add('grid-rows-[0fr]', 'opacity-0');
+                
+                // 우측 화살표 아이콘 회전
+                chevronIcon.classList.add('rotate-180');
+                
+                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 닫힘 상태로 변경
+                if (baseIcon !== 'fa-server') {
+                    folderIcon.classList.remove('fa-folder-open');
+                    folderIcon.classList.add('fa-folder');
+                }
+            } else {
+                // 펼치기(Expand) 액션 수행
+                listContainer.classList.remove('grid-rows-[0fr]', 'opacity-0');
+                listContainer.classList.add('grid-rows-[1fr]', 'opacity-100');
+                
+                // 우측 화살표 아이콘 원상 복구
+                chevronIcon.classList.remove('rotate-180');
+                
+                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 열림 상태로 변경
+                if (baseIcon !== 'fa-server') {
+                    folderIcon.classList.remove('fa-folder');
+                    folderIcon.classList.add('fa-folder-open');
+                }
+            }
+        }
+
+        // 전체 폴더를 일괄적으로 펼치거나 접는 함수
+        function toggleAllFolders() {
+            // 전역 상태 반전
+            isAllExpanded = !isAllExpanded;
+            
+            // DOM(Document Object Model, 문서 객체 모델)에서 모든 폴더 헤더 요소 선택
+            const headers = document.querySelectorAll('.folder-header');
+            const globalBtnIcon = document.getElementById('global-toggle-icon');
+            const globalBtnText = document.getElementById('global-toggle-text');
+
+            headers.forEach(header => {
+                const section = header.closest('.folder-section');
+                const listContainer = section.querySelector('.list-container');
+                const isCurrentlyExpanded = listContainer.classList.contains('grid-rows-[1fr]');
+
+                // 현재 개별 폴더의 상태가 전역 상태 목표와 다를 경우에만 토글 함수 실행
+                if (isAllExpanded !== isCurrentlyExpanded) {
+                    toggleFolder(header);
+                }
+            });
+
+            // 전역 토글 버튼의 UI(User Interface, 사용자 인터페이스) 업데이트
+            if (isAllExpanded) {
+                globalBtnIcon.classList.remove('fa-folder');
+                globalBtnIcon.classList.add('fa-folder-open');
+                globalBtnText.innerText = 'COLLAPSE ALL';
+            } else {
+                globalBtnIcon.classList.remove('fa-folder-open');
+                globalBtnIcon.classList.add('fa-folder');
+                globalBtnText.innerText = 'EXPAND ALL';
+            }
+        }
+    </script>
+</body>
+</html>
