@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security & Cloud Hacking Lab</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+        
+        /* 기본 글꼴 및 다크 모드 배경색 설정 */
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            /* 전체 화면 배경 이미지 적용 및 투명도(Overlay) 설정: 텍스트 가시성을 위해 어두운 오버레이 강화 */
+            background-image: linear-gradient(to bottom, rgba(2, 6, 23, 0.75), rgba(2, 6, 23, 0.95)), 
+                              url('image_1a3201.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center center;
+        }
+
+        /* 텍스트 리스트 호버 효과: 터미널 스타일 */
+        .list-hover {
+            transition: all 0.2s ease;
+        }
+        .list-hover:hover {
+            color: #22d3ee; 
+            padding-left: 0.75rem; 
+            background-color: rgba(15, 23, 42, 0.8); 
+            border-left-color: #0ea5e9;
+        }
+
+        /* 텍스트 가시성을 높이는 그림자 효과 클래스 */
+        .text-glow {
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+        }
+        .neon-glow {
+            text-shadow: 0 0 8px rgba(34, 211, 238, 0.6);
+        }
+        
+        /* 커스텀 스크롤바 (선택적 시각 강화) */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+    </style>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+</head>
+<body class="min-h-screen flex flex-col">
+    <header class="py-24 px-6 relative overflow-hidden">
+        
+        <a href="https://putto4u.github.io/06.Hacking-Security" class="absolute top-6 left-6 md:left-10 z-20 group cursor-pointer block" target="_blank" rel="noopener noreferrer">
+            <div class="flex items-center space-x-2 bg-slate-900/80 py-2 px-4 rounded-xl border border-cyan-900/50 backdrop-blur-md shadow-[0_0_15px_rgba(8,145,178,0.2)] transition-all duration-300 group-hover:border-cyan-400/60 group-hover:shadow-[0_0_20px_rgba(34,211,238,0.4)]">
+                <div class="relative flex h-3 w-3 mr-1">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
+                </div>
+                <span class="font-mono text-[10px] md:text-xs text-slate-400 tracking-wider">CHIEF SYSTEM ARCHITECT <span class="text-cyan-500 ml-1">❯</span></span>
+                <span class="font-black text-cyan-300 tracking-widest font-mono text-sm md:text-base neon-glow ml-1">PUTTO</span>
+                <span class="font-bold text-slate-200 tracking-widest font-mono text-sm md:text-base">'S LECTURES</span>
+            </div>
+        </a>
+
+        <div class="max-w-4xl mx-auto relative z-10 text-center mt-8">
+            <div class="inline-flex items-center justify-center space-x-3 mb-8 bg-slate-950/60 p-4 rounded-2xl backdrop-blur-md border border-slate-700/80 shadow-2xl">
+                <i class="fas fa-user-secret text-4xl text-cyan-400 drop-shadow-lg"></i>
+                <span class="text-slate-500">|</span>
+                <i class="fas fa-shield-halved text-4xl text-blue-500 drop-shadow-lg"></i>
+            </div>
+            
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-2 pb-2 bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 via-blue-400 to-indigo-400 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">
+                Cloud Security & Hacking Lab
+            </h1>
+            
+            <p class="mt-8 text-slate-100 font-medium text-lg md:text-xl max-w-2xl mx-auto leading-relaxed text-glow">
+                실전 클라우드 인프라 보안 및 모의 해킹 시나리오 연구 자료 저장소
+            </p>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-4xl mx-auto px-6 py-8 w-full">
+
+                <div class="bg-slate-950/90 p-8 md:p-12 rounded-2xl shadow-2xl border border-slate-700/50 backdrop-blur-xl prose prose-invert prose-slate max-w-none prose-img:rounded-xl prose-a:text-cyan-400 hover:prose-a:text-cyan-300 prose-headings:text-slate-100 prose-strong:text-cyan-100">
+                    <h3>네트워크 보안 분석 및 탐지 로그 관리 가이드</h3>
+<p>네트워크 침입 탐지 시스템인 <strong>Snort</strong>(Open Source Network Intrusion Detection System, 오픈 소스 네트워크 침입 탐지 시스템)와 패킷 분석 도구인 <strong>Wireshark</strong>(Network Protocol Analyzer, 네트워크 프로토콜 분석기)는 보안 전문가에게 필수적인 도구입니다. 본 교재에서는 실시간 데이터 저장 기법부터 심층 패킷 분석까지의 과정을 다룹니다.</p>
+<hr />
+<h3>Snort 로그 및 실시간 데이터 저장 아키텍처</h3>
+<p>Snort는 탐지된 이벤트를 다양한 방식으로 기록합니다. 대규모 네트워크 환경에서는 탐지 성능 저하를 방지하기 위해 로그 생성과 저장을 분리하는 아키텍처를 권장합니다.</p>
+<h4>1. 로그 저장 방식의 분류</h4>
+<ul>
+<li><strong>Packet Logging Mode</strong>(패킷 로깅 모드): 패킷 전체를 <strong>PCAP</strong>(Packet Capture, 패킷 캡처) 형식으로 저장합니다. 분석 데이터가 방대해지지만 사후 포렌식에 유리합니다.</li>
+<li><strong>Alert Mode</strong>(경고 모드): 설정된 규칙에 부합하는 이벤트 발생 시 요약된 경고 메시지만 기록합니다. <strong>Syslog</strong>(System Logging Protocol, 시스템 로그 프로토콜)나 텍스트 파일로 저장됩니다.</li>
+<li><strong>Unified2</strong>(유니파이드2): Snort 전용 이진 로그 형식입니다. Snort의 성능을 극대화하기 위해 직접 DB에 쓰지 않고 이 형식으로 먼저 저장한 뒤 별도의 도구로 처리합니다.</li>
+</ul>
+<h4>2. 실시간 데이터 저장 및 시각화 (Barnyard2 &amp; ELK Stack)</h4>
+<p>과거에는 <strong>Barnyard2</strong>(Spooler for Snort Unified2, Snort 전용 로그 스풀러)를 사용하여 <strong>MySQL</strong>(My Structured Query Language, 오픈 소스 관계형 데이터베이스)에 저장했으나, 현재는 실시간 분석을 위해 <strong>ELK Stack</strong>(Elasticsearch, Logstash, Kibana, 엘라스틱서치/로그스태시/키바나 통합 로그 관리 솔루션)을 주로 활용합니다.</p>
+<p><strong>전문 용어 해설</strong></p>
+<blockquote>
+<p><strong>IDS (Intrusion Detection System, 침입 탐지 시스템):</strong> 네트워크나 시스템에 대한 비정상적인 행위를 실시간으로 탐지하여 관리자에게 알리는 보안 솔루션입니다.
+<strong>SIEM (Security Information and Event Management, 보안 정보 및 이벤트 관리):</strong> 다양한 보안 장비의 로그를 통합 관리하고 상관관계를 분석하여 위협을 탐지하는 시스템입니다.</p>
+</blockquote>
+<hr />
+<h3>Wireshark 설치 및 환경 구성</h3>
+<p><strong>Wireshark</strong>(와이어샤크)는 실시간 네트워크 트래픽을 가로채고 분석할 수 있는 세계에서 가장 널리 쓰이는 네트워크 분석 도구입니다.</p>
+<h4>1. 운영체제별 설치 방법</h4>
+<ul>
+<li><strong>Windows</strong>: <a href="https://www.wireshark.org/">공식 홈페이지</a>에서 설치 파일을 내려받아 실행합니다. 설치 과정 중 <strong>Npcap</strong>(Network Packet Capture Driver, 윈도우용 패킷 캡처 드라이버) 설치가 반드시 포함되어야 합니다.</li>
+<li><strong>Linux (Ubuntu)</strong>: 터미널에서 다음 명령어를 입력합니다.
+    <code>bash
+    sudo apt update
+    sudo apt install wireshark</code>
+    설치 중 일반 사용자도 패킷을 캡처할 수 있도록 설정(Should non-superusers be able to capture packets?)에 'Yes'를 선택합니다.</li>
+<li><strong>macOS</strong>: <strong>Homebrew</strong>(Package Manager for macOS, 맥용 패키지 관리자)를 사용하여 설치하거나 공식 홈페이지의 <code>.dmg</code> 파일을 이용합니다.</li>
+</ul>
+<h4>2. 실행 및 인터페이스 확인</h4>
+<p>설치 후 실행하면 현재 활성화된 <strong>NIC</strong>(Network Interface Card, 네트워크 인터페이스 카드) 목록이 나타납니다. 트래픽이 발생하는 인터페이스를 더블 클릭하여 캡처를 시작합니다.</p>
+<p><strong>전문 용어 해설</strong></p>
+<blockquote>
+<p><strong>Promiscuous Mode (무차별 모드):</strong> 자신에게 오는 패킷뿐만 아니라 해당 네트워크 세그먼트를 통과하는 모든 패킷을 받아들이도록 설정하는 랜카드 모드입니다.
+<strong>Pcap (Packet Capture, 패킷 캡처):</strong> 네트워크 트래픽을 캡처하고 파일로 저장하기 위한 API(Application Programming Interface)입니다.</p>
+</blockquote>
+<hr />
+<h3>Wireshark를 이용한 패킷 분석 방법론</h3>
+<p>캡처된 데이터는 방대하므로 원하는 정보만 추출하는 능력이 핵심입니다.</p>
+<h4>1. 디스플레이 필터 (Display Filters)</h4>
+<p>분석 시 가장 많이 사용하는 필터 예시입니다.
+* <code>ip.addr == 192.168.1.10</code>: 특정 IP 주소와 관련된 모든 패킷을 조회합니다.
+* <code>tcp.port == 80</code>: HTTP 통신과 관련된 80번 포트 패킷만 조회합니다.
+* <code>http.request.method == "POST"</code>: 웹 서버로 데이터를 전송하는 POST 요청만 확인합니다.</p>
+<h4>2. TCP Stream 추적 (Follow TCP Stream)</h4>
+<p>조각난 패킷들을 하나의 완성된 대화 형태로 재구성하는 기능입니다.
+* 패킷 리스트에서 마우스 오른쪽 버튼 클릭 -&gt; <strong>Follow</strong> -&gt; <strong>TCP Stream</strong> 선택.
+* 이를 통해 로그인 시도 시 전송된 ID/PW나 웹 페이지의 소스 코드를 평문(Plaintext) 상태로 확인할 수 있습니다.</p>
+<h4>3. 통계 기능을 활용한 이상 징후 파악</h4>
+<ul>
+<li><strong>Statistics -&gt; Conversations</strong>: 어떤 호스트끼리 가장 많은 데이터를 주고받는지 확인하여 <strong>C&amp;C</strong>(Command and Control Server, 명령 제어 서버) 통신 여부를 의심할 수 있습니다.</li>
+<li><strong>Statistics -&gt; Protocol Hierarchy</strong>: 현재 트래픽 중 특정 프로토콜의 비중이 비정상적으로 높다면 공격의 징후로 판단합니다.</li>
+</ul>
+<hr />
+<h3>공격 패턴별 패킷 특징 분석</h3>
+<p>보안 전문가는 특정 공격이 발생했을 때 나타나는 패킷의 '시그니처(Signature)'를 이해해야 합니다.</p>
+<h4>1. 포트 스캐닝 (Port Scanning)</h4>
+<p>공격자가 대상 서버의 열린 포트를 확인하기 위해 수행합니다.
+* <strong>TCP SYN Scan</strong>: 공격자가 <strong>SYN</strong>(Synchronize, 연결 요청) 패킷을 보냈을 때 서버가 <strong>SYN/ACK</strong>를 보내면 포트가 열린 것으로 간주하고, 즉시 <strong>RST</strong>(Reset, 연결 강제 종료) 패킷을 보내 연결을 끊습니다.
+* <strong>Wireshark 패턴</strong>: 짧은 시간 내에 다수의 포트로 향하는 SYN 패킷과 이에 대응하는 RST 또는 SYN/ACK 패킷이 관찰됩니다.</p>
+<h4>2. ICMP Flooding (DoS 공격)</h4>
+<p>서버에 대량의 ICMP Echo Request를 보내 시스템 자원을 고갈시킵니다.
+* <strong>패킷 패턴</strong>: 동일한 출발지 IP 혹은 위조된 IP로부터 초당 수만 개의 <strong>ICMP</strong>(Internet Control Message Protocol, 인터넷 제어 메시지 프로토콜) 패킷이 유입됩니다.</p>
+<h4>3. SQL Injection (SQL 인젝션)</h4>
+<p>웹 애플리케이션의 입력값을 조작하여 데이터베이스 정보를 탈취합니다.
+* <strong>Wireshark 패턴</strong>: HTTP GET/POST 요청 패킷 내부의 URI 또는 Body 영역에서 <code>SELECT</code>, <code>UNION</code>, <code>' OR '1'='1</code> 과 같은 SQL 예약어 및 특수문자가 포함된 문자열이 탐지됩니다.</p>
+<h4>4. Brute Force (무차별 대입 공격)</h4>
+<ul>
+<li><strong>패킷 패턴</strong>: 특정 계정(예: admin)에 대해 짧은 시간 동안 수많은 로그인 시도(Telnet, SSH, HTTP 등)가 발생하며, 대부분 'Login Failed' 응답 패킷이 뒤따릅니다.</li>
+</ul>
+<p><strong>전문 용어 해설</strong></p>
+<blockquote>
+<p><strong>3-Way Handshake (3단계 핸드셰이크):</strong> TCP 통신을 시작하기 전, 두 호스트 간에 신뢰성 있는 연결을 설정하기 위해 SYN, SYN/ACK, ACK 패킷을 주고받는 과정입니다.
+<strong>Payload (페이로드):</strong> 전송되는 패킷의 실제 데이터 부분을 의미하며, 공격 코드가 주로 숨겨지는 곳입니다.</p>
+</blockquote>
+<hr />
+<h3>실전 분석 팁</h3>
+<ol>
+<li><strong>Time Display Format</strong>: 패킷 분석 시 '도착 시간'을 절대 시간(UTC)이나 이전 패킷과의 시간 차이로 설정하여 공격의 지속 시간을 파악하세요.</li>
+<li><strong>Coloring Rules</strong>: Wireshark의 색상 규칙을 활용하여 오류가 발생한 패킷(빨간색/검은색)을 시각적으로 빠르게 구분하세요.</li>
+<li><strong>GeoIP 설정</strong>: 외부 IP 주소의 물리적 위치를 파악하여 해외로부터의 비정상적인 접속을 식별하세요.</li>
+</ol>
+<p>Next Step: Snort Rule(스노트 규칙) 작성법 및 사용자 정의 탐지 패턴 최적화</p>
+<hr />
+<p>본 교재는 IP 직업훈련 전문가과정의 보안 관제 및 패킷 분석 교육을 위해 설계되었습니다. 모든 실습은 허가된 네트워크 환경에서만 수행되어야 합니다.</p>
+                </div>
+                
+    </main>
+    <footer class="border-t border-slate-800/80 py-8 text-center text-slate-400 text-sm bg-slate-950/90 backdrop-blur-md mt-auto">
+        <p class="font-mono">&copy; 2026 Putto's Lectures. All rights reserved. <span class="text-cyan-800 font-bold ml-2">| ACCESS SECURED.</span></p>
+    </footer>
+
+    <script>
+        // 전역 상태 변수: 디폴트를 'false'로 변경하여 모든 폴더가 처음에는 접혀있도록 설정합니다.
+        let isAllExpanded = false;
+
+        // 개별 폴더를 펼치거나 접는 함수
+        function toggleFolder(element) {
+            // 클릭된 헤더의 부모 섹션(Section) 및 내부 리스트 컨테이너(Container) 탐색
+            const section = element.closest('.folder-section');
+            const listContainer = section.querySelector('.list-container');
+            const folderIcon = element.querySelector('.folder-icon');
+            const chevronIcon = element.querySelector('.chevron-icon');
+            
+            // 데이터 속성(Data Attributes)에 저장된 아이콘 클래스명 불러오기
+            const baseIcon = element.getAttribute('data-base-icon');
+            const closedIcon = element.getAttribute('data-closed-icon');
+
+            // 현재 리스트가 펼쳐진 상태인지 확인 (CSS Grid 속성 기준)
+            const isExpanded = listContainer.classList.contains('grid-rows-[1fr]');
+
+            if (isExpanded) {
+                // 접기(Collapse) 액션 수행
+                listContainer.classList.remove('grid-rows-[1fr]', 'opacity-100');
+                listContainer.classList.add('grid-rows-[0fr]', 'opacity-0');
+                
+                // 우측 화살표 아이콘 회전
+                chevronIcon.classList.add('rotate-180');
+                
+                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 닫힘 상태로 변경
+                if (baseIcon !== 'fa-server') {
+                    folderIcon.classList.remove('fa-folder-open');
+                    folderIcon.classList.add('fa-folder');
+                }
+            } else {
+                // 펼치기(Expand) 액션 수행
+                listContainer.classList.remove('grid-rows-[0fr]', 'opacity-0');
+                listContainer.classList.add('grid-rows-[1fr]', 'opacity-100');
+                
+                // 우측 화살표 아이콘 원상 복구
+                chevronIcon.classList.remove('rotate-180');
+                
+                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 열림 상태로 변경
+                if (baseIcon !== 'fa-server') {
+                    folderIcon.classList.remove('fa-folder');
+                    folderIcon.classList.add('fa-folder-open');
+                }
+            }
+        }
+
+        // 전체 폴더를 일괄적으로 펼치거나 접는 함수
+        function toggleAllFolders() {
+            // 전역 상태 반전
+            isAllExpanded = !isAllExpanded;
+            
+            // DOM(Document Object Model, 문서 객체 모델)에서 모든 폴더 헤더 요소 선택
+            const headers = document.querySelectorAll('.folder-header');
+            const globalBtnIcon = document.getElementById('global-toggle-icon');
+            const globalBtnText = document.getElementById('global-toggle-text');
+
+            headers.forEach(header => {
+                const section = header.closest('.folder-section');
+                const listContainer = section.querySelector('.list-container');
+                const isCurrentlyExpanded = listContainer.classList.contains('grid-rows-[1fr]');
+
+                // 현재 개별 폴더의 상태가 전역 상태 목표와 다를 경우에만 토글 함수 실행
+                if (isAllExpanded !== isCurrentlyExpanded) {
+                    toggleFolder(header);
+                }
+            });
+
+            // 전역 토글 버튼의 UI(User Interface, 사용자 인터페이스) 업데이트
+            if (isAllExpanded) {
+                globalBtnIcon.classList.remove('fa-folder');
+                globalBtnIcon.classList.add('fa-folder-open');
+                globalBtnText.innerText = 'COLLAPSE ALL';
+            } else {
+                globalBtnIcon.classList.remove('fa-folder-open');
+                globalBtnIcon.classList.add('fa-folder');
+                globalBtnText.innerText = 'EXPAND ALL';
+            }
+        }
+    </script>
+</body>
+</html>
