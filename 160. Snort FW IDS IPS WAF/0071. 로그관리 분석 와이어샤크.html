@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>네트워크 보안 분석 및 탐지 로그 관리 가이드</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Fira+Code:wght@400;500&display=swap');
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            margin: 0; padding: 0;
+            line-height: 1.8;
+        }
+        .terminal-bg { background-color: #020617; border: 1px solid #1e293b; }
+        .text-glow { text-shadow: 0 0 10px rgba(34, 211, 238, 0.4); }
+        .section-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(51, 65, 85, 0.5); backdrop-blur: xl; }
+        .code-block { font-family: 'Fira Code', monospace; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+        
+        .glossary-box { border-left: 3px solid #0ea5e9; padding-left: 1.5rem; margin-top: 2rem; margin-bottom: 2rem; font-size: 0.875rem; color: #94a3b8; background: rgba(14, 165, 233, 0.05); padding-top: 1rem; padding-bottom: 1rem; border-radius: 0 1rem 1rem 0; }
+        .glossary-box b { color: #0ea5e9; font-weight: 700; }
+        .diagram-container { background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(30, 41, 59, 0.5); border-radius: 1.5rem; padding: 2rem; margin: 2.5rem 0; box-shadow: inset 0 0 20px rgba(0,0,0,0.5); }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <!-- Header: 기술 사양 및 타이틀 -->
+    <header class="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-cyan-500 text-slate-900 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded-sm shadow-[0_0_10px_rgba(34,211,238,0.5)]">Cyber Security Lab</span>
+                    <span class="text-slate-500 font-mono text-[10px]">NS-2026-ANALYSIS | Deep Packet Inspection</span>
+                </div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 tracking-tight leading-tight">
+                    네트워크 보안 분석 및 탐지 로그 관리 가이드<br><span class="text-slate-100 text-2xl">Snort와 Wireshark를 활용한 지능형 침입 탐지 및 패킷 포렌식</span>
+                </h1>
+            </div>
+            <div class="text-right hidden md:block border-l border-slate-800 pl-6">
+                <div class="bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-2 rounded-xl text-sm font-black font-mono shadow-lg">
+                    CORE: SECURITY 2.0
+                </div>
+                <p class="text-[10px] text-slate-500 mt-2 tracking-widest uppercase">Senior Infrastructure Architect</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-6 py-16 space-y-24">
+
+        <!-- 도입부 -->
+        <section>
+            <div class="section-card rounded-3xl p-10 shadow-2xl relative overflow-hidden">
+                <div class="absolute -right-20 -top-20 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl"></div>
+                <p class="text-slate-300 text-xl font-light leading-relaxed mb-6">
+                    현대적인 사이버 보안 환경에서 네트워크 침입 탐지 시스템인 <b>Snort(Open Source Network Intrusion Detection System, 오픈 소스 네트워크 침입 탐지 시스템)</b>와 패킷 분석 도구인 <b>Wireshark(Network Protocol Analyzer, 네트워크 프로토콜 분석기)</b>는 보안 전문가가 갖춰야 할 필수 무기입니다. 네트워크 상에서 발생하는 보이지 않는 위협을 가시화하고, 공격의 근원을 추적하기 위해서는 실시간 데이터 저장 기법부터 심층 패킷 분석까지의 유기적인 연동 과정이 필수적입니다.
+                </p>
+                <p class="text-slate-400 text-lg leading-relaxed">
+                    본 가이드는 Snort가 탐지한 보안 이벤트를 효율적으로 관리하고, 이를 Wireshark를 통해 상세히 해부하여 실전적인 방어 전략을 수립하는 과정을 상세히 다룹니다.
+                </p>
+            </div>
+        </section>
+
+        <!-- Section 1: Snort 로그 아키텍처 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
+                1. Snort 로그 및 실시간 데이터 저장 아키텍처 (Storage Architecture)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-10 leading-relaxed">
+                    Snort는 탐지된 이벤트를 다양한 방식으로 기록합니다. 대규모 네트워크 환경에서는 탐지 성능 저하를 방지하기 위해 <b>로그 생성(Detection Engine)</b>과 <b>저장(Output Logging)</b>을 분리하는 비대칭형 아키텍처를 권장합니다. 특히 고속 네트워크 환경에서는 탐지 엔진이 DB에 직접 쓰는 행위 자체가 병목 현상을 유발할 수 있으므로, 중간 저장소(Spooler)를 두는 방식이 핵심입니다.
+                </p>
+
+                <!-- 도식: Snort 로그 저장 파이프라인 -->
+                <div class="diagram-container">
+                    <h4 class="text-center font-bold text-slate-500 mb-10 text-xs tracking-widest uppercase">
+                        [인포그래픽: 고성능 Snort 로그 처리 워크플로우]
+                    </h4>
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-2xl border border-cyan-900/30">
+                            <i data-lucide="shield-check" class="w-12 h-12 text-cyan-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm mb-2">Snort Engine</div>
+                            <div class="text-[10px] text-slate-400">Detection & binary output</div>
+                        </div>
+                        <i data-lucide="chevrons-right" class="w-8 h-8 text-slate-600 hidden md:block"></i>
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-2xl border border-blue-900/30">
+                            <i data-lucide="file-json" class="w-12 h-12 text-blue-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm mb-2">Unified2 File</div>
+                            <div class="text-[10px] text-slate-400">Spooled Binary Data</div>
+                        </div>
+                        <i data-lucide="chevrons-right" class="w-8 h-8 text-slate-600 hidden md:block"></i>
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-2xl border border-indigo-900/30">
+                            <i data-lucide="database" class="w-12 h-12 text-indigo-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm mb-2">Barnyard2 / Logstash</div>
+                            <div class="text-[10px] text-slate-400">Log Processing & Routing</div>
+                        </div>
+                        <i data-lucide="chevrons-right" class="w-8 h-8 text-slate-600 hidden md:block"></i>
+                        <div class="flex-1 text-center p-6 bg-slate-800 rounded-2xl border border-green-900/30">
+                            <i data-lucide="layout-dashboard" class="w-12 h-12 text-green-400 mx-auto mb-4"></i>
+                            <div class="font-black text-slate-100 text-sm mb-2">ELK / SIEM</div>
+                            <div class="text-[10px] text-slate-400">Visualization & Analysis</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-8">
+                    <h3 class="text-xl font-bold text-cyan-400">① 로그 저장 방식의 분류</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="p-6 bg-slate-900/40 rounded-2xl border border-slate-800">
+                            <div class="text-slate-100 font-bold mb-3">Packet Logging Mode</div>
+                            <p class="text-xs text-slate-400 leading-relaxed">패킷 전체를 <b>PCAP(Packet Capture, 패킷 캡처)</b> 형식으로 저장합니다. 분석 데이터가 방대해지지만 사후 포렌식 및 증거 확보에 매우 유리합니다.</p>
+                        </div>
+                        <div class="p-6 bg-slate-900/40 rounded-2xl border border-slate-800">
+                            <div class="text-slate-100 font-bold mb-3">Alert Mode</div>
+                            <p class="text-xs text-slate-400 leading-relaxed">설정된 규칙에 부합하는 이벤트 발생 시 요약된 경고 메시지만 기록합니다. <b>Syslog(System Logging Protocol, 시스템 로그 프로토콜)</b>나 일반 텍스트 파일로 저장됩니다.</p>
+                        </div>
+                        <div class="p-6 bg-slate-900/40 rounded-2xl border border-slate-800">
+                            <div class="text-slate-100 font-bold mb-3">Unified2 (유니파이드2)</div>
+                            <p class="text-xs text-slate-400 leading-relaxed">Snort 전용 이진 로그 형식입니다. Snort의 성능을 극대화하기 위해 직접 DB에 쓰지 않고 이 형식으로 먼저 저장한 뒤 별도의 도구로 처리합니다.</p>
+                        </div>
+                    </div>
+
+                    <h3 class="text-xl font-bold text-cyan-400 mt-12">② 실시간 데이터 저장 및 시각화 (Barnyard2 & ELK Stack)</h3>
+                    <p class="text-slate-300 leading-relaxed">
+                        과거에는 <b>Barnyard2(Spooler for Snort Unified2, Snort 전용 로그 스풀러)</b>를 사용하여 <b>MySQL(My Structured Query Language, 오픈 소스 관계형 데이터베이스)</b>에 저장하는 방식이 표준이었습니다. 하지만 현대의 대용량 트래픽 환경에서는 검색 속도와 시각화 유연성을 위해 <b>ELK Stack(Elasticsearch, Logstash, Kibana, 엘라스틱서치/로그스태시/키바나 통합 로그 관리 솔루션)</b>을 주로 활용합니다. 이를 통해 보안 이벤트의 지리적 위치(Geo-IP), 시간대별 공격 추이 등을 대시보드로 즉시 확인할 수 있습니다.
+                    </p>
+                </div>
+
+                <div class="glossary-box">
+                    <p><b>• IDS (Intrusion Detection System, 침입 탐지 시스템):</b> 네트워크나 시스템에 대한 비정상적인 행위를 실시간으로 탐지하여 관리자에게 알리는 보안 솔루션입니다.</p>
+                    <p><b>• SIEM (Security Information and Event Management, 보안 정보 및 이벤트 관리):</b> 다양한 보안 장비의 로그를 통합 관리하고 상관관계를 분석하여 위협을 탐지하는 시스템입니다.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Wireshark 설치 및 환경 구성 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
+                2. Wireshark 설치 및 환경 구성 (Protocol Analyzer Setup)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-10 leading-relaxed">
+                    <b>Wireshark(와이어샤크)</b>는 실시간 네트워크 트래픽을 가로채고 분석할 수 있는 세계에서 가장 널리 쓰이는 네트워크 분석 도구입니다. Snort가 경고(Alert)를 발생시키면, 분석가는 Wireshark를 이용해 실제 해당 패킷의 페이로드에 어떤 공격 코드가 담겨 있었는지를 세밀하게 검증하게 됩니다.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+                    <div class="p-8 bg-slate-900/40 rounded-3xl border border-cyan-900/20 relative">
+                        <div class="absolute top-4 right-4"><i data-lucide="windows" class="w-6 h-6 text-slate-600"></i></div>
+                        <h3 class="text-lg font-bold text-slate-100 mb-4">Windows 환경</h3>
+                        <p class="text-sm text-slate-400 mb-6">공식 홈페이지에서 설치 파일을 내려받아 실행합니다. 설치 과정 중 <b>Npcap(Network Packet Capture Driver, 윈도우용 패킷 캡처 드라이버)</b> 설치가 반드시 포함되어야 인터페이스 수집이 가능합니다.</p>
+                        <div class="terminal-bg p-4 rounded-xl font-mono text-[11px]">
+                            <span class="text-slate-500"># Check Npcap Service Status</span><br>
+                            <span class="text-cyan-400">sc query npcap</span>
+                        </div>
+                    </div>
+                    <div class="p-8 bg-slate-900/40 rounded-3xl border border-indigo-900/20 relative">
+                        <div class="absolute top-4 right-4"><i data-lucide="terminal" class="w-6 h-6 text-slate-600"></i></div>
+                        <h3 class="text-lg font-bold text-slate-100 mb-4">Linux (Ubuntu) 환경</h3>
+                        <p class="text-sm text-slate-400 mb-6">APT 패키지 관리자를 통해 설치하며, 설치 과정에서 'Should non-superusers be able to capture packets?' 질문에 'Yes'를 선택해야 일반 계정으로 캡처가 가능합니다.</p>
+                        <div class="terminal-bg p-4 rounded-xl font-mono text-[11px]">
+                            <span class="text-cyan-400">sudo apt update && sudo apt install wireshark -y</span><br>
+                            <span class="text-cyan-400">sudo usermod -aG wireshark $USER</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900/80 rounded-2xl p-8 border border-slate-800">
+                    <h4 class="font-bold text-cyan-400 mb-6 flex items-center gap-2">
+                        <i data-lucide="monitor-play" class="w-5 h-5"></i> 실행 및 인터페이스 확인
+                    </h4>
+                    <ul class="space-y-4 text-slate-300 text-sm">
+                        <li class="flex items-start gap-3">
+                            <span class="text-cyan-500 font-bold">01.</span>
+                            <span>설치 후 Wireshark를 실행하면 현재 시스템에서 활성화된 <b>NIC(Network Interface Card, 네트워크 인터페이스 카드)</b> 목록이 실시간 그래프와 함께 나타납니다.</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="text-cyan-500 font-bold">02.</span>
+                            <span>실제 트래픽이 발생하는 인터페이스를 더블 클릭하여 캡처를 시작합니다. (예: eth0, ens33, Wi-Fi)</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="glossary-box">
+                    <p><b>• Promiscuous Mode (무차별 모드):</b> 자신에게 오는 패킷뿐만 아니라 해당 네트워크 세그먼트를 통과하는 모든 패킷을 받아들이도록 설정하는 랜카드 모드입니다.</p>
+                    <p><b>• Pcap (Packet Capture, 패킷 캡처):</b> 네트워크 트래픽을 캡처하고 파일로 저장하기 위한 API(Application Programming Interface)입니다.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Wireshark 패킷 분석 방법론 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
+                3. Wireshark를 이용한 패킷 분석 방법론 (Analysis Methodology)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl">
+                <p class="text-slate-300 text-lg mb-10 leading-relaxed">
+                    캡처된 데이터는 초당 수천 개 이상의 패킷이 쌓이므로 방대한 정보 속에서 공격 징후를 골라내는 능력이 핵심입니다. Wireshark는 이를 위해 강력한 필터링 및 추적 기능을 제공합니다.
+                </p>
+
+                <!-- 도식: Wireshark 분석 흐름 -->
+                <div class="diagram-container">
+                    <h4 class="text-center font-bold text-slate-500 mb-10 text-xs tracking-widest uppercase">
+                        [도식: 효율적인 패킷 분석 단계]
+                    </h4>
+                    <div class="flex flex-col md:flex-row items-center justify-around gap-4 text-center">
+                        <div class="p-4">
+                            <div class="bg-cyan-500/20 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 border border-cyan-500">1</div>
+                            <div class="font-bold text-slate-100">Display Filter</div>
+                            <div class="text-[10px] text-slate-500">관심 패킷 추출</div>
+                        </div>
+                        <i data-lucide="arrow-right" class="w-6 h-6 text-slate-700 hidden md:block"></i>
+                        <div class="p-4">
+                            <div class="bg-blue-500/20 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 border border-blue-500">2</div>
+                            <div class="font-bold text-slate-100">TCP Stream</div>
+                            <div class="text-[10px] text-slate-500">대화 맥락 재구성</div>
+                        </div>
+                        <i data-lucide="arrow-right" class="w-6 h-6 text-slate-700 hidden md:block"></i>
+                        <div class="p-4">
+                            <div class="bg-indigo-500/20 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 border border-indigo-500">3</div>
+                            <div class="font-bold text-slate-100">Payload Decode</div>
+                            <div class="text-[10px] text-slate-500">공격 코드 분석</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-12">
+                    <div>
+                        <h3 class="text-xl font-bold text-cyan-400 mb-6">① 디스플레이 필터 (Display Filters)</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-sm">
+                            <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 flex items-center justify-between">
+                                <span class="text-blue-400">ip.addr == 192.168.1.10</span>
+                                <span class="text-[10px] text-slate-500">특정 IP 패킷 전체 조회</span>
+                            </div>
+                            <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 flex items-center justify-between">
+                                <span class="text-blue-400">tcp.port == 80</span>
+                                <span class="text-[10px] text-slate-500">HTTP 통신 필터링</span>
+                            </div>
+                            <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 col-span-1 md:col-span-2 flex items-center justify-between">
+                                <span class="text-blue-400">http.request.method == "POST"</span>
+                                <span class="text-[10px] text-slate-500">웹 서버 전송 데이터(POST) 확인</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl font-bold text-cyan-400 mb-6">② TCP Stream 추적 (Follow TCP Stream)</h3>
+                        <p class="text-sm text-slate-400 mb-4">
+                            네트워크상에서 조각나서 전달되는 개별 패킷들을 하나의 완성된 대화 형태로 재구성하는 기능입니다. 분석가는 패킷 리스트에서 <b>마우스 오른쪽 버튼 클릭 -> Follow -> TCP Stream</b>을 선택하여 공격자가 전송한 명령어나 서버의 응답 코드를 평문(Plaintext) 상태로 한눈에 파악할 수 있습니다.
+                        </p>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl font-bold text-cyan-400 mb-6">③ 통계 기능을 활용한 이상 징후 파악</h3>
+                        <ul class="space-y-4">
+                            <li class="bg-slate-900/50 p-6 rounded-2xl border border-slate-800">
+                                <span class="font-bold text-slate-100">Statistics -> Conversations:</span> 어떤 호스트끼리 가장 많은 데이터를 주고받는지 확인하여 <b>C&C(Command and Control Server, 명령 제어 서버)</b> 통신 여부를 의심할 수 있는 정황을 포착합니다.
+                            </li>
+                            <li class="bg-slate-900/50 p-6 rounded-2xl border border-slate-800">
+                                <span class="font-bold text-slate-100">Statistics -> Protocol Hierarchy:</span> 현재 캡처된 전체 트래픽 중 특정 프로토콜(예: ICMP, DNS)의 비중이 비정상적으로 높다면 이는 공격의 강력한 징후가 됩니다.
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: 공격 패턴별 패킷 특징 분석 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
+                4. 공격 패턴별 패킷 특징 분석 (Signature Analysis)
+            </h2>
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-12">
+                <p class="text-slate-300 text-lg leading-relaxed">
+                    보안 전문가는 특정 공격이 발생했을 때 나타나는 패킷의 고유한 '시그니처(Signature)'를 즉각적으로 식별할 수 있어야 합니다.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Scan -->
+                    <div class="bg-slate-900/40 p-8 rounded-3xl border border-red-900/20">
+                        <h4 class="text-red-400 font-bold mb-4 flex items-center gap-2">
+                            <i data-lucide="scan-search" class="w-5 h-5"></i> 포트 스캐닝 (Port Scanning)
+                        </h4>
+                        <div class="text-xs text-slate-400 space-y-2">
+                            <p>공격자가 <b>TCP SYN Scan</b>을 수행할 경우, 짧은 시간 내에 다수의 목적지 포트로 향하는 <b>SYN(연결 요청)</b> 패킷이 관찰됩니다.</p>
+                            <p class="text-slate-500 mt-2 font-mono bg-black/40 p-2 rounded">Pattern: SYN -> (Wait for SYN/ACK) -> RST (Connection Aborted)</p>
+                        </div>
+                    </div>
+                    <!-- DoS -->
+                    <div class="bg-slate-900/40 p-8 rounded-3xl border border-red-900/20">
+                        <h4 class="text-red-400 font-bold mb-4 flex items-center gap-2">
+                            <i data-lucide="bomb" class="w-5 h-5"></i> ICMP Flooding (DoS)
+                        </h4>
+                        <div class="text-xs text-slate-400 space-y-2">
+                            <p>서버에 대량의 ICMP Echo Request를 보내 시스템 자원을 고갈시키는 <b>DoS(Denial of Service, 서비스 거부 공격)</b>의 전형입니다.</p>
+                            <p class="text-slate-500 mt-2 font-mono bg-black/40 p-2 rounded">Pattern: Thousands of ICMP Type 8 packets per second</p>
+                        </div>
+                    </div>
+                    <!-- SQLi -->
+                    <div class="bg-slate-900/40 p-8 rounded-3xl border border-red-900/20">
+                        <h4 class="text-red-400 font-bold mb-4 flex items-center gap-2">
+                            <i data-lucide="database-zap" class="w-5 h-5"></i> SQL Injection (SQL 인젝션)
+                        </h4>
+                        <div class="text-xs text-slate-400 space-y-2">
+                            <p>HTTP 요청 패킷의 URI 또는 Body 영역에서 데이터베이스 탈취용 구문이 탐지됩니다.</p>
+                            <p class="text-slate-500 mt-2 font-mono bg-black/40 p-2 rounded">Payload: SELECT, UNION, ' OR '1'='1'</p>
+                        </div>
+                    </div>
+                    <!-- Brute Force -->
+                    <div class="bg-slate-900/40 p-8 rounded-3xl border border-red-900/20">
+                        <h4 class="text-red-400 font-bold mb-4 flex items-center gap-2">
+                            <i data-lucide="unlock" class="w-5 h-5"></i> Brute Force (무차별 대입 공격)
+                        </h4>
+                        <div class="text-xs text-slate-400 space-y-2">
+                            <p>특정 계정에 대해 매우 짧은 시간 동안 수많은 로그인 패킷이 발생하며, 대부분 실패 응답이 뒤따릅니다.</p>
+                            <p class="text-slate-500 mt-2 font-mono bg-black/40 p-2 rounded">Pattern: Continuous POST /login -> 401 Unauthorized</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glossary-box">
+                    <p><b>• 3-Way Handshake (3단계 핸드셰이크):</b> TCP 통신을 시작하기 전, 두 호스트 간에 신뢰성 있는 연결을 설정하기 위해 SYN, SYN/ACK, ACK 패킷을 주고받는 과정입니다.</p>
+                    <p><b>• Payload (페이로드):</b> 전송되는 패킷의 실제 데이터 부분을 의미하며, 공격 코드가 주로 숨겨지는 곳입니다.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: 아키텍트 인사이트 & 실전 팁 -->
+        <section>
+            <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-8 tracking-tight uppercase">
+                5. 아키텍트 인사이트 (Expert Insight & Tips)
+            </h2>
+            <div class="bg-slate-900/40 border border-slate-800 rounded-3xl p-10 shadow-2xl space-y-10">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                        <div class="text-cyan-400 mb-4"><i data-lucide="clock" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2">Time Display Format</h4>
+                        <p class="text-[10px] text-slate-400 leading-relaxed">패킷 분석 시 '도착 시간'을 <b>UTC(Coordinated Universal Time, 협정 세계시)</b>나 이전 패킷과의 시간 차이로 설정하여 공격의 지속성 및 정밀도를 파악하십시오.</p>
+                    </div>
+                    <div class="bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                        <div class="text-cyan-400 mb-4"><i data-lucide="palette" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2">Coloring Rules</h4>
+                        <p class="text-[10px] text-slate-400 leading-relaxed">Wireshark의 색상 규칙을 최적화하여 <b>RST/ACK</b> 충돌이나 오류 패킷(빨간색/검은색)을 시각적으로 빠르게 구분하여 분석 속도를 높이십시오.</p>
+                    </div>
+                    <div class="bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                        <div class="text-red-400 mb-4"><i data-lucide="shield-alert" class="w-8 h-8"></i></div>
+                        <h4 class="font-bold text-slate-100 mb-2">AWS Billing Warning</h4>
+                        <p class="text-[10px] text-red-300 leading-relaxed font-black uppercase">
+                            AWS 환경에서 <b>VPC Traffic Mirroring</b>을 사용하여 실시간 패킷 캡처를 수행할 경우, <b>인스턴스당 시간별 사용료 및 데이터 전송량</b>에 따른 과금이 즉시 발생하므로 실습 종료 후 반드시 설정을 해제하십시오.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto px-6 py-12 border-t border-slate-800 text-center">
+        <div class="text-slate-500 font-mono text-[10px] tracking-widest uppercase mb-4">
+            © 2026 CYBER SECURITY INFRASTRUCTURE EDUCATION. ALL RIGHTS RESERVED.
+        </div>
+        <p class="text-slate-600 text-[10px] leading-relaxed max-w-2xl mx-auto italic">
+            본 교재는 IP 직업훈련 전문가과정의 보안 관제 및 패킷 분석 교육을 위해 설계되었습니다. 모든 실습은 법적 책임이 보장되는 허가된 격리 네트워크(Sandbox) 환경에서만 수행되어야 함을 강조합니다.
+        </p>
+        <div class="mt-8">
+            <span class="text-cyan-500 font-black tracking-widest text-lg">Next Step: </span>
+            <span class="text-slate-300 font-bold text-lg">Snort Rule(스노트 규칙) 작성법 및 사용자 정의 탐지 패턴 최적화</span>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
