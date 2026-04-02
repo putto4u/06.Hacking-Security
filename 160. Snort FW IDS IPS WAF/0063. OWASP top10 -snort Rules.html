@@ -102,38 +102,38 @@
                         
                         <!-- Component A: Attacker -->
                         <div class="flex-1 text-center p-6 bg-slate-800/80 rounded-xl border border-red-900/50 shadow-lg w-full relative">
-                            <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-red-900 text-red-200 text-[10px] px-3 py-1 rounded font-mono font-black">EXTERNAL</div>
+                            <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-red-900 text-red-200 text-[10px] px-3 py-1 rounded font-mono font-black">외부망 (EXTERNAL)</div>
                             <i data-lucide="skull" class="w-10 h-10 text-red-400 mx-auto mb-4 mt-2"></i>
                             <div class="font-black text-slate-100 text-sm">해커 / 공격자</div>
-                            <div class="text-xs text-slate-400 mt-2">Malicious Payload<br>(SQLi, XSS 시도)</div>
+                            <div class="text-xs text-slate-400 mt-2">악성 전송 데이터 (Malicious Payload)<br>(SQL 삽입 공격(SQLi), 교차 사이트 스크립팅(XSS) 시도)</div>
                         </div>
 
                         <!-- Arrow 1 -->
                         <div class="flex flex-col items-center">
-                            <span class="text-[10px] text-red-400 mb-1 font-mono">HTTP/HTTPS</span>
+                            <span class="text-[10px] text-red-400 mb-1 font-mono">웹 트래픽 (HTTP/HTTPS)</span>
                             <i data-lucide="chevrons-right" class="w-8 h-8 text-slate-600 rotate-90 md:rotate-0"></i>
                         </div>
 
                         <!-- Component B: Snort IDS -->
                         <div class="flex-1 text-center p-6 bg-slate-800 rounded-xl border border-cyan-900/80 shadow-[0_0_20px_rgba(34,211,238,0.15)] w-full relative z-10">
-                            <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-cyan-600 text-white text-[10px] px-3 py-1 rounded font-mono font-black">INSPECTION</div>
+                            <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-cyan-600 text-white text-[10px] px-3 py-1 rounded font-mono font-black">심층 검사 (INSPECTION)</div>
                             <i data-lucide="search" class="w-12 h-12 text-cyan-400 mx-auto mb-4 mt-2"></i>
-                            <div class="font-black text-slate-100 text-sm">Snort IDS (미러 포트)</div>
-                            <div class="text-xs text-cyan-200 mt-2">Rule Matching Engine<br>Pattern Analysis</div>
+                            <div class="font-black text-slate-100 text-sm">침입 탐지 시스템 (Snort IDS) (미러 포트)</div>
+                            <div class="text-xs text-cyan-200 mt-2">탐지 규칙 매칭 엔진 (Rule Matching Engine)<br>패턴 분석 (Pattern Analysis)</div>
                         </div>
 
                         <!-- Arrow 2 -->
                         <div class="flex flex-col items-center">
-                            <span class="text-[10px] text-emerald-400 mb-1 font-mono">Clean Traffic</span>
+                            <span class="text-[10px] text-emerald-400 mb-1 font-mono">정상 트래픽 (Clean Traffic)</span>
                             <i data-lucide="chevrons-right" class="w-8 h-8 text-slate-600 rotate-90 md:rotate-0"></i>
                         </div>
 
                         <!-- Component C: Web Server -->
                         <div class="flex-1 text-center p-6 bg-slate-800/80 rounded-xl border border-indigo-900/50 shadow-lg w-full relative">
-                            <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-indigo-900 text-indigo-200 text-[10px] px-3 py-1 rounded font-mono font-black">INTERNAL ZOME</div>
+                            <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-indigo-900 text-indigo-200 text-[10px] px-3 py-1 rounded font-mono font-black">내부 보안망 (INTERNAL ZONE)</div>
                             <i data-lucide="server" class="w-10 h-10 text-indigo-400 mx-auto mb-4 mt-2"></i>
                             <div class="font-black text-slate-100 text-sm">보호 대상 웹 서버</div>
-                            <div class="text-xs text-slate-400 mt-2">WAS / Database<br>(Mission Critical)</div>
+                            <div class="text-xs text-slate-400 mt-2">웹 애플리케이션 서버 (WAS) / 데이터베이스 (Database)<br>(핵심 업무 시스템)</div>
                         </div>
                     </div>
                 </div>
@@ -156,35 +156,35 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 
                 <div class="section-card rounded-3xl p-8 border-red-900/30 shadow-xl relative overflow-hidden">
-                    <div class="absolute top-0 right-0 bg-red-900/80 text-red-200 text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">NODE 01</div>
+                    <div class="absolute top-0 right-0 bg-red-900/80 text-red-200 text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">노드 01 (NODE 01)</div>
                     <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
                         <i data-lucide="terminal" class="w-6 h-6 text-red-400"></i> 외부 공격자
                     </h3>
                     <ul class="space-y-4 text-sm text-slate-300">
                         <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 text-red-500 mt-1 flex-shrink-0"></i> 운영체제: Kali Linux</li>
-                        <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 text-red-500 mt-1 flex-shrink-0"></i> 역할: 외부 네트워크($EXTERNAL_NET)에서 악의적인 HTTP Request 전송</li>
+                        <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 text-red-500 mt-1 flex-shrink-0"></i> 역할: 외부 네트워크($EXTERNAL_NET)에서 악의적인 웹 요청(HTTP Request) 전송</li>
                     </ul>
                 </div>
 
                 <div class="section-card rounded-3xl p-8 border-cyan-900/30 shadow-xl relative overflow-hidden">
-                    <div class="absolute top-0 right-0 bg-cyan-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">NODE 02</div>
+                    <div class="absolute top-0 right-0 bg-cyan-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">노드 02 (NODE 02)</div>
                     <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
                         <i data-lucide="eye" class="w-6 h-6 text-cyan-400"></i> Snort 탐지 센서
                     </h3>
                     <ul class="space-y-4 text-sm text-slate-300">
-                        <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 text-cyan-500 mt-1 flex-shrink-0"></i> 탐지 엔진: Snort 3.x</li>
-                        <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 text-cyan-500 mt-1 flex-shrink-0"></i> 역할: 트래픽 딥 패킷 인스펙션(DPI) 수행 및 시그니처 룰 기반 이벤트 로깅</li>
+                        <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 text-cyan-500 mt-1 flex-shrink-0"></i> 탐지 엔진: Snort 3.x (또는 2.9.7 레거시 호환)</li>
+                        <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 text-cyan-500 mt-1 flex-shrink-0"></i> 역할: 트래픽 심층 패킷 검사(DPI, Deep Packet Inspection) 수행 및 시그니처 룰 기반 이벤트 로깅</li>
                     </ul>
                 </div>
 
                 <div class="section-card rounded-3xl p-8 border-indigo-900/30 shadow-xl relative overflow-hidden">
-                    <div class="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">NODE 03</div>
+                    <div class="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] font-black px-4 py-1 rounded-bl-xl uppercase tracking-tighter font-mono">노드 03 (NODE 03)</div>
                     <h3 class="text-xl font-bold text-slate-100 mb-6 flex items-center gap-3">
                         <i data-lucide="server" class="w-6 h-6 text-indigo-400"></i> 타겟 웹 서버
                     </h3>
                     <ul class="space-y-4 text-sm text-slate-300">
                         <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 text-indigo-500 mt-1 flex-shrink-0"></i> 자산 그룹: $HTTP_SERVERS</li>
-                        <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 text-indigo-500 mt-1 flex-shrink-0"></i> 서비스: Nginx/Apache 기반의 웹 애플리케이션 및 백엔드 DBMS</li>
+                        <li class="flex items-start gap-2"><i data-lucide="check" class="w-4 h-4 text-indigo-500 mt-1 flex-shrink-0"></i> 서비스: Nginx/Apache 기반의 웹 애플리케이션 및 백엔드 데이터베이스 관리 시스템(DBMS)</li>
                     </ul>
                 </div>
 
@@ -196,23 +196,26 @@
             <h2 class="text-2xl font-black border-l-4 border-cyan-500 pl-4 text-slate-100 mb-10 tracking-tight">
                 실증 및 구현 (Implementation & Rule Tuning)
             </h2>
-            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-20">
+            <div class="section-card rounded-3xl p-10 shadow-2xl space-y-24">
                 
                 <!-- Step 01: SQL Injection -->
                 <div class="space-y-6">
                     <div class="flex items-center gap-4 border-b border-slate-700/50 pb-4">
-                        <span class="bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-3 py-1 rounded-md text-sm font-black uppercase tracking-widest font-mono">Rule 01</span>
+                        <span class="bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-3 py-1 rounded-md text-sm font-black uppercase tracking-widest font-mono">탐지 룰 01 (Rule 01)</span>
                         <h3 class="text-2xl font-bold text-slate-100">A03:2021 - 인젝션 (Injection) 방어</h3>
+                    </div>
+                    <div class="text-sm text-indigo-300 font-mono pl-0 md:pl-6 -mt-2 flex items-center gap-2">
+                        <i data-lucide="folder-tree" class="w-4 h-4"></i> /etc/snort/rules/sql.rules
                     </div>
                     <div class="pl-0 md:pl-6">
                         <p class="text-[16px] text-slate-300 mb-6 leading-relaxed">
                             SQL 인젝션(SQL Injection)은 사용자의 입력값을 검증하지 않고 데이터베이스 쿼리로 직접 연결할 때 발생하는 가장 고전적이면서도 치명적인 아키텍처 결함입니다. 
                             공격자는 논리적으로 무조건 참(True)이 되는 구문인 <code>' OR 1=1 --</code> 등을 주입하여 인증을 우회하거나 모든 데이터를 열람합니다. 
-                            아래 룰은 HTTP 요청에서 이러한 보편적인 우회 시도를 탐지합니다.
+                            아래 룰은 웹 요청(HTTP Request)에서 이러한 보편적인 우회 시도를 탐지합니다.
                         </p>
 
                         <div class="terminal-bg rounded-xl p-6 shadow-inner relative text-[15px]">
-                            <div class="absolute top-0 right-0 bg-slate-800 border-l border-b border-slate-700 text-slate-400 text-[10px] px-3 py-1 rounded-bl-lg uppercase font-black">Snort Console / local.rules</div>
+                            <div class="absolute top-0 right-0 bg-slate-800 border-l border-b border-slate-700 text-slate-400 text-[10px] px-3 py-1 rounded-bl-lg uppercase font-black">스노트 콘솔 (Snort Console) / sql.rules</div>
                             <div class="font-mono mt-4 leading-loose break-all">
                                 <span class="snort-action">alert</span> <span class="snort-proto">tcp</span> <span class="snort-var">$EXTERNAL_NET</span> any -> <span class="snort-var">$HTTP_SERVERS</span> <span class="snort-var">$HTTP_PORTS</span> (<br>
                                 &nbsp;&nbsp;&nbsp;&nbsp;msg:<span class="snort-string">"SQL Injection - Universal Bypass Attempt"</span>; <br>
@@ -224,13 +227,30 @@
                             </div>
                         </div>
 
-                        <div class="term-box">
-                            <span class="term-title"><i data-lucide="book-open" class="w-4 h-4"></i> 전문 용어 해설 및 룰 분석</span>
-                            <ul class="list-disc pl-5 space-y-2 mt-2">
-                                <li><strong>$EXTERNAL_NET & $HTTP_SERVERS:</strong> Snort의 설정 파일(snort.conf)에 사전 정의된 네트워크 변수(Variables)입니다. 외부망에서 내부 보호 대상 서버로 들어오는 방향(->)을 명시합니다.</li>
-                                <li><strong>nocase (대소문자 무시):</strong> 'OR', 'or', 'Or' 등 공격자가 대소문자를 섞어 탐지를 우회하려는 시도를 무력화합니다.</li>
-                                <li><strong>http_uri (HTTP 통합 자원 식별자):</strong> 전체 패킷을 다 뒤지지 않고, HTTP 프로토콜의 URI(주소창 경로 및 파라미터) 영역에서만 패턴을 빠르게 검색하여 탐지 엔진의 부하를 줄이고 성능을 최적화합니다.</li>
-                                <li><strong>sid (Snort ID, 스노트 식별자):</strong> 룰의 고유 번호입니다. 1,000,000 이상의 번호는 사용자가 직접 정의한 커스텀(Custom) 룰을 의미합니다.</li>
+                        <!-- 각 행 상세 분석 UI 추가 -->
+                        <div class="bg-slate-800/40 border border-slate-700/50 rounded-xl p-6 mt-6 text-[14.5px] text-slate-300">
+                            <h4 class="text-cyan-400 font-bold mb-4 flex items-center gap-2"><i data-lucide="microscope" class="w-5 h-5"></i> 각 행 상세 분석 (Line-by-Line Analysis)</h4>
+                            <ul class="space-y-4">
+                                <li class="flex flex-col md:flex-row md:items-start gap-3">
+                                    <code class="text-pink-400 bg-slate-900 px-3 py-1 rounded border border-slate-700 font-mono text-xs whitespace-nowrap flex-shrink-0 mt-1">alert tcp ...</code>
+                                    <span class="leading-relaxed"><strong class="text-slate-200">헤더 (Header) 및 방향 설정:</strong> 외부망(EXTERNAL_NET)의 임의의 출발지 포트(any)에서 내부망 보호 대상 웹 서버(HTTP_SERVERS)의 지정된 웹 포트(HTTP_PORTS)로 유입되는 전송 제어 프로토콜(TCP, Transmission Control Protocol) 트래픽에 대해 시스템 관리자에게 경고(Alert) 액션을 취하도록 지시합니다.</span>
+                                </li>
+                                <li class="flex flex-col md:flex-row md:items-start gap-3">
+                                    <code class="text-pink-400 bg-slate-900 px-3 py-1 rounded border border-slate-700 font-mono text-xs whitespace-nowrap flex-shrink-0 mt-1">msg:"..."</code>
+                                    <span class="leading-relaxed"><strong class="text-slate-200">경고 메시지 (Message):</strong> 탐지 엔진이 룰을 트리거했을 때, 통합 로그 모니터링 시스템(SIEM) 화면이나 로그 파일에 출력될 직관적인 알람 제목을 정의합니다. 아키텍트 관점에서는 위협의 본질을 즉시 파악할 수 있도록 구체적으로 작성해야 합니다.</span>
+                                </li>
+                                <li class="flex flex-col md:flex-row md:items-start gap-3">
+                                    <code class="text-pink-400 bg-slate-900 px-3 py-1 rounded border border-slate-700 font-mono text-xs whitespace-nowrap flex-shrink-0 mt-1">flow:to_server...</code>
+                                    <span class="leading-relaxed"><strong class="text-slate-200">흐름 제어 (Flow Control):</strong> TCP 3-Way Handshake가 완벽히 맺어진 세션(established)에 한해서, 클라이언트가 서버로(to_server) 보내는 방향의 패킷만을 선별적으로 검사합니다. 이는 네트워크 검사 장비의 부하(CPU Overhead)를 획기적으로 줄이고, 반쪽짜리 비정상 연결로 인한 오탐을 원천 방지하는 핵심 옵션입니다.</span>
+                                </li>
+                                <li class="flex flex-col md:flex-row md:items-start gap-3">
+                                    <code class="text-pink-400 bg-slate-900 px-3 py-1 rounded border border-slate-700 font-mono text-xs whitespace-nowrap flex-shrink-0 mt-1">content:"..."</code>
+                                    <span class="leading-relaxed"><strong class="text-slate-200">페이로드 심층 검사 (Payload Inspection):</strong> HTTP 요청의 주소창 및 파라미터 영역(http_uri) 내에서 대소문자를 무시하고(nocase) 악성 문자열 패턴(<code>' or 1=1</code>)이 존재하는지 바이트 단위로 딥 패킷 인스펙션(DPI)을 수행합니다.</span>
+                                </li>
+                                <li class="flex flex-col md:flex-row md:items-start gap-3">
+                                    <code class="text-pink-400 bg-slate-900 px-3 py-1 rounded border border-slate-700 font-mono text-xs whitespace-nowrap flex-shrink-0 mt-1">classtype:...</code>
+                                    <span class="leading-relaxed"><strong class="text-slate-200">메타데이터 (Metadata):</strong> 룰의 공격 유형을 '웹 애플리케이션 공격(web-application-attack)'으로 분류합니다. 또한 커스텀 룰을 의미하는 고유 식별자(sid: 1000001)와 버전 관리용 리비전 번호(rev: 1)를 부여하여 대규모 엔터프라이즈 환경에서의 시그니처 형상 관리를 용이하게 합니다.</span>
+                                </li>
                             </ul>
                         </div>
                     </div>
@@ -239,15 +259,19 @@
                 <!-- Step 02: XSS -->
                 <div class="space-y-6">
                     <div class="flex items-center gap-4 border-b border-slate-700/50 pb-4">
-                        <span class="bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-3 py-1 rounded-md text-sm font-black uppercase tracking-widest font-mono">Rule 02</span>
-                        <h3 class="text-2xl font-bold text-slate-100">A03:2021 - 크로스 사이트 스크립팅 (XSS)</h3>
+                        <span class="bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-3 py-1 rounded-md text-sm font-black uppercase tracking-widest font-mono">탐지 룰 02 (Rule 02)</span>
+                        <h3 class="text-2xl font-bold text-slate-100">A03:2021 - 교차 사이트 스크립팅 (XSS)</h3>
+                    </div>
+                    <div class="text-sm text-indigo-300 font-mono pl-0 md:pl-6 -mt-2 flex items-center gap-2">
+                        <i data-lucide="folder-tree" class="w-4 h-4"></i> /etc/snort/rules/web-attacks.rules
                     </div>
                     <div class="pl-0 md:pl-6">
                         <p class="text-[16px] text-slate-300 mb-6 leading-relaxed">
-                            크로스 사이트 스크립팅(XSS, Cross-Site Scripting)은 게시판이나 입력 폼을 통해 악성 자바스크립트를 주입하고, 다른 사용자의 브라우저에서 해당 스크립트가 실행되도록 유도하여 세션 쿠키(Session Cookie) 등을 탈취하는 공격입니다. 주로 <code>&lt;script&gt;</code> 태그의 삽입을 모니터링합니다.
+                            교차 사이트 스크립팅(XSS, Cross-Site Scripting)은 게시판이나 입력 폼을 통해 악성 자바스크립트를 주입하고, 다른 사용자의 브라우저에서 해당 스크립트가 실행되도록 유도하여 세션 쿠키(Session Cookie) 등을 탈취하는 공격입니다. 주로 <code>&lt;script&gt;</code> 태그의 삽입을 모니터링합니다.
                         </p>
 
                         <div class="terminal-bg rounded-xl p-6 shadow-inner relative text-[15px]">
+                            <div class="absolute top-0 right-0 bg-slate-800 border-l border-b border-slate-700 text-slate-400 text-[10px] px-3 py-1 rounded-bl-lg uppercase font-black">스노트 콘솔 (Snort Console) / web-attacks.rules</div>
                             <div class="font-mono mt-2 leading-loose break-all">
                                 <span class="snort-action">alert</span> <span class="snort-proto">tcp</span> <span class="snort-var">$EXTERNAL_NET</span> any -> <span class="snort-var">$HTTP_SERVERS</span> <span class="snort-var">$HTTP_PORTS</span> (<br>
                                 &nbsp;&nbsp;&nbsp;&nbsp;msg:<span class="snort-string">"XSS - Script Tag Attempt"</span>; <br>
@@ -258,11 +282,18 @@
                             </div>
                         </div>
 
-                        <div class="term-box">
-                            <span class="term-title"><i data-lucide="book-open" class="w-4 h-4"></i> 전문 용어 해설 및 룰 분석</span>
-                            <ul class="list-disc pl-5 space-y-2 mt-2">
-                                <li><strong>http_client_body (HTTP 클라이언트 본문):</strong> GET 방식이 아닌 POST 방식으로 전송되는 폼 데이터(Form Data)나 JSON 본문 영역에서 악성 스크립트를 찾아냅니다. URI 검사와 병행하여 사용해야 완벽한 방어가 가능합니다.</li>
-                                <li><strong>classtype (Class Type, 분류 유형):</strong> 탐지된 공격의 성격(예: web-application-attack)을 정의합니다. 보안 관제 센터(SOC) 통합 대시보드(SIEM) 연동 시 위험도와 우선순위를 분류하는 핵심 메타데이터가 됩니다.</li>
+                        <!-- 각 행 상세 분석 UI 추가 -->
+                        <div class="bg-slate-800/40 border border-slate-700/50 rounded-xl p-6 mt-6 text-[14.5px] text-slate-300">
+                            <h4 class="text-cyan-400 font-bold mb-4 flex items-center gap-2"><i data-lucide="microscope" class="w-5 h-5"></i> 각 행 상세 분석 (Line-by-Line Analysis)</h4>
+                            <ul class="space-y-4">
+                                <li class="flex flex-col md:flex-row md:items-start gap-3">
+                                    <code class="text-pink-400 bg-slate-900 px-3 py-1 rounded border border-slate-700 font-mono text-xs whitespace-nowrap flex-shrink-0 mt-1">content:"&lt;script&gt;"</code>
+                                    <span class="leading-relaxed"><strong class="text-slate-200">탐지 문자열 (Detection String):</strong> 브라우저에서 동적인 클라이언트 사이드 언어를 실행시키는 가장 기본적인 HTML 태그 형태를 문자열 매칭의 핵심 조건으로 설정합니다. 해커는 이를 통해 세션 하이재킹(Session Hijacking)을 시도합니다.</span>
+                                </li>
+                                <li class="flex flex-col md:flex-row md:items-start gap-3">
+                                    <code class="text-pink-400 bg-slate-900 px-3 py-1 rounded border border-slate-700 font-mono text-xs whitespace-nowrap flex-shrink-0 mt-1">http_client_body</code>
+                                    <span class="leading-relaxed"><strong class="text-slate-200">HTTP 클라이언트 본문 검사:</strong> 이 룰에서 가장 눈여겨봐야 할 옵션입니다. 일반적인 GET 방식의 URI 파라미터가 아닌, POST 방식 등으로 전송되는 폼 데이터(Form Data), JSON, XML 형태의 HTTP 요청 본문(Body) 영역 안에서만 문자열을 탐지하도록 지정하여 효율을 극대화합니다.</span>
+                                </li>
                             </ul>
                         </div>
                     </div>
@@ -271,8 +302,11 @@
                 <!-- Step 03: Broken Access Control -->
                 <div class="space-y-6">
                     <div class="flex items-center gap-4 border-b border-slate-700/50 pb-4">
-                        <span class="bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-3 py-1 rounded-md text-sm font-black uppercase tracking-widest font-mono">Rule 03</span>
+                        <span class="bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-3 py-1 rounded-md text-sm font-black uppercase tracking-widest font-mono">탐지 룰 03 (Rule 03)</span>
                         <h3 class="text-2xl font-bold text-slate-100">A01:2021 - 취약한 접근 제어 (Broken Access Control)</h3>
+                    </div>
+                    <div class="text-sm text-indigo-300 font-mono pl-0 md:pl-6 -mt-2 flex items-center gap-2">
+                        <i data-lucide="folder-tree" class="w-4 h-4"></i> /etc/snort/rules/web-misc.rules
                     </div>
                     <div class="pl-0 md:pl-6">
                         <p class="text-[16px] text-slate-300 mb-6 leading-relaxed">
@@ -280,6 +314,7 @@
                         </p>
 
                         <div class="terminal-bg rounded-xl p-6 shadow-inner relative text-[15px]">
+                            <div class="absolute top-0 right-0 bg-slate-800 border-l border-b border-slate-700 text-slate-400 text-[10px] px-3 py-1 rounded-bl-lg uppercase font-black">스노트 콘솔 (Snort Console) / web-misc.rules</div>
                             <div class="font-mono mt-2 leading-loose break-all">
                                 <span class="snort-action">alert</span> <span class="snort-proto">tcp</span> <span class="snort-var">$EXTERNAL_NET</span> any -> <span class="snort-var">$HTTP_SERVERS</span> <span class="snort-var">$HTTP_PORTS</span> (<br>
                                 &nbsp;&nbsp;&nbsp;&nbsp;msg:<span class="snort-string">"Exploit - Directory Traversal Attempt"</span>; <br>
@@ -290,11 +325,18 @@
                             </div>
                         </div>
 
-                        <div class="term-box">
-                            <span class="term-title"><i data-lucide="book-open" class="w-4 h-4"></i> 전문 용어 해설 및 룰 분석</span>
-                            <ul class="list-disc pl-5 space-y-2 mt-2">
-                                <li><strong>Directory Traversal (디렉터리 트래버셜, 경로 조작):</strong> 웹 서버의 루트(Root) 디렉터리를 벗어나 시스템 파일에 접근하기 위해 상대 경로 탐색 문자(`../`)를 악용하는 기법입니다.</li>
-                                <li><strong>attempted-recon (Attempted Reconnaissance, 정찰 시도):</strong> 본 공격에 앞서 서버의 파일 구조나 취약점을 파악하기 위해 정보를 수집하려는 사전 정찰 행위로 분류됩니다.</li>
+                        <!-- 각 행 상세 분석 UI 추가 -->
+                        <div class="bg-slate-800/40 border border-slate-700/50 rounded-xl p-6 mt-6 text-[14.5px] text-slate-300">
+                            <h4 class="text-cyan-400 font-bold mb-4 flex items-center gap-2"><i data-lucide="microscope" class="w-5 h-5"></i> 각 행 상세 분석 (Line-by-Line Analysis)</h4>
+                            <ul class="space-y-4">
+                                <li class="flex flex-col md:flex-row md:items-start gap-3">
+                                    <code class="text-pink-400 bg-slate-900 px-3 py-1 rounded border border-slate-700 font-mono text-xs whitespace-nowrap flex-shrink-0 mt-1">content:"../"</code>
+                                    <span class="leading-relaxed"><strong class="text-slate-200">경로 조작 문자열 탐지:</strong> 웹 서버의 기본 서비스 경로(Web Root)를 강제로 벗어나기 위해 운영체제(OS)에서 통용되는 상위 폴더 이동 기호인 <code>../</code> (Dot-Dot-Slash)의 유입을 면밀히 감시합니다.</span>
+                                </li>
+                                <li class="flex flex-col md:flex-row md:items-start gap-3">
+                                    <code class="text-pink-400 bg-slate-900 px-3 py-1 rounded border border-slate-700 font-mono text-xs whitespace-nowrap flex-shrink-0 mt-1">classtype:attempted-recon</code>
+                                    <span class="leading-relaxed"><strong class="text-slate-200">정보 수집 시도 분류:</strong> 시스템 탈취라는 본 공격에 앞서 서버의 내부 디렉터리 구조나 백업 파일 존재 여부를 파악하려는 정찰(Reconnaissance) 시도 범주로 이 이벤트를 매핑합니다. 보안 관제 조직은 이 로그를 통해 본격적인 공격의 전조 증상(Indicator)을 식별합니다.</span>
+                                </li>
                             </ul>
                         </div>
                     </div>
@@ -305,14 +347,18 @@
                     
                     <div class="space-y-6">
                         <div class="flex items-center gap-4 border-b border-slate-700/50 pb-4">
-                            <span class="bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-3 py-1 rounded-md text-xs font-black uppercase tracking-widest font-mono">Rule 04</span>
+                            <span class="bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-3 py-1 rounded-md text-xs font-black uppercase tracking-widest font-mono">탐지 룰 04 (Rule 04)</span>
                             <h3 class="text-xl font-bold text-slate-100">A05: 보안 설정 오류</h3>
+                        </div>
+                        <div class="text-xs text-indigo-300 font-mono -mt-2 flex items-center gap-2">
+                            <i data-lucide="folder-tree" class="w-3 h-3"></i> /etc/snort/rules/policy.rules
                         </div>
                         <p class="text-[14px] text-slate-300 leading-relaxed">
                             관리자 페이지(Admin Panel)가 특정 IP 대역으로 제한되지 않고 외부에 노출되어 접근이 시도되는 정책 위반을 감시합니다.
                         </p>
-                        <div class="terminal-bg rounded-xl p-4 shadow-inner text-[13px]">
-                            <div class="font-mono leading-relaxed break-all">
+                        <div class="terminal-bg rounded-xl p-4 shadow-inner text-[13px] relative">
+                            <div class="absolute top-0 right-0 bg-slate-800 border-l border-b border-slate-700 text-slate-400 text-[10px] px-2 py-1 rounded-bl-lg uppercase font-black">스노트 콘솔 (Snort Console) / policy.rules</div>
+                            <div class="font-mono mt-4 leading-relaxed break-all">
                                 <span class="snort-action">alert</span> <span class="snort-proto">tcp</span> <span class="snort-var">$EXTERNAL_NET</span> any -> <span class="snort-var">$HTTP_SERVERS</span> <span class="snort-var">$HTTP_PORTS</span> (<br>
                                 &nbsp;&nbsp;msg:<span class="snort-string">"Policy - Unauthorized Admin Access"</span>;<br>
                                 &nbsp;&nbsp;content:<span class="snort-string">"/admin/"</span>; <span class="snort-opt">http_uri</span>;<br>
@@ -320,22 +366,37 @@
                                 )
                             </div>
                         </div>
-                        <div class="term-box p-4 mt-0 text-[13px]">
-                            <span class="term-title text-sm"><i data-lucide="shield" class="w-3 h-3"></i> policy-violation (정책 위반)</span>
-                            내부 보안 접근 제어 리스트(ACL)나 사내 규정상 허용되지 않은 비정상 경로 접근 이벤트입니다.
+
+                        <!-- 룰 04 상세 분석 -->
+                        <div class="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4 text-[13px] text-slate-300">
+                            <h4 class="text-cyan-400 font-bold mb-3 flex items-center gap-2"><i data-lucide="microscope" class="w-4 h-4"></i> 각 행 상세 분석</h4>
+                            <ul class="space-y-3">
+                                <li class="flex flex-col gap-1">
+                                    <code class="text-pink-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-700 font-mono text-xs w-fit">content:"/admin/";</code>
+                                    <span class="leading-relaxed"><strong class="text-slate-200">경로 노출 검증:</strong> URI 내에 인가된 인원만 접속해야 할 관리자용 백오피스 디렉터리 접근 시도를 탐지합니다.</span>
+                                </li>
+                                <li class="flex flex-col gap-1">
+                                    <code class="text-pink-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-700 font-mono text-xs w-fit">classtype:policy-violation;</code>
+                                    <span class="leading-relaxed"><strong class="text-slate-200">정책 위반 분류:</strong> 직접적인 익스플로잇(해킹) 행위라기보다는 사내 접근 제어 리스트(ACL, Access Control List) 정책을 우회한 위반 사항으로 로그를 기록합니다.</span>
+                                </li>
+                            </ul>
                         </div>
                     </div>
 
                     <div class="space-y-6">
                         <div class="flex items-center gap-4 border-b border-slate-700/50 pb-4">
-                            <span class="bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-3 py-1 rounded-md text-xs font-black uppercase tracking-widest font-mono">Rule 05</span>
+                            <span class="bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-3 py-1 rounded-md text-xs font-black uppercase tracking-widest font-mono">탐지 룰 05 (Rule 05)</span>
                             <h3 class="text-xl font-bold text-slate-100">A04: 불안전한 설계</h3>
+                        </div>
+                        <div class="text-xs text-indigo-300 font-mono -mt-2 flex items-center gap-2">
+                            <i data-lucide="folder-tree" class="w-3 h-3"></i> /etc/snort/rules/web-attacks.rules
                         </div>
                         <p class="text-[14px] text-slate-300 leading-relaxed">
                             비즈니스 로직의 허점을 노려, 희생자가 자신의 의도와 무관하게 특정 액션(송금, 정보 변경)을 실행하게 만드는 위조 요청을 탐지합니다.
                         </p>
-                        <div class="terminal-bg rounded-xl p-4 shadow-inner text-[13px]">
-                            <div class="font-mono leading-relaxed break-all">
+                        <div class="terminal-bg rounded-xl p-4 shadow-inner text-[13px] relative">
+                            <div class="absolute top-0 right-0 bg-slate-800 border-l border-b border-slate-700 text-slate-400 text-[10px] px-2 py-1 rounded-bl-lg uppercase font-black">스노트 콘솔 (Snort Console) / web-attacks.rules</div>
+                            <div class="font-mono mt-4 leading-relaxed break-all">
                                 <span class="snort-action">alert</span> <span class="snort-proto">tcp</span> <span class="snort-var">$EXTERNAL_NET</span> any -> <span class="snort-var">$HTTP_SERVERS</span> <span class="snort-var">$HTTP_PORTS</span> (<br>
                                 &nbsp;&nbsp;msg:<span class="snort-string">"Potential CSRF Attempt"</span>;<br>
                                 &nbsp;&nbsp;content:<span class="snort-string">"transfer.php?amount="</span>; <span class="snort-opt">http_uri</span>;<br>
@@ -343,16 +404,23 @@
                                 )
                             </div>
                         </div>
-                        <div class="term-box p-4 mt-0 text-[13px]">
-                            <span class="term-title text-sm"><i data-lucide="shield" class="w-3 h-3"></i> CSRF (사이트 간 요청 위조)</span>
-                            Cross-Site Request Forgery. 해커가 생성한 악성 링크를 정상 로그인된 사용자가 클릭할 때 발생합니다.
+
+                        <!-- 룰 05 상세 분석 -->
+                        <div class="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4 text-[13px] text-slate-300">
+                            <h4 class="text-cyan-400 font-bold mb-3 flex items-center gap-2"><i data-lucide="microscope" class="w-4 h-4"></i> 각 행 상세 분석</h4>
+                            <ul class="space-y-3">
+                                <li class="flex flex-col gap-1">
+                                    <code class="text-pink-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-700 font-mono text-xs w-fit">content:"transfer.php?amount=";</code>
+                                    <span class="leading-relaxed"><strong class="text-slate-200">비즈니스 로직 매개변수 탐지:</strong> 사이트 간 요청 위조(CSRF, Cross-Site Request Forgery) 공격에 자주 이용되는, 주요 자금 이체나 권한 승격 등 민감한 동작을 수행하는 매개변수(Parameter)의 비정상적인 호출을 심층 검사합니다.</span>
+                                </li>
+                            </ul>
                         </div>
                     </div>
 
                 </div>
 
                 <!-- Summary Table -->
-                <div class="pt-12">
+                <div class="pt-16">
                     <h4 class="text-xl font-bold text-slate-100 mb-6 border-b border-slate-700 pb-2">OWASP Top 10 취약점별 Snort 대응 요약</h4>
                     <div class="overflow-x-auto rounded-xl border border-slate-700">
                         <table class="w-full text-left border-collapse">
@@ -415,7 +483,7 @@
                         <h4 class="text-xl font-black text-slate-100 mb-4">페이로드 인코딩 우회와 PCRE의 필수성</h4>
                         <p class="text-sm text-slate-300 leading-relaxed mb-4">
                             위 본문에서 다룬 룰들은 교육 아키텍처 목적상 가장 원형(Raw)에 가까운 공격 패턴을 단순화한 문자열 매칭(<code>content:"..."</code>)에 불과합니다. 
-                            실제 해킹 그룹(APT)은 침입 탐지 시스템을 우회하기 위해 페이로드를 <strong>URL Encoding</strong> (예: <code>&lt;</code> 를 <code>%3c</code> 로 변환)이나 <strong>Hex Encoding</strong> 기법으로 치환하여 전송합니다.
+                            실제 해킹 그룹(APT)은 침입 탐지 시스템을 우회하기 위해 페이로드를 <strong>URL 인코딩 (URL Encoding)</strong> (예: <code>&lt;</code> 를 <code>%3c</code> 로 변환)이나 <strong>16진수 인코딩 (Hex Encoding)</strong> 기법으로 치환하여 전송합니다.
                         </p>
                         <p class="text-sm text-slate-300 leading-relaxed">
                             이러한 난독화된 공격을 방어하기 위해 아키텍트는 반드시 정규 표현식 엔진인 <strong class="text-pink-400">PCRE (Perl Compatible Regular Expressions, 펄 호환 정규 표현식)</strong>를 활용해야 합니다. Snort 룰 옵션에 <code>pcre:"/(%3C|<)script(%3E|>)/i";</code> 와 같이 구성하여 복합적인 인코딩 변이 공격까지 하나의 룰로 우아하게 통제해야 합니다.
@@ -424,12 +492,12 @@
                     
                     <div class="flex-1 bg-slate-800/60 p-8 rounded-2xl border border-slate-700 hover:border-yellow-500/50 transition-all duration-300">
                         <div class="text-yellow-400 mb-6 bg-yellow-900/30 w-16 h-16 flex items-center justify-center rounded-2xl"><i data-lucide="alert-triangle" class="w-8 h-8"></i></div>
-                        <h4 class="text-xl font-black text-slate-100 mb-4">False Positive (오탐) 통제와 룰 튜닝</h4>
+                        <h4 class="text-xl font-black text-slate-100 mb-4">오탐(False Positive) 통제와 룰 튜닝</h4>
                         <p class="text-sm text-slate-300 leading-relaxed mb-4">
-                            보안 룰의 민감도를 최대로 높이면 탐지율은 올라가지만, 정상적인 비즈니스 로직(예: 사용자가 블로그에 코드를 포스팅하기 위해 <code>&lt;script&gt;</code> 글자를 타이핑하는 행위)마저 공격으로 간주하여 차단하는 <strong>False Positive (오탐)</strong>가 급증하게 됩니다.
+                            보안 룰의 민감도를 최대로 높이면 탐지율은 올라가지만, 정상적인 비즈니스 로직(예: 사용자가 블로그에 코드를 포스팅하기 위해 <code>&lt;script&gt;</code> 글자를 타이핑하는 행위)마저 공격으로 간주하여 차단하는 <strong>오탐 (False Positive, 긍정 오류)</strong>가 급증하게 됩니다.
                         </p>
                         <p class="text-sm text-slate-300 leading-relaxed">
-                            초기 IDS 도입 시에는 바로 차단(Drop) 모드로 운영하지 않고, 경고(Alert) 모드로 최소 2~4주간 트래픽 베이스라인을 분석해야 합니다. 이후 특정 출발지 IP 대역의 예외 처리, 특정 URI 파라미터의 검사 제외 등 정밀한 <strong>룰 튜닝(Rule Tuning)</strong> 과정을 거치는 것이 성공적인 인프라 보안 구축의 핵심 역량입니다.
+                            초기 침입 탐지 시스템(IDS) 도입 시에는 바로 차단(Drop) 모드로 운영하지 않고, 경고(Alert) 모드로 최소 2~4주간 트래픽 기준선(Baseline)을 분석해야 합니다. 이후 특정 출발지 IP 대역의 예외 처리, 특정 URI 파라미터의 검사 제외 등 정밀한 <strong>룰 튜닝(Rule Tuning)</strong> 과정을 거치는 것이 성공적인 인프라 보안 구축의 핵심 역량입니다.
                         </p>
                     </div>
 
@@ -462,4 +530,3 @@
     </script>
 </body>
 </html>
-```
