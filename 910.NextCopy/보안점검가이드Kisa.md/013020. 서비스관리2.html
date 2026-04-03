@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security & Cloud Hacking Lab</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+        
+        /* 기본 글꼴 및 다크 모드 배경색 설정 */
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            /* 전체 화면 배경 이미지 적용 및 투명도(Overlay) 설정: 텍스트 가시성을 위해 어두운 오버레이 강화 */
+            background-image: linear-gradient(to bottom, rgba(2, 6, 23, 0.75), rgba(2, 6, 23, 0.95)), 
+                              url('image_1a3201.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center center;
+        }
+
+        /* 텍스트 리스트 호버 효과: 터미널 스타일 */
+        .list-hover {
+            transition: all 0.2s ease;
+        }
+        .list-hover:hover {
+            color: #22d3ee; 
+            padding-left: 0.75rem; 
+            background-color: rgba(15, 23, 42, 0.8); 
+            border-left-color: #0ea5e9;
+        }
+
+        /* 텍스트 가시성을 높이는 그림자 효과 클래스 */
+        .text-glow {
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+        }
+        .neon-glow {
+            text-shadow: 0 0 8px rgba(34, 211, 238, 0.6);
+        }
+        
+        /* 커스텀 스크롤바 (선택적 시각 강화) */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+    </style>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+</head>
+<body class="min-h-screen flex flex-col">
+    <header class="py-24 px-6 relative overflow-hidden">
+        
+        <a href="https://putto4u.github.io/06.Hacking-Security" class="absolute top-6 left-6 md:left-10 z-20 group cursor-pointer block" target="_blank" rel="noopener noreferrer">
+            <div class="flex items-center space-x-2 bg-slate-900/80 py-2 px-4 rounded-xl border border-cyan-900/50 backdrop-blur-md shadow-[0_0_15px_rgba(8,145,178,0.2)] transition-all duration-300 group-hover:border-cyan-400/60 group-hover:shadow-[0_0_20px_rgba(34,211,238,0.4)]">
+                <div class="relative flex h-3 w-3 mr-1">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
+                </div>
+                <span class="font-mono text-[10px] md:text-xs text-slate-400 tracking-wider">CHIEF SYSTEM ARCHITECT <span class="text-cyan-500 ml-1">❯</span></span>
+                <span class="font-black text-cyan-300 tracking-widest font-mono text-sm md:text-base neon-glow ml-1">PUTTO</span>
+                <span class="font-bold text-slate-200 tracking-widest font-mono text-sm md:text-base">'S LECTURES</span>
+            </div>
+        </a>
+
+        <div class="max-w-4xl mx-auto relative z-10 text-center mt-8">
+            <div class="inline-flex items-center justify-center space-x-3 mb-8 bg-slate-950/60 p-4 rounded-2xl backdrop-blur-md border border-slate-700/80 shadow-2xl">
+                <i class="fas fa-user-secret text-4xl text-cyan-400 drop-shadow-lg"></i>
+                <span class="text-slate-500">|</span>
+                <i class="fas fa-shield-halved text-4xl text-blue-500 drop-shadow-lg"></i>
+            </div>
+            
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-2 pb-2 bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 via-blue-400 to-indigo-400 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">
+                Cloud Security & Hacking Lab
+            </h1>
+            
+            <p class="mt-8 text-slate-100 font-medium text-lg md:text-xl max-w-2xl mx-auto leading-relaxed text-glow">
+                실전 클라우드 인프라 보안 및 모의 해킹 시나리오 연구 자료 저장소
+            </p>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-4xl mx-auto px-6 py-8 w-full">
+
+                <div class="bg-slate-950/90 p-8 md:p-12 rounded-2xl shadow-2xl border border-slate-700/50 backdrop-blur-xl prose prose-invert prose-slate max-w-none prose-img:rounded-xl prose-a:text-cyan-400 hover:prose-a:text-cyan-300 prose-headings:text-slate-100 prose-strong:text-cyan-100">
+                    <h2>16. DNS 보안 버전 패치</h2>
+<p><strong>🚨 보안 위협:</strong> 취약점이 내포된 BIND(DNS 서버 프로그램) 구버전을 사용할 경우, 비인가자에 의한 서비스 거부(DoS) 공격, 버퍼 오버플로우(Buffer Overflow) 공격 및 DNS 서버 원격 침입 등 치명적인 시스템 장악 위험이 존재합니다.
+<strong>⚙️ 조치 시 영향:</strong> 패치 적용 시 연계된 시스템 및 서비스의 네임 리졸빙(Name Resolving)에 미치는 영향도를 사전에 충분히 고려하여 테스트 후 적용해야 합니다.</p>
+<h3>점검 및 조치 사례</h3>
+<p><strong>[ SOLARIS ]</strong></p>
+<pre><code class="language-bash">Step 1) DNS 서비스 활성화 여부 확인
+# svcs -a | grep bind
+
+Step 2) DNS 서비스 비활성화
+# svcadm disable bind
+
+Step 3) BIND 버전 확인
+# named -v
+
+Step 4) DNS 서비스 최신 패치 버전 확인 및 업데이트
+ISC 홈페이지 https://www.isc.org/downloads/
+※ BIND 9 취약점 정보: https://kb.isc.org/v1/docs/en/aa-00913
+</code></pre>
+<p><strong>[ LINUX ]</strong></p>
+<pre><code class="language-bash">Step 1) DNS 서비스 활성화 여부 확인
+# systemctl list-units --type=service | grep named
+
+Step 2) DNS 서비스 비활성화
+# systemctl stop named
+
+Step 3) BIND 버전 확인
+# named -v
+
+Step 4) DNS 서비스 최신 패치 버전 확인 및 업데이트
+ISC 홈페이지 https://www.isc.org/downloads/
+</code></pre>
+<p><strong>[ AIX ]</strong></p>
+<pre><code class="language-bash">Step 1) DNS 서비스 활성화 여부 확인
+# lssrc -a | grep named
+
+Step 2) DNS 서비스 비활성화
+# stopsrc -s named
+
+Step 3) BIND 버전 확인
+# named -v
+
+Step 4) DNS 서비스 최신 패치 버전 확인 및 업데이트
+ISC 홈페이지 https://www.isc.org/downloads/
+</code></pre>
+<p><strong>[ HP-UX ]</strong></p>
+<pre><code class="language-bash">Step 1) DNS 서비스 활성화 여부 확인
+# ps -ef | grep named
+
+Step 2) DNS 서비스 중지
+# /sbin/init.d/named stop
+
+Step 3) /etc/rc.config.d/namesrvs 파일 내 NAMED 값을 0으로 수정
+NAMED=0
+
+Step 4) BIND 버전 확인
+# named -v
+
+Step 5) DNS 서비스 최신 패치 버전 확인 및 업데이트
+ISC 홈페이지 https://www.isc.org/downloads/
+</code></pre>
+<blockquote>
+<p><strong>📖 전문 용어 해설</strong>
+* <strong>BIND(Berkeley Internet Name Domain):</strong> BSD 기반 유닉스 시스템을 위해 설계된 사실상 인터넷의 표준 DNS(도메인 네임 시스템) 서버 소프트웨어입니다. 클라이언트들이 네트워크 내의 자원에 이름으로 접근할 수 있게 해주는 분산 데이터베이스 시스템 역할을 합니다.</p>
+</blockquote>
+<p><br><br><br></p>
+<h2>17. DNS Zone Transfer 설정</h2>
+<p><strong>🚨 보안 위협:</strong> 주(Primary) DNS 서버와 보조(Secondary) DNS 서버 간 영역(Zone) 정보를 동기화하는 Zone Transfer 기능의 접근 제어가 누락되어 모든 사용자에게 허용될 경우, 비인가자에게 내부 네트워크 호스트 정보 및 시스템 구조 등 중요 자산 정보가 통째로 유출될 위험이 존재합니다.
+<strong>⚙️ 조치 시 영향:</strong> Zone Transfer 설정에서 전송을 허용할 보조 DNS 서버의 IP 대상을 정확히 등록하였다면, 일반적인 도메인 네임 서비스 이용에는 영향을 미치지 않습니다.</p>
+<h3>점검 및 조치 사례</h3>
+<p><strong>[ SOLARIS, LINUX, AIX, HP-UX ]</strong></p>
+<pre><code class="language-bash">Step 1) xfrnets 설정 확인
+# cat /etc/named.boot | grep xfrnets
+또는
+# cat /etc/bind/named.boot | grep xfrnets
+
+Step 2) allow-transfer 설정 확인
+# cat /etc/named.conf | grep allow-transfer
+또는
+# cat /etc/bind/named.conf.options | grep allow-transfer
+
+Step 3) /etc(/bind)/named.boot 파일의 xfrnets 설정값 수정
+xfrnets &lt;zone transfer를 허용할 IP&gt;
+
+Step 4) /etc(/bind)/named.conf 파일의 allow-transfer 설정값 수정
+allow-transfer { &lt;zone transfer를 허용할 IP&gt;; };
+
+Step 5) DNS 서비스 재시작
+※ DNS 서비스 Zone 파일명은 임의 지정이 가능하므로 DNS 설정 파일의 Include 구문으로 참조하는 파일명 점검이 필요합니다.
+</code></pre>
+<blockquote>
+<p><strong>📖 전문 용어 해설</strong>
+* <strong>DNS Zone Transfer(디엔에스 존 트랜스퍼, DNS 영역 전송):</strong> 주(Primary) 네임 서버가 가지고 있는 도메인 영역 데이터베이스(Zone 정보) 전체를 백업이나 이중화 목적으로 보조(Secondary) 네임 서버로 일괄 복사하여 전송하는 기능입니다.</p>
+</blockquote>
+<p><br><br><br></p>
+<h2>18. DNS 서비스의 취약한 동적 업데이트 설정 금지</h2>
+<p><strong>🚨 보안 위협:</strong> DNS 서버에서 동적 업데이트 기능을 누구나 사용할 수 있도록 허용할 경우, 악의적인 해커에 의해 신뢰할 수 없는 변조된 도메인 레코드 데이터가 삽입(파밍 공격 등)되어 정상적인 사용자를 악성 사이트로 우회시킬 치명적 위험이 존재합니다.
+<strong>⚙️ 조치 시 영향:</strong> 일반적인 정적 웹 서비스 운영 환경에서는 영향이 없습니다.</p>
+<h3>점검 및 조치 사례</h3>
+<p><strong>[ SOLARIS, LINUX, AIX, HP-UX ]</strong></p>
+<pre><code class="language-bash">[DNS 동적 업데이트가 필요하지 않은 경우]
+Step 1) allow-update 설정 확인
+# cat /etc/named.conf | grep allow-update
+또는
+# cat /etc/bind/named.conf.options | grep allow-update
+
+Step 2) /etc(/bind)/named.conf 파일의 allow-update 설정값 수정
+allow-update { none; };
+
+Step 3) DNS 서비스 재시작
+
+[DNS 동적 업데이트가 필요한 경우]
+Step 1) allow-update 설정 확인
+# cat /etc/named.conf | grep allow-update
+또는
+# cat /etc/bind/named.conf.options | grep allow-update
+
+Step 2) /etc(/bind)/named.conf 파일의 allow-update 설정값 수정
+allow-update { &lt;DNS update를 허용할 IP&gt;; };
+
+Step 3) DNS 서비스 재시작
+</code></pre>
+<blockquote>
+<p><strong>📖 전문 용어 해설</strong>
+* <strong>DNS 동적 업데이트(DNS Dynamic Update):</strong> DHCP 환경 등에서 클라이언트 컴퓨터의 IP 주소가 변경될 때마다 관리자의 수동 작업 없이 DNS 서버의 리소스 레코드(Zone 파일)를 자동으로 실시간 갱신해 주는 기능입니다.</p>
+</blockquote>
+<p><br><br><br></p>
+<h2>19. Telnet 서비스 비활성화</h2>
+<p><strong>🚨 보안 위협:</strong> 원격 터미널 접속 시 암호화되지 않은 Telnet(텔넷) 프로토콜을 사용할 경우, 네트워크 구간을 지나는 통신 데이터가 모두 평문으로 전송되므로 해커가 스니핑(Sniffing) 기법을 통해 관리자 계정, 비밀번호 및 중요 기밀 정보를 손쉽게 탈취할 위험이 존재합니다.
+<strong>⚙️ 조치 시 영향:</strong> Telnet 대신 SSH 등 보안이 강화된 암호화 프로토콜을 대체 수단으로 사용해야 하므로, 구형 장비 연동 외 일반적인 서버 접속 환경에서는 긍정적인 보안 효과만 가집니다.</p>
+<h3>점검 및 조치 사례</h3>
+<p><strong>[ SOLARIS ]</strong></p>
+<pre><code class="language-bash">Step 1) Telnet 서비스 활성화 여부 확인
+# svcs -a | grep telnet
+
+Step 2) Telnet 서비스 비활성화
+# svcadm disable svc:/network/telnet:default
+
+Step 3) SSH 서비스 실행
+# svcadm enable ssh
+</code></pre>
+<p><strong>[ LINUX ]</strong></p>
+<pre><code class="language-bash">[inetd]
+Step 1) /etc/inetd.conf 파일 내 Telnet 서비스 활성화 여부 확인
+
+Step 2) 해당 옵션이 허용된 경우 설정 제거
+예시) telnet stream tcp nowait root /usr/sbin/in.telnetd
+주석 처리 혹은 명령어 줄 삭제
+
+Step 3) inetd 서비스 재시작
+# service inetd restart
+
+Step 4) SSH 서비스 실행
+# service sshd start
+
+[xinetd]
+Step 1) /etc/xinetd.d/telnet 파일 내 Telnet 서비스 활성화 여부 확인
+# cat /etc/xinetd.d/telnet
+
+Step 2) /etc/xinetd.d/telnet 파일의 disable 설정값 수정
+disable = yes
+
+Step 3) 설정 적용 및 서비스 재시작
+# systemctl restart xinetd
+
+Step 4) SSH 서비스 실행
+# systemctl start sshd
+
+[systemd]
+Step 1) Telnet 서비스 활성화 여부 확인
+# systemctl list-units --type=socket | grep telnet
+
+Step 2) Telnet 서비스 중지
+# systemctl stop telnet.socket
+
+Step 3) Telnet 서비스 비활성화
+# systemctl disable telnet.socket
+
+Step 4) SSH 서비스 실행
+# systemctl start sshd
+</code></pre>
+<p><strong>[ AIX ]</strong></p>
+<pre><code class="language-bash">Step 1) /etc/inetd.conf 파일 내 Telnet 서비스 활성화 여부 확인
+
+Step 2) 해당 옵션이 허용된 경우 설정 제거
+예시) telnet stream tcp6 nowait root /usr/sbin/telnetd telnetd -a
+주석 처리 혹은 명령어 줄 삭제
+
+Step 3) inetd 설정 적용
+# refresh -s inetd
+
+Step 4) SSH 서비스 실행
+# startsrc -s sshd
+</code></pre>
+<p><strong>[ HP-UX ]</strong></p>
+<pre><code class="language-bash">Step 1) /etc/inetd.conf 파일 내 Telnet 서비스 활성화 여부 확인
+# cat /etc/inetd.conf | grep telnet
+
+Step 2) 해당 옵션이 허용된 경우 설정 제거
+# telnet stream tcp6 nowait root /usr/sbin/telnetd telnetd -a
+주석 처리 혹은 명령어 줄 삭제
+
+Step 3) inetd 설정 적용
+# inetd -c
+
+Step 4) SSH 서비스 실행
+# /sbin/init.d/secsh start
+</code></pre>
+<blockquote>
+<p><strong>📖 전문 용어 해설</strong>
+* <strong>스니핑(Sniffing):</strong> 네트워크 상에 전송되는 트래픽 패킷을 도청 장치나 소프트웨어를 이용해 몰래 엿듣고 가로채어 중요한 정보(ID, 비밀번호 등)를 훔쳐내는 소극적 공격 행위입니다.</p>
+</blockquote>
+<p><br><br><br></p>
+<h2>20. FTP 서비스 정보 노출 제한</h2>
+<p><strong>🚨 보안 위협:</strong> FTP 서비스에 접속할 때 초기 화면에 나타나는 접속 배너(Banner)가 차단되지 않을 경우, 비인가자가 이를 통해 운영체제, FTP 서버 소프트웨어명 및 정확한 버전 정보를 손쉽게 수집하여 해당 버전에 특화된 악의적인 해킹(취약점 공격)을 준비하는 데 이용될 위험이 존재합니다.
+<strong>⚙️ 조치 시 영향:</strong> 배너 정보만 숨기는 것이므로 서비스 자체 동작 기능에는 영향을 미치지 않습니다.</p>
+<h3>점검 및 조치 사례</h3>
+<p><strong>[ SOLARIS, LINUX ]</strong></p>
+<pre><code class="language-bash">[vsFTP]
+Step 1) 배너 설정 확인
+# cat /etc/vsftpd.conf | grep ftpd_banner
+또는
+# cat /etc/vsftpd/vsftpd.conf | grep ftpd_banner
+
+Step 2) 해당 옵션이 설정되지 않은 경우 주석 제거 및 옵션 설정
+# ftpd_banner=&lt;변경할 배너 내용&gt;
+
+Step 3) vsFTP 서비스 재시작
+# systemctl restart vsftpd
+
+[ProFTP]
+Step 1) 배너 설정 확인
+# cat /etc/proftpd.conf | grep ServerIdent
+또는
+# cat /etc/proftpd/proftpd.conf | grep ServerIdent
+
+Step 2) /etc(/proftpd)/proftpd.conf 파일의 ServerIdent 설정값 수정
+ServerIdent off 
+또는 
+ServerIdent on &quot;&lt;변경할 배너 내용&gt;&quot;
+
+Step 3) ProFTP 서비스 재시작
+# systemctl restart proftpd
+</code></pre>
+<p><strong>[ AIX ]</strong></p>
+<pre><code class="language-bash">[기본 FTP]
+Step 1) 메시지 카탈로그 파일 추출
+# dspcat -g /usr/lib/nls/msg/en_US/ftpd.cat &gt; /tmp/ftpd.msg
+
+Step 2) 배너 설정 확인
+# cat /tmp/ftpd.msg
+&quot;(%s) FTP server (%s) ready.&quot;
+
+Step 3) /tmp/ftpd.msg 파일 내 배너 설정 변경
+&quot;&lt;변경할 배너 내용&gt;&quot;
+
+Step 4) ftpd.cat 파일 생성
+# gencat /usr/lib/nls/msg/en_US/ftpd.cat /tmp/ftpd.msg
+
+[vsFTP]
+Step 1) 배너 설정 확인
+# cat /etc/vsftpd.conf | grep ftpd_banner
+
+Step 2) 해당 옵션이 설정되지 않은 경우 주석 제거 및 옵션 설정
+ftpd_banner=&lt;변경할 배너 내용&gt;
+
+Step 3) vsFTP 서비스 PID 확인 및 재시작
+# ps -ef | grep vsftp
+# kill -1 &lt;PID&gt;
+
+[ProFTP]
+Step 1) 배너 설정 확인
+# cat /etc/proftpd.conf | grep ServerIdent
+
+Step 2) /etc/proftpd.conf 파일 내 ServerIdent 설정값 변경
+ServerIdent off 또는 ServerIdent on &quot;&lt;변경할 배너 내용&gt;&quot;
+
+Step 3) ProFTP 서비스 PID 확인 및 재시작
+# ps -ef | grep proftp
+# kill -1 &lt;PID&gt;
+</code></pre>
+<p><strong>[ HP-UX ]</strong></p>
+<pre><code class="language-bash">[기본 FTP]
+Step 1) FTP 설정 파일 경로 확인
+# cat /etc/inetd.conf | grep ftp
+
+Step 2) ftpaccess 설정 확인
+# cat /etc/ftpd/ftpaccess
+Wu-ftpd v2.4 미만 : suppresshostname, suppressversion, banner &lt;파일 경로&gt; 설정 확인
+Wu-ftpd v2.4 이상 : greeting, banner &lt;파일 경로&gt; 설정 확인
+
+Step 3) 배너 설정 확인
+# cat &lt;기본 FTP 배너 설정 파일 경로&gt;
+
+Step 4) /etc/inetd.conf 파일 설정값 변경
+ftp stream tcp nowait root /usr/lbin/ftpd ftpd -a /etc/ftpd/ftpaccess
+
+Step 5) 배너 파일 수정
+vi 편집기를 이용하여 배너 파일을 열어 변경할 배너 작성
+
+Step 6) /etc/ftpd/ftpaccess 파일의 옵션 설정값 변경
+Wu-ftpd v2.4 미만 :
+suppresshostname yes
+suppressversion yes
+banner &lt;경고 메시지가 작성된 파일 경로&gt;
+
+Wu-ftpd v2.4 이상 :
+greeting terse
+banner &lt;경고 메시지가 작성된 파일 경로&gt;
+
+Step 7) inetd 설정 적용
+# inetd -c
+※ 파일이 없으면 &quot;cp /usr/newconfig/etc/ftpd/examples/ftpaccess /etc/ftpd/ftpaccess&quot;로 생성
+
+[vsFTP &amp; ProFTP]
+# 리눅스 환경과 동일하게 ftpd_banner(vsftpd) 또는 ServerIdent(ProFTP) 수정 후 데몬 재시작(kill -1 PID)
+</code></pre>
+<blockquote>
+<p><strong>📖 전문 용어 해설</strong>
+* <strong>접속 배너(Banner):</strong> 원격 서비스(Telnet, FTP, SSH 등)에 접속할 때 사용자에게 환영 문구와 함께 시스템의 OS나 소프트웨어 버전 정보 등을 뿌려주는 초기 안내 텍스트입니다.</p>
+</blockquote>
+<p><br><br><br></p>
+<h2>21. 암호화되지 않는 FTP 서비스 비활성화</h2>
+<p><strong>🚨 보안 위협:</strong> 평문 통신 기반의 기본 FTP 서비스를 계속 운영할 경우, 파일 전송 시 주고받는 데이터와 인증 정보가 전혀 암호화되지 않으므로 네트워크 중간에서 패킷을 도청하는 스니핑 공격에 의해 핵심 정보가 고스란히 유출될 위험이 존재합니다.
+<strong>⚙️ 조치 시 영향:</strong> SFTP나 FTPS 등 암호화 기반 통신 방식으로 변경하면 보안은 강화되나, 접속 클라이언트 프로그램 설정도 그에 맞게 변경해야 합니다.</p>
+<h3>점검 및 조치 사례</h3>
+<p><strong>[ SOLARIS ]</strong></p>
+<pre><code class="language-bash">[vsFTP]
+Step 1) FTP 서비스 활성화 여부 확인
+# svcs -a | grep vsftpd
+
+Step 2) FTP 서비스 비활성화
+# svcadm disable vsftpd
+
+[ProFTP]
+Step 1) FTP 서비스 활성화 여부 확인
+# svcs -a | grep proftpd
+
+Step 2) FTP 서비스 비활성화
+# svcadm disable proftpd
+</code></pre>
+<p><strong>[ LINUX ]</strong></p>
+<pre><code class="language-bash">[inetd]
+Step 1) /etc/inetd.conf 파일 내 FTP 서비스 활성화 여부 확인
+
+Step 2) /etc/inetd.conf 파일의 설정값 변경(주석 처리)
+# ftp stream tcp nowait root /usr/sbin/tcpd /usr/sbin/in.ftpd
+
+Step 3) inetd 서비스 재시작
+# service inetd restart
+
+[xinetd]
+Step 1) /etc/xinetd.d/ftp 파일 내 FTP 서비스 활성화 여부 확인
+
+Step 2) /etc/xinetd.d/ftp 파일의 설정값 변경
+service ftp { disable = yes }
+
+Step 3) 설정 적용 및 재시작
+# systemctl restart xinetd
+
+[vsFTP]
+Step 1) FTP 서비스 중지 및 비활성화
+# systemctl stop vsftpd
+# systemctl disable vsftpd
+
+[ProFTP]
+Step 1) FTP 서비스 중지 및 비활성화
+# systemctl stop proftpd
+# systemctl disable proftpd
+</code></pre>
+<p><strong>[ AIX, HP-UX ]</strong></p>
+<pre><code class="language-bash">[기본 FTP]
+Step 1) /etc/inetd.conf 파일 내 FTP 서비스 활성화 여부 확인
+
+Step 2) /etc/inetd.conf 파일의 설정값 변경(주석 처리)
+# ftp stream tcp nowait root /usr/sbin/tcpd /usr/sbin/in.ftpd
+
+Step 3) inetd 설정 적용
+# refresh -s inetd
+
+[vsFTP / ProFTP]
+Step 1) 활성화 확인 및 PID 추출 후 강제 종료
+# ps -ef | grep vsftp (또는 proftp)
+# kill -9 &lt;PID&gt;
+</code></pre>
+<blockquote>
+<p><strong>📖 전문 용어 해설</strong>
+* <strong>SFTP(SSH File Transfer Protocol, 보안 파일 전송 프로토콜):</strong> SSH(Secure Shell)의 암호화 방식을 활용하여 데이터를 안전하게 보호하며 파일을 전송하는 프로토콜입니다.</p>
+</blockquote>
+<p><br><br><br></p>
+<h2>22. FTP 계정 Shell 제한</h2>
+<p><strong>🚨 보안 위협:</strong> 파일 전송만을 목적으로 발급된 FTP 전용 기본 계정에 시스템 명령어 실행이 가능한 쉘(Shell, 예: /bin/bash)이 그대로 부여되어 있으면, 비인가자가 해당 계정으로 쉘을 획득해 원격에서 악의적인 시스템 내부 명령어(파일 조작 등)를 임의로 실행할 수 있는 위험이 큽니다.
+<strong>⚙️ 조치 시 영향:</strong> FTP 접속 기능은 유지하되 서버 내 쉘 프롬프트 접근 권한만 차단되므로 정상적인 파일 업로드/다운로드 업무에는 영향이 없습니다.</p>
+<h3>점검 및 조치 사례</h3>
+<p><strong>[ SOLARIS, LINUX, AIX, HP-UX ]</strong></p>
+<pre><code class="language-bash">Step 1) ftp 계정의 일곱 번째 필드에 등록된 로그인 쉘 확인
+# cat /etc/passwd | grep ftp
+예시) ftp:x:134:65534::/srv/ftp:/usr/sbin/nologin
+
+Step 2) ftp 계정 로그인 쉘 변경
+/etc/passwd 파일 직접 수정 : 
+ftp:x:134:65534::/srv/ftp:/bin/false 또는 /sbin/nologin
+
+usermod 명령어를 사용하여 수정 :
+# usermod -s /bin/false &lt;계정&gt;
+</code></pre>
+<blockquote>
+<p><strong>📖 전문 용어 해설</strong>
+* <strong>/bin/false (또는 /sbin/nologin):</strong> 시스템 계정에 실제 로그인 쉘을 주지 않고 껍데기만 할당하여, 터미널(콘솔)을 통한 로컬 로그인이나 SSH 원격 명령어 실행 자체를 원천 차단하는 데 쓰이는 가짜 쉘입니다.</p>
+</blockquote>
+<p><br><br><br></p>
+<h2>23. FTP 서비스 접근 제어 설정</h2>
+<p><strong>🚨 보안 위협:</strong> FTP 서비스에 대한 IP 접근 통제 설정이 부재할 경우, 전 세계 어디서든 불특정 다수의 비인가자가 디렉터리나 파일에 접근 시도를 할 수 있어 비밀번호 무차별 대입 공격에 노출되거나 중요 파일의 무단 변조 및 데이터 탈취 시도가 발생할 위험이 상존합니다.
+<strong>⚙️ 조치 시 영향:</strong> 허용 목록(Allow List)에 등록된 특정 IP 주소 또는 호스트 관리자만이 FTP 서버에 정상 접속 가능해집니다.</p>
+<h3>점검 및 조치 사례</h3>
+<p><strong>[ SOLARIS, LINUX, AIX, HP-UX ]</strong></p>
+<pre><code class="language-bash">[기본 FTP - ftpusers]
+Step 1) ftpusers 파일 소유자 및 권한 확인
+# ls -l /etc/ftpusers (또는 /etc/ftpd/ftpusers)
+
+Step 2) 파일 소유자 root, 권한 640으로 변경
+# chown root /etc/ftpusers
+# chmod 640 /etc/ftpusers
+
+Step 3) 파일 내에 접근을 원천 차단할 블랙리스트 사용자 명단 설정 추가
+
+[vsFTP - ftpusers / user_list]
+Step 1) /etc/vsftpd.conf 설정 확인 (userlist_enable=YES/NO)
+
+Step 2) vsftpd.ftpusers (또는 ftpusers), vsftpd.user_list 권한 강화
+# chown root /etc/vsftpd.user_list
+# chmod 640 /etc/vsftpd.user_list
+
+Step 3) /etc/vsftpd.conf의 userlist_deny 옵션 적용
+- user_list에 등록된 사용자만 허가: userlist_deny=no
+- user_list에 등록된 사용자를 차단: userlist_deny=yes
+
+[ProFTP - ftpusers / proftpd.conf]
+Step 1) /etc/proftpd.conf 내 UseFtpUsers 옵션 확인 (기본 on)
+
+Step 2) Limit LOGIN 지시자 추가 및 수정
+&lt;Limit LOGIN&gt;
+    Order Deny,Allow
+    AllowUser &lt;사용자 이름&gt; 또는 Allow from &lt;IP주소&gt;
+    DenyUser &lt;사용자 이름&gt; 또는 Deny from &lt;IP주소&gt;
+&lt;/Limit&gt;
+
+Step 3) 서비스 재시작
+</code></pre>
+<blockquote>
+<p><strong>📖 전문 용어 해설</strong>
+* <strong>접근 제어(Access Control):</strong> 시스템 보안을 유지하기 위해 네트워크 IP 주소, 서브넷 대역, 혹은 사용자 계정 이름을 기준으로 서비스 접속 자격을 선별적으로 허가(Allow) 또는 차단(Deny)하는 보안 메커니즘입니다.</p>
+</blockquote>
+<p><br><br><br></p>
+<h2>24. Ftpusers 파일 설정</h2>
+<p><strong>🚨 보안 위협:</strong> FTP 서비스에 시스템 최고 관리자인 root 계정으로의 직접 접속이 허용된 경우, 통신 구간이 암호화되지 않는 FTP 특성상 스니핑 공격에 의해 root 비밀번호가 그대로 해커에게 노출되어 시스템 전체 통제권이 단숨에 박탈당할 극도의 위험이 존재합니다.
+<strong>⚙️ 조치 시 영향:</strong> 애플리케이션 자동화 스크립트 등에서 root 계정으로 하드코딩되어 FTP를 사용 중이라면, 이를 일반 계정이나 보안 연결(SFTP)로 전환하는 후속 작업 검토가 선행되어야 합니다.</p>
+<h3>점검 및 조치 사례</h3>
+<p><strong>[ SOLARIS, LINUX, AIX, HP-UX ]</strong></p>
+<pre><code class="language-bash">[기본 FTP - ftpusers]
+Step 1) root 계정 차단 확인
+# cat /etc/ftpusers 또는 # cat /etc/ftpd/ftpusers
+
+Step 2) 해당 파일 목록에 root를 추가(또는 주석 # 해제)하여 차단 활성화
+
+[vsFTP]
+Step 1) userlist_enable 상태에 따라 ftpusers 또는 user_list 파일 점검
+
+Step 2) 해당 파일 내에 root 계정을 주석 해제하여 리스트에 등록
+※ vsftpd.conf 파일에서 userlist_deny 옵션이 yes로 설정된 경우에 한해 root 계정 차단이 활성화됨
+
+[ProFTP]
+Step 1) /etc/proftpd.conf 파일 설정 변경
+RootLogin off 설정 추가
+
+Step 2) ProFTP 서비스 재시작
+# systemctl restart proftpd
+</code></pre>
+<blockquote>
+<p><strong>📖 전문 용어 해설</strong>
+* <strong>ftpusers 파일:</strong> 보안상 치명적인 결과를 초래할 수 있는 주요 시스템 계정(root, bin, daemon 등)들의 FTP 원격 접속을 블랙리스트 방식으로 원천 차단하기 위해 사용되는 서버 설정 파일입니다.</p>
+</blockquote>
+<p><br><br><br></p>
+<h2>25. 불필요한 SNMP 서비스 구동 점검</h2>
+<p><strong>🚨 보안 위협:</strong> 중앙 네트워크 관리를 위해 사용되는 SNMP 서비스가 무분별하게 활성화되어 있으면, 비인가자가 장비의 운영 체제 상태나 내부 네트워크 위상 등 중요 구조 정보를 손쉽게 수집(Enumeration)하거나 불법적으로 MIB(관리 정보 베이스) 설정값을 변조하여 시스템을 무력화할 위험이 존재합니다.
+<strong>⚙️ 조치 시 영향:</strong> 중앙 관제 시스템(NMS)에서 해당 서버의 자원 현황(CPU, Memory, Disk 등)을 수집하고 있는 환경이 아니라면 영향이 없습니다.</p>
+<h3>점검 및 조치 사례</h3>
+<p><strong>[ SOLARIS ]</strong></p>
+<pre><code class="language-bash">[5.9 이하 버전]
+Step 1) # /etc/init.d/init.snmpdx stop
+Step 2) # mv /etc/rc3.d/S76snmpdx /etc/rc3.d/_S76snmpdx
+
+[5.10 이상 버전]
+Step 1) # svcs -a | grep snmp
+Step 2) # svcadm disable svc:/application/management/snmpd:default
+</code></pre>
+<p><strong>[ LINUX ]</strong></p>
+<pre><code class="language-bash">Step 1) SNMP 서비스 활성화 여부 확인
+# systemctl list-units --type=service | grep snmpd
+
+Step 2) 불필요한 SNMP 서비스 중지 및 비활성화
+# systemctl stop snmpd
+# systemctl disable snmpd
+</code></pre>
+<p><strong>[ AIX ]</strong></p>
+<pre><code class="language-bash">Step 1) # stopsrc -s snmpd
+Step 2) /etc/rc.tcpip 파일 내 SNMP 시작 구문 주석 처리
+# start /usr/sbin/snmpd &quot;$src_running&quot;
+</code></pre>
+<p><strong>[ HP-UX ]</strong></p>
+<pre><code class="language-bash">Step 1) SNMP 활성화 점검 후 데몬 중지
+# /sbin/init.d/snmpd stop
+</code></pre>
+<blockquote>
+<p><strong>📖 전문 용어 해설</strong>
+* <strong>SNMP(Simple Network Management Protocol, 간이 망 관리 프로토콜):</strong> IP 네트워크에 연결된 수많은 통신 장비나 서버들의 동작 상태를 중앙의 NMS(네트워크 관리 시스템)가 주기적으로 자동 수집하고 제어할 때 사용하는 관리용 표준 통신 규약입니다.</p>
+</blockquote>
+<p><br><br><br></p>
+<h2>26. 안전한 SNMP 버전 사용</h2>
+<p><strong>🚨 보안 위협:</strong> SNMP 프로토콜을 사용할 때 v1이나 v2(v2c)와 같이 오래된 구버전을 사용하면, 관리 서버와 에이전트 간의 통신 패킷이 평문으로 노출되어 중간에서 패킷을 도청하는 스니핑에 의해 주요 구성 정보나 Community String이 손쉽게 탈취될 위험이 존재합니다.
+<strong>⚙️ 조치 시 영향:</strong> 안전하게 암호화가 보장된 SNMP v3로 전환할 경우, 관제(NMS) 시스템 소프트웨어도 v3를 지원하고 암호화 인증 방식을 맞춰주어야 정상적인 연동이 가능합니다.</p>
+<h3>점검 및 조치 사례</h3>
+<p><strong>[ SOLARIS, LINUX, AIX, HP-UX ]</strong></p>
+<pre><code class="language-bash">Step 1) SNMP v3 사용 여부 확인
+# snmpwalk -v3 -l authPriv -u &lt;사용자 이름&gt; -a &lt;인증 프로토콜&gt; -A &lt;인증 암호&gt; -x &lt;암호화 프로토콜&gt; -X &lt;암호화 암호&gt; &lt;서버 IP&gt;
+예시) snmpwalk -v3 -l authPriv -u myuser -a SHA -A myauthpass -x AES -X myprivpass 192.168.18.190
+
+Step 2) 사용하지 않을 경우 snmp v3 사용자 생성
+# net-snmp-create-v3-user -ro -A myauthpass -X myprivpass -a SHA -x AES myuser
+
+Step 3) /etc/snmp/snmpd.conf 파일 내의 SNMPv3 사용자 인증 정보 추가
+# createUser myuser SHA myauthpass AES myprivpass
+
+Step 4) SNMPv3 사용자 읽기/쓰기 권한 부여
+# rouser myuser
+
+Step 5) SNMP 서비스 재시작
+</code></pre>
+<blockquote>
+<p><strong>📖 전문 용어 해설</strong>
+* <strong>SNMP v3:</strong> 구버전(v1, v2)의 치명적인 평문 전송 취약점을 극복하기 위해 사용자 계정, 비밀번호, HMAC 기반의 데이터 무결성 검증, 그리고 강력한 데이터 암호화(AES/DES 등) 기능이 정식으로 도입된 가장 보안성이 높은 SNMP 최신 버전입니다.</p>
+</blockquote>
+<p><br><br><br></p>
+<h2>27. SNMP Community String 복잡성 설정</h2>
+<p><strong>🚨 보안 위협:</strong> SNMP 통신 시 일종의 인증 비밀번호 역할을 하는 Community String(커뮤니티 스트링)을 초기 출고 시의 기본값인 <code>public</code>이나 <code>private</code>으로 방치하거나 너무 단순하게 설정하면, 해커가 이를 쉽게 추측(Guessing)하여 내부 네트워크의 상세 구성도나 라우팅 정보를 획득하고 임의로 변조할 위험성이 극대화됩니다.
+<strong>⚙️ 조치 시 영향:</strong> 관리 비밀번호에 해당하는 String을 복잡하게 변경하므로, 정보를 수집하는 NMS 중앙 서버 측 설정에서도 동일한 복잡한 값으로 갱신해 주어야 통신이 성립됩니다.</p>
+<h3>점검 및 조치 사례</h3>
+<p><strong>[ SOLARIS ]</strong></p>
+<pre><code class="language-bash">[9 이하 버전]
+/etc/snmp/conf/snmpd.conf 파일 내 설정 변경
+read-community &lt;복잡한 변경 값&gt;
+write-community &lt;복잡한 변경 값&gt;
+
+[10 이상 버전]
+/etc/snmp/conf/snmpd.conf (또는 11버전: /etc/net-snmp/snmp/snmpd.conf) 수정
+rocommunity &lt;복잡한 변경 값&gt;
+rwcommunity &lt;복잡한 변경 값&gt;
+# svcadm refresh net-snmp
+</code></pre>
+<p><strong>[ LINUX ]</strong></p>
+<pre><code class="language-bash">[Redhat 계열]
+Step 1) /etc/snmp/snmpd.conf 파일 수정
+com2sec notConfigUser default &lt;복잡한 변경 값&gt;
+
+[Debian 계열]
+Step 1) /etc/snmp/snmpd.conf 수정
+rocommunity &lt;복잡한 변경 값&gt; default
+rwcommunity &lt;복잡한 변경 값&gt; default
+
+Step 2) SNMP 서비스 재시작
+# systemctl restart snmpd
+</code></pre>
+<p><strong>[ AIX ]</strong></p>
+<pre><code class="language-bash">Step 1) /etc/snmpdv3.conf 파일 내 설정 수정
+COMMUNITY &lt;새로운 Community String&gt; &lt;새로운 Community String&gt; noAuthNoPriv 0.0.0.0 0.0.0.0 -
+
+Step 2) SNMP 서비스 재실행
+# stopsrc -s snmpd
+# startsrc -s snmpd
+</code></pre>
+<p><strong>[ HP-UX ]</strong></p>
+<pre><code class="language-bash">Step 1) /etc/snmpd.conf 수정
+get-community-name : &lt;복잡한 변경 값&gt;
+set-community-name : &lt;복잡한 변경 값&gt;
+
+Step 2) 데몬 재시작
+</code></pre>
+<blockquote>
+<p><strong>📖 전문 용어 해설</strong>
+* <strong>Community String(커뮤니티 스트링):</strong> SNMP를 통하여 관리 장비와 에이전트 간에 데이터를 요청하거나 응답을 주고받을 때 인증 목적으로 서로 맞춰보는 그룹 비밀번호 성격의 문자열 데이터입니다.</p>
+</blockquote>
+<p><br><br><br></p>
+<h2>28. SNMP Access Control 설정</h2>
+<p><strong>🚨 보안 위협:</strong> 인증된 Community String을 알고 있더라도 아무 IP에서나 SNMP 정보를 질의하도록 방치하면, 내부망에 몰래 진입한 악의적 단말이나 악성 코드 감염 기기 등 비인가 출발지로부터 시스템 제어권과 자원 상태가 무차별로 수집되는 DoS 공격 및 설정 탈취 위험이 존재합니다.
+<strong>⚙️ 조치 시 영향:</strong> IP 기반 접근 통제이므로 NMS 관리 서버 등 정보 수집이 허가된 목적지 IP 주소(네트워크 대역)만 서비스 통신이 가능하도록 명확히 분류되어야 합니다.</p>
+<h3>점검 및 조치 사례</h3>
+<p><strong>[ SOLARIS ]</strong></p>
+<pre><code class="language-bash">Step 1) /etc/net-snmp/snmp/snmpd.conf 파일 내 접근 제어 IP 추가
+rocommunity &lt;String값&gt; &lt;허용할 NMS IP 주소&gt;
+rwcommunity &lt;String값&gt; &lt;허용할 NMS IP 주소&gt;
+
+Step 2) 데몬 재시작
+# svcadm restart net-snmp
+</code></pre>
+<p><strong>[ LINUX ]</strong></p>
+<pre><code class="language-bash">[Redhat 계열]
+Step 1) /etc/snmp/snmpd.conf 파일 접근 제어 추가
+com2sec notConfigUser &lt;허용할 NMS IP 주소&gt; &lt;String값&gt;
+
+[Debian 계열]
+Step 1) /etc/snmp/snmpd.conf 파일 수정
+rocommunity &lt;String값&gt; &lt;허용할 NMS IP 주소&gt;
+rwcommunity &lt;String값&gt; &lt;허용할 NMS IP 주소&gt;
+
+Step 2) SNMP 서비스 재시작
+# systemctl restart snmpd
+</code></pre>
+<p><strong>[ AIX ]</strong></p>
+<pre><code class="language-bash">Step 1) /etc/snmpdv3.conf 파일 수정
+COMMUNITY &lt;String값&gt; &lt;String값&gt; noAuthNoPriv &lt;허용할 NMS IP 주소&gt; &lt;허용할 넷마스크 주소&gt;
+
+Step 2) SNMP 서비스 중지 및 실행
+# stopsrc -s snmpd
+# startsrc -s snmpd
+</code></pre>
+<p><strong>[ HP-UX ]</strong></p>
+<pre><code class="language-bash">Step 1) /etc/snmpd.conf 파일 내 접근 제어 설정
+trap-dest : &lt;허용할 네트워크 주소 추가&gt;
+
+Step 2) SNMP 데몬 재시작
+</code></pre>
+<blockquote>
+<p><strong>📖 전문 용어 해설</strong>
+* <strong>SNMP Access Control(에스엔엠피 접근 제어):</strong> SNMP 정보 조회를 요구하는 클라이언트의 IP 주소가 사전에 신뢰하기로 약속된 NMS 서버의 주소인지를 1차적으로 확인하여 허용/차단하는 보안 방화벽 역할 기능입니다.</p>
+</blockquote>
+<p><br><br><br></p>
+<h2>29. 로그인 시 경고 메시지 설정</h2>
+<p><strong>🚨 보안 위협:</strong> 서버 초기 접속 화면(Banner)에 불법적인 사용에 대한 법적 경고 메시지를 명시하지 않고 오히려 운영체제 및 커널 버전과 같은 불필요한 시스템 스펙을 뿌려준다면, 해커에게 친절하게 취약점 분석 단서를 제공해 주는 꼴이 되어 각종 익스플로잇(Exploit) 공격의 타겟이 될 위험이 큽니다.
+<strong>⚙️ 조치 시 영향:</strong> 배너 안내 문구를 변경하는 조치이므로 시스템 운영이나 기존 애플리케이션 동작에는 전혀 지장을 주지 않습니다.</p>
+<h3>점검 및 조치 사례</h3>
+<p><strong>[ SOLARIS, LINUX, AIX, HP-UX 공통 점검 ]</strong></p>
+<pre><code class="language-bash">[로컬 콘솔 서버 접속 시]
+Step 1) /etc/motd 파일과 /etc/issue 파일 내용에 경고 메시지 입력
+
+[원격 접속 - SSH]
+Step 1) /etc/ssh/sshd_config 파일 내 Banner 옵션 경로 수정
+Banner /etc/issue.net (또는 특정 경고 메시지 파일)
+
+Step 2) /etc/issue.net 파일에 경고 문구 작성 후 SSH 재시작
+
+[원격 접속 - Telnet]
+Step 1) /etc/issue.net 파일 내 경고 메시지 작성
+(운영체제별 inetd.conf 또는 telnetd 파일에서 -b 옵션으로 배너 지정 가능)
+
+[서비스별 배너 점검 - Sendmail, Postfix, FTP 등]
+Step 1) Sendmail: /etc/mail/sendmail.cf 내 SmtpGreetingMessage 수정
+Step 2) Postfix: /etc/postfix/main.cf 내 smtpd_banner 수정
+Step 3) vsFTP: /etc/vsftpd.conf 내 ftpd_banner 수정
+Step 4) BIND DNS: /etc/named.conf 내 version &quot;경고 메시지&quot;; 선언 추가
+</code></pre>
+<blockquote>
+<p><strong>📖 전문 용어 해설</strong>
+* <strong>법적 경고 메시지(Warning Banner):</strong> 비인가자에게 시스템에 대한 허가 없는 침입이 강력한 법적 처벌을 수반할 수 있음을 고지하여 심리적인 범죄 억제 및 방어 효과를 부여하는 안내 텍스트입니다.</p>
+</blockquote>
+<p><br><br><br></p>
+<h2>30. sudo 명령어 접근 관리</h2>
+<p><strong>🚨 보안 위협:</strong> <code>sudo</code> 명령어 접근 통제(sudoers 정책)가 미흡하여 누구나 제한 없이 관리자 명령을 호출할 수 있다면, 악의적인 의도를 가진 내부의 비인가자나 권한이 제한된 일반 세션을 탈취한 해커가 루트 권한을 쉽게 오용하여 악성 코드 심기, 민감 데이터 유출 등 시스템을 파괴하는 행위를 시도할 치명적 위험이 존재합니다.
+<strong>⚙️ 조치 시 영향:</strong> 권한 할당의 주체가 되는 설정 파일의 조작을 막기 위한 접근 제한으로, 실제 시스템 구동 환경에 지장을 주지는 않습니다.</p>
+<h3>점검 및 조치 사례</h3>
+<p><strong>[ SOLARIS, LINUX, AIX, HP-UX ]</strong></p>
+<pre><code class="language-bash">Step 1) /etc/sudoers 파일 소유자 및 권한 확인
+# ls -l /etc/sudoers
+
+Step 2) /etc/sudoers 파일 소유자를 root, 권한 640 이하로 변경
+# chown root /etc/sudoers
+# chmod 640 /etc/sudoers
+
+Step 3) sudo 실행 권한 제어 정책 점검(특정 계정/그룹 단위로만 실행 허가 여부)
+</code></pre>
+<blockquote>
+<p><strong>📖 전문 용어 해설</strong>
+* <strong>sudo(SuperUser DO, 최고 관리자 대행 명령어):</strong> 리눅스 환경에서 일반 사용자가 자신의 계정으로 로그인한 상태를 유지하면서, root 계정 등 특정 타 사용자만 실행할 수 있는 고급 권한의 명령어를 임시로 빌려와 수행할 수 있도록 허가해 주는 기능입니다.
+* <strong>/etc/sudoers:</strong> sudo 명령어를 사용할 수 있는 사용자의 범위와 어느 명령어까지 실행할 수 있게 허용할지 정교한 보안 정책을 매핑해 두는 핵심 통제 파일입니다.</p>
+</blockquote>
+<p><br><br><br></p>
+<hr>
+
+<p>Next Step: 1장 Unix 중 4. 패치 관리 및 5. 로그 관리(주기적 보안 패치, 시스템 로깅 설정 등)</p>
+                </div>
+                
+    </main>
+    <footer class="border-t border-slate-800/80 py-8 text-center text-slate-400 text-sm bg-slate-950/90 backdrop-blur-md mt-auto">
+        <p class="font-mono">&copy; 2026 Putto's Lectures. All rights reserved. <span class="text-cyan-800 font-bold ml-2">| ACCESS SECURED.</span></p>
+    </footer>
+
+    <script>
+        // 전역 상태 변수: 디폴트를 'false'로 변경하여 모든 폴더가 처음에는 접혀있도록 설정합니다.
+        let isAllExpanded = false;
+
+        // 개별 폴더를 펼치거나 접는 함수
+        function toggleFolder(element) {
+            // 클릭된 헤더의 부모 섹션(Section) 및 내부 리스트 컨테이너(Container) 탐색
+            const section = element.closest('.folder-section');
+            const listContainer = section.querySelector('.list-container');
+            const folderIcon = element.querySelector('.folder-icon');
+            const chevronIcon = element.querySelector('.chevron-icon');
+            
+            // 데이터 속성(Data Attributes)에 저장된 아이콘 클래스명 불러오기
+            const baseIcon = element.getAttribute('data-base-icon');
+            const closedIcon = element.getAttribute('data-closed-icon');
+
+            // 현재 리스트가 펼쳐진 상태인지 확인 (CSS Grid 속성 기준)
+            const isExpanded = listContainer.classList.contains('grid-rows-[1fr]');
+
+            if (isExpanded) {
+                // 접기(Collapse) 액션 수행
+                listContainer.classList.remove('grid-rows-[1fr]', 'opacity-100');
+                listContainer.classList.add('grid-rows-[0fr]', 'opacity-0');
+                
+                // 우측 화살표 아이콘 회전
+                chevronIcon.classList.add('rotate-180');
+                
+                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 닫힘 상태로 변경
+                if (baseIcon !== 'fa-server') {
+                    folderIcon.classList.remove('fa-folder-open');
+                    folderIcon.classList.add('fa-folder');
+                }
+            } else {
+                // 펼치기(Expand) 액션 수행
+                listContainer.classList.remove('grid-rows-[0fr]', 'opacity-0');
+                listContainer.classList.add('grid-rows-[1fr]', 'opacity-100');
+                
+                // 우측 화살표 아이콘 원상 복구
+                chevronIcon.classList.remove('rotate-180');
+                
+                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 열림 상태로 변경
+                if (baseIcon !== 'fa-server') {
+                    folderIcon.classList.remove('fa-folder');
+                    folderIcon.classList.add('fa-folder-open');
+                }
+            }
+        }
+
+        // 전체 폴더를 일괄적으로 펼치거나 접는 함수
+        function toggleAllFolders() {
+            // 전역 상태 반전
+            isAllExpanded = !isAllExpanded;
+            
+            // DOM(Document Object Model, 문서 객체 모델)에서 모든 폴더 헤더 요소 선택
+            const headers = document.querySelectorAll('.folder-header');
+            const globalBtnIcon = document.getElementById('global-toggle-icon');
+            const globalBtnText = document.getElementById('global-toggle-text');
+
+            headers.forEach(header => {
+                const section = header.closest('.folder-section');
+                const listContainer = section.querySelector('.list-container');
+                const isCurrentlyExpanded = listContainer.classList.contains('grid-rows-[1fr]');
+
+                // 현재 개별 폴더의 상태가 전역 상태 목표와 다를 경우에만 토글 함수 실행
+                if (isAllExpanded !== isCurrentlyExpanded) {
+                    toggleFolder(header);
+                }
+            });
+
+            // 전역 토글 버튼의 UI(User Interface, 사용자 인터페이스) 업데이트
+            if (isAllExpanded) {
+                globalBtnIcon.classList.remove('fa-folder');
+                globalBtnIcon.classList.add('fa-folder-open');
+                globalBtnText.innerText = 'COLLAPSE ALL';
+            } else {
+                globalBtnIcon.classList.remove('fa-folder-open');
+                globalBtnIcon.classList.add('fa-folder');
+                globalBtnText.innerText = 'EXPAND ALL';
+            }
+        }
+    </script>
+</body>
+</html>
