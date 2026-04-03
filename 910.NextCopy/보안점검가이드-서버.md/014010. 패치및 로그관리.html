@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security & Cloud Hacking Lab</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+        
+        /* 기본 글꼴 및 다크 모드 배경색 설정 */
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            /* 전체 화면 배경 이미지 적용 및 투명도(Overlay) 설정: 텍스트 가시성을 위해 어두운 오버레이 강화 */
+            background-image: linear-gradient(to bottom, rgba(2, 6, 23, 0.75), rgba(2, 6, 23, 0.95)), 
+                              url('image_1a3201.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center center;
+        }
+
+        /* 텍스트 리스트 호버 효과: 터미널 스타일 */
+        .list-hover {
+            transition: all 0.2s ease;
+        }
+        .list-hover:hover {
+            color: #22d3ee; 
+            padding-left: 0.75rem; 
+            background-color: rgba(15, 23, 42, 0.8); 
+            border-left-color: #0ea5e9;
+        }
+
+        /* 텍스트 가시성을 높이는 그림자 효과 클래스 */
+        .text-glow {
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+        }
+        .neon-glow {
+            text-shadow: 0 0 8px rgba(34, 211, 238, 0.6);
+        }
+        
+        /* 커스텀 스크롤바 (선택적 시각 강화) */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+    </style>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+</head>
+<body class="min-h-screen flex flex-col">
+    <header class="py-24 px-6 relative overflow-hidden">
+        
+        <a href="https://putto4u.github.io/06.Hacking-Security" class="absolute top-6 left-6 md:left-10 z-20 group cursor-pointer block" target="_blank" rel="noopener noreferrer">
+            <div class="flex items-center space-x-2 bg-slate-900/80 py-2 px-4 rounded-xl border border-cyan-900/50 backdrop-blur-md shadow-[0_0_15px_rgba(8,145,178,0.2)] transition-all duration-300 group-hover:border-cyan-400/60 group-hover:shadow-[0_0_20px_rgba(34,211,238,0.4)]">
+                <div class="relative flex h-3 w-3 mr-1">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
+                </div>
+                <span class="font-mono text-[10px] md:text-xs text-slate-400 tracking-wider">CHIEF SYSTEM ARCHITECT <span class="text-cyan-500 ml-1">❯</span></span>
+                <span class="font-black text-cyan-300 tracking-widest font-mono text-sm md:text-base neon-glow ml-1">PUTTO</span>
+                <span class="font-bold text-slate-200 tracking-widest font-mono text-sm md:text-base">'S LECTURES</span>
+            </div>
+        </a>
+
+        <div class="max-w-4xl mx-auto relative z-10 text-center mt-8">
+            <div class="inline-flex items-center justify-center space-x-3 mb-8 bg-slate-950/60 p-4 rounded-2xl backdrop-blur-md border border-slate-700/80 shadow-2xl">
+                <i class="fas fa-user-secret text-4xl text-cyan-400 drop-shadow-lg"></i>
+                <span class="text-slate-500">|</span>
+                <i class="fas fa-shield-halved text-4xl text-blue-500 drop-shadow-lg"></i>
+            </div>
+            
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-2 pb-2 bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 via-blue-400 to-indigo-400 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)]">
+                Cloud Security & Hacking Lab
+            </h1>
+            
+            <p class="mt-8 text-slate-100 font-medium text-lg md:text-xl max-w-2xl mx-auto leading-relaxed text-glow">
+                실전 클라우드 인프라 보안 및 모의 해킹 시나리오 연구 자료 저장소
+            </p>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-4xl mx-auto px-6 py-8 w-full">
+
+                <div class="bg-slate-950/90 p-8 md:p-12 rounded-2xl shadow-2xl border border-slate-700/50 backdrop-blur-xl prose prose-invert prose-slate max-w-none prose-img:rounded-xl prose-a:text-cyan-400 hover:prose-a:text-cyan-300 prose-headings:text-slate-100 prose-strong:text-cyan-100">
+                    <h2>1. 주기적 보안 패치 및 벤더 권고사항 적용</h2>
+<p><strong>🚨 보안 위협:</strong> 최신 보안 패치가 적용되지 않을 경우, 이미 세상에 널리 알려진 소프트웨어 취약점을 통하여 공격자가 시스템 침해 및 장악 사고를 일으킬 위험이 상존합니다.
+<strong>⚙️ 조치 시 영향:</strong> OS 관리자 및 서비스 개발자가 패치 적용에 따른 서비스 영향 정도를 사전에 정확히 파악해야 하며, 패치 적용 후 시스템 재부팅이 필요한 경우가 많습니다.</p>
+<h3>점검 및 조치 사례</h3>
+<p><strong>[ SOLARIS ]</strong></p>
+<pre><code class="language-bash">[Oracle support이 존재하지 않는 경우]
+Step 1) IFO에 'i'가 있는 곳에 설치된 패키지 확인
+# pkg list -af entire | head -5
+예시)
+NAME (PUBLISHER)          VERSION                  IFO
+entire                    11.4-11.4.42.0.0.11.0    i--
+entire                    11.4-11.4.0.0.1.15.0     ---
+entire                    0.5.11-0.175.3.1.0.5.3   ---
+
+Step 2) 최신 패키지 확인
+# pkg list -af entire@latest
+예시)
+NAME (PUBLISHER)          VERSION                  IFO
+entire                    11.4-11.4.42.0.0.11.0    i--
+
+Step 3) OS 버전으로 업데이트 후 재부팅
+# pkg update --accept
+
+[Oracle support이 존재하는 경우]
+Step 1) IFO에 'i' 가 있는 곳에 설치된 패키지 확인
+# pkg list -af entire | head -5
+
+Step 2) 최신 패키지 확인
+# pkg list -af entire@latest
+
+Step 3) 업데이트 프리뷰
+# pkg update -nv entire@버전 이름
+
+Step 4) 업데이트 후 재부팅
+# pkg update --accept entire@버전 이름
+# ※ Oracle support 유무를 구분하려면 pkg publisher 명령어를 사용하여 support 리포지토리(repository)를 확인해야 함
+# ※ Oracle support가 없으면 분기별로만 업데이트가 가능함
+</code></pre>
+<p><strong>[ LINUX ]</strong></p>
+<pre><code class="language-bash">Step 1) OS 및 커널 버전 확인
+# hostnamectl
+
+Step 2) EOL(End of Life) 상태가 아닌 지원 가능한 Linux OS 버전으로 업데이트 수행
+
+Step 3) 최신 보안 패치가 적용된 Kernel(커널) 버전으로 업데이트 수행
+</code></pre>
+<p><strong>[ AIX ]</strong></p>
+<pre><code class="language-bash">[패치 적용 방법]
+Step 1) 설치된 OS 또는 버전 확인
+# oslevel -s
+
+Step 2) 서버에 적용되어 있는 패치 리스트 확인
+# instfix -i | grep ML
+# instfix -i | grep SP
+
+Step 3) IBM 공식 사이트에 접속하여 최신 패치를 찾아 업데이트 파일 확보
+
+Step 4) 최신 패치를 다운로드 받은 후 OS 패치 설치 진행
+# smitty installp
+
+Step 5) 'Install Software' 선택 후 'INPUT device / directory for software' 항목에 패치 파일 경로 입력
+
+Step 6) 'SOFTWARE to install' 항목에서 'all-latest' 선택
+
+Step 7) 'ACCEPT new license agreements' 항목을 'yes'로 설정 후 설치 진행
+# ※ 패치 진행 중 문제가 발생한 경우, Apply 설치만 기본 버전으로 재설정 가능
+# ※ Apply, Commit 된 패키지 확인은 'lslpp -l' 명령어로 확인 가능
+
+[패치 롤백 적용 방법]
+Step 1) 설치된 OS 또는 버전 확인
+# oslevel -s
+
+Step 2) 서버에 적용되어 있는 패치 리스트 확인
+# instfix -i | grep ML
+
+Step 3) OS 패치 롤백 진행
+# smitty install_reject
+
+Step 4) 'SOFTWARE name' 항목에서 Apply 설치된 OS Patch 선택 후 'Preview' 항목을 'Yes'로 설정
+
+Step 5) 소프트웨어 제거에 문제가 없는지 사전 확인 후 본격적인 롤백 진행
+</code></pre>
+<p><strong>[ HP-UX ]</strong></p>
+<pre><code class="language-bash">[패치 적용 방법]
+Step 1) 서버에 적용된 패치 리스트 확인
+# swlist -l product
+
+Step 2) HP(HPE) 공식 지원 사이트에 접속 후 패치 파일을 찾아 업데이트
+
+Step 3) 다운로드한 patch 파일을 /tmp 디렉터리 내 저장
+예시) /tmp/patch_10
+
+Step 4) HP-UX에서 shell archive(쉘 아카이브)를 해제
+# sh patch_10
+# ※ 실행 시 patch_10.depot, patch_10.text 파일이 생성됨
+
+Step 5) patch_10.depot 설치
+# swinstall -s /tmp/patch_10.depot (절대경로 입력)
+# swinstall -x autoreboot=true -x patch_match_target=true \ -s /tmp/patch_10.depot
+</code></pre>
+<blockquote>
+<p><strong>📖 전문 용어 해설</strong>
+* <strong>Kernel(커널):</strong> 운영체제의 가장 깊숙한 핵심부로 시스템의 하드웨어 리소스(CPU, 메모리 등)를 통제하고 관리하는 중추 프로그램입니다.
+* <strong>EOL(End of Life, 수명 주기 종료):</strong> 소프트웨어나 운영체제 버전의 벤더사(제조사) 공식적인 기술 지원 및 보안 업데이트 제공이 영구적으로 종료되는 시점을 의미합니다.</p>
+</blockquote>
+<p><br><br><br></p>
+<h2>2. NTP 및 시각 동기화 설정</h2>
+<p><strong>🚨 보안 위협:</strong> 다수의 시스템 간 시각 동기화가 원활하게 이루어지지 않을 경우, 침해 보안 사고나 시스템 장애 발생 시 다수 장비의 로그 기록 시간대가 어긋나 책임 추적 및 로그에 대한 신뢰도 확보가 불가능해지는 위험이 존재합니다.
+<strong>⚙️ 조치 시 영향:</strong> 안전하고 승인된 NTP 서비스 서버와 통신해야 하므로 방화벽 포트 오픈(UDP 123)이 필요할 수 있으며 일반적인 운영 기능에는 영향을 주지 않습니다.</p>
+<h3>점검 및 조치 사례</h3>
+<p><strong>[ SOLARIS, AIX, HP-UX ]</strong></p>
+<pre><code class="language-bash">Step 1) 동기화된 NTP 서버 확인
+# ntpq -pn
+예시) 
+     remote           refid      st t when poll reach   delay   offset  jitter
+==============================================================================
+*&lt;IP 주소1&gt;       &lt;IP 주소2&gt;  3 u   67   64   12    3.110 -425.167 7877.170
+
+Step 2) /etc/ntp.conf 파일 내의 NTP 설정값 수정(필요시 기존 서버 제거 후 새로운 NTP 서버 추가)
+server &lt;NTP 서버 IP 또는 도메인&gt;
+
+Step 3) NTP 서비스 데몬 재시작
+</code></pre>
+<p><strong>[ LINUX ]</strong></p>
+<pre><code class="language-bash">[NTP 데몬을 사용하는 경우]
+Step 1) NTP 서비스 활성화 여부 확인
+# systemctl list-units --type=service | grep ntp
+
+Step 2) 동기화된 NTP 서버 확인
+# ntpq -pn
+
+Step 3) /etc/ntp.conf 파일 내에 NTP 서버 설정 추가
+server &lt;NTP 서버 IP 또는 도메인&gt;
+
+Step 4) 설정 적용 및 서비스 재시작
+# systemctl restart ntp
+# ※ 최신 Redhat 계열 리눅스는 RHEL 8 버전부터 기본 시각 동기화가 Chrony 서비스로 변경됨
+
+[Chrony 데몬을 사용하는 경우]
+Step 1) Chrony 서비스 활성화 여부 확인
+# systemctl list-units --type=service | grep chrony
+
+Step 2) 동기화된 Chrony 서버 확인
+# chronyc sources
+예시)
+^- &lt;IP 주소&gt; 3 6 37 4 -135us[ +209us] +/- 56ms
+
+Step 3) /etc/chrony.conf 파일 내에 NTP 서버 설정 추가
+server &lt;NTP 서버 IP 또는 도메인&gt;
+
+Step 4) 설정 적용 및 서비스 재시작
+# systemctl restart chronyd
+</code></pre>
+<blockquote>
+<p><strong>📖 전문 용어 해설</strong>
+* <strong>NTP(Network Time Protocol, 네트워크 시간 프로토콜):</strong> 네트워크 상에 연결된 다양한 컴퓨터, 라우터, 보안 장비들의 시스템 시각을 1/1000초 단위까지 정확하게 일치시켜 동기화하기 위해 설계된 인터넷 표준 프로토콜입니다.</p>
+</blockquote>
+<p><br><br><br></p>
+<h2>3. 정책에 따른 시스템 로깅 설정</h2>
+<p><strong>🚨 보안 위협:</strong> 법적 요구 사항이나 사내 보안 정책에 부합하는 로깅 설정이 적용되지 않을 경우, 심각한 침해 사고 발생 시 원인 규명이 어려우며 법적 대응을 위한 충분한 포렌식 증거로 사용할 수 없는 치명적 위험이 존재합니다.
+<strong>⚙️ 조치 시 영향:</strong> 불필요하게 모든 로그 레벨(디버그 등)을 과도하게 수집할 경우, 시스템 성능 저하 및 로그 저장용 디스크 파티션의 용량 부족 문제가 발생할 수 있으므로 신중하게 적용해야 합니다.</p>
+<h3>점검 및 조치 사례</h3>
+<p><strong>[ SOLARIS ]</strong></p>
+<pre><code class="language-bash">[syslog를 사용하는 경우]
+Step 1) /etc/syslog.conf 파일 내에 설정된 로그 기록 정책 확인 및 수정
+Step 2) 설정 적용 및 시스템 로그 데몬 재시작
+# svcadm refresh svc:/system/system-log:default
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>로그 종류</th>
+<th>로그 파일 기록 경로</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>mail.debug</td>
+<td>/var/log/mail.log</td>
+</tr>
+<tr>
+<td>*.info</td>
+<td>/var/log/syslog.log</td>
+</tr>
+<tr>
+<td>*.alert</td>
+<td>/var/log/syslog.log</td>
+</tr>
+<tr>
+<td>*.alert</td>
+<td>/dev/console</td>
+</tr>
+<tr>
+<td>*.alert</td>
+<td>root</td>
+</tr>
+<tr>
+<td>*.emerg</td>
+<td>*</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="language-bash">[rsyslog를 사용하는 경우]
+Step 1) /etc/rsyslog.conf 파일 내에 설정된 로그 기록 정책 확인 및 수정
+Step 2) 설정 적용 및 시스템 로그 데몬 재시작
+# svcadm refresh svc:/system/system-log:rsyslog
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>로그 종류</th>
+<th>로그 파일 기록 경로</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>*.info;mail.none;authpriv.none;cron.none</td>
+<td>/var/log/messages</td>
+</tr>
+<tr>
+<td>authpriv.*</td>
+<td>/var/log/auth.log</td>
+</tr>
+<tr>
+<td>mail.*</td>
+<td>/var/log/mail.log</td>
+</tr>
+<tr>
+<td>cron.*</td>
+<td>/var/log/cron.log</td>
+</tr>
+<tr>
+<td>alert.*</td>
+<td>/dev/console</td>
+</tr>
+<tr>
+<td>emerg.*</td>
+<td>*</td>
+</tr>
+</tbody>
+</table>
+<p><strong>[ LINUX ]</strong></p>
+<pre><code class="language-bash">Step 1) /etc/rsyslog.conf 또는 /etc/rsyslog.d/default.conf 파일 내에 설정된 로그 기록 정책 확인 및 수정
+Step 2) 설정 적용 및 데몬 재시작
+# systemctl restart rsyslog
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>로그 종류</th>
+<th>로그 파일 기록 경로</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>*.info;mail.none;authpriv.none;cron.none</td>
+<td>/var/log/messages</td>
+</tr>
+<tr>
+<td>auth,authpriv.*</td>
+<td>/var/log/secure</td>
+</tr>
+<tr>
+<td>mail.*</td>
+<td>/var/log/maillog</td>
+</tr>
+<tr>
+<td>cron.*</td>
+<td>/var/log/cron</td>
+</tr>
+<tr>
+<td>*.alert</td>
+<td>/dev/console</td>
+</tr>
+<tr>
+<td>*.emerg</td>
+<td>*</td>
+</tr>
+</tbody>
+</table>
+<p><strong>[ AIX ]</strong></p>
+<pre><code class="language-bash">Step 1) /etc/syslog.conf 파일 내에 설정된 로그 기록 정책 수정
+Step 2) 설정 적용 및 데몬 리프레시
+# refresh -s syslogd
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>로그 종류</th>
+<th>로그 파일 기록 경로</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>*.emerg</td>
+<td>*</td>
+</tr>
+<tr>
+<td>*.alert</td>
+<td>/dev/console</td>
+</tr>
+<tr>
+<td>*.alert</td>
+<td>/var/adm/alert.log</td>
+</tr>
+<tr>
+<td>*.err</td>
+<td>/var/adm/error.log</td>
+</tr>
+<tr>
+<td>mail.info</td>
+<td>/var/adm/mail.log</td>
+</tr>
+<tr>
+<td>auth.info</td>
+<td>/var/adm/auth.log</td>
+</tr>
+<tr>
+<td>daemon.info</td>
+<td>/var/adm/daemon.log</td>
+</tr>
+<tr>
+<td><em>.emerg;</em>.alert;<em>.crit;</em>.err;<em>.warning;</em>.notice;*.info</td>
+<td>/var/adm/messages</td>
+</tr>
+</tbody>
+</table>
+<p><strong>[ HP-UX ]</strong></p>
+<pre><code class="language-bash">Step 1) /etc/syslog.conf 파일 내에 설정된 로그 기록 정책 수정
+Step 2) SYSLOG 데몬 프로세스 강제 리로드 재시작
+# kill -1 &lt;SYSLOG_PID&gt;
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>로그 종류</th>
+<th>로그 파일 기록 경로</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>*.emerg</td>
+<td>*</td>
+</tr>
+<tr>
+<td>*.alert</td>
+<td>/dev/console</td>
+</tr>
+<tr>
+<td>*.alert</td>
+<td>root</td>
+</tr>
+<tr>
+<td>*.err</td>
+<td>/var/adm/syslog/error.log</td>
+</tr>
+<tr>
+<td>mail.info</td>
+<td>/var/adm/syslog/mail.log</td>
+</tr>
+<tr>
+<td>auth.info</td>
+<td>/var/adm/syslog/auth.log</td>
+</tr>
+<tr>
+<td><em>.emerg;</em>.alert;<em>.crit;</em>.err;<em>.warning;</em>.notice;*.info</td>
+<td>/var/adm/syslog/syslog.log</td>
+</tr>
+</tbody>
+</table>
+<p><strong>[ syslog.conf 파일 문법 및 형식 규격 ]</strong></p>
+<table>
+<thead>
+<tr>
+<th>구분</th>
+<th>왼쪽 필드(Facility.Priority)</th>
+<th>오른쪽 필드(Action)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>형식</strong></td>
+<td>A.B</td>
+<td>C</td>
+</tr>
+<tr>
+<td><strong>예시</strong></td>
+<td>mail.debug;cron.crit;auth.info</td>
+<td>/var/log/syslog.log</td>
+</tr>
+<tr>
+<td><strong>설명</strong></td>
+<td>A라는 서비스 데몬의 B라는 로그 레벨 이상 발생 시</td>
+<td>C에 해당하는 지정된 파일이나 콘솔 등에 기록</td>
+</tr>
+</tbody>
+</table>
+<p><strong>[ 오른쪽 필드(Action) 로그 전송 형식 종류 ]</strong></p>
+<table>
+<thead>
+<tr>
+<th>지시자 형식</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/var/log/syslog.log</td>
+<td>지정된 절대 경로의 로컬 파일에 일반 텍스트 형태로 로그를 기록</td>
+</tr>
+<tr>
+<td>/dev/console</td>
+<td>모니터 화면과 같은 지정된 콘솔 디바이스로 메시지 실시간 출력</td>
+</tr>
+<tr>
+<td>user명</td>
+<td>특정하게 지정된 사용자가 로그인해 있는 화면 터미널에 메시지 출력</td>
+</tr>
+<tr>
+<td>*</td>
+<td>현재 시스템에 로그인되어 있는 모든 사용자의 화면 터미널에 메시지 강제 출력</td>
+</tr>
+<tr>
+<td>@192.168.0.1</td>
+<td>로컬에 저장하지 않고 지정된 원격 호스트(통합 로그 서버)로 UDP를 통해 로그 패킷 전송</td>
+</tr>
+</tbody>
+</table>
+<p><strong>[ 메시지 발생 서비스 데몬(Facility) 종류 ]</strong></p>
+<table>
+<thead>
+<tr>
+<th>데몬 종류</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>auth</td>
+<td>로그인, su 등 시스템 인증 프로그램 유형에서 발행된 메시지</td>
+</tr>
+<tr>
+<td>authpriv</td>
+<td>SSH, FTP 등 개인 인증을 요구하는 프로그램 유형에서 상세히 발행된 보안 메시지</td>
+</tr>
+<tr>
+<td>cron</td>
+<td>cron, at 데몬 등 작업 스케줄러에서 발행된 상태 및 오류 메시지</td>
+</tr>
+<tr>
+<td>daemon</td>
+<td>Telnet, FTP, HTTP 등 시스템 백그라운드에서 동작하는 데몬이 발행한 메시지</td>
+</tr>
+<tr>
+<td>kern</td>
+<td>커널 자체의 최하위 레벨에서 치명적이거나 일반 상태 점검용으로 발행된 메시지</td>
+</tr>
+<tr>
+<td>lpr</td>
+<td>프린터 및 스풀 유형의 인쇄 프로그램에서 발행된 메시지</td>
+</tr>
+<tr>
+<td>mail</td>
+<td>Sendmail 등 메일 시스템 프로세스 구동 시 발행된 메시지</td>
+</tr>
+<tr>
+<td>news</td>
+<td>유즈넷 및 뉴스 프로그램에서 발행된 네트워크 메시지</td>
+</tr>
+<tr>
+<td>syslog</td>
+<td>syslog 데몬 프로세스 자체의 시작, 중지, 오류 관련 내부 발생 메시지</td>
+</tr>
+<tr>
+<td>user</td>
+<td>커널이 아닌 일반 사용자 레벨 프로세스와 연관되어 발행된 메시지</td>
+</tr>
+<tr>
+<td>uucp</td>
+<td>원격 통신 관련 uucp 시스템에서 발행된 메시지</td>
+</tr>
+<tr>
+<td>local0 ~ 7</td>
+<td>시스템 관리자나 커스텀 애플리케이션이 필요에 따라 자유롭게 사용할 수 있도록 여분으로 남겨둔 유형</td>
+</tr>
+</tbody>
+</table>
+<p><strong>[ 메시지 중요도(Priority/Level) 우선순위 등급 ]</strong></p>
+<table>
+<thead>
+<tr>
+<th>순위 단계</th>
+<th>로그 레벨 명칭</th>
+<th>상세 설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>4 (가장 높음)</td>
+<td>emerg (panic)</td>
+<td>시스템이 사용할 수 없을 정도로 극도로 매우 위험하고 치명적인 패닉 상황</td>
+</tr>
+<tr>
+<td>3</td>
+<td>alert</td>
+<td>즉시 전면적인 점검 및 즉각적인 조치를 해야만 하는 위험 상황</td>
+</tr>
+<tr>
+<td>2</td>
+<td>crit</td>
+<td>하드웨어 디스크 불량 등의 심각한 치명적 오류가 발생한 상황</td>
+</tr>
+<tr>
+<td>1</td>
+<td>err (error)</td>
+<td>일반적인 소프트웨어 에러 발생 시 경고하는 상황</td>
+</tr>
+<tr>
+<td>0</td>
+<td>warning (warn)</td>
+<td>즉시 장애로 이어지지는 않으나 각별한 주의를 요구하는 경고성 메시지</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>notice</td>
+<td>에러 단계는 아니나 단순 알림 이상의 주요 시스템 변경에 관한 메시지</td>
+</tr>
+<tr>
+<td>-2</td>
+<td>info</td>
+<td>정상적인 프로세스 부팅 등 단순한 프로그램의 동작 상태에 대한 정보 메시지</td>
+</tr>
+<tr>
+<td>-3 (가장 낮음)</td>
+<td>debug</td>
+<td>프로그램 실행 과정을 매우 상세히 추적할 수 있도록 돕는 디버깅 목적의 오류 분석 메시지</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>📖 전문 용어 해설</strong>
+* <strong>Syslog(시스템 로그):</strong> 다양한 애플리케이션과 유닉스/리눅스 운영체제 자체에서 발생하는 상태 변화, 보안 경고, 시스템 내부 오류 등의 이벤트를 일괄적으로 수집하여, 표준화된 텍스트 형식으로 로컬 파일에 적재하거나 원격 네트워크 보안 장비로 실시간 전송하는 시스템의 핵심 로깅 프로토콜입니다.</p>
+</blockquote>
+<p><br><br><br></p>
+<h2>4. 로그 디렉터리 소유자 및 권한 설정</h2>
+<p><strong>🚨 보안 위협:</strong> 로그가 적재되는 핵심 디렉터리 및 파일에 대한 접근 통제가 미흡할 경우, 비인가자나 내부 악의적 사용자가 로그 파일을 무단 열람하여 주요 보안 정보를 획득하거나 자신의 해킹 침입 흔적을 지우기 위해 로그 자체를 삭제 및 변조할 수 있는 위험이 존재합니다.
+<strong>⚙️ 조치 시 영향:</strong> 관리자(root) 이외의 일반 애플리케이션 서비스 계정이 직접 로그 디렉터리에 파일을 생성하도록 하드코딩 되어 있는 경우 에러가 발생할 수 있으므로 사전 검토가 필요합니다.</p>
+<h3>점검 및 조치 사례</h3>
+<p><strong>[ SOLARIS, LINUX ]</strong></p>
+<pre><code class="language-bash">Step 1) /var/log/ 디렉터리 내 로그 파일의 소유자 및 권한 변경
+# chown root /var/log/&lt;해당 로그 파일 이름&gt;
+# chmod 644 /var/log/&lt;해당 로그 파일 이름&gt;
+</code></pre>
+<p><strong>[ AIX ]</strong></p>
+<pre><code class="language-bash">Step 1) /var/adm/ 디렉터리 내 로그 파일의 소유자 및 권한 변경
+# chown root /var/adm/&lt;해당 로그 파일 이름&gt;
+# chmod 644 /var/adm/&lt;해당 로그 파일 이름&gt;
+</code></pre>
+<p><strong>[ HP-UX ]</strong></p>
+<pre><code class="language-bash">Step 1) /var/adm/syslog/ 디렉터리 내 로그 파일의 소유자 및 권한 변경
+# chown root /var/adm/syslog/&lt;해당 로그 파일 이름&gt;
+# chmod 644 /var/adm/syslog/&lt;해당 로그 파일 이름&gt;
+</code></pre>
+<blockquote>
+<p><strong>📖 전문 용어 해설</strong>
+* <strong>권한 변경(chmod, Change Mode):</strong> 리눅스 및 유닉스 시스템에서 특정 파일이나 디렉터리에 대하여 소유자, 그룹, 일반 사용자들이 읽기(Read, r), 쓰기(Write, w), 실행(Execute, x)을 수행할 수 있는 권한 수준을 숫자로 조합하여 변경하는 핵심 명령어입니다.</p>
+</blockquote>
+<p><br><br><br></p>
+<hr>
+
+<p>Next Step: II. Windows 서버 중 1. 계정 관리(Administrator 계정 이름 변경 등) 보안 점검 항목 정리</p>
+                </div>
+                
+    </main>
+    <footer class="border-t border-slate-800/80 py-8 text-center text-slate-400 text-sm bg-slate-950/90 backdrop-blur-md mt-auto">
+        <p class="font-mono">&copy; 2026 Putto's Lectures. All rights reserved. <span class="text-cyan-800 font-bold ml-2">| ACCESS SECURED.</span></p>
+    </footer>
+
+    <script>
+        // 전역 상태 변수: 디폴트를 'false'로 변경하여 모든 폴더가 처음에는 접혀있도록 설정합니다.
+        let isAllExpanded = false;
+
+        // 개별 폴더를 펼치거나 접는 함수
+        function toggleFolder(element) {
+            // 클릭된 헤더의 부모 섹션(Section) 및 내부 리스트 컨테이너(Container) 탐색
+            const section = element.closest('.folder-section');
+            const listContainer = section.querySelector('.list-container');
+            const folderIcon = element.querySelector('.folder-icon');
+            const chevronIcon = element.querySelector('.chevron-icon');
+            
+            // 데이터 속성(Data Attributes)에 저장된 아이콘 클래스명 불러오기
+            const baseIcon = element.getAttribute('data-base-icon');
+            const closedIcon = element.getAttribute('data-closed-icon');
+
+            // 현재 리스트가 펼쳐진 상태인지 확인 (CSS Grid 속성 기준)
+            const isExpanded = listContainer.classList.contains('grid-rows-[1fr]');
+
+            if (isExpanded) {
+                // 접기(Collapse) 액션 수행
+                listContainer.classList.remove('grid-rows-[1fr]', 'opacity-100');
+                listContainer.classList.add('grid-rows-[0fr]', 'opacity-0');
+                
+                // 우측 화살표 아이콘 회전
+                chevronIcon.classList.add('rotate-180');
+                
+                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 닫힘 상태로 변경
+                if (baseIcon !== 'fa-server') {
+                    folderIcon.classList.remove('fa-folder-open');
+                    folderIcon.classList.add('fa-folder');
+                }
+            } else {
+                // 펼치기(Expand) 액션 수행
+                listContainer.classList.remove('grid-rows-[0fr]', 'opacity-0');
+                listContainer.classList.add('grid-rows-[1fr]', 'opacity-100');
+                
+                // 우측 화살표 아이콘 원상 복구
+                chevronIcon.classList.remove('rotate-180');
+                
+                // 루트 디렉터리가 아닌 경우에만 폴더 아이콘 열림 상태로 변경
+                if (baseIcon !== 'fa-server') {
+                    folderIcon.classList.remove('fa-folder');
+                    folderIcon.classList.add('fa-folder-open');
+                }
+            }
+        }
+
+        // 전체 폴더를 일괄적으로 펼치거나 접는 함수
+        function toggleAllFolders() {
+            // 전역 상태 반전
+            isAllExpanded = !isAllExpanded;
+            
+            // DOM(Document Object Model, 문서 객체 모델)에서 모든 폴더 헤더 요소 선택
+            const headers = document.querySelectorAll('.folder-header');
+            const globalBtnIcon = document.getElementById('global-toggle-icon');
+            const globalBtnText = document.getElementById('global-toggle-text');
+
+            headers.forEach(header => {
+                const section = header.closest('.folder-section');
+                const listContainer = section.querySelector('.list-container');
+                const isCurrentlyExpanded = listContainer.classList.contains('grid-rows-[1fr]');
+
+                // 현재 개별 폴더의 상태가 전역 상태 목표와 다를 경우에만 토글 함수 실행
+                if (isAllExpanded !== isCurrentlyExpanded) {
+                    toggleFolder(header);
+                }
+            });
+
+            // 전역 토글 버튼의 UI(User Interface, 사용자 인터페이스) 업데이트
+            if (isAllExpanded) {
+                globalBtnIcon.classList.remove('fa-folder');
+                globalBtnIcon.classList.add('fa-folder-open');
+                globalBtnText.innerText = 'COLLAPSE ALL';
+            } else {
+                globalBtnIcon.classList.remove('fa-folder-open');
+                globalBtnIcon.classList.add('fa-folder');
+                globalBtnText.innerText = 'EXPAND ALL';
+            }
+        }
+    </script>
+</body>
+</html>
